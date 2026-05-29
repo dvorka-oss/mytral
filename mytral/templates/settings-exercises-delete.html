@@ -1,0 +1,5 @@
+{% from 'lib-entity-crud.html' import mytral_crud_delete_page %}
+{%extends "layout.html"%}
+{% block content %}
+{{ mytral_crud_delete_page('Exercise', key, form, url_for('settings_exercises_list'), name) }}
+{% endblock %}

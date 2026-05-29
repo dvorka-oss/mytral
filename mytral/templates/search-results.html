@@ -1,0 +1,129 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">
+                    Search Results
+                    <span class="badge bg-blue text-blue-fg badge-pill ms-2">{{ q }}</span>
+                    <span class="badge bg-black text-indigo-fg badge-pill ms-1">{{ activities|length }}</span>
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('home') }}" class="btn">
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                {% if not activities %}
+                <p class="text-muted">
+                    No activities found matching <b>{{ q }}</b>.
+                </p>
+                {% else %}
+                <p class="text-muted mb-3">
+                    Found <b>{{ activities|length }}</b> {{ "activity" if activities|length == 1 else "activities" }} matching <b>{{ q }}</b>, sorted by date (latest first).
+                </p>
+                <div class="table-responsive mt-3">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>Name<br/>Gear</th>
+                                <th>Type</th>
+                                {% if not is_mobile %}
+                                <th>Duration</th>
+                                <th>Distance<br/>Elevation</th>
+                                <th>km/h<br/>Pace</th>
+                                <th title="Exercises and Laps">Exs<br>Lps</th>
+                                <th>Source</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in activities %}
+                            <tr>
+                                <td>
+                                    <div class="ps-2 mytral-{{ activity_types.color(activity.activity_type_key) }}-border">
+                                        <a href="{{ url_for('get_activity', key=activity.key) }}">{{ activity.when }}</a>
+                                        <br/>
+                                        <span class="text-muted">{{ activities_weekdays[activity.key] }}</span>
+                                        {% if activity.commute %}
+                                        | <span class="badge bg-green-lt">commute</span>
+                                        {% elif activity.warm_up %}
+                                        | <span class="badge bg-yellow-lt">warm-up</span>
+                                        {% elif activity.cool_down %}
+                                        | <span class="badge bg-blue-lt">cool-down</span>
+                                        {% elif activity.race %}
+                                        | <span class="badge bg-red-lt">race</span>
+                                        {% elif activity.ranked %}
+                                        | <span class="badge bg-orange-lt">ranked</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td title="{{ activity.description }}">
+                                    <b>{{ activity.name }}</b>
+                                    <br>
+                                    {% set activity_gears = activity.gears if activity.gears is defined else ([activity.gear] if activity.gear else []) %}
+                                    {% for gear_key in activity_gears %}
+                                        {% if gear_key and not gear.to_dict().get(gear_key) %}
+                                        <span class="text-danger">{{ gear_key }}</span>
+                                        {% else %}
+                                        {{ gear.to_dict().get(gear_key, {}).name }}
+                                        {% endif %}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {{ activity_types.emoji(activity.activity_type_key) }}
+                                    <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
+                                </td>
+                                {% if not is_mobile %}
+                                <td>
+                                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                                    {{ activity.duration }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                    {{ "{:0,}".format(activity.distance) }} m<br/>
+                                    {{ "{:0,}".format(activity.elevation_gain) }} m
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                    {{ (activity.avg_speed)|round(1) }}<br/>
+                                    {{ activity.pace }}
+                                    {% endif %}
+                                </td>
+                                <td title="Exercises and laps">
+                                    {% if activity.activity_type_key not in ["sick","injured","comment","meditation","physio"] %}
+                                    {{ activity.exercises|length }}
+                                    {% endif %}
+                                    <br/>
+                                    {% if activity.activity_type_key not in ["sick","injured","comment","meditation","physio"] and activity.laps and activity.laps|length > 0 %}
+                                    {{ activity.laps|length }}
+                                    {% endif %}
+                                </td>
+                                <td><span {% if activity.src == "strava" %}class="badge bg-orange-lt" {% endif %}>{{ activity.src }}</span></td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

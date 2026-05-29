@@ -1,0 +1,2252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MyTraL - Sovereign Athlete Training Log for Deeper Insights and Smarter Progress</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <meta
+      name="description"
+      content="MyTraL is personal training log for deeper insights and smarter progress."
+    />
+    <meta name="canonical" content="https://preview.tabler.io/layout-navbar-sticky.html" />
+    {# BEGIN PAGE LEVEL STYLES #}
+    <link href="{{ url_for('static', filename='tabler-dist/libs/jsvectormap/dist/jsvectormap.css') }}" rel="stylesheet" />
+    {# END PAGE LEVEL STYLES #}
+    {# BEGIN GLOBAL MANDATORY STYLES #}
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='leaflet/leaflet.css') }}" rel="stylesheet" />
+    {# END GLOBAL MANDATORY STYLES #}
+    {# BEGIN PLUGINS STYLES #}
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-flags.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-socials.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-payments.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-vendors.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-marketing.min.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler-themes.min.css') }}" rel="stylesheet"/>
+    {# END PLUGINS STYLES #}
+    {# BEGIN CUSTOM FONT #}
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+    </style>
+    {# Bokeh chart library #}
+    <script type="application/javascript" src="{{ url_for('static', filename='bokeh-3.8.2.min.js') }}" crossorigin="anonymous"></script>
+    <script type="application/javascript" src="{{ url_for('static', filename='bokeh-widgets-3.8.2.min.js') }}" crossorigin="anonymous"></script>
+    <script type="application/javascript" src="{{ url_for('static', filename='bokeh-tables-3.8.2.min.js') }}" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+    {# END CUSTOM FONT #}
+    {# TODO LEGACY MyTraL scripts and styles #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='w3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mytral.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mytral-tabler.css') }}">
+    {# END LEGACY MyTraL scripts and styles #}
+
+  </head>
+  <body>
+    {# BEGIN GLOBAL THEME SCRIPT #}
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler-theme.min.js') }}"></script>
+    {# END GLOBAL THEME SCRIPT #}
+    <div class="page">
+      {# BEGIN NAVBAR  #}
+      <div class="sticky-top">
+        <header class="navbar navbar-expand-md sticky-top d-print-none">
+          <div class="container-xl">
+            {# BEGIN NAVBAR TOGGLER #}
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar-menu"
+              aria-controls="navbar-menu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            {# END NAVBAR TOGGLER #}
+            {# BEGIN NAVBAR LOGO #}
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3" style="gap: 0px;">
+              <img src="{{ url_for('static', filename='images/mytral-logo-transparent-bg.png') }}" alt="MyTraL" style="width: 25px; height: 25px; margin-right: 5px;">
+                MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span>
+            </div>
+            {# END NAVBAR LOGO #}
+            {# BEGIN NAVBAR SEARCH - centered between logo and right items #}
+            <div class="flex-fill d-none d-md-flex justify-content-center">
+              <form action="{{ url_for('search_activities') }}" method="get" style="width: 100%; max-width: 400px;">
+                <div class="input-icon">
+                  <span class="input-icon-addon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                      <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                      <path d="M21 21l-6 -6" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    name="q"
+                    value="{{ q | default('') }}"
+                    placeholder="Search…"
+                    class="form-control"
+                    autocomplete="off"
+                    aria-label="Search activities"
+                  >
+                </div>
+              </form>
+            </div>
+            {# END NAVBAR SEARCH #}
+            <div class="navbar-nav flex-row order-md-last">
+              {% if user_profile.expert %}
+              <div class="nav-item d-none d-md-flex me-3">
+                <div class="btn-list">
+                  <a href="{{ url_for('settings') }}" class="btn btn-5" title="Selected activities dataset">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-database"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0" /><path d="M4 6v6a8 3 0 0 0 16 0v-6" /><path d="M4 12v6a8 3 0 0 0 16 0v-6" /></svg>
+                    {{ user_profile.dataset_name }}
+                  </a>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="d-none d-md-flex">
+                {% if user_profile.strava_client_id and user_profile.strava_client_secret %}
+                <div class="nav-item">
+                  <a href="{{ url_for('strava_api_developer') }}" class="nav-link px-0 position-relative" title="Synchronize activities w/ your favorite sport tracker service" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <span class="position-relative">
+                      <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                      {% if sync_locked %}
+                      <span class="badge badge-notification bg-warning badge-blink p-1"
+                            title="Synchronization in progress - read-only mode"></span>
+                      {% endif %}
+                    </span>
+                  </a>
+                </div>
+                {% endif %}
+
+                {# background tasks shortcut #}
+                <div class="nav-item">
+                  <a href="{{ url_for('tasks_list') }}" class="nav-link px-0" title="Background Tasks" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <span class="position-relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-clock"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 7v5l3 3" /></svg>
+                      {% if running_tasks_count > 0 %}
+                      <span class="badge badge-dot bg-green badge-notification badge-blink"></span>
+                      {% endif %}
+                    </span>
+                  </a>
+                </div>
+
+                <div class="nav-item">
+                  <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+                    </svg>
+                  </a>
+
+                  <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                      <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
+                  </a>
+                </div>
+                <div class="nav-item dropdown d-none d-md-flex">
+                  {# notifications #}
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% set messages_has_error = messages | rejectattr('0', 'in', ['success', 'info', 'message']) | list | length > 0 %}
+
+                  <a
+                    href="#"
+                    title="Notifications"
+                    class="nav-link px-0"
+                    data-bs-toggle="dropdown"
+                    tabindex="-1"
+                    aria-label="Show notifications"
+                    data-bs-auto-close="outside"
+                    aria-expanded="false"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+                      <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+                    </svg>
+                    {# notification green / red dot #}
+                    {% if messages %}
+                        {% if messages_has_error %}
+                        <span class="badge bg-red"></span>
+                        {% else %}
+                        <span class="badge bg-green"></span>
+                        {% endif %}
+                    {% endif %}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
+                    <div class="card">
+                      <div class="card-header d-flex">
+                        <div class="btn-close ms-auto" data-bs-dismiss="dropdown"></div>
+                      </div>
+                      {# list notifications #}
+                      {% if messages %}
+                          <div class="list-group list-group-flush list-group-hoverable">
+                          {% for category, message in messages %}
+                              {% if category in ['success', 'info', 'message'] %}
+
+                                <div class="list-group-item">
+                                  <div class="row align-items-center">
+                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
+                                    <div class="col text-truncate">
+                                      {# <a href="#" class="text-body d-block">Example 4</a> #}
+                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              {% else %}
+                                <div class="list-group-item">
+                                  <div class="row align-items-center">
+                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
+                                    <div class="col text-truncate">
+                                      {# <a href="#" class="text-body d-block">Example 1</a> #}
+                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              {% endif %}
+                          {% endfor %}
+                        </div>
+                      {% endif %}
+                    {# ^ with messages #}
+                    {% endwith %}
+                    {# clear notifications
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col">
+                            <a href="#" class="btn btn-2 w-100"> Archive all </a>
+                          </div>
+                          <div class="col">
+                            <a href="#" class="btn btn-2 w-100"> Mark all as read </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    #}
+                  </div>
+                </div>
+              </div>
+
+              <div class="nav-item">
+                  <a href="https://opencollective.com/dvorka-floss-lab" target="_blank" class="nav-link px-0" title="Support MyTraL" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon text-pink icon-tabler icons-tabler-outline icon-tabler-heart"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /></svg>
+                  </a>
+              </div>
+
+              <div class="nav-item dropdown">
+                <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown" aria-label="Open user menu">
+                  {% if user_profile and user_profile.avatar_blob_key %}
+                  <img src="{{ url_for('get_user_avatar_thumbnail') }}" class="avatar avatar-sm" alt="{{ user_profile.user }}"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='';">
+                  <span class="avatar" style="display:none;">{{ user_profile.user[0] | upper }}{{ user_profile.user[-1] | upper }}</span>
+                  {% else %}
+                    {% set first_initial = user_profile.user[0] | upper %}
+                    {% set last_initial = user_profile.user[-1] | upper %}
+                    <span class="avatar">{{ first_initial }}{{ last_initial }}</span>
+                  {% endif %}
+                  <div class="d-none d-xl-block ps-2">
+                    {% if user_profile and user_profile.display_name %}
+                    <div>{{ user_profile.display_name }}</div>
+                    {% else %}
+                    <div>{{ user_profile.user }}</div>
+                    {% endif %}
+                    <div class="mt-1 small text-secondary">athlete {% if user_profile.expert %}/ expert{% endif %}</div>
+                  </div>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <a href="{{ url_for('profile') }}" class="dropdown-item">Settings</a>
+                  <div class="dropdown-divider"></div>
+                  <a href="{{ url_for('logout') }}" class="dropdown-item">Logout</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <header class="navbar-expand-md">
+          {# Mobile search bar - always visible on small screens, above the nav menu #}
+          <div class="d-md-none border-bottom px-3 py-2">
+            <form action="{{ url_for('search_activities') }}" method="get">
+              <div class="input-icon">
+                <span class="input-icon-addon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+                    <path d="M21 21l-6 -6" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  name="q"
+                  value="{{ q | default('') }}"
+                  placeholder="Search…"
+                  class="form-control"
+                  autocomplete="off"
+                  aria-label="Search activities"
+                >
+              </div>
+            </form>
+          </div>
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <div class="navbar">
+              <div class="container-xl">
+                <div class="row flex-column flex-md-row flex-fill align-items-center">
+                  <div class="col">
+                    {# BEGIN NAVBAR MENU #}
+                    <ul class="navbar-nav">
+
+                      {# WHEN running_task_count > 0 avoid RACE CONDITIONS @ activities/* by HIDING tasks menu + page content if there are running tasks #}
+
+                      {# TODO make this configurable in settings as default landing page#}
+                      <li class="nav-item">
+                        <a class="nav-link {% if running_tasks_count > 0 %}disabled{% endif %}" href="{{ url_for('calendar_year',year=0) }}">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+                              <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+                              <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+                            </svg>
+                        </a>
+                      </li>
+                      {#
+                      TODO - IDEAs - Insights:
+
+                      Progress:
+                      <a href="{{ url_for('home')  }}" class="w3-bar-item w3-button">Fastest and longest</a> ... top 10 per sport @ one page without need to filter
+                      <a href="{{ url_for('home')  }}" class="w3-bar-item w3-button">Fitness</a> ... calculate fitness level using my own formula
+
+                      #}
+
+                      <li class="nav-item">
+                        <a class="nav-link {% if running_tasks_count > 0 %}disabled{% endif %}" href="{{ url_for('home') }}">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-layout-dashboard"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1" /><path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1" /><path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1" /><path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Dashboard </span>
+                        </a>
+                      </li>
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle {% if running_tasks_count > 0 %}disabled{% endif %}"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-activity"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12h4l3 8l4 -16l3 8h4" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Activities </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item"
+                                title="Add new activity"
+                                href="{{ url_for('create_activity') }}"
+                              > New
+                              </a>
+                              <a class="dropdown-item"
+                                title="Feed of activities"
+                                href="{{ url_for('list_activities_year',year=0,aspect='feed') }}"
+                              > Feed
+                                <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
+                              </a>
+                              <a class="dropdown-item"
+                                title="Heatmap"
+                                href="{{ url_for('calendar_heatmap') }}"
+                              >
+                                Heatmap
+                                <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
+                              </a>
+                              <a class="dropdown-item"
+                                title="Calendar"
+                                href="{{ url_for('calendar_year',year=0) }}#current-week"
+                              > Calendar
+                                <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
+                              </a>
+                              <a class="dropdown-item"
+                                title="Chart"
+                                href="{{ url_for('charts_year',year=0) }}"
+                              >
+                                Chart
+                                <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
+                              </a>
+                              <a class="dropdown-item"
+                                title="Diary"
+                                href="{{ url_for('list_activities_diary') }}"
+                              >
+                                Diary
+                                <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle {% if running_tasks_count > 0 %}disabled{% endif %}"
+                          href="#navbar-form"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-eye-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M11.102 17.957c-3.204 -.307 -5.904 -2.294 -8.102 -5.957c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6a19.5 19.5 0 0 1 -.663 1.032" /><path d="M15 19l2 2l4 -4" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Insights </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <a class="dropdown-item"
+                            title="Predictions, suggestions, and history."
+                            href="{{ url_for('insight_predictions') }}"
+                          >
+                            Predictions
+                          </a>
+                          {% if user_profile.expert %}
+                          <a class="dropdown-item"
+                            title="Analytics."
+                            href="{{ url_for('insight_predictions') }}"
+                          >
+                            Analytics
+                            <span class="badge badge-sm bg-yellow-lt text-uppercase ms-auto">TODO</span>
+                          </a>
+                          {% endif %}
+                          <a class="dropdown-item"
+                            title="Tabuler overview of activity types per year."
+                            href="{{ url_for('insight_lifetime_totals') }}"
+                          >
+                            Lifetime totals
+                          </a>
+                          <a class="dropdown-item"
+                            title="All-time statistics per sport ranked by total distance."
+                            href="{{ url_for('insight_sport_stats') }}"
+                          >
+                            Top sports
+                          </a>
+                          <a class="dropdown-item"
+                            title="Weekday/sport heatmap"
+                            href="{{ url_for('heatmap_weekday_to_activity') }}"
+                          >
+                            Weekday sport heatmap
+                          </a>
+                          <a class="dropdown-item"
+                            title="Year-over-year performance trends chart and table."
+                            href="{{ url_for('insight_yoy_performance') }}"
+                          >
+                            YoY performance trends
+                          </a>
+                          <a class="dropdown-item"
+                            title="Chart to compare this vs. last week, month, year."
+                            href="{{ url_for('this_vs_last') }}"
+                          >
+                            This vs. last
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Week/Month/Year</span>
+                          </a>
+                          <a class="dropdown-item"
+                            title="Compare this vs. previous years."
+                            href="{{ url_for('y2y_month_perspective') }}"
+                          >
+                            This vs. previous years
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
+                          </a>
+                          <a class="dropdown-item"
+                            title="Monday to Sunday 0-24 by hour when active within the day"
+                            href="{{ url_for('insight_active_in_week') }}"
+                          >
+                            Active in week
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
+                          </a>
+                        </div>
+                      </li>
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle {% if running_tasks_count > 0 %}disabled{% endif %}"
+                          href="#navbar-health"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-heart-rate-monitor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /><path d="M7 10h2l2 3l2 -6l1 3h3" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Health </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <a class="dropdown-item"
+                            title="Visualize injuries and sicknesses on body diagram"
+                            href="{{ url_for('me') }}"
+                          >
+                            Me
+                          </a>
+                          <a class="dropdown-item"
+                            title="Weight chart."
+                            href="{{ url_for('insight_weight') }}"
+                          >
+                            Weight
+                          </a>
+                          <a class="dropdown-item"
+                            title="Resting HR chart."
+                            href="{{ url_for('insight_resting_hr') }}"
+                          >
+                            Resting HR
+                          </a>
+                          <a class="dropdown-item"
+                            title="Sickness heatmap"
+                            href="{{ url_for('insight_sickness_heatmap') }}"
+                          >
+                            Sickness heatmap
+                          </a>
+
+                        </div>
+                      </li>
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle {% if running_tasks_count > 0 %}disabled{% endif %}"
+                          href="#navbar-extra"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trending-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 17l6 -6l4 4l8 -8" /><path d="M14 7l7 0l0 7" /></svg>
+                            </span>
+                          <span class="nav-link-title"> Progress </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <a href="{{ url_for('athlete_metrics') }}" class="dropdown-item {% if running_tasks_count > 0 %}disabled{% endif %}">
+                            Athlete Metrics
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
+                          </a>
+
+                          {% if ff.can("ACOACHES") %}
+                          <a class="dropdown-item"
+                            title="AI Coaching - AI coaching of your training"
+                            href="{{ url_for('acoaching') }}"
+                          >
+                            AI Coach chat
+                          </a>
+
+                          <div class="dropdown-divider"></div>
+                          {% endif %}
+
+                          <a class="dropdown-item"
+                            title="List of ranked activities with Personal Bests"
+                            href="{{ url_for('list_activities_prs') }}"
+                          >
+                            PRs
+                          </a>
+                          <a class="dropdown-item"
+                            title="Activities paces"
+                            href="{{ url_for('list_activities_paces') }}"
+                          >
+                            Paces
+                          </a>
+                          <a class="dropdown-item"
+                            title="List of races"
+                            href="{{ url_for('list_activities_races') }}"
+                          >
+                            Races
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
+                          </a>
+                        </div>
+                      </li>
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle {% if running_tasks_count > 0 %}disabled{% endif %}"
+                          href="#navbar-extra"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          {#
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-tool"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" /></svg>
+                            </span>
+                          <span class="nav-link-title"> Tools </span>
+                          #}
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-database"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 12.75a4 1.75 0 1 0 8 0a4 1.75 0 1 0 -8 0" /><path d="M8 12.5v3.75c0 .966 1.79 1.75 4 1.75s4 -.784 4 -1.75v-3.75" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Data </span>
+                        </a>
+                        <div class="dropdown-menu">
+
+                          <a class="dropdown-item"
+                            title="Import activities from various sources (files, APIs) into the current dataset"
+                            href="{{ url_for('tool_import') }}"
+                          >
+                            Import
+                          </a>
+
+                          <a class="dropdown-item"
+                            title="Export activities of the current dataset as JSON"
+                            href="{{ url_for('tool_export_activities') }}"
+                          >
+                            Export
+                          </a>
+
+                          <div class="dropdown-divider"></div>
+
+                          <a class="dropdown-item"
+                            title="Datasets"
+                            href="{{ url_for('settings') }}"
+                          >
+                            Datasets
+                          </a>
+                          <a class="dropdown-item"
+                            title="Prune activities from the current dataset"
+                            href="{{ url_for('tools_prune') }}"
+                          >
+                            &nbsp;&nbsp;Prune
+                          </a>
+
+                          {% if user_profile.expert %}
+                          <a class="dropdown-item"
+                            title="Automatically deduplicate, normalize and fix current dataset"
+                            href="{{ url_for('tools_optimize') }}"
+                          >
+                            &nbsp;&nbsp;Fix
+                            <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Expert</span>
+                          </a>
+                          <a class="dropdown-item"
+                            title="Filter activities"
+                            href="{{ url_for('tools_filter') }}"
+                          >
+                            &nbsp;&nbsp;Filter
+                            <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Expert</span>
+                          </a>
+                          <a class="dropdown-item"
+                            title="Merge or join activities from different datasets"
+                            href="{{ url_for('tools_merge') }}"
+                          >
+                            &nbsp;&nbsp;Merge & Join
+                            <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Expert</span>
+                          </a>
+                          {% endif %}
+                        </div>
+                      </li>
+
+                      <li class="nav-item DISABLED-active dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-layout"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-map-cog"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v8" /><path d="M9 4v13" /><path d="M15 7v6.5" /><path d="M19.001 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M19.001 15.5v1.5" /><path d="M19.001 21v1.5" /><path d="M22.032 17.25l-1.299 .75" /><path d="M17.27 20l-1.3 .75" /><path d="M15.97 17.25l1.3 .75" /><path d="M20.733 20l1.3 .75" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Profile </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          {% if ff.can("ACOACHES") %}
+                          <a class="dropdown-item"
+                            title="AI Coaches - AI coaching settings"
+                            href="{{ url_for('settings_acoaches') }}"
+                          >
+                            AI Coaches
+                          </a>
+                          {% endif %}
+                          <a class="dropdown-item {% if running_tasks_count > 0 %}disabled{% endif %}"
+                            title="Activity types"
+                            href="{{ url_for('settings_activity_types_list') }}"
+                          >
+                            Activity types
+                          </a>
+
+                          <a class="dropdown-item"
+                            title="Exercises"
+                            href="{{ url_for('settings_exercises_list') }}"
+                          >
+                            Exercises
+                          </a>
+                          <a class="dropdown-item"
+                            title="Gear"
+                            href="{{ url_for('settings_gear_list') }}"
+                          >
+                            Gear
+                          </a>
+                          <a class="dropdown-item"
+                            title="Goals"
+                            href="{{ url_for('settings_goals_list') }}"
+                          >
+                            Goals
+                          </a>
+                          <a class="dropdown-item"
+                            title="Laps &amp; Routes"
+                            href="{{ url_for('settings_laps_list') }}"
+                          >
+                            Laps &amp; Routes
+                          </a>
+                          <a class="dropdown-item"
+                            title="Outfits"
+                            href="{{ url_for('settings_outfits_list') }}"
+                          >
+                            Outfits
+                          </a>
+                          <a class="dropdown-item"
+                            title="Symptoms"
+                            href="{{ url_for('settings_symptoms_list') }}"
+                          >
+                            Symptoms
+                          </a>
+                        </div>
+                      </li>
+
+                      {% if user_profile.admin %}
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-layout"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-heart-rate-monitor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /><path d="M7 10h2l2 3l2 -6l1 3h3" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Admin </span>
+                        </a>
+                        {% if user_profile.admin or user_profile.expert %}
+                        <div class="dropdown-menu">
+                          {% if user_profile.admin %}
+                          <a class="dropdown-item {% if running_tasks_count > 0 %}disabled{% endif %}"
+                            title="Datasets"
+                            href="{{ url_for('deployment') }}"
+                          >
+                            Deployment
+                            <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Admin</span>
+                          </a>
+                          {% endif %}
+                          {% if user_profile.expert %}
+                          <a class="dropdown-item"
+                            title="Background tasks - view and manage async tasks"
+                            href="{{ url_for('tasks_list') }}"
+                          >
+                            Tasks
+                            <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Expert</span>
+                          </a>
+                          {% endif %}
+                        </div>
+                        {% endif %}
+                      </li>
+                      {% endif %}
+
+                    </ul>
+                    <!-- END NAVBAR MENU -->
+                  </div>
+                  {# right aligned MENU items #}
+                  <div class="col col-md-auto">
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-help"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+                              <path d="M15 15l3.35 3.35" />
+                              <path d="M9 15l-3.35 3.35" />
+                              <path d="M5.65 5.65l3.35 3.35" />
+                              <path d="M18.35 5.65l-3.35 3.35" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> Help </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <a class="dropdown-item" href="{{ url_for('static', filename='documentation/index.html') }}" target="_blank" rel="noopener"> Documentation </a>
+                          <a class="dropdown-item" target="_blank" href="{{ url_for('static', filename='documentation/changelog.html') }}"> Changelog </a>
+                          <div class="dropdown-divider"></div>
+                          {# <a class="dropdown-item" target="_blank" href="https://github.com/dvorka-oss/mytral" rel="noopener"> Source code </a> #}
+                          <a class="dropdown-item" href="/about"> About </a>
+                        </div>
+                      </li>
+                      {#
+                      <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSettings">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path
+                                d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+                              />
+                              <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> Theme </span>
+                        </a>
+                      </li>
+                      #}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+<style>
+    .year-bar-chart-wrapper {
+        position: sticky;
+        top: 65px;
+        z-index: 100;
+        background: var(--tblr-bg-surface);
+        border-bottom: 1px solid var(--tblr-border-color);
+        padding: 8px 0;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .year-bar-chart {
+        display: flex;
+        height: 80px;
+        width: 100%;
+        gap: 1px;
+        align-items: flex-end;
+    }
+    .year-bar-chart-months {
+        display: flex;
+        width: 100%;
+        gap: 1px;
+        padding: 4px 0 0;
+        font-size: 10px;
+        color: var(--tblr-muted);
+        border-top: 1px solid var(--tblr-border-color);
+        margin-top: 4px;
+    }
+    .year-bar-chart-legend {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 6px;
+        font-size: 11px;
+        color: var(--tblr-muted);
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+    .bar-day {
+        flex: 1;
+        min-width: 2px;
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: stretch;
+        cursor: pointer;
+        border-radius: 2px 2px 0 0;
+        transition: opacity 0.15s ease, filter 0.15s ease;
+        position: relative;
+        height: 100%;
+    }
+    .bar-day:hover {
+        opacity: 0.85;
+        filter: brightness(1.1);
+    }
+    .bar-day.has-activities {
+        box-shadow: 0 0 2px rgba(0,0,0,0.1);
+    }
+    .bar-segment {
+        width: 100%;
+        min-height: 1px;
+        transition: height 0.3s ease;
+    }
+    .bar-segment-distance {
+        background: linear-gradient(to top, #206bc4, #448de5);
+    }
+    .bar-segment-duration {
+        background: linear-gradient(to top, #2fb344, #5ecf6e);
+    }
+    .bar-segment-elevation {
+        background: linear-gradient(to top, #f76707, #ff9f7a);
+    }
+    .month-label {
+        flex: 1;
+        text-align: center;
+        min-width: 30px;
+        cursor: pointer;
+        padding: 2px 0;
+        border-radius: 2px;
+        transition: background 0.15s;
+    }
+    .month-label:hover {
+        background: var(--tblr-bg-surface-secondary);
+    }
+    .month-label.current-month {
+        color: var(--tblr-primary);
+        font-weight: 600;
+    }
+    .bar-day::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.85);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 1000;
+        margin-bottom: 5px;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bar-day:hover::after {
+        opacity: 1;
+    }
+    .bar-day.in-viewport {
+        box-shadow: 0 0 0 2px var(--tblr-secondary);
+    }
+    @media (max-width: 768px) {
+        .year-bar-chart-wrapper {
+            top: 60px;
+        }
+        .year-bar-chart {
+            height: 60px;
+        }
+        .bar-day {
+            min-width: 1px;
+        }
+        .month-label {
+            font-size: 9px;
+        }
+        .year-bar-chart-legend {
+            font-size: 10px;
+            gap: 10px;
+        }
+    }
+    .bar-day.today {
+        position: relative;
+    }
+    .bar-day.today::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        background: #000000;
+        border-radius: 50%;
+    }
+</style>
+
+{% if activities %}
+{# ############################################# #}
+{# BEGIN: FIXED STICKY FEED BAR CHART NAVIGATION #}
+{# ############################################# #}
+
+<div id="year-bar-chart-container" class="year-bar-chart-wrapper">
+    <div class="container-xl">
+        <!-- Legend -->
+        <div class="year-bar-chart-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #206bc4, #448de5);"></div>
+                <span>Distance</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #2fb344, #5ecf6e);"></div>
+                <span>Duration</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #f76707, #ff9f7a);"></div>
+                <span>Tonnage</span>
+            </div>
+        </div>
+        <div id="year-bar-chart" class="year-bar-chart"></div>
+        <div id="year-bar-chart-months" class="year-bar-chart-months"></div>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const activities = {{ activities|tojson }};
+
+            {% if is_diary is defined and is_diary %}
+            const isDiary = true;
+            {% else %}
+            const isDiary = false;
+            {% endif %}
+
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentDay = new Date().getDate();
+
+            {% if year %}
+            const year = {{ year|tojson }};
+            {% else %}
+            const year = currentYear;
+            {% endif %}
+
+            // Calculate days in year (handles leap years)
+            const isCurrentYear = year === currentYear;
+            const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            const daysInYear = isLeapYear ? 366 : 365;
+            const daysPerMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+            // Helper function to calculate day of year (same logic as template)
+            function calculateDayOfYear(month, day) {
+                let dayOfYear = day;
+                for (let m = 0; m < month - 1; m++) {
+                    dayOfYear += daysPerMonth[m];
+                }
+                return dayOfYear;
+            }
+
+            // Initialize day data structure
+            const dayData = {};
+            for (let i = 1; i <= daysInYear; i++) {
+                dayData[i] = {
+                    dayOfYear: i,
+                    activities: [],
+                    totalDistance: 0,
+                    totalDuration: 0,
+                    totalTonnage: 0,
+                    totalWeight: 0,
+                    hasData: false
+                };
+            }
+
+            // Process activities
+            activities.forEach(a => {
+                // Calculate day of year using SAME method as template
+                const dayOfYear = calculateDayOfYear(a.when_month, a.when_day);
+
+                if (dayOfYear >= 1 && dayOfYear <= daysInYear) {
+                    dayData[dayOfYear].activities.push(a);
+                    dayData[dayOfYear].hasData = true;
+
+                    // Accumulate metrics (only for non-meta activities)
+                    if (!['sick', 'injured', 'comment'].includes(a.activity_type_key)) {
+                        dayData[dayOfYear].totalDistance += a.distance || 0;
+                        dayData[dayOfYear].totalDuration += (a.hours * 3600 + a.minutes * 60 + a.seconds) || 0;
+                        dayData[dayOfYear].totalTonnage += a.exercise_kgs || 0;
+                        if (a.weight) {
+                            dayData[dayOfYear].totalWeight = a.weight; // Use latest weight
+                        }
+                    }
+                }
+            });
+
+            // Calculate max values for scaling
+            let maxDistance = 0;
+            let maxDuration = 0;
+            let maxTonnage = 0;
+            let maxWeight = 0;
+
+            Object.values(dayData).forEach(d => {
+                maxDistance = Math.max(maxDistance, d.totalDistance);
+                maxDuration = Math.max(maxDuration, d.totalDuration);
+                maxTonnage = Math.max(maxTonnage, d.totalTonnage);
+                maxWeight = Math.max(maxWeight, d.totalWeight);
+            });
+
+            // Build the chart
+            const chart = document.getElementById('year-bar-chart');
+            const monthLabels = document.getElementById('year-bar-chart-months');
+
+            // Month names
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            let currentMonthStartDay = 1;
+
+            // Create month labels
+            monthNames.forEach((monthName, monthIndex) => {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'month-label';
+                monthDiv.textContent = monthName;
+                if (isCurrentYear && monthIndex + 1 === currentMonth) {
+                    monthDiv.classList.add('current-month');
+                }
+
+                // Calculate first day of year for this month
+                const firstDayOfMonth = calculateDayOfYear(monthIndex + 1, 1);
+
+                // Click to scroll to first activity of that month
+                monthDiv.addEventListener('click', () => {
+                    const targetElement = document.querySelector(`[data-activity-day="${firstDayOfMonth}"]`);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+
+                monthLabels.appendChild(monthDiv);
+
+                // Create bars for this month
+                const daysInMonth = daysPerMonth[monthIndex];
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayOfYear = calculateDayOfYear(monthIndex + 1, day);
+                    const dayInfo = dayData[dayOfYear];
+                    const bar = document.createElement('div');
+                    bar.className = 'bar-day';
+                    bar.dataset.day = dayOfYear;
+
+                    // Mark today
+                    if (isCurrentYear && monthIndex + 1 === currentMonth && day === currentDay) {
+                        bar.classList.add('today');
+                    }
+
+                    if (dayInfo.hasData) {
+                        bar.classList.add('has-activities');
+
+                        if (isDiary) {
+                            // diary mode: dark gray bar for days with comments
+                            bar.style.background = 'var(--tblr-muted)';
+                            bar.style.height = '50%';
+                        } else {
+                            // Calculate proportional heights directly against max values
+                            // This ensures bars show TRUE differences between small and large activity days
+                            // Min height of 5% for visibility on days with minimal activity
+                            const distanceHeight = maxDistance > 0
+                                ? Math.max(5, (dayInfo.totalDistance / maxDistance) * 90)
+                                : 0;
+                            const durationHeight = maxDuration > 0
+                                ? Math.max(3, (dayInfo.totalDuration / maxDuration) * 60)
+                                : 0;
+                            const tonnageHeight = maxTonnage > 0
+                                ? Math.max(2, (dayInfo.totalTonnage / maxTonnage) * 40)
+                                : 0;
+
+                            // Create stacked segments - order matters (bottom to top due to flex-direction: column-reverse)
+                            // Tonnage on top, Duration middle, Distance at bottom
+                            if (dayInfo.totalTonnage > 0) {
+                                const seg = document.createElement('div');
+                                seg.className = 'bar-segment bar-segment-elevation';
+                                seg.style.height = tonnageHeight + '%';
+                                bar.appendChild(seg);
+                            }
+
+                            if (dayInfo.totalDuration > 0) {
+                                const seg = document.createElement('div');
+                                seg.className = 'bar-segment bar-segment-duration';
+                                seg.style.height = durationHeight + '%';
+                                bar.appendChild(seg);
+                            }
+
+                            if (dayInfo.totalDistance > 0) {
+                                const seg = document.createElement('div');
+                                seg.className = 'bar-segment bar-segment-distance';
+                                seg.style.height = distanceHeight + '%';
+                                bar.appendChild(seg);
+                            }
+                        }
+
+                        // Build tooltip content
+                        const date = new Date(year, monthIndex, day);
+                        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        const activityNames = dayInfo.activities.map(a =>
+                            a.name || a.activity_type_key
+                        ).slice(0, 3).join(', ');
+                        const moreActivities = dayInfo.activities.length > 3 ? ` +${dayInfo.activities.length - 3} more` : '';
+
+                        const distanceKm = (dayInfo.totalDistance / 1000).toFixed(1);
+                        const durationHours = Math.floor(dayInfo.totalDuration / 3600);
+                        const durationMinutes = Math.floor((dayInfo.totalDuration % 3600) / 60);
+                        const durationStr = durationHours > 0 ? `${durationHours}h${durationMinutes}m` : `${durationMinutes}m`;
+
+                        let tooltipParts = [`${dateStr}: ${dayInfo.activities.length} activity${dayInfo.activities.length !== 1 ? 'ies' : ''}`];
+                        if (dayInfo.totalDistance > 0) tooltipParts.push(`${distanceKm}km`);
+                        if (dayInfo.totalDuration > 0) tooltipParts.push(durationStr);
+                        if (dayInfo.totalTonnage > 0) tooltipParts.push(`${dayInfo.totalTonnage.toFixed(0)}kg`);
+                        if (dayInfo.totalWeight > 0) tooltipParts.push(`${dayInfo.totalWeight.toFixed(1)}kg`);
+                        tooltipParts.push(`— ${activityNames}${moreActivities}`);
+
+                        bar.dataset.tooltip = tooltipParts.join(' • ');
+                    } else {
+                        // Empty day - small gray bar
+                        bar.style.background = 'var(--tblr-bg-surface-secondary)';
+                        bar.style.height = '20%';
+                        bar.dataset.tooltip = `${new Date(year, monthIndex, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: No activities`;
+                    }
+
+                    // Click to scroll to activity - navigate to first activity of the day
+                    bar.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (dayInfo.activities.length > 0) {
+                            // First try to find by day-of-year data attribute using the bar's day
+                            const clickedDayOfYear = bar.dataset.day;
+                            let targetElement = document.querySelector(`[data-activity-day="${clickedDayOfYear}"]`);
+
+                            // If not found by day-of-year, try to find by activity key
+                            if (!targetElement && dayInfo.activities[0].key) {
+                                // Try to find the activity card/row by key
+                                targetElement = document.querySelector(`a[href*="${dayInfo.activities[0].key}"]`);
+                                // If found an anchor, scroll to its parent card/row
+                                if (targetElement) {
+                                    targetElement = targetElement.closest('[data-activity-day]') ||
+                                                   targetElement.closest('.card') ||
+                                                   targetElement.closest('tr');
+                                }
+                            }
+
+                            if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                // Highlight the element briefly
+                                targetElement.style.transition = 'all 0.3s';
+                                const originalBoxShadow = targetElement.style.boxShadow;
+                                const originalTransform = targetElement.style.transform;
+                                targetElement.style.boxShadow = '0 0 0 3px var(--tblr-primary)';
+                                targetElement.style.transform = 'scale(1.01)';
+                                setTimeout(() => {
+                                    targetElement.style.boxShadow = originalBoxShadow;
+                                    targetElement.style.transform = originalTransform;
+                                }, 1500);
+                            } else {
+                                // Fallback: navigate directly to the first activity
+                                const firstActivity = dayInfo.activities[0];
+                                if (firstActivity.key) {
+                                    window.location.href = `/activity/${firstActivity.key}`;
+                                }
+                            }
+                        }
+                    });
+
+                    chart.appendChild(bar);
+                }
+            });
+
+            // Track which activity day is currently most visible (center of viewport)
+            let currentVisibleDay = null;
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px', // Consider elements in the upper portion of screen as "active"
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                // Find the entry that is most visible in the viewport
+                let mostVisibleEntry = null;
+                let maxVisibility = -Infinity;
+
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const rect = entry.target.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+                        // Calculate distance from center of viewport (closer to center = higher score)
+                        const elementCenter = rect.top + rect.height / 2;
+                        const viewportCenter = viewportHeight / 2;
+                        const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
+                        const visibilityScore = 1000 - distanceFromCenter; // Higher score = closer to center
+
+                        if (visibilityScore > maxVisibility) {
+                            maxVisibility = visibilityScore;
+                            mostVisibleEntry = entry;
+                        }
+                    }
+                });
+
+                // Only update highlight if we have a most visible entry
+                if (mostVisibleEntry) {
+                    const dayOfYear = mostVisibleEntry.target.dataset.activityDay;
+
+                    if (dayOfYear && dayOfYear !== currentVisibleDay) {
+                        // Remove highlight from previous bar
+                        if (currentVisibleDay) {
+                            const prevBar = document.querySelector(`.bar-day[data-day="${currentVisibleDay}"]`);
+                            if (prevBar) {
+                                prevBar.classList.remove('in-viewport');
+                            }
+                        }
+                        // Highlight new bar
+                        const newBar = document.querySelector(`.bar-day[data-day="${dayOfYear}"]`);
+                        if (newBar) {
+                            newBar.classList.add('in-viewport');
+                            currentVisibleDay = dayOfYear;
+                        }
+                    }
+                }
+            }, observerOptions);
+
+            // Observe all activity rows
+            document.querySelectorAll('[data-activity-day]').forEach(row => {
+                observer.observe(row);
+            });
+
+            // Also handle scroll events to clear highlight when user scrolls to top
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                    if (scrollTop < 200 && currentVisibleDay) {
+                        // Clear highlight when near top of page
+                        const bar = document.querySelector(`.bar-day[data-day="${currentVisibleDay}"]`);
+                        if (bar) {
+                            bar.classList.remove('in-viewport');
+                        }
+                        currentVisibleDay = null;
+                    }
+                }, 100);
+            }, { passive: true });
+        });
+    </script>
+
+{# ############################################# #}
+{# END: FIXED STICKY FEED BAR CHART NAVIGATION #}
+{# ############################################# #}
+{% endif %}
+
+{% if calendar_week_stats_json %}
+{# ################################################### #}
+{# BEGIN: FIXED STICKY CALENDAR BAR CHART NAVIGATION #}
+{# ################################################### #}
+
+<div id="week-bar-chart-container" class="year-bar-chart-wrapper">
+    <div class="container-xl">
+        <!-- Legend -->
+        <div class="year-bar-chart-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #206bc4, #448de5);"></div>
+                <span>Distance</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #2fb344, #5ecf6e);"></div>
+                <span>Duration</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(to top, #f76707, #ff9f7a);"></div>
+                <span>Tonnage</span>
+            </div>
+        </div>
+        <div id="week-bar-chart" class="year-bar-chart"></div>
+        <div id="week-bar-chart-months" class="year-bar-chart-months"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const weekStats = {{ calendar_week_stats_json|safe }};
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth() + 1;
+        const currentDay = new Date().getDate();
+
+        {% if year %}
+        const year = {{ year|tojson }};
+        {% else %}
+        const year = currentYear;
+        {% endif %}
+
+        const isCurrentYear = year === currentYear;
+
+        // current week from server (ISO week number matching heatmap numbering)
+        {% if current_week is defined %}
+        const currentWeekNum = {{ current_week|tojson }};
+        {% else %}
+        const currentWeekNum = null;
+        {% endif %}
+
+        // calculate max values for scaling
+        let maxDistance = 0;
+        let maxDuration = 0;
+        let maxKgs = 0;
+
+        weekStats.forEach(w => {
+            maxDistance = Math.max(maxDistance, w.meters || 0);
+            maxDuration = Math.max(maxDuration, w.seconds || 0);
+            maxKgs = Math.max(maxKgs, w.kgs || 0);
+        });
+
+        // build the chart
+        const chart = document.getElementById('week-bar-chart');
+        const monthLabels = document.getElementById('week-bar-chart-months');
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // determine which month each week belongs to (based on Monday date)
+        const weekMonths = weekStats.map(w => {
+            if (w.week_date) {
+                const parts = w.week_date.split('/');
+                return parseInt(parts[0]); // month number from "M/D"
+            }
+            return 0;
+        });
+
+        // build month label regions
+        let currentLabelMonth = 0;
+        const monthRanges = []; // {month, startIndex, endIndex}
+        weekStats.forEach((w, i) => {
+            const wMonth = weekMonths[i];
+            if (wMonth && wMonth !== currentLabelMonth) {
+                if (currentLabelMonth !== 0) {
+                    monthRanges[monthRanges.length - 1].endIndex = i - 1;
+                }
+                monthRanges.push({month: wMonth, startIndex: i, endIndex: weekStats.length - 1});
+                currentLabelMonth = wMonth;
+            }
+        });
+
+        // create month labels
+        monthRanges.forEach(range => {
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'month-label';
+            monthDiv.textContent = monthNames[range.month - 1];
+            if (isCurrentYear && range.month === currentMonth) {
+                monthDiv.classList.add('current-month');
+            }
+            const span = range.endIndex - range.startIndex + 1;
+            monthDiv.style.flex = span;
+            monthDiv.style.minWidth = (span * 3) + 'px';
+
+            // click to scroll to first week of that month
+            monthDiv.addEventListener('click', () => {
+                const offset = (range.startIndex > 5) ? range.startIndex - 5 : range.startIndex;
+                const firstWeekInMonth = weekStats[offset];
+                if (firstWeekInMonth) {
+                    const targetElement = document.querySelector(`a[name="week-${firstWeekInMonth.week_number}"]`);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+
+            monthLabels.appendChild(monthDiv);
+        });
+
+        // create bars for each week
+        weekStats.forEach((w, i) => {
+            const bar = document.createElement('div');
+            bar.className = 'bar-day';
+            bar.dataset.week = w.week_number;
+            bar.dataset.navWeekIndex = i;
+
+            // mark current week
+            if (isCurrentYear && w.week_number === currentWeekNum) {
+                bar.classList.add('today');
+            }
+
+            const hasData = w.meters > 0 || w.seconds > 0 || w.kgs > 0;
+
+            if (hasData) {
+                bar.classList.add('has-activities');
+
+                const distanceHeight = maxDistance > 0
+                    ? Math.max(5, (w.meters / maxDistance) * 90)
+                    : 0;
+                const durationHeight = maxDuration > 0
+                    ? Math.max(3, (w.seconds / maxDuration) * 60)
+                    : 0;
+                const kgsHeight = maxKgs > 0
+                    ? Math.max(2, (w.kgs / maxKgs) * 40)
+                    : 0;
+
+                // stacked segments (column-reverse: bottom = distance, middle = duration, top = kgs)
+                if (w.kgs > 0) {
+                    const seg = document.createElement('div');
+                    seg.className = 'bar-segment bar-segment-elevation';
+                    seg.style.height = kgsHeight + '%';
+                    bar.appendChild(seg);
+                }
+
+                if (w.seconds > 0) {
+                    const seg = document.createElement('div');
+                    seg.className = 'bar-segment bar-segment-duration';
+                    seg.style.height = durationHeight + '%';
+                    bar.appendChild(seg);
+                }
+
+                if (w.meters > 0) {
+                    const seg = document.createElement('div');
+                    seg.className = 'bar-segment bar-segment-distance';
+                    seg.style.height = distanceHeight + '%';
+                    bar.appendChild(seg);
+                }
+
+                // tooltip
+                const distanceKm = (w.meters / 1000).toFixed(1);
+                const durationHours = Math.floor(w.seconds / 3600);
+                const durationMinutes = Math.floor((w.seconds % 3600) / 60);
+                const durationStr = durationHours > 0 ? `${durationHours}h${durationMinutes}m` : `${durationMinutes}m`;
+
+                let tooltipParts = [`Week ${w.week_number} (${w.week_date})`];
+                if (w.meters > 0) tooltipParts.push(`${distanceKm}km`);
+                if (w.seconds > 0) tooltipParts.push(durationStr);
+                if (w.kgs > 0) tooltipParts.push(`${w.kgs}kg`);
+                if (w.weight > 0) tooltipParts.push(`${w.weight.toFixed(1)}kg body`);
+
+                bar.dataset.tooltip = tooltipParts.join(' • ');
+            } else {
+                bar.style.background = 'var(--tblr-bg-surface-secondary)';
+                bar.style.height = '20%';
+                const wd = w.week_date || '';
+                bar.dataset.tooltip = `Week ${w.week_number}${wd ? ' (' + wd + ')' : ''}: No activities`;
+            }
+
+            // click to scroll to the week in the calendar table
+            bar.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const allRows = document.querySelectorAll('tr[data-week-index]');
+                const targetRow = allRows[i];
+                if (targetRow) {
+                    // account for sticky navbar + nav widget height
+                    const navWrapper = document.getElementById('week-bar-chart-container');
+                    const stickyOffset = navWrapper ? navWrapper.getBoundingClientRect().bottom : 0;
+                    const targetY = targetRow.getBoundingClientRect().top + window.scrollY - stickyOffset;
+                    window.scrollTo({ top: targetY, behavior: 'smooth' });
+
+                    // manually highlight the clicked bar
+                    if (currentVisibleIndex !== null) {
+                        const prevBar = document.querySelector(`.bar-day[data-nav-week-index="${currentVisibleIndex}"]`);
+                        if (prevBar) prevBar.classList.remove('in-viewport');
+                    }
+                    const clickedBar = document.querySelector(`.bar-day[data-nav-week-index="${i}"]`);
+                    if (clickedBar) clickedBar.classList.add('in-viewport');
+                    currentVisibleIndex = String(i);
+
+                    // suppress observer updates until smooth scroll finishes
+                    observerSuppressed = true;
+                    clearTimeout(observerSuppressTimeout);
+                    observerSuppressTimeout = setTimeout(() => {
+                        observerSuppressed = false;
+                    }, 800);
+                }
+            });
+
+            chart.appendChild(bar);
+        });
+
+        // IntersectionObserver for scroll tracking
+        let currentVisibleIndex = null;
+        let observerSuppressed = false;
+        let observerSuppressTimeout = null;
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -60% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            if (observerSuppressed) return;
+            let mostVisibleEntry = null;
+            let maxVisibility = -Infinity;
+
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const rect = entry.target.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const elementCenter = rect.top + rect.height / 2;
+                    const viewportCenter = viewportHeight / 2;
+                    const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
+                    const visibilityScore = 1000 - distanceFromCenter;
+
+                    if (visibilityScore > maxVisibility) {
+                        maxVisibility = visibilityScore;
+                        mostVisibleEntry = entry;
+                    }
+                }
+            });
+
+            if (mostVisibleEntry) {
+                const weekIndex = mostVisibleEntry.target.dataset.weekIndex;
+
+                if (weekIndex !== undefined && weekIndex !== currentVisibleIndex) {
+                    if (currentVisibleIndex !== null) {
+                        const prevBar = document.querySelector(`.bar-day[data-nav-week-index="${currentVisibleIndex}"]`);
+                        if (prevBar) {
+                            prevBar.classList.remove('in-viewport');
+                        }
+                    }
+                    const newBar = document.querySelector(`.bar-day[data-nav-week-index="${weekIndex}"]`);
+                    if (newBar) {
+                        newBar.classList.add('in-viewport');
+                        currentVisibleIndex = weekIndex;
+                    }
+                }
+            }
+        }, observerOptions);
+
+        // observe all week rows
+        document.querySelectorAll('tr[data-week-index]').forEach(row => {
+            observer.observe(row);
+        });
+
+        // clear highlight when scrolling to top
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                if (scrollTop < 200 && currentVisibleIndex !== null) {
+                    const bar = document.querySelector(`.bar-day[data-nav-week-index="${currentVisibleIndex}"]`);
+                    if (bar) {
+                        bar.classList.remove('in-viewport');
+                    }
+                    currentVisibleIndex = null;
+                }
+            }, 100);
+        }, { passive: true });
+    });
+</script>
+
+{# ################################################# #}
+{# END: FIXED STICKY CALENDAR BAR CHART NAVIGATION #}
+{# ################################################# #}
+{% endif %}
+
+        </header>
+      </div>
+      {# END NAVBAR  #}
+      <div class="page-wrapper">
+      {# BEGIN MYTRAL PAGE CONTENT #}
+        {%block content%}
+        {%endblock%}
+        {# END MYTRAL PAGE CONTENT #}
+        {# BEGIN FOOTER #}
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+              <div class="col-lg-auto ms-lg-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="{{ url_for('static', filename='documentation/index.html') }}" target="_blank" class="link-secondary" rel="noopener">Doc</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/issues" target="_blank" class="link-secondary">Bugs</a></li>
+                  <li class="list-inline-item"><a href="{{ url_for('static', filename='documentation/license.html') }}" target="_blank" class="link-secondary">License</a></li>
+                  {#
+                  <li class="list-inline-item">
+                    <a href="https://opencollective.com/dvorka-floss-lab" target="_blank" class="link-secondary" rel="noopener">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon text-pink icon-inline icon-4">
+                        <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+                      </svg>
+                      Sponsor
+                    </a>
+                  </li>
+                  <li class="list-inline-item">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-2"
+                    >
+                      <path
+                        d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"
+                      />
+                    </svg>
+                    <a href="https://github.com/dvorka-oss/mytral" target="_blank" class="link-secondary" rel="noopener">Source code</a>
+                  </li>
+                  <li class="list-inline-item">
+                    <a href="https://github.com/sponsors/dvorka" target="_blank" class="link-secondary" rel="noopener">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="icon text-pink icon-inline icon-4"
+                      >
+                        <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
+                      </svg>
+                      Sponsor
+                    </a>
+                  </li>
+                  #}
+                </ul>
+              </div>
+              <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    Copyright &copy; 2026
+                    {# <a href="https://github.com/dvorka/mytral" class="link-secondary" target="_blank"> #} MyTraL {# </a> by <a href="https://www.mindforger.com" class="link-secondary" target="_blank" rel="noopener">MindForger</a>. #}
+                     v{{ app_version }}
+                  </li>
+                  <li class="list-inline-item">
+                    Sovereign athlete training log for deeper insights and smarter progress.
+                  </li>
+                  {% if is_mobile %}
+                  <li>
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-device-mobile"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14z" /><path d="M11 4h2" /><path d="M12 17v.01" /></svg>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+        {# END FOOTER #}
+      </div>
+    </div>
+    {# BEGIN PAGE MODALS #}
+    <div class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New report</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" name="example-text-input" placeholder="Your report name" />
+            </div>
+            <label class="form-label">Report type</label>
+            <div class="form-selectgroup-boxes row mb-3">
+              <div class="col-lg-6">
+                <label class="form-selectgroup-item">
+                  <input type="radio" name="report-type" value="1" class="form-selectgroup-input" checked />
+                  <span class="form-selectgroup-label d-flex align-items-center p-3">
+                    <span class="me-3">
+                      <span class="form-selectgroup-check"></span>
+                    </span>
+                    <span class="form-selectgroup-label-content">
+                      <span class="form-selectgroup-title strong mb-1">Simple</span>
+                      <span class="d-block text-secondary">Provide only basic data needed for the report</span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+              <div class="col-lg-6">
+                <label class="form-selectgroup-item">
+                  <input type="radio" name="report-type" value="1" class="form-selectgroup-input" />
+                  <span class="form-selectgroup-label d-flex align-items-center p-3">
+                    <span class="me-3">
+                      <span class="form-selectgroup-check"></span>
+                    </span>
+                    <span class="form-selectgroup-label-content">
+                      <span class="form-selectgroup-title strong mb-1">Advanced</span>
+                      <span class="d-block text-secondary">Insert charts and additional advanced analyses to be inserted in the report</span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-8">
+                <div class="mb-3">
+                  <label class="form-label">Report url</label>
+                  <div class="input-group input-group-flat">
+                    <span class="input-group-text"> https://tabler.io/reports/ </span>
+                    <input type="text" class="form-control ps-0" value="report-01" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4">
+                <div class="mb-3">
+                  <label class="form-label">Visibility</label>
+                  <select class="form-select">
+                    <option value="1" selected>Private</option>
+                    <option value="2">Public</option>
+                    <option value="3">Hidden</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label">Client name</label>
+                  <input type="text" class="form-control" />
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="mb-3">
+                  <label class="form-label">Reporting period</label>
+                  <input type="date" class="form-control" />
+                </div>
+              </div>
+              <div class="col-lg-12">
+                <div>
+                  <label class="form-label">Additional information</label>
+                  <textarea class="form-control" rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" class="btn btn-link link-secondary btn-3" data-bs-dismiss="modal"> Cancel </a>
+            <a href="#" class="btn btn-primary btn-5 ms-auto" data-bs-dismiss="modal">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-2"
+              >
+                <path d="M12 5l0 14" />
+                <path d="M5 12l14 0" />
+              </svg>
+              Create new report
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {# END PAGE MODALS #}
+    <div class="settings">
+      <a
+        href="#"
+        class="btn btn-floating btn-icon btn-primary"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasSettings"
+        aria-controls="offcanvasSettings"
+        aria-label="Theme Builder"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-1"
+        >
+          <path d="M3 21v-4a4 4 0 1 1 4 4h-4" />
+          <path d="M21 3a16 16 0 0 0 -12.8 10.2" />
+          <path d="M21 3a16 16 0 0 1 -10.2 12.8" />
+          <path d="M10.6 9a9 9 0 0 1 4.4 4.4" />
+        </svg>
+      </a>
+      <form class="offcanvas offcanvas-start offcanvas-narrow" tabindex="-1" id="offcanvasSettings">
+        <div class="offcanvas-header">
+          <h2 class="offcanvas-title">Theme Builder</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+          <div>
+            <div class="mb-4">
+              <label class="form-label">Color mode</label>
+              <p class="form-hint">Choose the color mode for your app.</p>
+              <label class="form-check">
+                <div class="form-selectgroup-item">
+                  <input type="radio" name="theme" value="light" class="form-check-input" checked />
+                  <div class="form-check-label">Light</div>
+                </div>
+              </label>
+              <label class="form-check">
+                <div class="form-selectgroup-item">
+                  <input type="radio" name="theme" value="dark" class="form-check-input" />
+                  <div class="form-check-label">Dark</div>
+                </div>
+              </label>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Color scheme</label>
+              <p class="form-hint">The perfect color mode for your app.</p>
+              <div class="row g-2">
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="blue" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-blue"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="azure" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-azure"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="indigo" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-indigo"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="purple" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-purple"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="pink" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-pink"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="red" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-red"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="orange" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-orange"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="yellow" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-yellow"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="lime" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-lime"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="green" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-green"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="teal" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-teal"></span>
+                  </label>
+                </div>
+                <div class="col-auto">
+                  <label class="form-colorinput">
+                    <input name="theme-primary" type="radio" value="cyan" class="form-colorinput-input" />
+                    <span class="form-colorinput-color bg-cyan"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Font family</label>
+              <p class="form-hint">Choose the font family that fits your app.</p>
+              <div>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-font" value="sans-serif" class="form-check-input" checked />
+                    <div class="form-check-label">Sans-serif</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-font" value="serif" class="form-check-input" />
+                    <div class="form-check-label">Serif</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-font" value="monospace" class="form-check-input" />
+                    <div class="form-check-label">Monospace</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-font" value="comic" class="form-check-input" />
+                    <div class="form-check-label">Comic</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Theme base</label>
+              <p class="form-hint">Choose the gray shade for your app.</p>
+              <div>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-base" value="slate" class="form-check-input" />
+                    <div class="form-check-label">Slate</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-base" value="gray" class="form-check-input" checked />
+                    <div class="form-check-label">Gray</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-base" value="zinc" class="form-check-input" />
+                    <div class="form-check-label">Zinc (MyTraL)</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-base" value="neutral" class="form-check-input" />
+                    <div class="form-check-label">Neutral</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-base" value="stone" class="form-check-input" />
+                    <div class="form-check-label">Stone</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Corner Radius</label>
+              <p class="form-hint">Choose the border radius factor for your app.</p>
+              <div>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-radius" value="0" class="form-check-input" />
+                    <div class="form-check-label">0</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-radius" value="0.5" class="form-check-input" />
+                    <div class="form-check-label">0.5</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-radius" value="1" class="form-check-input" checked />
+                    <div class="form-check-label">1</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-radius" value="1.5" class="form-check-input" />
+                    <div class="form-check-label">1.5</div>
+                  </div>
+                </label>
+                <label class="form-check">
+                  <div class="form-selectgroup-item">
+                    <input type="radio" name="theme-radius" value="2" class="form-check-input" />
+                    <div class="form-check-label">2</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="mt-auto space-y">
+            <button type="button" class="btn w-100" id="reset-changes">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-1"
+              >
+                <path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5" />
+              </svg>
+              Reset changes
+            </button>
+            <a href="#" class="btn btn-primary w-100" data-bs-dismiss="offcanvas">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-1"
+              >
+                <path
+                  d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+                />
+                <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+              </svg>
+              Save settings
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+    {# BEGIN PAGE LIBRARIES #}
+    <script src="{{ url_for('static', filename='tabler-dist/libs/fslightbox/index.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='tabler-dist/libs/apexcharts/dist/apexcharts.min.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='tabler-dist/libs/jsvectormap/dist/jsvectormap.min.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='tabler-dist/libs/jsvectormap/dist/maps/world.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='tabler-dist/libs/jsvectormap/dist/maps/world-merc.js') }}" defer></script>
+    {# END PAGE LIBRARIES #}
+    {# BEGIN GLOBAL MANDATORY SCRIPTS #}
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler.min.js') }}" defer></script>
+    {# END GLOBAL MANDATORY SCRIPTS #}
+    {# BEGIN PAGE SCRIPTS #}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var themeConfig = {
+          theme: "light",
+          "theme-base": "gray",
+          "theme-font": "sans-serif",
+          "theme-primary": "blue",
+          "theme-radius": "1",
+        };
+        var url = new URL(window.location);
+        var form = document.getElementById("offcanvasSettings");
+        var resetButton = document.getElementById("reset-changes");
+        var checkItems = function () {
+          for (var key in themeConfig) {
+            var value = window.localStorage["tabler-" + key] || themeConfig[key];
+            if (!!value) {
+              var radios = form.querySelectorAll(`[name="${key}"]`);
+              if (!!radios) {
+                radios.forEach((radio) => {
+                  radio.checked = radio.value === value;
+                });
+              }
+            }
+          }
+        };
+        form.addEventListener("change", function (event) {
+          var target = event.target,
+            name = target.name,
+            value = target.value;
+          for (var key in themeConfig) {
+            if (name === key) {
+              document.documentElement.setAttribute("data-bs-" + key, value);
+              window.localStorage.setItem("tabler-" + key, value);
+              url.searchParams.set(key, value);
+            }
+          }
+          window.history.pushState({}, "", url);
+        });
+        resetButton.addEventListener("click", function () {
+          for (var key in themeConfig) {
+            var value = themeConfig[key];
+            document.documentElement.removeAttribute("data-bs-" + key);
+            window.localStorage.removeItem("tabler-" + key);
+            url.searchParams.delete(key);
+          }
+          checkItems();
+          window.history.pushState({}, "", url);
+        });
+        checkItems();
+      });
+    </script>
+    {# END PAGE SCRIPTS #}
+    {# Initialize Bootstrap tooltips #}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+    </script>
+    {# Bokeh chart scripts - must be after divs are rendered #}
+    {% if script %}
+    {{ script|safe }}
+    {% endif %}
+    {% if month_cmp_script %}
+    {{ month_cmp_script|safe }}
+    {% endif %}
+    {% if week_cmp_script %}
+    {{ week_cmp_script|safe }}
+    {% endif %}
+    {% if radar_script %}
+    {{ radar_script|safe }}
+    {% endif %}
+
+</body>
+</html>

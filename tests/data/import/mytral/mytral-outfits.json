@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Summer running kit",
+        "activity_type": "run",
+        "description": "Light summer outfit for warm days",
+        "count": 5,
+        "key": "outfit-test-summer-001"
+    },
+    {
+        "name": "Winter cycling kit",
+        "activity_type": "ride",
+        "description": "Thermal bib tights and long-sleeve jersey",
+        "count": 3,
+        "key": "outfit-test-winter-002"
+    }
+]

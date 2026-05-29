@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Digitize, normalize, own! - MyTraL Documentation</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <meta
+      name="description"
+      content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL."
+    />
+
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="/static/tabler-dist/css/tabler.min.css" rel="stylesheet" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PLUGINS STYLES -->
+    <link href="/static/tabler-dist/css/tabler-flags.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-socials.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-payments.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-vendors.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-marketing.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-themes.min.css" rel="stylesheet"/>
+    <!-- END PLUGINS STYLES -->
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+      .carousel-inner img {
+        height: 300px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+      }
+    </style>
+
+  </head>
+  <body>
+    <!-- BEGIN GLOBAL THEME SCRIPT -->
+    <script src="/static/tabler-dist/js/tabler-theme.min.js"></script>
+    <!-- END GLOBAL THEME SCRIPT -->
+    <div class="page">
+      <!-- BEGIN NAVBAR  -->
+      <div class="sticky-top">
+        <header class="navbar navbar-expand-md sticky-top d-print-none">
+          <div class="container-xl">
+            <!-- BEGIN NAVBAR TOGGLER -->
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar-menu"
+              aria-controls="navbar-menu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- END NAVBAR TOGGLER -->
+            <!-- BEGIN NAVBAR LOGO -->
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3" style="gap: 0px;">
+              <img src="/static/images/mytral-logo-transparent-bg.png" alt="MyTraL" style="width: 25px; height: 25px; margin-right: 5px;">
+                MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span>
+            </div>
+            <!-- END NAVBAR LOGO -->
+            <div class="navbar-nav flex-row order-md-last">
+              <div class="d-none d-md-flex">
+
+                <div class="nav-item">
+                  <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+                    </svg>
+                  </a>
+                  <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                      <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <header class="navbar-expand-md">
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <div class="navbar">
+              <div class="container-xl">
+                <div class="row flex-column flex-md-row flex-fill align-items-center">
+                  <div class="col">
+                    <!-- BEGIN NAVBAR MENU -->
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> User Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="index.html">Manifesto</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="about.html">About</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-code"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Technical Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="architecture.html">Architecture</a>
+<a class="dropdown-item" href="normalization.html">Activity Normalization</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="license.html">License</a>
+<a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
+<a class="dropdown-item" href="changelog.html">Changelog</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Digitalization </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item active" href="digitalization.html">Digitize, Normalize, Own!</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                    <!-- END NAVBAR MENU -->
+                  </div>
+                  <div class="col col-md-auto">
+                    <ul class="navbar-nav">
+                      <li class="nav-item">
+                        <a class="nav-link" href="/home">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+                              <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+                              <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> MyTraL </span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- END NAVBAR  -->
+      <div class="page-wrapper">
+
+      <!-- BEGIN MYTRAL PAGE CONTENT -->
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="page-pretitle">Digitalization</div>
+                        <h2 class="page-title">Digitize, normalize, own!</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row">
+                    <!-- BEGIN MAIN CONTENT -->
+                    <div class="col-12 col-xxl-10">
+                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why?</h2>
+<p>MyTraL was born from a simple need: to track my own training progress with more depth and insight than existing solutions offered. I was born a sickly child who struggled with overweight and illness in the first years of my life. Thanks to sports, however, I overcame the problems, found friends, and my life became much happier. The data from my sports diaries tell the story of one recreational athlete's life. From nothing to a national rowing champion and a marathon under 3 hours.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="digitize-normalize-own_1">Digitize, normalize, own!</h2>
+<p>I believe that <strong>privacy is normal</strong>. Everyone should own their personal data - I want to keep my training history and my very personal insights under my own control. This is why I'm building MyTraL - to have complete ownership of data, <a href="normalization.html">normalized</a> in an <strong>open format</strong> , and analyze it myself, without relying on third-party platforms.</p>
+<p>In this project, I am documenting the process of digitization and normalization of 30+ years of training logs I have used over the years — from paper (official performance sports center diaries, my personal notebooks), MS Excel, 3rd party online diaries, <a href="https://www.concept2.com/online-rankings">concept2.com ranking</a>, <a href="https://workspace.google.com/products/sheets/">Google Sheets</a>, all the way to <a href="https://www.strava.com/">strava.com</a>.</p>
+<p>What all will I learn from the data? I can't wait!</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tsmsvs-logs-1986-1994">TSM/SVS Logs (1986 - 1994)</h2>
+<p>The story began in 1986. During the summer holidays that year, my father told me he insisted I choose a sport — any sport. I somehow expected the idea would disappear, but it didn't. One day, while watching the intro to a daily program about what's new in sports, I became interested in rowers. By coincidence, my father knew a colleague from work who was a coach at the local rowing club. So, with the start of the school year, I joined the club and began to row.</p>
+<p>I was born in a country with a communist regime, but which had a quite sophisticated system for working with children and youth in sports. The reason was that sport was used in propaganda for comparison as to which regime was better - Western capitalism or communism (socialism).</p>
+<p>The backbone of the youth development system for children was the sports centers - TSM (Tréninkové Středisko Mládeže - Youth Training Center) for children from 10 to 14 years old (older and younger pupils, each for 2 years) and SVS (Středisko Vrcholového Sportu - Center for Elite/High-Performance Sports) for children from 15 to 18 years old (youth and juniors, each for 2 years). With that, and then the national representation (team) followed.</p>
+<p><img alt="tsm-paper-title-page" src="./DIGITALIZATION.tsm-paper-title-page.png" /></p>
+<p><img alt="tsm-paper-005-page" src="./DIGITALIZATION.tsm-paper-005-page.png" /></p>
+<p><img alt="tsm-paper-006-page" src="./DIGITALIZATION.tsm-paper-006-page.png" /></p>
+<p><img alt="tsm-paper-last-page" src="./DIGITALIZATION.tsm-paper-last-page.png" /></p>
+<p>After about a year or two, I made it to TSM. That's when I got <strong>my first training log</strong> , which I had to fill out daily.</p>
+<p>These paper logs contain detailed methodology instructions, training notes, performance observations, and personal reflections from my early competitive years. Training data were periodically checked by the center head coach who was supervising the coach of my category. This ensured consistency and accountability in my training. The head coach would review my entries montly, providing honest feedback.</p>
+<p>As teenager I hated it and I didn't understand why had to do that - most of the time I considered it the waste of time. It felt like a chore rather than a tool for improvement. That changed, however, when I ended my career as an elite athlete, took a break from sports, and started having my own ambitions - such as a sub-3 hour marathon.</p>
+<p>It was mandatory to return the training diaries to the training center at the end of the season (which ended at the end of the summer holidays), but for some reason I no longer remember, the last diary with only a few entries remained with me - most likely because I finished in November (at the beginning of new season). I erased the old entries from it, and for the first year as a recreational runner, I used it and only then truly appreciated how well-made it was.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="microsoft-excel-training-log-1996-2000">Microsoft Excel training log (1996 - 2000)</h2>
+<p>Content for Microsoft Excel log coming soon...</p>
+<ul>
+<li>The first approach: .xls &gt; .csv &gt; Python import &gt; MyTraL</li>
+<li>The second approach: .xls + .json example &gt; LLM &gt; .json</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="paper-notebooks-1996-2009">Paper Notebooks (1996 - 2009)</h2>
+<p>Content for Paper Notebooks section coming soon...</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="concept2-online-log-2009-2020">Concept2 Online Log (2009 - 2020)</h2>
+<p>Content for Concept2 Online Log section coming soon...</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="google-sheets-2010-2024">Google Sheets (2010 - 2024)</h2>
+<p>Content for Google Sheets section coming soon...</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="strava-2013-onwards">Strava (2013 - onwards)</h2>
+<p>Content for Strava section coming soon...</p>
+                        </div></div>
+                    </div>
+                    <!-- END MAIN CONTENT -->
+
+                    <!-- BEGIN TABLE OF CONTENTS SIDEBAR -->
+                    <div class="col-2 d-none d-xxl-block">
+                        <div class="mt-6 py-6 sticky-top">
+    <h3 class="mt-9">Table of Contents</h3>
+    <div class="nav nav-vertical" id="toc">
+        <a href="#why" class="nav-link">Why?</a>
+<a href="#digitize-normalize-own" class="nav-link">Digitize, normalize, own!</a>
+<a href="#tsmsvs-logs-1986---1994" class="nav-link">TSM/SVS Logs (1986 - 1994)</a>
+<a href="#microsoft-excel-training-log-1996---2000" class="nav-link">Microsoft Excel training log (1996 - 2000)</a>
+<a href="#paper-notebooks-1996---2009" class="nav-link">Paper Notebooks (1996 - 2009)</a>
+<a href="#concept2-online-log-2009---2020" class="nav-link">Concept2 Online Log (2009 - 2020)</a>
+<a href="#google-sheets-2010---2024" class="nav-link">Google Sheets (2010 - 2024)</a>
+<a href="#strava-2013---onwards" class="nav-link">Strava (2013 - onwards)</a>
+    </div>
+</div>
+                    </div>
+                    <!-- END TABLE OF CONTENTS SIDEBAR -->
+                </div>
+            </div>
+        </div>
+
+        <!-- END MYTRAL PAGE CONTENT -->
+
+        <!--  BEGIN FOOTER  -->
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+              <div class="col-lg-auto ms-lg-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/DIGITALIZATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/DIGITALIZATION.md" class="link-secondary" target="_blank">Source</a></li>
+                </ul>
+              </div>
+              <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    Copyright &copy; 2026 MyTraL
+                  </li>
+                  <li class="list-inline-item">
+                    Your personal training log for deeper insights and smarter progress.
+                  </li>
+                  <li class="list-inline-item">
+                    Doc made with <a href="https://www.mindforger.com" target="_blank">MindForger</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!--  END FOOTER  -->
+      </div>
+    </div>
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="/static/tabler-dist/js/tabler.min.js" defer></script>
+    <!-- END GLOBAL MANDATORY SCRIPTS -->
+</body>
+</html>

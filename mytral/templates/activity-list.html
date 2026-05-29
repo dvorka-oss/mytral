@@ -1,0 +1,144 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">
+                    {% if month and day %}
+                        Activities on {{ month }}/{{ day }} across all years
+                    {% elif year %}
+                        {{ year }} Activities List
+                    {% else %}
+                        Activities List
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    {% if month and day %}
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                    {% else %}
+                    <a href="{{ url_for('create_activity_for_date', year=year, month=month, day=day) }}" class="btn btn-primary">
+                    {% endif %}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                <p>List of your activities.</p>
+
+                {% if ff.mode("mock") %}
+                    {% if years %}
+                        <div class="hr-text">Years</div>
+                        <div class="text-center">
+                            {% for y in years %}
+                                <a href="{{ url_for('list_activities', year=y) }}" class="badge bg-primary">{{ y }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if activities|length == 0 %}
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12h4l3 8l4 -16l3 8h4"></path>
+                            </svg>
+                        </div>
+                        <p class="empty-title">No activities found</p>
+                        <p class="empty-subtitle text-secondary">
+                            Start by adding your first activity
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>When</th>
+                                    <th>Name<br/>Gear</th>
+                                    <th>Duration<br/>Distance</th>
+                                    <th>km/h<br/>Pace</th>
+                                    <th title="Exercises">#<br/>kg</th>
+                                    <th>Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activities %}
+                                    <tr>
+                                        <td title="{{ activity.activity_type_key }}">
+                                            {{ activity_types.emoji(activity.activity_type_key) }}
+                                        </td>
+                                        <td title="Workout: {{ activity.workout_sort_code }}">
+                                            <a href="{{ url_for('get_activity', key=activity.key) }}">{{ activity.when }}</a>
+                                            <br/>
+                                            <span class="text-secondary">{{ activities_weekdays[activity.key] }}</span>
+                                            {% if activity.commute %}
+                                                <span class="text-secondary">| commute</span>
+                                            {% elif activity.warm_up %}
+                                                <span class="text-secondary">| warm-up</span>
+                                            {% elif activity.cool_down %}
+                                                <span class="text-secondary">| cool-down</span>
+                                            {% elif activity.race %}
+                                                <span class="text-danger">| race</span>
+                                            {% elif activity.ranked %}
+                                                <span class="text-orange">| ranked</span>
+                                            {% endif %}
+                                        </td>
+                                        <td title="{{ activity.description }}">
+                                            <b>{{ activity.name }}</b>
+                                            <br>
+                                            {% if activity.gear and not gear.to_dict().get(activity.gear) %}
+                                                <span class="text-danger">{{ activity.gear }}</span>
+                                            {% else %}
+                                                {{ gear.to_dict().get(activity.gear, {}).name }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                                {{ "{:0,}".format(activity.distance) }} m
+                                                <br/>
+                                            {% endif %}
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                                                {{ activity.duration }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                                {{ (activity.avg_speed)|round(1) }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="{% if activity.workout_sort_code == 2 %}text-warning{% elif activity.workout_sort_code == 3 %}text-orange{% elif activity.workout_sort_code > 3 %}text-danger{% else %}{% if activity.activity_type_key not in ["sick","injured","comment"] %}text-success{% endif %}{% endif %}"
+                                            title="Exercises">
+                                            {% if activity.activity_type_key not in ["sick","injured","comment","meditation","physio"] %}
+                                                {{ activity.exercises|length }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ activity.src }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

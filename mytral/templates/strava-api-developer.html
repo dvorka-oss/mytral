@@ -1,0 +1,225 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Import</div>
+                <h2 class="page-title">
+                    Strava API (developer)
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Import activities from <a href="https://www.strava.com" target="_blank">Strava</a>
+                    using the <a href="{{ user_profile.strava_url }}" title="{{ user_profile.strava_url }}" target="_blank">API</a>
+                    as a <b>developer</b>.
+                </p>
+                <p>
+                    <span class="badge bg-red text-red-fg ms-1">WARNING</span>
+                    <a href="https://www.strava.com" target="_blank" class="link-primary">Strava</a> has modified its
+                    <a href="https://www.strava.com/legal/terms" target="_blank" class="link-primary">legal terms</a>
+                    multiple times without prior notice - consequently, this feature may no longer be <b>legally</b> compliant.
+                </p>
+            </div>
+        </div>
+
+        {# sync in progress banner #}
+        {% if sync_locked %}
+        <div class="alert alert-warning mb-3" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh badge-blink"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                </div>
+                <div>
+                    <strong>Synchronization is running</strong> &mdash; MyTraL is temporarily read-only.
+                    <a href="{{ url_for('tasks_list') }}" class="alert-link ms-2">View progress</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+{% if is_auth_valid %}
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><b>New Strava Activities to Current Dataset</b></h3>
+                <div class="card-actions">
+                    <form method="POST" action="{{ url_for('strava_sync_new_to_current') }}" style="display:inline;">
+                        <button type="submit" class="btn btn-primary" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
+                           <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                            Synchronize New to Current
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Import <b>only</b> Strava activities newer than the last activity in the current dataset.</p>
+            </div>
+        </div>
+
+        <div class="card mb-3 SKIP-border-danger">
+            <div class="card-status-top SKIP-bg-danger"></div>
+            <div class="card-header">
+                <h3 class="card-title">
+                    <b>All Strava Activities to Current Dataset</b>
+                </h3>
+                <div class="card-actions">
+                    <form method="POST" action="{{ url_for('strava_sync_all') }}"
+                        onsubmit="return confirm('CONFIRM: This will DELETE all Strava-sourced activities from ALL datasets and re-import from scratch. Manual edits will be lost. Continue?')">
+                        <input type="hidden" name="purge_confirmed" value="1">
+                        <button type="submit" class="btn btn-outline-primary" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                            Delete &amp; Re-sync All Strava Activities
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>
+                    This will <b>permanently delete all activities imported from Strava across all datasets</b>,
+                    then re-import everything from Strava from the beginning of time.
+                    Any manual edits to Strava-sourced activities will be permanently lost.
+                    If aborted mid-operation, some activities may be deleted but not yet re-imported.
+                </p>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><b>Gear Synchronization</b></h3>
+                <div class="card-actions">
+                    <form method="POST" action="{{ url_for('strava_sync_gear') }}" style="display:inline;">
+                        <button type="submit" class="btn btn-outline-primary" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                            Synchronize Gear
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Smart synchronization of the gear from Strava - matches gear by Strava ID first, then by brand &amp; model.
+                    Gear is never deleted - retired Strava gear is marked as retired.
+                </p>
+            </div>
+        </div>
+
+        {% if user_profile.expert %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><b>Activities to New Dataset</b></h3>
+                <div class="card-actions">
+                    <a class="btn btn-primary"
+                        href="{{ url_for('strava_sync_new_to_new') }}"
+                        title=""
+                    >
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                        Synchronize New to New
+                        <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Synchronize Strava activities which are <b>newer than the last activity</b> in the current dataset to a brand <b>new dataset</b>.</p>
+            </div>
+        </div>
+        {% endif %}
+
+{% endif %} {# if authenticated #}
+
+{% if user_profile.strava_client_id and user_profile.strava_client_secret %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><b>Authentication</b></h3>
+                <div class="card-actions">
+                    <a class="btn btn-outline-danger"
+                        href="{{ url_for('strava_auth_reset') }}"
+                        title="Keep client ID and client secret, clear access and refresh tokens">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-restore"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.06 13a9 9 0 1 0 .49 -4.087" /><path d="M3 4.001v5h5" /><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+                        Reset tokens
+                    </a>
+                    {% if not is_auth_valid %}
+                    <a class="btn btn-primary" href="{{ url_for('strava_auth_start') }}">
+                    {% else %}
+                    <a class="btn btn-secondary" href="{{ url_for('strava_auth_start') }}">
+                    {% endif %}
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="currentColor"  class="icon icon-tabler icons-tabler-filled icon-tabler-key"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14.52 2c1.029 0 2.015 .409 2.742 1.136l3.602 3.602a3.877 3.877 0 0 1 0 5.483l-2.643 2.643a3.88 3.88 0 0 1 -4.941 .452l-.105 -.078l-5.882 5.883a3 3 0 0 1 -1.68 .843l-.22 .027l-.221 .009h-1.172c-1.014 0 -1.867 -.759 -1.991 -1.823l-.009 -.177v-1.172c0 -.704 .248 -1.386 .73 -1.96l.149 -.161l.414 -.414a1 1 0 0 1 .707 -.293h1v-1a1 1 0 0 1 .883 -.993l.117 -.007h1v-1a1 1 0 0 1 .206 -.608l.087 -.1l1.468 -1.469l-.076 -.103a3.9 3.9 0 0 1 -.678 -1.963l-.007 -.236c0 -1.029 .409 -2.015 1.136 -2.742l2.643 -2.643a3.88 3.88 0 0 1 2.741 -1.136m.495 5h-.02a2 2 0 1 0 0 4h.02a2 2 0 1 0 0 -4" /></svg>
+                        Authenticate
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <p class="text-muted">Strava authentication status:
+                    {% if user_profile.strava_auth_until %}
+                        {% if is_auth_valid %}
+                        <span class="badge bg-green text-green-fg">Authenticated</span>
+                        {% else %}
+                        <span class="badge bg-red text-red-fg">Not authenticated</span>
+                        {% endif %}
+                        to synchronize data
+                        {% if is_auth_valid %}
+                        until:
+                        {% else %}
+                        since:
+                        {% endif %}
+                        {{ user_profile.strava_auth_until_str }}
+                    {% else %}
+                    You are <strong>not</strong> authenticated - please use the <code>Authenticate</code> button above to authenticate first.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+{% endif %}
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title"><b>Configuration</b></h3>
+                <div class="card-actions">
+                    <a href="{{ url_for('strava_api_secrets_reset') }}"
+                        class="btn btn-outline-danger"
+                        title="Clear Strava client ID and client secret">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-restore"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.06 13a9 9 0 1 0 .49 -4.087" /><path d="M3 4.001v5h5" /><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>
+                        Reset secrets
+                    </a>
+                    <a href="{{ url_for('strava_api_secrets') }}"
+                        {% if not user_profile.strava_client_id or not user_profile.strava_client_secret %}
+                        class="btn btn-primary"
+                        {% else %}
+                        class="btn btn-secondary"
+                        {% endif %}
+                        title="Set your Strava API client ID and client secret">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                        Configure Strava secrets
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p>Your Strava API client ID and client secret are required to authenticate and synchronize data from Strava.</p>
+                <ul>
+                    <li class="text-muted">Strava API client ID:
+                        {% if user_profile.strava_client_id%}
+                            <span class="xtext-muted"><span class="badge bg-green text-green-fg">CONFIGURED</span>
+                        {% else %}
+                            <span class="xtext-muted"><span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
+                        {% endif %}
+                    </li>
+                    <li class="text-muted">
+                        Strava API client secret:
+                        {% if user_profile.strava_client_secret %}
+                            <span class="xtext-muted"><span class="badge bg-green text-green-fg">CONFIGURED</span>
+                        {% else %}
+                            <span class="xtext-muted"><span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+<style>
+#field-filter-search {
+    transition: border-color 0.3s ease;
+}
+
+#field-filter-search:focus {
+    border-color: #206bc4;
+    box-shadow: 0 0 0 0.2rem rgba(32, 107, 196, 0.25);
+}
+
+.filterable-field {
+    transition: opacity 0.2s ease, height 0.2s ease;
+}
+
+.filterable-field.hidden {
+    display: none !important;
+}
+
+.card.hidden-card {
+    display: none !important;
+}
+
+#filter-stats {
+    min-height: 20px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('field-filter-search');
+    const filterStats = document.getElementById('filter-stats');
+    const filterableFields = document.querySelectorAll('.filterable-field');
+    
+    // get only the nested cards (not the main outer card that has id="field-filter-search")
+    const allCards = document.querySelectorAll('.card');
+    const nestedCards = Array.from(allCards).filter(card => {
+        // exclude the main card that contains the search input
+        return !card.querySelector('#field-filter-search');
+    });
+
+    function updateFilter() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // show all fields and cards
+            filterableFields.forEach(field => field.classList.remove('hidden'));
+            nestedCards.forEach(card => card.classList.remove('hidden-card'));
+            filterStats.textContent = '';
+            return;
+        }
+
+        let visibleFieldsCount = 0;
+        let visibleCardsCount = 0;
+
+        // first pass: show/hide fields based on search
+        filterableFields.forEach(field => {
+            const label = field.getAttribute('data-label');
+            // filter out empty labels and the string "None"
+            if (label && label.trim() && label !== 'None' && label.toLowerCase().includes(searchTerm)) {
+                field.classList.remove('hidden');
+                visibleFieldsCount++;
+            } else {
+                field.classList.add('hidden');
+            }
+        });
+
+        // second pass: show/hide cards based on visible fields
+        nestedCards.forEach(card => {
+            const cardBody = card.querySelector('.card-body');
+            if (!cardBody) {
+                return;
+            }
+
+            // cards marked with 'always-visible' class stay visible
+            if (card.classList.contains('always-visible')) {
+                card.classList.remove('hidden-card');
+                visibleCardsCount++;
+                return;
+            }
+
+            const allFilterableFields = cardBody.querySelectorAll('.filterable-field');
+            const visibleFieldsInCard = cardBody.querySelectorAll('.filterable-field:not(.hidden)');
+            
+            if (allFilterableFields.length > 0) {
+                // card has filterable fields - show if any are visible
+                if (visibleFieldsInCard.length > 0) {
+                    card.classList.remove('hidden-card');
+                    visibleCardsCount++;
+                } else {
+                    card.classList.add('hidden-card');
+                }
+            } else {
+                // card has no filterable fields - hide it during search
+                card.classList.add('hidden-card');
+            }
+        });
+
+        // update stats
+        if (visibleFieldsCount === 0) {
+            filterStats.textContent = `No fields found matching "${searchTerm}"`;
+            filterStats.style.color = '#d63939';
+        } else {
+            filterStats.textContent = `Showing ${visibleFieldsCount} field${visibleFieldsCount !== 1 ? 's' : ''} in ${visibleCardsCount} section${visibleCardsCount !== 1 ? 's' : ''}`;
+            filterStats.style.color = '#206bc4';
+        }
+    }
+
+    // attach event listener
+    searchInput.addEventListener('input', updateFilter);
+    
+    // allow ESC to clear search
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            updateFilter();
+            searchInput.blur();
+        }
+    });
+});
+</script>

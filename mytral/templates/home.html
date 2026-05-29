@@ -1,0 +1,793 @@
+{% macro format_duration(duration) %}
+    {# % set parts = duration.replace('h', 'h ').replace('m', 'm ').replace('s', 's ').split() % #}
+    {% set parts = duration.replace('h', 'h ').replace('m', '\' ').split() %}
+    {% for part in parts[:-1] %}{{ part[:-1] }}<b>{{ part[-1] }}</b>&nbsp;{% endfor %}
+{% endmacro %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">MyTraL</div>
+                <h2 class="page-title">Dashboard</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                {# <div class="btn-group"> #}
+                    <a href="{{ url_for('list_activities_for_date', year=today.year, month=today.month, day=today.day) }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-clipboard-check"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2" /><path d="M9 14l2 2l4 -4" /></svg>
+                        Today
+                    </a>
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div> {# END container #}
+</div> {# END page header #}
+
+<div class="page-body">
+    <div class="container-xl">
+    {# BEGIN MYTRAL #}
+
+    {% include 'onboarding-checklist.html' %}
+
+    {% if stats.year %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                MyTraL is a personal training log for deeper insights and smarter progress.
+            </p>
+        </div>
+
+    {% if ff.mode("mock") %}
+        <hr/>
+
+        <table style="width: 100%;">
+            <tr>
+                <td style="text-align: center;">
+                    Suggested <a href="{{ url_for('create_activity') }}">activity</a>:
+                    <b class="w3-padding w3-brown">run</b> (37.21%)
+                    &gt; <b class="w3-padding w3-blue">row</b> (21.12)
+                    &gt; <b class="w3-padding w3-green">bike</b> (15.23)
+                </td>
+                <td style="text-align: center;">
+                    Injury probability: <b class="w3-padding w3-red">3.56%</b>
+                </td>
+                <td style="text-align: center;">
+                    Sickness probability: <b class="w3-padding w3-red">7.56%</b>
+                </td>
+            </tr>
+        </table>
+
+        <hr/>
+        {% endif %}
+
+    {% if div %}
+    </div>
+
+    {% if stats and stats.ukm %}
+    {# Row: Lifetime metrics cards #}
+    {% set current_year = stats.year_max %}
+    {% set this_year_stats = stats.year.get(current_year) %}
+    <div class="row row-deck row-cards mb-2">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Total Activities
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of recorded training activities across all years. The progress bar shows what percentage of your all-time activities were completed this year ({{ current_year }}), helping you see if you're maintaining or increasing your training frequency.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1">{{ "{:,}".format(stats.activities_count) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Total UKM
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Universal Kilometers (UKM) normalize different activities to a common metric. For example, 1 km running ≈ 4 km cycling. This allows fair comparison across sports. The progress bar shows this year's contribution to your lifetime UKM total.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1">{{ "{:,}".format(stats.ukm|int) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Total Training Time
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Total time spent training across all activities and years, measured in hours and minutes. The progress bar indicates how much of your lifetime training time was invested this year, showing your current training volume relative to your historical average.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1">{{ format_duration(stats.utime) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Years Active
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Number of calendar years with recorded training activities ({{ stats.year_min }} to {{ stats.year_max }}). The progress bar shows what percentage of your life (birth to age 100) you've spent actively training, demonstrating your long-term commitment to fitness.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1">{{ stats.years|length }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Chart: lifetime training volume #}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                Total Universal Kilometers per Year
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Historical overview of your training volume across all years. Shows total kilometers for each sport and Universal Kilometers (UKM - black dotted line) which normalizes different activities for fair comparison. Click legend items to show/hide specific sports. Hover over lines to see exact values per year.">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                    <path d="M12 9h.01"></path>
+                    <path d="M11 12h1v4h1"></path>
+                </svg>
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class='bokeh' style="justify-content: center;">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+
+    {# All-Time Records Cards #}
+    {% if stats.activities_count > 0 %}
+    <div class="row g-2 mb-3 mt-3">
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader small">
+                            Fastest Ever
+                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Your all-time fastest activity by pace">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                    <path d="M12 8l0 4"></path>
+                                    <path d="M12 16l.01 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    {% if dashboard_fastest_activity %}
+                    <div class="h3 mb-0 text-truncate" title="{{ dashboard_fastest_activity.name }}">
+                        <a href="{{ url_for('get_activity', key=dashboard_fastest_activity.key) }}" class="text-reset">
+                            {{ dashboard_fastest_activity.name or activity_types.name(dashboard_fastest_activity.activity_type_key) }}
+                        </a>
+                    </div>
+                    <div class="text-muted small">{{ dashboard_fastest_activity.pace }}/km · {{ dashboard_fastest_activity.when_year }}</div>
+                    {% else %}
+                    <div class="h3 mb-0">—</div>
+                    <div class="text-muted small">No data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader small">
+                            Longest Ever
+                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Your all-time longest activity by distance">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                    <path d="M12 8l0 4"></path>
+                                    <path d="M12 16l.01 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    {% if dashboard_longest_activity and dashboard_longest_activity.distance > 0 %}
+                    <div class="h3 mb-0 text-truncate" title="{{ dashboard_longest_activity.name }}">
+                        <a href="{{ url_for('get_activity', key=dashboard_longest_activity.key) }}" class="text-reset">
+                            {{ dashboard_longest_activity.name or activity_types.name(dashboard_longest_activity.activity_type_key) }}
+                        </a>
+                    </div>
+                    <div class="text-muted small">{{ "{:,.1f}".format(dashboard_longest_activity.distance / 1000) }} km · {{ dashboard_longest_activity.when_year }}</div>
+                    {% else %}
+                    <div class="h3 mb-0">—</div>
+                    <div class="text-muted small">No data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader small">
+                            Most Intense Ever
+                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Your all-time most intense activity by heart rate or power">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                    <path d="M12 8l0 4"></path>
+                                    <path d="M12 16l.01 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    {% if dashboard_most_intense_activity %}
+                    <div class="h3 mb-0 text-truncate" title="{{ dashboard_most_intense_activity.name }}">
+                        <a href="{{ url_for('get_activity', key=dashboard_most_intense_activity.key) }}" class="text-reset">
+                            {{ dashboard_most_intense_activity.name or activity_types.name(dashboard_most_intense_activity.activity_type_key) }}
+                        </a>
+                    </div>
+                    <div class="text-muted small">
+                        {% if dashboard_most_intense_activity.avg_hr %}
+                        {{ dashboard_most_intense_activity.avg_hr }} bpm · {{ dashboard_most_intense_activity.when_year }}
+                        {% elif dashboard_most_intense_activity.avg_watts %}
+                        {{ dashboard_most_intense_activity.avg_watts }} W · {{ dashboard_most_intense_activity.when_year }}
+                        {% else %}
+                        High intensity · {{ dashboard_most_intense_activity.when_year }}
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="h3 mb-0">—</div>
+                    <div class="text-muted small">No data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader small">
+                            Highest Climb Ever
+                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Your all-time biggest elevation gain in a single activity">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                    <path d="M12 8l0 4"></path>
+                                    <path d="M12 16l.01 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    {% if dashboard_highest_elevation_activity and dashboard_highest_elevation_activity.elevation_gain > 0 %}
+                    <div class="h3 mb-0 text-truncate" title="{{ dashboard_highest_elevation_activity.name }}">
+                        <a href="{{ url_for('get_activity', key=dashboard_highest_elevation_activity.key) }}" class="text-reset">
+                            {{ dashboard_highest_elevation_activity.name or activity_types.name(dashboard_highest_elevation_activity.activity_type_key) }}
+                        </a>
+                    </div>
+                    <div class="text-muted small">{{ "{:,}".format(dashboard_highest_elevation_activity.elevation_gain) }} m · {{ dashboard_highest_elevation_activity.when_year }}</div>
+                    {% else %}
+                    <div class="h3 mb-0">—</div>
+                    <div class="text-muted small">No data</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Row: Sport Distribution & Performance #}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sport Distribution by Distance</h3>
+                </div>
+                <div class="card-body">
+                    {% if stats.total_km_per_activity_type %}
+                        {% set total_km = stats.total_km_per_activity_type.values()|sum %}
+                        <div class="progress progress-separated mb-3" style="height: 2rem;">
+                            {% set colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'purple', 'pink'] %}
+                            {% for sport_id in stats.total_m_per_activity_type|dictsort(by='value', reverse=true) %}
+                                {% set sport = sport_id[0] %}
+                                {% set km = stats.total_km_per_activity_type[sport] %}
+                                {% set percentage = (km / total_km * 100)|round(1) if total_km > 0 else 0 %}
+                                <div class="progress-bar bg-{{ colors[loop.index0 % colors|length] }}" role="progressbar" style="width: {{ percentage }}%" title="{{ activity_types.name(sport) if activity_types else sport }}: {{ '{:,}'.format(km) }} km ({{ percentage }}%)">
+                                    {% if percentage > 5 %}
+                                        <span class="visually-hidden">{{ percentage }}%</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="row">
+                            {% for sport_id in stats.total_m_per_activity_type|dictsort(by='value', reverse=true) %}
+                                {% set sport = sport_id[0] %}
+                                {% set km = stats.total_km_per_activity_type[sport] %}
+                                {% set percentage = (km / total_km * 100)|round(1) if total_km > 0 else 0 %}
+                                <div class="col-auto d-flex align-items-center pe-2">
+                                    <span class="legend me-2 bg-{{ colors[loop.index0 % colors|length] }}"></span>
+                                    <span>{{ activity_types.name(sport) if activity_types else sport }}</span>
+                                    <span class="d-none d-md-inline d-lg-none d-xxl-inline ms-2 text-muted">{{ '{:,}'.format(km) }} km ({{ percentage }}%)</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No sport data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sport Distribution by Time</h3>
+                </div>
+                <div class="card-body">
+                    {% if stats.total_seconds_per_activity_type %}
+                        {% set total_seconds = stats.total_seconds_per_activity_type.values()|sum %}
+                        <div class="progress progress-separated mb-3" style="height: 2rem;">
+                            {% set colors = ['success', 'primary', 'warning', 'info', 'danger', 'secondary', 'purple', 'pink'] %}
+                            {% for sport_id in stats.total_seconds_per_activity_type|dictsort(by='value', reverse=true) %}
+                                {% set sport = sport_id[0] %}
+                                {% set seconds = stats.total_seconds_per_activity_type[sport] %}
+                                {% set percentage = (seconds / total_seconds * 100)|round(1) if total_seconds > 0 else 0 %}
+                                <div class="progress-bar bg-{{ colors[loop.index0 % colors|length] }}" role="progressbar" style="width: {{ percentage }}%" title="{{ activity_types.name(sport) if activity_types else sport }}: {{ format_duration(stats.total_time_per_activity_type[sport]) }} ({{ percentage }}%)">
+                                    {% if percentage > 5 %}
+                                        <span class="visually-hidden">{{ percentage }}%</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="row">
+                            {% for sport_id in stats.total_seconds_per_activity_type|dictsort(by='value', reverse=true) %}
+                                {% set sport = sport_id[0] %}
+                                {% set seconds = stats.total_seconds_per_activity_type[sport] %}
+                                {% set percentage = (seconds / total_seconds * 100)|round(1) if total_seconds > 0 else 0 %}
+                                <div class="col-auto d-flex align-items-center pe-2">
+                                    <span class="legend me-2 bg-{{ colors[loop.index0 % colors|length] }}"></span>
+                                    <span>{{ activity_types.name(sport) if activity_types else sport }}</span>
+                                    <span class="d-none d-md-inline d-lg-none d-xxl-inline ms-2 text-muted">{{ format_duration(stats.total_time_per_activity_type[sport]) }} ({{ percentage }}%)</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No time data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Row: Recent Years Comparison (Radar Plot) #}
+    {% if radar_div %}
+    <div class="row row-deck row-cards mt-1">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        This Year vs. Past Years
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Comparison of distance, duration and kgs for the last 3 years. Each aspect has its own color, with lighter shades for previous years.">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                            <path d="M12 9h.01"></path>
+                            <path d="M11 12h1v4h1"></path>
+                        </svg>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ radar_div | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Row: This Year's Progress #}
+    {% if this_year_stats %}
+    <div class="row row-deck row-cards mt-1">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        This Year's Progress
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Year-over-year comparison showing {{ current_year }} vs {{ current_year - 1 }}. Green percentages indicate improvement, red indicate decline. Progress bars compare this year's absolute values against last year's performance.">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                            <path d="M12 9h.01"></path>
+                            <path d="M11 12h1v4h1"></path>
+                        </svg>
+                    </h3>
+                    <div class="card-actions">
+                        <span class="text-muted">{{ current_year }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 col-xl-3">
+                            <div class="mb-3">
+                                <div class="text-muted">
+                                    Activities Count
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of activities in {{ current_year }}. The difference shows the absolute change compared to {{ current_year - 1 }}. The progress bar indicates this year's count as a percentage of last year's count.">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                        <path d="M12 9h.01"></path>
+                                        <path d="M11 12h1v4h1"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-flex align-items-baseline">
+                                    <div class="h2 mb-0 me-2">{{ this_year_stats.activities_count }}</div>
+                                    {% set last_year = stats.year.get(current_year - 1) %}
+                                    {% if last_year %}
+                                        {% set diff = this_year_stats.activities_count - last_year.activities_count %}
+                                        {% if diff > 0 %}
+                                            <div class="me-auto"><span class="text-green d-inline-flex align-items-center lh-1">+{{ diff }}</span></div>
+                                        {% elif diff < 0 %}
+                                            <div class="me-auto"><span class="text-red d-inline-flex align-items-center lh-1">{{ diff }}</span></div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-primary" style="width: {{ (this_year_stats.activities_count / last_year.activities_count * 100) if (last_year and last_year.activities_count > 0) else (100 if this_year_stats.activities_count > 0 else 0) }}%" role="progressbar"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="mb-3">
+                                <div class="text-muted">
+                                    Total UKM
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Universal Kilometers for {{ current_year }}. The percentage shows relative growth/decline compared to {{ current_year - 1 }}. The progress bar visualizes this year's UKM as a proportion of last year's total.">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                        <path d="M12 9h.01"></path>
+                                        <path d="M11 12h1v4h1"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-flex align-items-baseline">
+                                    <div class="h2 mb-0 me-2">{{ "{:,}".format(this_year_stats.ukm|int) }}</div>
+                                    {% if last_year %}
+                                        {% set diff = ((this_year_stats.ukm - last_year.ukm) / last_year.ukm * 100)|round(1) if last_year.ukm > 0 else 0 %}
+                                        {% if diff > 0 %}
+                                            <div class="me-auto"><span class="text-green d-inline-flex align-items-center lh-1">+{{ diff }}%</span></div>
+                                        {% elif diff < 0 %}
+                                            <div class="me-auto"><span class="text-red d-inline-flex align-items-center lh-1">{{ diff }}%</span></div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-success" style="width: {{ (this_year_stats.ukm / last_year.ukm * 100) if (last_year and last_year.ukm > 0) else (100 if this_year_stats.ukm > 0 else 0) }}%" role="progressbar"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="mb-3">
+                                <div class="text-muted">
+                                    Training Time
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Total training time for {{ current_year }}. The percentage indicates time investment change vs {{ current_year - 1 }}. The progress bar shows this year's training hours relative to last year's volume.">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                        <path d="M12 9h.01"></path>
+                                        <path d="M11 12h1v4h1"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-flex align-items-baseline">
+                                    <div class="h2 mb-0 me-2">{{ format_duration(this_year_stats.utime) }}</div>
+                                    {% if last_year %}
+                                        {% set diff = ((this_year_stats.us - last_year.us) / last_year.us * 100)|round(1) if last_year.us > 0 else 0 %}
+                                        {% if diff > 0 %}
+                                            <div class="me-auto"><span class="text-green d-inline-flex align-items-center lh-1">+{{ diff }}%</span></div>
+                                        {% elif diff < 0 %}
+                                            <div class="me-auto"><span class="text-red d-inline-flex align-items-center lh-1">{{ diff }}%</span></div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-info" style="width: {{ (this_year_stats.us / last_year.us * 100) if (last_year and last_year.us > 0) else (100 if this_year_stats.us > 0 else 0) }}%" role="progressbar"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="mb-3">
+                                <div class="text-muted">
+                                    Avg UKM per Activity
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Average Universal Kilometers per activity in {{ current_year }}. Calculated as Total UKM / Activity Count. This metric shows training intensity - higher values indicate longer/harder workouts. The percentage compares average intensity vs {{ current_year - 1 }}.">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                        <path d="M12 9h.01"></path>
+                                        <path d="M11 12h1v4h1"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-flex align-items-baseline">
+                                    {% set avg_this = (this_year_stats.ukm / this_year_stats.activities_count)|round(1) if this_year_stats.activities_count > 0 else 0 %}
+                                    <div class="h2 mb-0 me-2">{{ avg_this }}</div>
+                                    {% if last_year %}
+                                        {% set avg_last = (last_year.ukm / last_year.activities_count)|round(1) if last_year.activities_count > 0 else 0 %}
+                                        {% set diff = ((avg_this - avg_last) / avg_last * 100)|round(1) if avg_last > 0 else 0 %}
+                                        {% if diff > 0 %}
+                                            <div class="me-auto"><span class="text-green d-inline-flex align-items-center lh-1">+{{ diff }}%</span></div>
+                                        {% elif diff < 0 %}
+                                            <div class="me-auto"><span class="text-red d-inline-flex align-items-center lh-1">{{ diff }}%</span></div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-warning" style="width: {{ (avg_this / avg_last * 100) if (last_year and avg_last > 0) else (100 if avg_this > 0 else 0) }}%" role="progressbar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Row: This Month vs Last Month Duration #}
+    {% if month_cmp_div and month_cmp_script %}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        This Month vs Past Months
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Week-by-week training duration comparison between the current month and the previous month.">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                            <path d="M12 9h.01"></path>
+                            <path d="M11 12h1v4h1"></path>
+                        </svg>
+                    </h3>
+                    <div class="card-actions">
+                        <a href="{{ url_for('this_vs_last', aspect='duration', period='month') }}" class="btn btn-sm btn-secondary">
+                            More...
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="bokeh" style="justify-content: center;">
+                        {{ month_cmp_div|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Row: This Week vs Past Weeks Duration #}
+    {% if week_cmp_div and week_cmp_script %}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        This Week vs Past Weeks
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Day-by-day training duration comparison between the current week and the previous weeks.">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                            <path d="M12 9h.01"></path>
+                            <path d="M11 12h1v4h1"></path>
+                        </svg>
+                    </h3>
+                    <div class="card-actions">
+                        <a href="{{ url_for('this_vs_last', aspect='duration', period='week') }}" class="btn btn-sm btn-secondary">
+                            More...
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="bokeh" style="justify-content: center;">
+                        {{ week_cmp_div|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# Row 5: Scientific Insights & Metrics #}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-lg-3 col-sm-6">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-primary text-white avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 7v5l3 3"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Avg Activity Time</div>
+                            <div class="text-muted">
+                                {% set avg_minutes = (stats.us / stats.activities_count / 60)|round(0) if stats.activities_count > 0 else 0 %}
+                                {{ avg_minutes|int }} minutes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-success text-white avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13"></path>
+                                    <path d="M9 4v13"></path>
+                                    <path d="M15 7v13"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Avg Distance/Day</div>
+                            <div class="text-muted">
+                                {% set total_days = ((stats.ts_max - stats.ts_min) / 86400)|int if stats.ts_max > stats.ts_min else 1 %}
+                                {% set avg_km_per_day = (stats.ukm / total_days)|round(1) if total_days > 0 else 0 %}
+                                {{ avg_km_per_day }} ukm
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-info text-white avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Activities/Year</div>
+                            <div class="text-muted">
+                                {% set avg_activities_year = (stats.activities_count / stats.years|length)|round(0) if stats.years|length > 0 else 0 %}
+                                {{ avg_activities_year|int }} activities
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-sm-6">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-warning text-white avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 21l18 0"></path>
+                                    <path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1"></path>
+                                    <path d="M3 11l18 0"></path>
+                                    <path d="M3 15l18 0"></path>
+                                    <path d="M3 19l18 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Sport Variety</div>
+                            <div class="text-muted">
+                                {{ stats.activity_type_keys|length }} different activity types
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {# Row 4: Gear Statistics - moved to Insights > Gear Performance #}
+
+    {# END ENHANCED DASHBOARD #}
+
+    </div>
+    {% endif %}
+
+    {% else %}
+
+        {% if ff.mode("mock") %}
+        <hr/>
+
+        Goals
+
+        <table class="w3-table-all">
+            <tr>
+                <th>Name</th>
+                <th>Goal</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><b>700x sit-ups / week</b></td>
+                <td>100x sit-ups / day</td>
+                <td>100 lehsedů nebo bříšáků denně.</td>
+            </tr>
+            <tr>
+                <td><b>No pre-processed sugar</b></td>
+                <td>No soda, sweets, chocolade, ...</td>
+                <td>Žádný nepřírodní cukr - ovoce, zelenina, ... je OK.</td>
+            </tr>
+            <tr>
+                <td><b>Physi right shoulder</b></td>
+                <td>1+/day physio set</td>
+                <td>Alespoň jednou denně cvičit sestavy na pravé rameno.</td>
+            </tr>
+            <tr>
+                <td><b>Hike 70 km / week</b></td>
+                <td>Hike 10 km / day</td>
+                <td>10 kilometrů chůze denně denně.</td>
+            </tr>
+        </table>
+        {% endif %}
+
+    {% endif %}{# div #}
+
+        </div>
+    </div>
+
+    {% else %}{# stats.year #}
+    <hr/>
+    <p>
+        There are no activities. <a class="w3-btn w3-ripple w3-black" href="{{ url_for('create_activity') }}">Create</a> a new one
+        or <a class="w3-btn w3-ripple w3-black"  href="{{ url_for('strava_api_developer') }}">import</a> your activities from Strava.
+    </p>
+    {% endif %}
+
+    {# END MYTRAL #}
+    </div>
+</div>
+{%endblock%}

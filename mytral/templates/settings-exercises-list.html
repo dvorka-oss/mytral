@@ -1,0 +1,491 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Exercises ({{ exercises.exercise_by_key|length }})</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if exercises.exercise_by_key %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_exercises_list', tag=filter_tag, weight=filter_weight, weight_op=filter_weight_op) }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        List
+                    </a>
+                    <a href="{{ url_for('settings_exercises_list', aspect='chart', tag=filter_tag, weight=filter_weight, weight_op=filter_weight_op) }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-pie" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8"></path>
+                            <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a.9 .9 0 0 1 -.9 -.9v-4.5"></path>
+                        </svg>
+                        Chart
+                    </a>
+                </div>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_exercises_create') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Exercise
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-3 mb-3">
+                <div class="card-body">
+                    <p class="text-muted">
+                        Exercises are used to track the types and the number of times you have performed a specific exercise.
+                    </p>
+
+                    <div class="accordion" id="accordion-filter">
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-filter" aria-expanded="false">
+                                    Filter
+                                    <div class="accordion-button-toggle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                                            <path d="M6 9l6 6l6 -6"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                            </div>
+                            <div id="collapse-filter" class="accordion-collapse collapse{% if filter_tag or filter_weight %} show{% endif %}" data-bs-parent="#accordion-filter">
+                                <div class="accordion-body">
+                                    <form method="get" action="{{ url_for('settings_exercises_list') }}">
+                                        {% if aspect %}
+                                        <input type="hidden" name="aspect" value="{{ aspect }}">
+                                        {% endif %}
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label">Tag</label>
+                                                <select class="form-select" name="tag" onchange="this.form.submit()">
+                                                    <option value="">All tags</option>
+                                                    {% for tag in unique_tags %}
+                                                        <option value="{{ tag }}" {% if tag == filter_tag %}selected{% endif %}>
+                                                            {{ tag }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label class="form-label">Weight (kg)</label>
+                                                <input type="number" class="form-control" name="weight" value="{{ filter_weight }}" placeholder="All" step="0.5" min="0" onchange="this.form.submit()">
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label class="form-label">Comparison</label>
+                                                <select class="form-select" name="weight_op" onchange="this.form.submit()">
+                                                    <option value="gte" {% if filter_weight_op == 'gte' %}selected{% endif %}>≥ (greater or equal)</option>
+                                                    <option value="lte" {% if filter_weight_op == 'lte' %}selected{% endif %}>≤ (less or equal)</option>
+                                                    <option value="eq" {% if filter_weight_op == 'eq' %}selected{% endif %}>= (equal)</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label class="form-label">&nbsp;</label>
+                                                <div>
+                                                    <a href="{{ url_for('settings_exercises_list') }}" class="btn">
+                                                        Clear filters
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if exercises.exercise_by_key %}
+            {# Statistics Cards #}
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Exercises
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of exercise types in your collection">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="h2 mb-0">{{ exercises.exercise_by_key|length }}</div>
+                            <div class="text-muted small">
+                                {% set used_count = namespace(value=0) %}
+                                {% for ex in exercises.exercise_by_key.values() %}
+                                    {% if exercises_stats.stats(ex.key) %}
+                                        {% set used_count.value = used_count.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if used_count.value > 0 %}
+                                {{ used_count.value }} used
+                                {% else %}
+                                None used yet
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Volume
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total weight lifted across all exercises (weight × series × repetitions)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set total_volume = namespace(value=0) %}
+                            {% for stat in exercises_stats._stats.values() %}
+                                {% set total_volume.value = total_volume.value + stat.total_volume %}
+                            {% endfor %}
+                            <div class="h2 mb-0">{{ "{:,.0f}".format(total_volume.value) }} kg</div>
+                            <div class="text-muted small">
+                                {% set total_reps = namespace(value=0) %}
+                                {% for stat in exercises_stats._stats.values() %}
+                                    {% set total_reps.value = total_reps.value + stat.total_repetitions %}
+                                {% endfor %}
+                                {{ "{:,.0f}".format(total_reps.value) }} reps
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Most Used Exercise
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Exercise performed most frequently across all activities">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set most_used = namespace(exercise=none, count=0) %}
+                            {% for ex in exercises.exercise_by_key.values() %}
+                                {% set stat = exercises_stats.stats(ex.key) %}
+                                {% if stat and stat.count > most_used.count %}
+                                    {% set most_used.exercise = ex %}
+                                    {% set most_used.count = stat.count %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if most_used.exercise %}
+                            <div class="h3 mb-0 text-truncate" title="{{ most_used.exercise.name }}">{{ most_used.exercise.name }}</div>
+                            <div class="text-muted small">{{ most_used.count }}x performed</div>
+                            {% else %}
+                            <div class="h3 mb-0">—</div>
+                            <div class="text-muted small">No usage data</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Heaviest Lift
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Highest single weight recorded across all exercises">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set heaviest = namespace(exercise=none, weight=0) %}
+                            {% for ex in exercises.exercise_by_key.values() %}
+                                {% set stat = exercises_stats.stats(ex.key) %}
+                                {% if stat and stat.max_weight > heaviest.weight %}
+                                    {% set heaviest.exercise = ex %}
+                                    {% set heaviest.weight = stat.max_weight %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if heaviest.exercise %}
+                            <div class="h2 mb-0">{{ heaviest.weight }} kg</div>
+                            <div class="text-muted small text-truncate" title="{{ heaviest.exercise.name }}">{{ heaviest.exercise.name }}</div>
+                            {% else %}
+                            <div class="h2 mb-0">—</div>
+                            <div class="text-muted small">No weight data</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Tag Cloud Filter #}
+            {% if unique_tags %}
+            <div class="card mb-3">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-filter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z"></path>
+                            </svg>
+                        </div>
+                        <div class="subheader mb-0">Filter by tag:</div>
+                        <div class="ms-auto">
+                            <a href="#" id="clearTagFilter" class="btn btn-sm btn-ghost-secondary" style="display: none;">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M18 6l-12 12"></path>
+                                    <path d="M6 6l12 12"></path>
+                                </svg>
+                                Clear filter
+                            </a>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2" id="tagCloud">
+                        {% for tag in unique_tags %}
+                        <a href="#" class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg tag-filter-badge" data-tag="{{ tag }}" style="font-size: 0.875rem; padding: 0.375rem 0.75rem; cursor: pointer; text-decoration: none; transition: all 0.2s;">
+                            {{ tag }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+
+                {% if div %}
+                <div class="bokeh d-flex justify-content-center">
+                    {{ div|safe }}
+                </div>
+                {% else %}
+
+                {% if exercises.exercise_by_key %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Exercise<br/>∑</th>
+                                <th style="width: 25%;">Primary Muscles</th>
+                                <th style="width: 20%;">Tags</th>
+                                <th style="width: 10%;">Default Weight (kg)</th>
+                                <th style="width: 10%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in exercises.exercise_by_key.values() %}
+                            {% set stat = exercises_stats.stats(g.key) %}
+                            {% set count = stat.count if stat else 0 %}
+                            <tr>
+                                <td{% if not count %} class="text-muted"{% endif %}>
+                                    <a href="{{ url_for('settings_exercises_get', key=g.key) }}" class="text-reset"><b>{{ g.name }}</b></a>
+                                    <div>
+                                        {% if count %}
+                                        <span class="badge bg-black text-blue-fg">{{ count }}x</span>
+                                        {% else %}
+                                        {{ count or "0" }}x
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if g.muscle_groups %}
+                                        {% for muscle in g.muscle_groups %}
+                                            <span class="badge bg-blue text-blue-fg">{{ muscle|replace('_', ' ')|title }}</span>{% if not loop.last %} {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if g.tags %}
+                                        {% for tag in g.tags %}
+                                            <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>{% if not loop.last %} {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ g.weight or "—" }}</td>
+                                <td>
+                                    <div class="btn-list">
+                                        <a href="{{ url_for('settings_exercises_update', key=g.key) }}" class="btn btn-primary btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        {% if not count %}
+                                        <a href="{{ url_for('settings_exercises_delete', key=g.key) }}" class="btn btn-danger btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M4 7l16 0"></path>
+                                                <path d="M10 11l0 6"></path>
+                                                <path d="M14 11l0 6"></path>
+                                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                            </svg>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                {% if filter_tag or filter_weight %}
+                <p class="text-muted text-center my-3">No exercises found matching the current filters.</p>
+                {% endif %}
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tagBadges = document.querySelectorAll('.tag-filter-badge');
+    const clearFilterBtn = document.getElementById('clearTagFilter');
+    const exerciseTable = document.querySelector('table.table tbody');
+
+    // only enable filtering if table exists (not in chart view)
+    if (!exerciseTable) return;
+
+    const exerciseRows = exerciseTable.querySelectorAll('tr');
+    let activeTag = null;
+
+    function filterExercises(tag) {
+        let visibleCount = 0;
+
+        exerciseRows.forEach(row => {
+            const tagsCell = row.cells[2]; // Tags column (3rd column, index 2)
+            if (!tagsCell) return;
+
+            const badges = tagsCell.querySelectorAll('.badge');
+            const rowTags = Array.from(badges).map(b => b.textContent.trim());
+
+            if (!tag || rowTags.includes(tag)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // show/hide "no results" message if needed
+        const tableBody = document.querySelector('table.table tbody');
+        if (tableBody) {
+            let noResultsRow = tableBody.querySelector('.no-results-row');
+
+            if (visibleCount === 0 && tag) {
+                if (!noResultsRow) {
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results-row';
+                    const td = document.createElement('td');
+                    td.colSpan = 5;
+                    td.className = 'text-center text-muted py-4';
+                    td.textContent = 'No exercises found with tag "' + tag + '"';
+                    noResultsRow.appendChild(td);
+                    tableBody.appendChild(noResultsRow);
+                }
+            } else if (noResultsRow) {
+                noResultsRow.remove();
+            }
+        }
+    }
+
+    function updateTagBadges(tag) {
+        tagBadges.forEach(badge => {
+            const badgeTag = badge.getAttribute('data-tag');
+            if (badgeTag === tag) {
+                badge.style.opacity = '1';
+                badge.style.transform = 'scale(1.1)';
+                badge.style.fontWeight = 'bold';
+                badge.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+            } else {
+                badge.style.opacity = tag ? '0.5' : '1';
+                badge.style.transform = 'scale(1)';
+                badge.style.fontWeight = 'normal';
+                badge.style.boxShadow = 'none';
+            }
+        });
+
+        if (clearFilterBtn) clearFilterBtn.style.display = tag ? 'inline-block' : 'none';
+    }
+
+    tagBadges.forEach(badge => {
+        badge.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tag = this.getAttribute('data-tag');
+
+            // toggle: if clicking same tag, clear filter
+            if (activeTag === tag) {
+                activeTag = null;
+                filterExercises(null);
+                updateTagBadges(null);
+            } else {
+                activeTag = tag;
+                filterExercises(tag);
+                updateTagBadges(tag);
+            }
+        });
+
+        // hover effects
+        badge.addEventListener('mouseenter', function() {
+            if (this.getAttribute('data-tag') !== activeTag) {
+                this.style.transform = 'scale(1.05)';
+            }
+        });
+
+        badge.addEventListener('mouseleave', function() {
+            if (this.getAttribute('data-tag') !== activeTag) {
+                this.style.transform = activeTag ? 'scale(1)' : 'scale(1)';
+            }
+        });
+    });
+
+    if (clearFilterBtn) clearFilterBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        activeTag = null;
+        filterExercises(null);
+        updateTagBadges(null);
+    });
+});
+</script>
+
+{% endblock %}

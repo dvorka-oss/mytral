@@ -1,0 +1,42 @@
+[
+    {
+        "activity_type_key": "run",
+        "name": "Nike Pegasus",
+        "vendor": "Nike",
+        "model": "Pegasus 40",
+        "size": "US 10",
+        "comment": "Daily trainer",
+        "url": "https://www.nike.com/",
+        "retired": false,
+        "is_default": true,
+        "tcoo_base": 120.0,
+        "tcoo_cost": 0.0,
+        "tcoo_additional": 0.0,
+        "strava_key": "",
+        "purchased": "2023-01-15",
+        "components": [],
+        "component_history": {},
+        "last_activity_processed": "",
+        "key": "gear-test-shoes-001"
+    },
+    {
+        "activity_type_key": "ride",
+        "name": "Trek Emonda",
+        "vendor": "Trek",
+        "model": "Emonda SL 6",
+        "size": "M",
+        "comment": "Race bike",
+        "url": "https://www.trekbikes.com/",
+        "retired": false,
+        "is_default": true,
+        "tcoo_base": 2500.0,
+        "tcoo_cost": 0.0,
+        "tcoo_additional": 0.0,
+        "strava_key": "",
+        "purchased": "2022-05-01",
+        "components": [],
+        "component_history": {},
+        "last_activity_processed": "",
+        "key": "gear-test-bike-002"
+    }
+]

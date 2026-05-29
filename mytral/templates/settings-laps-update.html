@@ -1,0 +1,69 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Update Lap</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_laps_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Lap Details</h3>
+            </div>
+            <div class="card-body">
+                {{ field_macros.add_field(form.name) }}
+                {{ field_macros.add_field(form.description) }}
+                {{ field_macros.add_field(form.default_distance) }}
+
+                <div class="mb-3">
+                    <label class="form-label">Default duration</label>
+                    <div>
+                        <table>
+                            <tr>
+                                <td>{{ field_macros.add_inline_field(form.default_duration_hours) }}</td>
+                                <td>{{ field_macros.add_inline_field(form.default_duration_minutes) }}</td>
+                                <td>{{ field_macros.add_inline_field(form.default_duration_seconds) }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-muted small mt-2">
+                    <p><strong>Note:</strong> You can set either default distance, default duration, or both. Leave at 0 to not set a default.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

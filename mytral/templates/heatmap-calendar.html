@@ -1,0 +1,98 @@
+{% macro heatmap_cell( data, year, week_day, week_number ) %}
+    {% if week_day in data.heatmap[year][week_number] %}
+        <td title="{{ data.heatmap[year][week_number][week_day].title }}">
+            <a href="/activities/date/{{ data.heatmap[year][week_number][week_day].slash_date }}">
+            {% if data.heatmap[year][week_number][week_day].count %}
+                {% if data.heatmap[year][week_number][week_day].is_active_sick %}
+                    {% if data.heatmap[year][week_number][week_day].count_activities < 2 %}
+                    <div class="heat_active_sick_low"></div></a></td>
+                    {% elif data.heatmap[year][week_number][week_day].count_activities < 3 %}
+                    <div class="heat_active_sick_medium"></div></a></td>
+                    {% else %}
+                    <div class="heat_active_sick_high"></div></a></td>
+                    {% endif %}
+                {% elif data.heatmap[year][week_number][week_day].is_sick %}
+                    <div class="heat_sick"></div></a></td>
+                {% elif data.heatmap[year][week_number][week_day].is_active %}
+                    {% if data.heatmap[year][week_number][week_day].count_activities < 2 %}
+                    <div class="heat_y_low"></div></a></td>
+                    {% elif data.heatmap[year][week_number][week_day].count_activities < 3 %}
+                    <div class="heat_y_medium"></div></a></td>
+                    {% else %}
+                    <div class="heat_y_high"></div></a></td>
+                    {% endif %}
+                {% elif data.heatmap[year][week_number][week_day].has_comment %}
+                    <div class="heat_comment_only"></div></a></td>
+                {% else %}
+                    <div class="heat_n"></div></a></td>
+                {% endif %}
+            {% else %}
+                <div class="heat_n"></div></a></td>
+            {% endif %}
+    {% else %}
+        <td><div class="heat_na"></div></td>
+    {% endif %}
+{% endmacro %}
+
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">
+                    Heatmap
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Life is a journey, not a destination. Calendar heatmap shows heatmap of activities and illnesses for each year you lived.
+                    Dark green is for the days with the most activities, light green is for the days with the least activities, and red is
+                    for the days with illnesses/injuries. Orange days are for the days with both activities and illnesses/injuries when you were fighting hard.
+                    Steel blue days are for days with comments only (no activities or illnesses).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            {% for year in data.heatmap %}
+            <div class="mb-4">
+                <h3 class="card-title text-center mb-3">
+                    <a href="{{ url_for('list_activities_year', year=year) }}" class="text-decoration-none">{{ year }}</a>
+                </h3>
+                <div class="heatmap-container">
+                    <div class="table-responsive">
+                        <table class="heatmap-calendar">
+                        {% if is_mobile %}
+                            {% for week_number in data.heatmap[year] %}
+                                <tr>
+                                {% for week_day in range(7) %}
+                                    {{ heatmap_cell( data, year, week_day, week_number ) }}
+                                {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            {% for week_day in range(7) %}
+                                <tr>
+                                {% for week_number in data.heatmap[year] %}
+                                    {{ heatmap_cell( data, year, week_day, week_number ) }}
+                                {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

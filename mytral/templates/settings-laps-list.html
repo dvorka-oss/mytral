@@ -1,0 +1,301 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Laps &amp; Routes ({{ laps.lap_by_key|length }})</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if laps.lap_by_key %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_laps_list') }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        List
+                    </a>
+                    <a href="{{ url_for('settings_laps_list') }}?aspect=chart" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-pie" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8"></path>
+                            <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a.9 .9 0 0 1 -.9 -.9v-4.5"></path>
+                        </svg>
+                        Chart
+                    </a>
+                </div>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_laps_create') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Lap
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-3 mb-3">
+                <div class="card-body">
+                    <p class="text-muted">
+                        Use laps and routes to track the structure of workouts - intervals (intensity vs. rest),
+                        1k/5k/10/HM/M split times, sequence of trails (like blue, red, black, red), or lap times on
+                        the athletic track.
+                    </p>
+                </div>
+            </div>
+
+            {% if laps.lap_by_key %}
+            {# Statistics Cards #}
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Lap Types
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of lap/interval templates defined">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="h2 mb-0">{{ laps.lap_by_key|length }}</div>
+                            <div class="text-muted small">
+                                {% set used_count = namespace(value=0) %}
+                                {% for lap in laps.lap_by_key.values() %}
+                                    {% if laps_stats.stats(lap.name) %}
+                                        {% set used_count.value = used_count.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if used_count.value > 0 %}
+                                {{ used_count.value }} used in workouts
+                                {% else %}
+                                None used yet
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Laps Performed
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of lap instances completed across all activities">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set total_laps = namespace(value=0) %}
+                            {% for stat in laps_stats._stats.values() %}
+                                {% set total_laps.value = total_laps.value + stat.count %}
+                            {% endfor %}
+                            <div class="h2 mb-0">{{ total_laps.value }}</div>
+                            <div class="text-muted small">
+                                {% if total_laps.value > 0 %}
+                                interval completions
+                                {% else %}
+                                No laps tracked yet
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Most Used Lap
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Lap type used most frequently in workouts">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set most_used = namespace(lap=none, count=0) %}
+                            {% for lap in laps.lap_by_key.values() %}
+                                {% set stat = laps_stats.stats(lap.name) %}
+                                {% if stat and stat.count > most_used.count %}
+                                    {% set most_used.lap = lap %}
+                                    {% set most_used.count = stat.count %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if most_used.lap %}
+                            <div class="h3 mb-0 text-truncate" title="{{ most_used.lap.name }}">{{ most_used.lap.name }}</div>
+                            <div class="text-muted small">{{ most_used.count }}x performed</div>
+                            {% else %}
+                            <div class="h3 mb-0">—</div>
+                            <div class="text-muted small">No laps tracked</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Average Pace
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Average pace across all distance-based laps (min/km)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set total_distance = namespace(value=0) %}
+                            {% set total_duration = namespace(value=0) %}
+                            {% for stat in laps_stats._stats.values() %}
+                                {% if stat.total_distance > 0 %}
+                                    {% set total_distance.value = total_distance.value + stat.total_distance %}
+                                    {% set total_duration.value = total_duration.value + stat.total_duration %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if total_distance.value > 0 and total_duration.value > 0 %}
+                            {% set avg_pace_sec_per_km = (total_duration.value / (total_distance.value / 1000.0))|round(0) %}
+                            {% set pace_min = (avg_pace_sec_per_km // 60)|int %}
+                            {% set pace_sec = (avg_pace_sec_per_km % 60)|int %}
+                            <div class="h2 mb-0">{{ pace_min }}'{{ "%02d"|format(pace_sec) }}"</div>
+                            <div class="text-muted small">min/km average</div>
+                            {% else %}
+                            <div class="h2 mb-0">—</div>
+                            <div class="text-muted small">No distance laps</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+
+                {% if div %}
+                <div class="bokeh d-flex justify-content-center">
+                    {{ div|safe }}
+                </div>
+                {% else %}
+
+                {% if laps.lap_by_key %}
+
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Lap Name</th>
+                                <th style="width: 40%;">Description</th>
+                                <th style="width: 15%;">Default Distance</th>
+                                <th style="width: 15%;">Default Duration</th>
+                                <th style="width: 10%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lap in laps.lap_by_key.values() %}
+                            <tr>
+                                <td>
+                                    <b>{{ lap.name }}</b>
+                                </td>
+                                <td>{{ lap.description | markdown }}</td>
+                                <td>
+                                    {% if lap.default_distance %}
+                                        {{ lap.default_distance }} m
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if lap.default_duration %}
+                                        {% set _h = (lap.default_duration // 3600)|int %}
+                                        {% set _m = ((lap.default_duration % 3600) // 60)|int %}
+                                        {% set _s = (lap.default_duration % 60)|int %}
+                                        {{ "%02d"|format(_h) }}h{{ "%02d"|format(_m) }}m{{ "%02d"|format(_s) }}s
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-list">
+                                        <a href="{{ url_for('settings_laps_update', key=lap.key) }}" class="btn btn-primary btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        <a href="{{ url_for('settings_laps_delete', key=lap.key) }}" class="btn btn-danger btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M4 7l16 0"></path>
+                                                <path d="M10 11l0 6"></path>
+                                                <path d="M14 11l0 6"></path>
+                                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
+                <div class="empty">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="48" height="48" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                            <path d="M12 7v5l3 3"></path>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No laps defined yet</p>
+                    <p class="empty-subtitle text-muted">
+                        Get started by adding your first lap template.
+                    </p>
+                    <div class="empty-action">
+                        <a href="{{ url_for('settings_laps_create') }}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 5l0 14"></path>
+                                <path d="M5 12l14 0"></path>
+                            </svg>
+                            Add your first lap
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

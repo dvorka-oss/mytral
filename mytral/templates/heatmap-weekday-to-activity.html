@@ -1,0 +1,176 @@
+{% macro text_color_class(hex) %}
+{% set h = (hex or '#ffffff')|lower %}
+{% if h and h[0] == '#' and h|length == 7 %}
+  {% set r = (h[1:3])|int(base=16) %}
+  {% set g = (h[3:5])|int(base=16) %}
+  {% set b = (h[5:7])|int(base=16) %}
+  {% set lum = 0.2126*r + 0.7152*g + 0.0722*b %}
+  {% if lum < 140 %}text-white{% else %}text-dark{% endif %}
+{% else %}
+  text-dark
+{% endif %}
+{% endmacro %}
+
+{% extends "layout.html" %}
+{% block content %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">Weekday to Activity Heatmap</h2>
+            </div>
+            {% if heatmap_sports %}
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-group">
+                    <a href="{{ url_for('heatmap_weekday_to_activity', aspect='heatmap') }}"
+                       class="btn {{ 'btn-primary' if aspect == 'heatmap' else 'btn-outline-primary' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-layout-grid" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                            <path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                            <path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                            <path d="M14 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                        </svg>
+                        Heatmap
+                    </a>
+                    <a href="{{ url_for('heatmap_weekday_to_activity', aspect='chart') }}"
+                       class="btn {{ 'btn-primary' if aspect == 'chart' else 'btn-outline-primary' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-area" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 19l4 -6l4 4l4 -8l4 5"></path>
+                            <path d="M4 19h16"></path>
+                        </svg>
+                        Chart
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="row mt-3 mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <p class="text-muted mb-0 small">
+                            Discover your activity patterns across weekdays. Darker colors indicate more activities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% if heatmap_sports %}
+    <div class="row g-2 mb-3">
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="subheader small">Total Activities</div>
+                    <div class="h2 mb-0">{{ activities_count['all'] }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="subheader small">Activity Types</div>
+                    <div class="h2 mb-0">{{ heatmap_sports|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="subheader small">Most Active Day</div>
+                    <div class="h3 mb-0">{{ most_active_day }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <div class="card">
+                <div class="card-body py-2">
+                    <div class="subheader small" title="Average number of activities per weekday across all your training history">Avg per Weekday</div>
+                    <div class="h2 mb-0">{{ avg_per_weekday }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if aspect == 'heatmap' %}
+    <div class="card">
+        <div class="card-header py-2">
+            <h3 class="card-title mb-0">Activity Distribution Across Weekdays</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive pt-2">
+                <table class="table table-vcenter heatmap-weekday-table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-start ps-3 py-2">Activity</th>
+                            {% for weekday in weekday_activities_heatmap %}
+                                <th class="text-center weekday-header py-2" title="{{ weekday }}">
+                                    <div class="d-none d-md-block">{{ weekday }}</div>
+                                    <div class="d-md-none">{{ weekday[:3] }}</div>
+                                </th>
+                            {% endfor %}
+                            <th class="text-center pe-3 py-2">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sport in heatmap_sports %}
+                        <tr>
+                            <td class="ps-3 py-1"><strong>{{ sport }}</strong></td>
+                            {% for weekday in weekday_activities_heatmap %}
+                            <td class="text-center p-1">
+                                <div
+                                  class="heatmap-cell-large count"
+                                  style="background-color: {{ weekday_activities_heatmap[weekday].get(sport, (0, '#ffffff'))[1] }};"
+                                  title="{{ sport }} on {{ weekday }}: {{ weekday_activities_heatmap[weekday].get(sport, (0, '#ffffff'))[0] }} activities"
+                                ><span class="heatmap-count {{ text_color_class(weekday_activities_heatmap[weekday].get(sport, (0, '#ffffff'))[1]) }}">{{ weekday_activities_heatmap[weekday].get(sport, (0, '#ffffff'))[0] }}</span></div>
+                            </td>
+                            {% endfor %}
+                            <td class="text-center pe-3 py-1"><strong>{{ activities_count[sport] }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold">
+                            <td class="ps-3 py-2 border-top">Total</td>
+                            {% for weekday in weekday_activities_heatmap %}
+                            <td class="text-center py-2 border-top">{{ weekday_totals[weekday] }}</td>
+                            {% endfor %}
+                            <td class="text-center pe-3 py-2 border-top">{{ activities_count['all'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if aspect == 'chart' %}
+    <div class="row row-deck row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Topographic Activity Heatmap</h3>
+                    <div class="card-options">
+                        <span class="text-muted small">Dark blue = low activity &nbsp;|&nbsp; Bright yellow = peak activity</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="bokeh" style="justify-content: center;">
+                        {{ chart_div|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{%extends "layout.html"%}
+{% from "macros/mannequin.html" import render_mannequin %}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+        <div style="display: none;">{{ form.is_built_in }}</div>
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Edit Activity Type</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_activity_types_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Save Activity Type
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Commented out error section, similar to goals page
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% else %}
+        <div class="alert alert-success">No errors</div>
+        {% endif %}
+        #}
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Activity Type Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">Name</label>
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.name(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Emoji</label>
+                            {% if form.emoji.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.emoji.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.emoji(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <select name="color" class="form-select">
+                                <option value="" {% if form.color.data == '' %}selected{% endif %}></option>
+                                <option value="azure" {% if form.color.data == 'azure' %}selected{% endif %}>azure</option>
+                                <option value="black" {% if form.color.data == 'black' %}selected{% endif %}>black</option>
+                                <option value="blue" {% if form.color.data == 'blue' %}selected{% endif %}>blue</option>
+                                <option value="brown" {% if form.color.data == 'brown' %}selected{% endif %}>brown</option>
+                                <option value="cyan" {% if form.color.data == 'cyan' %}selected{% endif %}>cyan</option>
+                                <option value="gray" {% if form.color.data == 'gray' %}selected{% endif %}>gray</option>
+                                <option value="green" {% if form.color.data == 'green' %}selected{% endif %}>green</option>
+                                <option value="indigo" {% if form.color.data == 'indigo' %}selected{% endif %}>indigo</option>
+                                <option value="lime" {% if form.color.data == 'lime' %}selected{% endif %}>lime</option>
+                                <option value="orange" {% if form.color.data == 'orange' %}selected{% endif %}>orange</option>
+                                <option value="pink" {% if form.color.data == 'pink' %}selected{% endif %}>pink</option>
+                                <option value="purple" {% if form.color.data == 'purple' %}selected{% endif %}>purple</option>
+                                <option value="red" {% if form.color.data == 'red' %}selected{% endif %}>red</option>
+                                <option value="teal" {% if form.color.data == 'teal' %}selected{% endif %}>teal</option>
+                                <option value="white" {% if form.color.data == 'white' %}selected{% endif %}>white</option>
+                                <option value="yellow" {% if form.color.data == 'yellow' %}selected{% endif %}>yellow</option>
+                            </select>
+                            <div class="form-hint">
+                                Background color used for this activity type in calendars and charts.
+                                <strong>Orange</strong> is conventionally used for health-related states
+                                (sick, injured) so that they stand out from training activities.
+                            </div>
+                            {% if form.color.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.color.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Meta activity type</label>
+                            {{ form.meta_activity_type(class="form-select") }}
+                            <div class="form-hint">
+                                Taxonomy group used to aggregate related activity types.
+                            </div>
+                            {% if form.meta_activity_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.meta_activity_type.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_distance(class="form-check-input") }}
+                                <label class="form-check-label">Distance</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_exercise(class="form-check-input") }}
+                                <label class="form-check-label">Exercise</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                {{ form.is_regen(class="form-check-input") }}
+                                <label class="form-check-label">Regeneration</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                {{ form.is_meta(class="form-check-input") }}
+                                <label class="form-check-label">Metadata</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Muscle Groups</h3>
+                <div class="card-options">
+                    <span class="text-muted small">Click on the body map to select which muscles this activity works</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {{ render_mannequin(
+                    mode="picker",
+                    selected=selected_muscles,
+                    selected_secondary=selected_muscles_secondary,
+                    input_name="muscle_groups",
+                    input_name_secondary="muscle_groups_secondary",
+                    show_legend=true,
+                    picker_id="activity-type-update-picker"
+                ) }}
+            </div>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

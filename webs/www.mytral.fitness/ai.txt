@@ -1,0 +1,7 @@
+# ai.txt for MyTraL
+User-agent: *
+Allow-Citations: Yes
+Allow-Training: No
+Attribution-Required: Yes
+License-Link: https://github.com/dvorka/MyTraL/blob/main/LICENSE
+Contact: no.silver.bullets@mytral.fitness

@@ -1,0 +1,61 @@
+{%extends "layout.html"%}
+{% block content %}
+<!-- BEGIN PAGE HEADER -->
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <!-- Page pre-title -->
+                <div class="page-pretitle">About</div>
+                <h2 class="page-title">About My Training Log</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE HEADER -->
+
+<!-- BEGIN PAGE BODY -->
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                <blockquote class="blockquote">
+                    <p>
+                        <i>"Consistent hard work, day after day, week after week, year after year. No magic bullets, no shortcuts."</i>
+                        <footer class="blockquote-footer">Josh Cox</footer>
+                    </p>
+                </blockquote>
+
+                <p>
+                    <b>My</b> <b>Tra</b>ining <b>L</b>og (MyTraL) is personal sport
+                    application which combines digitized data from various sources like paper training logs,
+                    XLS and Google Sheets training logs, strava.com, concept2.com and other services
+                    I used over the time.
+                </p>
+                <p>
+                    Apart to data aggregation (workouts, activities, exercises, gear, routes,
+                    and experiences), the application defines data normalization so that the data
+                    can be analyzed, visualized and used for the creation of <b>personalized</b>
+                    machine learning models to predict injuries, sicknesses, and prepare training plans.
+                    MyTraL can be seen as <b>editor</b> for the training data in a normalized form.
+                </p>
+                <p>
+                    Important part of the application is personal <b>diary</b> where I can write
+                    down my thoughts, feelings, and experiences. It can be a great way to reflect
+                    on my day, set goals, and track my progress. Keeping a diary can help me stay
+                    organized, reduce stress, and improve my mental health. It can also be a fun
+                    way to look back on my life and see how much I've grown and changed over time.
+                </p>
+                <p>
+                    Atop of what sport trackers - like belowed strava.com provides - MyTraL adds
+                    metadata of various types - knowledge and wisdom learned over the years (diary),
+                    injuries and sicknesses tracking, gear tracking (from to, cost and maintenance intervals),
+                    routes (informally described, personal bests), outfits (what to wear and when), etc.
+                    so that all the sport related knowledge is in one place.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE BODY -->
+{% endblock %}

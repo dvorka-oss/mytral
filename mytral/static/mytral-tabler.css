@@ -1,0 +1,524 @@
+/* MyTraL: my trailing log, Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+
+Definition of classes atop Tabler CSS in order to satisfy MyTraL's design requirements.
+
+*/
+
+/* ========================================================= */
+/* Text */
+/* ========================================================= */
+
+.mytral-no-wrap-div {
+    /* fixed width */
+    width: 9em;
+    /* prevent the text from wrapping to the next line */
+    white-space: nowrap;
+    /* hide any text that overflows the div's boundaries */
+    overflow: hidden;
+    /* add an ellipsis (...) to indicate that there is hidden text */
+    text-overflow: ellipsis;
+}
+
+/* ========================================================= */
+/* Colors */
+/* ========================================================= */
+
+td.mytral-black-bg, div.mytral-black-bg {
+    background-color: #000000;
+}
+td.mytral-black-bg-text, div.mytral-black-bg-text {
+    color: #ffffff;
+}
+td.mytral-black-lt-bg, div.mytral-black-lt-bg {
+    background-color: #aaaaaa;
+}
+td.mytral-black-text, div.mytral-black-text {
+    color: #000000;
+}
+td.mytral-black-border, div.mytral-black-border {
+    border-left: 5px solid #000000;
+}
+
+td.mytral-brown-bg, div.mytral-brown-bg {
+    background-color: #795548;
+}
+td.mytral-brown-bg-text, div.mytral-brown-bg-text {
+    color: #ffffff;
+}
+td.mytral-brown-lt-bg, div.mytral-brown-lt-bg {
+    background-color: #a1887f;
+}
+td.mytral-brown-text, div.mytral-brown-text {
+    color: #000000;
+}
+td.mytral-brown-border, div.mytral-brown-border {
+    border-left: 5px solid #795548;
+}
+
+td.mytral-gray-bg, div.mytral-gray-bg {
+    background-color: #9e9e9e;
+}
+td.mytral-gray-bg-text, div.mytral-gray-bg-text {
+    color: #ffffff;
+}
+td.mytral-gray-lt-bg, div.mytral-gray-lt-bg {
+    background-color: #cccccc;
+}
+td.mytral-gray-text, div.mytral-gray-text {
+    color: #777;
+}
+td.mytral-gray-border, div.mytral-gray-border {
+    border-left: 5px solid #9e9e9e;
+}
+
+td.mytral-white-bg, div.mytral-white-bg {
+    background-color: #ffffff;
+}
+td.mytral-white-bg-text, div.mytral-white-bg-text {
+    color: #000000;
+}
+td.mytral-white-lt-bg, div.mytral-white-lt-bg {
+    background-color: #f0f0f0;
+}
+td.mytral-white-text, div.mytral-white-text {
+    color: #000000;
+}
+td.mytral-white-border, div.mytral-white-border {
+    border-left: 5px solid #ffffff;
+}
+
+td.mytral-blue-bg, div.mytral-blue-bg {
+    background-color: var(--tblr-blue);
+}
+td.mytral-blue-bg-text, div.mytral-blue-bg-text {
+    color: #ffffff;
+}
+td.mytral-blue-lt-bg, div.mytral-blue-lt-bg {
+    background-color: var(--tblr-blue-lt);
+}
+td.mytral-blue-text, div.mytral-blue-text {
+    color: var(--tblr-blue);
+}
+td.mytral-blue-border, div.mytral-blue-border {
+    border-left: 5px solid var(--tblr-blue);
+}
+
+td.mytral-azure-bg, div.mytral-azure-bg {
+    background-color: var(--tblr-azure);
+}
+td.mytral-azure-bg-text, div.mytral-azure-bg-text {
+    color: #000000;
+}
+td.mytral-azure-lt-bg, div.mytral-azure-lt-bg {
+    background-color: var(--tblr-azure-lt);
+}
+td.mytral-azure-text, div.mytral-azure-text {
+    color: var(--tblr-azure);
+}
+td.mytral-azure-border, div.mytral-azure-border {
+    border-left: 5px solid var(--tblr-azure);
+}
+
+td.mytral-indigo-bg, div.mytral-indigo-bg {
+    background-color: var(--tblr-indigo);
+}
+td.mytral-indigo-bg-text, div.mytral-indigo-bg-text {
+    color: #ffffff;
+}
+td.mytral-indigo-lt-bg, div.mytral-indigo-lt-bg {
+    background-color: var(--tblr-indigo-lt);
+}
+td.mytral-indigo-text, div.mytral-indigo-text {
+    color: var(--tblr-indigo);
+}
+td.mytral-indigo-border, div.mytral-indigo-border {
+    border-left: 5px solid var(--tblr-indigo);
+}
+
+td.mytral-purple-bg, div.mytral-purple-bg {
+    background-color: var(--tblr-purple);
+}
+td.mytral-purple-bg-text, div.mytral-purple-bg-text {
+    color: #ffffff;
+}
+td.mytral-purple-lt-bg, div.mytral-purple-lt-bg {
+    background-color: var(--tblr-purple-lt);
+}
+td.mytral-purple-text, div.mytral-purple-text {
+    color: var(--tblr-purple);
+}
+td.mytral-purple-border, div.mytral-purple-border {
+    border-left: 5px solid var(--tblr-purple);
+}
+
+td.mytral-pink-bg, div.mytral-pink-bg {
+    background-color: var(--tblr-pink);
+}
+td.mytral-pink-bg-text, div.mytral-pink-bg-text {
+    color: #ffffff;
+}
+td.mytral-pink-lt-bg, div.mytral-pink-lt-bg {
+    background-color: var(--tblr-pink-lt);
+}
+td.mytral-pink-text, div.mytral-pink-text {
+    color: var(--tblr-pink);
+}
+td.mytral-pink-border, div.mytral-pink-border {
+    border-left: 5px solid var(--tblr-pink);
+}
+
+td.mytral-red-bg, div.mytral-red-bg {
+    background-color: var(--tblr-red);
+}
+td.mytral-red-bg-text, div.mytral-red-bg-text {
+    color: #ffffff;
+}
+td.mytral-red-lt-bg, div.mytral-red-lt-bg {
+    background-color: var(--tblr-red-lt);
+}
+td.mytral-red-text, div.mytral-red-text {
+    color: var(--tblr-red);
+}
+td.mytral-red-border, div.mytral-red-border {
+    border-left: 5px solid var(--tblr-red);
+}
+
+td.mytral-orange-bg, div.mytral-orange-bg {
+    background-color: var(--tblr-orange);
+}
+td.mytral-orange-bg-text, div.mytral-orange-bg-text {
+    color: #ffffff;
+}
+td.mytral-orange-lt-bg, div.mytral-orange-lt-bg {
+    background-color: var(--tblr-orange-lt);
+}
+td.mytral-orange-text, div.mytral-orange-text {
+    color: var(--tblr-orange);
+}
+td.mytral-orange-border, div.mytral-orange-border {
+    border-left: 5px solid var(--tblr-orange);
+}
+
+td.mytral-yellow-bg, div.mytral-yellow-bg  {
+    background-color: var(--tblr-yellow);
+}
+td.mytral-yellow-bg-text, div.mytral-yellow-bg-text, .mytral-yellow-bg-text div {
+    color: #000000;
+}
+td.mytral-yellow-lt-bg, div.mytral-yellow-lt-bg {
+    background-color: var(--tblr-yellow-lt);
+}
+td.mytral-yellow-text, div.mytral-yellow-text {
+    color: var(--tblr-yellow);
+}
+td.mytral-yellow-border, div.mytral-yellow-border {
+    border-left: 5px solid var(--tblr-yellow);
+}
+
+td.mytral-lime-bg, div.mytral-lime-bg {
+    background-color: var(--tblr-lime);
+}
+td.mytral-lime-bg-text, div.mytral-lime-bg-text {
+    color: #ffffff;
+}
+td.mytral-lime-lt-bg, div.mytral-lime-lt-bg {
+    background-color: var(--tblr-lime-lt);
+}
+td.mytral-lime-text, div.mytral-lime-text {
+    color: var(--tblr-lime);
+}
+td.mytral-lime-border, div.mytral-lime-border {
+    border-left: 5px solid var(--tblr-lime);
+}
+
+td.mytral-green-bg, div.mytral-green-bg {
+    background-color: var(--tblr-green);
+}
+td.mytral-green-bg-text, div.mytral-green-bg-text {
+    color: #ffffff;
+}
+td.mytral-green-lt-bg, div.mytral-green-lt-bg {
+    background-color: var(--tblr-green-lt);
+}
+td.mytral-green-text, div.mytral-green-text {
+    color: var(--tblr-green);
+}
+td.mytral-green-border, div.mytral-green-border {
+    border-left: 5px solid var(--tblr-green);
+}
+
+td.mytral-teal-bg, div.mytral-teal-bg {
+    background-color: var(--tblr-teal);
+}
+td.mytral-teal-bg-text, div.mytral-teal-bg-text {
+    color: #ffffff;
+}
+td.mytral-teal-lt-bg, div.mytral-teal-lt-bg {
+    background-color: var(--tblr-teal-lt);
+}
+td.mytral-teal-text, div.mytral-teal-text {
+    color: var(--tblr-teal);
+}
+td.mytral-teal-border, div.mytral-teal-border {
+    border-left: 5px solid var(--tblr-teal);
+}
+
+td.mytral-cyan-bg, div.mytral-cyan-bg {
+    background-color: var(--tblr-cyan);
+}
+td.mytral-cyan-bg-text, div.mytral-cyan-bg-text {
+    color: #ffffff;
+}
+td.mytral-cyan-lt-bg, div.mytral-cyan-lt-bg {
+    background-color: var(--tblr-cyan-lt);
+}
+td.mytral-cyan-text, div.mytral-cyan-text {
+    color: var(--tblr-cyan);
+}
+td.mytral-cyan-border, div.mytral-cyan-border {
+    border-left: 5px solid var(--tblr-cyan);
+}
+
+/* activities */
+
+div.mytral-workouts-1 {
+    border-right: 5px solid #ccffcc;
+}
+div.mytral-workouts-few {
+    border-right: 5px solid #aaffaa;
+}
+div.mytral-workouts-more {
+    border-right: 5px solid #55ff55;
+}
+div.mytral-workouts-many {
+    border-right: 5px solid #00ff00;
+}
+
+/* end of file */
+
+/* Heatmap calendar styles */
+.heatmap-calendar {
+  border-collapse: separate;
+  border-spacing: 1px;
+  margin: 0 auto;
+  padding: 0;
+  width: auto !important;
+}
+
+.heatmap-calendar tr {
+  height: 15px;
+}
+
+.heatmap-calendar td {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 15px !important;
+  height: 15px !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  border: none !important;
+  min-width: 15px !important;
+  max-width: 15px !important;
+}
+
+.heatmap-calendar td > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  max-width: 15px !important;
+  display: block;
+  border: none !important;
+}
+
+/* Ensure the container doesn't add extra padding */
+.heatmap-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+/* Make the responsive wrapper more compact */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 1200px; /* Adjust based on your needs */
+}
+
+/* Reusable compact heatmap table and cells (for non-calendar heatmaps) */
+.heatmap-compact-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  margin: 0 auto;
+  padding: 0;
+  width: auto !important;
+}
+
+.heatmap-compact-table th {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1 !important;
+  font-size: 0.8rem; /* compact header letters */
+  min-width: 22px; /* match square width */
+}
+
+.heatmap-compact-table td {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  vertical-align: middle;
+}
+
+/* Compact square cell to be placed inside TDs */
+.heatmap-cell {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  min-height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+  display: block !important;
+  border: none !important;
+  line-height: 0 !important;
+  font-size: 0 !important; /* keep squares compact without text */
+}
+
+/* Variant that shows a small centered number inside the cell */
+.heatmap-cell.count {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  position: relative;
+}
+
+/* Number inside cells inherits color from classes set in template (text-white/text-dark) */
+.heatmap-cell.count .heatmap-count {
+  color: inherit;
+}
+
+/* Calendar year table alignment: header centered, body top-aligned */
+.table.table-vcenter.cards-table thead th {
+    vertical-align: middle !important;
+}
+.table.table-vcenter.cards-table tbody td {
+    vertical-align: top !important;
+}
+
+/* Weekday heatmap table styles */
+.heatmap-weekday-table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.heatmap-weekday-table th.weekday-header {
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.5rem;
+}
+
+.heatmap-weekday-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.heatmap-weekday-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Larger heatmap cells for weekday view */
+.heatmap-cell-large {
+    margin: 0 auto !important;
+    padding: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 13px !important;
+    font-weight: 600;
+    line-height: 1 !important;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.heatmap-cell-large:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.heatmap-cell-large .heatmap-count {
+    color: inherit;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .heatmap-cell-large {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
+        font-size: 11px !important;
+    }
+
+    .heatmap-weekday-table th.weekday-header {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .heatmap-cell-large {
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        min-height: 26px !important;
+        max-width: 26px !important;
+        max-height: 26px !important;
+        font-size: 9px !important;
+    }
+}
+
+/* ========================================================= */
+/* Task system - blinking animation for running tasks */
+/* ========================================================= */
+
+@keyframes blink-task {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.task-running svg {
+    animation: blink-task 1.5s ease-in-out infinite;
+    color: var(--tblr-orange);
+}
+
+.badge-blink {
+    animation: blink-task 1.5s ease-in-out infinite;
+}
+
+.badge-notification {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    transform: translate(50%, -50%);
+    z-index: 1;
+}

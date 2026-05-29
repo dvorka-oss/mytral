@@ -1,0 +1,219 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data / Import</div>
+                <h2 class="page-title">Import Result</h2>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('tool_import') }}" class="btn btn-outline-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-left"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
+                    Back to Import
+                </a>
+                <a href="{{ url_for('calendar_year', year=0) }}" class="btn btn-primary ms-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-calendar"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg>
+                    View Calendar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+
+        {# status alert #}
+        {% if import_failed_count == 0 and import_imported_count > 0 %}
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <div class="d-flex">
+                <div>
+                    <h4 class="alert-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon icon-tabler icons-tabler-outline icon-tabler-circle-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
+                        Import successful
+                    </h4>
+                    <div class="text-secondary">All <strong>{{ import_imported_count }}</strong> activities from <strong>{{ import_source_name }}</strong> were imported successfully.</div>
+                </div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% elif import_imported_count == 0 %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <div class="d-flex">
+                <div>
+                    <h4 class="alert-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon icon-tabler icons-tabler-outline icon-tabler-alert-circle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                        Import failed
+                    </h4>
+                    <div class="text-secondary">No activities could be imported from <strong>{{ import_source_name }}</strong>. Check the file format and try again.</div>
+                </div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% else %}
+        <div class="alert alert-warning alert-dismissible" role="alert">
+            <div class="d-flex">
+                <div>
+                    <h4 class="alert-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+                        Partial import
+                    </h4>
+                    <div class="text-secondary">Imported <strong>{{ import_imported_count }}</strong> of <strong>{{ import_total }}</strong> activities from <strong>{{ import_source_name }}</strong>. <strong>{{ import_failed_count }}</strong> failed.</div>
+                </div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% endif %}
+
+        {# conflict strategy used #}
+        {% if import_on_conflict %}
+        <div class="mb-3">
+            <small class="text-muted">Conflict strategy: <strong>{{ import_on_conflict }}</strong></small>
+        </div>
+        {% endif %}
+
+        {# summary stats row #}
+        <div class="row row-cards mb-3">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="subheader">Converted</div>
+                        <div class="h1 mt-1">{{ import_total }}</div>
+                        <div class="text-muted">activities in file</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="subheader">Imported</div>
+                        <div class="h1 mt-1 {% if import_imported_count == import_total %}text-success{% elif import_imported_count == 0 %}text-danger{% else %}text-warning{% endif %}">{{ import_imported_count }}</div>
+                        <div class="text-muted">saved to dataset</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="subheader">Years</div>
+                        <div class="h1 mt-1">{{ import_year_counts | length }}</div>
+                        <div class="text-muted">
+                            {% if import_year_counts %}
+                                {{ import_year_counts.keys() | list | first }} – {{ import_year_counts.keys() | list | last }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="subheader">Sports</div>
+                        <div class="h1 mt-1">{{ import_sport_counts | length }}</div>
+                        <div class="text-muted">distinct sport types</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cards">
+
+            {# year breakdown #}
+            {% if import_year_counts %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">By Year</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter table-sm card-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th class="text-end">Activities</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for year, count in import_year_counts.items() %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('calendar_year', year=year) }}" class="text-body">{{ year }}</a>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge bg-blue text-blue-fg">{{ count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# sport breakdown #}
+            {% if import_sport_counts %}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">By Sport</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter table-sm card-table">
+                            <thead>
+                                <tr>
+                                    <th>Sport</th>
+                                    <th class="text-end">Activities</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sport, count in import_sport_counts.items() %}
+                                <tr>
+                                    <td>{{ sport }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-azure text-azure-fg">{{ count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {# failed activities #}
+        {% if import_failed %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title text-danger">Failed to Import ({{ import_failed_count }})</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter table-sm card-table">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Key</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, key in import_failed %}
+                        <tr>
+                            <td>{{ name }}</td>
+                            <td class="text-muted text-monospace">{{ key }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

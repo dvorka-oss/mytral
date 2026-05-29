@@ -1,0 +1,264 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Symptoms ({{ symptoms.symptoms_by_key|length }})</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if symptoms.symptoms_by_key %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_symptoms_list') }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        List
+                    </a>
+                    <a href="{{ url_for('settings_symptoms_list') }}?aspect=chart" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-pie" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8"></path>
+                            <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a.9 .9 0 0 1 -.9 -.9v-4.5"></path>
+                        </svg>
+                        Chart
+                    </a>
+                </div>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_symptoms_create') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Symptom
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-3 mb-3">
+                <div class="card-body">
+                    <p class="text-muted">
+                        Sickness and injury symptoms are used to track the health status and to plan the training and recovery.
+                    </p>
+                </div>
+            </div>
+
+            {% if symptoms.symptoms_by_key %}
+            {# Statistics Cards #}
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Symptoms
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of symptom types in your collection">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="h2 mb-0">{{ symptoms.symptoms_by_key|length }}</div>
+                            <div class="text-muted small">
+                                {% set experienced_count = namespace(value=0) %}
+                                {% for symptom in symptoms.symptoms_by_key.values() %}
+                                    {% if symptoms_stats.stats(symptom.key) %}
+                                        {% set experienced_count.value = experienced_count.value + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if experienced_count.value > 0 %}
+                                {{ experienced_count.value }} experienced
+                                {% else %}
+                                None experienced
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Sick Days
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of days affected by sickness or injury symptoms">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set total_sick_days = namespace(value=0) %}
+                            {% for stat in symptoms_stats._stats.values() %}
+                                {% set total_sick_days.value = total_sick_days.value + stat.count %}
+                            {% endfor %}
+                            <div class="h2 mb-0">{{ total_sick_days.value }}</div>
+                            <div class="text-muted small">
+                                {% if total_sick_days.value > 0 %}
+                                symptom occurrences
+                                {% else %}
+                                Stay healthy!
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Most Common Symptom
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Symptom experienced most frequently">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set most_common = namespace(symptom=none, count=0) %}
+                            {% for symptom in symptoms.symptoms_by_key.values() %}
+                                {% set stat = symptoms_stats.stats(symptom.key) %}
+                                {% if stat and stat.count > most_common.count %}
+                                    {% set most_common.symptom = symptom %}
+                                    {% set most_common.count = stat.count %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if most_common.symptom %}
+                            <div class="h3 mb-0 text-truncate" title="{{ most_common.symptom.name }}">{{ most_common.symptom.name }}</div>
+                            <div class="text-muted small">{{ most_common.count }}x occurrences</div>
+                            {% else %}
+                            <div class="h3 mb-0">—</div>
+                            <div class="text-muted small">No symptoms yet</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Average Health
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Average health percentage across all symptom occurrences (0% = very sick, 100% = healthy)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set total_health = namespace(value=0, count=0) %}
+                            {% for stat in symptoms_stats._stats.values() %}
+                                {% set total_health.value = total_health.value + stat.total_health %}
+                                {% set total_health.count = total_health.count + stat.count %}
+                            {% endfor %}
+                            {% if total_health.count > 0 %}
+                            {% set avg_health = total_health.value / total_health.count %}
+                            <div class="h2 mb-0">{{ "{:.0f}".format(avg_health) }}%</div>
+                            <div class="text-muted small">
+                                {% if avg_health >= 80 %}
+                                <span class="text-success">Good recovery</span>
+                                {% elif avg_health >= 50 %}
+                                <span class="text-warning">Moderate</span>
+                                {% else %}
+                                <span class="text-danger">Needs attention</span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="h2 mb-0">—</div>
+                            <div class="text-muted small">No health data</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+
+                {% if div %}
+                <div class="bokeh d-flex justify-content-center">
+                    {{ div|safe }}
+                </div>
+                {% else %}
+
+                {% if symptoms.symptoms_by_key %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Symptom<br/>∑</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in symptoms.symptoms_by_key.values() %}
+                            {% set stat = symptoms_stats.stats(g.key) %}
+                            {% set count = stat.count if stat else 0 %}
+                            <tr>
+                                <td {% if not count %}class="text-muted"{% endif %}><a href="{{ url_for('settings_symptoms_get', key=g.key) }}" class="text-reset"><b>{{ g.name }}</b></a>
+                                    <div>
+                                        {% if count %}
+                                        <span class="badge bg-black text-blue-fg">{{ count }}x</span>
+                                        {% else %}
+                                        <span class="text-muted">0x</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-list flex-nowrap">
+                                        <a href="{{ url_for('settings_symptoms_update', key=g.key) }}" class="btn btn-icon btn-primary" title="Edit">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        {% if count == 0 %}
+                                        <a href="{{ url_for('settings_symptoms_delete', key=g.key) }}" class="btn btn-icon btn-danger" title="Delete">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M4 7l16 0"></path>
+                                                <path d="M10 11l0 6"></path>
+                                                <path d="M14 11l0 6"></path>
+                                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                            </svg>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

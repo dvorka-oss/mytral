@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Left knee pain",
+        "key": "symptom-test-knee-001",
+        "body_parts": ["left_knee"]
+    },
+    {
+        "name": "Lower back tension",
+        "key": "symptom-test-back-002",
+        "body_parts": ["lower_back"]
+    }
+]

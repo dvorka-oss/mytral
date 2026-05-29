@@ -1,0 +1,165 @@
+{%extends "layout.html"%}
+{% block content %}
+
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">Create Activity</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Create a new activity.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if ff.mode("mock") %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <a href="{{ url_for('create_activity_any') }}" class="btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bolt" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"></path>
+                                    </svg>
+                                    Quick
+                                </a>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="run 42.194m 1h25m13s gear:Lux">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="list-group-item">
+                        {% if year %}
+                        <a href="{{ url_for('create_activity_any_for_date', year=year, month=month, day=day) }}" class="btn btn-primary">
+                        {% else %}
+                        <a href="{{ url_for('create_activity_any') }}" class="btn btn-primary">
+                        {% endif %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 5l0 14"></path>
+                                <path d="M5 12l14 0"></path>
+                            </svg>
+                            Any
+                        </a>
+                    </div>
+
+                    <div class="list-group-item">
+                        {% if year %}
+                        <a href="{{ url_for('create_activity_comment_for_date', year=year, month=month, day=day) }}" class="btn btn-secondary">
+                        {% else %}
+                        <a href="{{ url_for('create_activity_comment') }}" class="btn btn-secondary">
+                        {% endif %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-message" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h6"></path>
+                                <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z"></path>
+                            </svg>
+                            Comment
+                        </a>
+                    </div>
+
+                    {% if ff.mode("mock") %}
+                    <div class="list-group-item">
+                        <a href="{{ url_for('create_activity_meditation') }}" class="btn btn-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brain" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"></path>
+                                <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8"></path>
+                                <path d="M17 5h-.01"></path>
+                                <path d="M7 5h-.01"></path>
+                                <path d="M12 12v.01"></path>
+                                <path d="M12 2a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"></path>
+                                <path d="M12 8a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"></path>
+                                <path d="M12 14a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"></path>
+                                <path d="M12 20a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"></path>
+                            </svg>
+                            Meditation
+                        </a>
+                    </div>
+                    <div class="list-group-item">
+                        <a href="{{ url_for('create_activity_physio') }}" class="btn btn-purple">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-massage" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 17m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                                <path d="M9 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                                <path d="M4 22l4 -2v-3"></path>
+                                <path d="M11 20h9"></path>
+                                <path d="M8 14l3 -2l1 -4c3 1.667 6 .667 9 0l-1.089 2.893"></path>
+                                <path d="M12 11v3"></path>
+                            </svg>
+                            Physiotherapy
+                        </a>
+                    </div>
+                    <div class="list-group-item">
+                        <a href="{{ url_for('create_activity_sick') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-thermometer" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M19 5a2.828 2.828 0 0 1 0 4l-8 8h-4v-4l8 -8a2.828 2.828 0 0 1 4 0z"></path>
+                                <path d="M16 7l-1.5 -1.5"></path>
+                                <path d="M2 10l1.5 1.5"></path>
+                                <path d="M13 14l-1.5 1.5"></path>
+                                <path d="M7 3l2 2"></path>
+                                <path d="M3 7l2 2"></path>
+                            </svg>
+                            Sick
+                        </a>
+                    </div>
+                    {% endif %}{# mock #}
+                </div>
+
+                {% if ff.mode("wip") %}
+                <div class="hr-text">Suggestions</div>
+                <p class="text-muted">Suggested <b>activity</b> for today based on the past years and months:</p>
+
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="font-weight-medium">run (37.21%)</div>
+                                <div class="text-muted">10 km, 1h 23m 45s</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="font-weight-medium">row (21.12%)</div>
+                                <div class="text-muted">10 km, 1h 23m 45s</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="font-weight-medium">bike (15.23%)</div>
+                                <div class="text-muted">10 km, 1h 23m 45s</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

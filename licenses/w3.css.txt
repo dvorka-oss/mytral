@@ -1,0 +1,8 @@
+W3.CSS 4.15 by Jan Egil and Borge Refsnes
+https://www.w3schools.com/w3css/
+
+W3.CSS is free to use. No license is necessary.
+
+From the official W3Schools documentation:
+"W3.CSS is free to use. No license is necessary."
+See: https://www.w3schools.com/w3css/w3css_downloads.asp

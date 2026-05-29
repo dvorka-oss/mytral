@@ -1,0 +1,57 @@
+{% import "macros/icons.html" as icons %}
+
+{% macro button_save(text="Save", form_id="") %}
+<button type="submit"{% if form_id %} form="{{ form_id }}"{% endif %} class="btn btn-primary">
+    {{ icons.icon_save() }}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro button_cancel(text="Cancel", url="#") %}
+<a href="{{ url }}" class="btn btn-danger">
+    {{ icons.icon_cancel() }}
+    {{ text }}
+</a>
+{% endmacro %}
+
+{% macro button_delete(text="Delete", form_id="") %}
+<button type="submit"{% if form_id %} form="{{ form_id }}"{% endif %} class="btn btn-danger">
+    {{ icons.icon_delete() }}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro button_create(text="Create", form_id="") %}
+<button type="submit"{% if form_id %} form="{{ form_id }}"{% endif %} class="btn btn-primary">
+    {{ icons.icon_plus() }}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro button_submit(text="Submit", form_id="", btn_class="btn-primary") %}
+<button type="submit"{% if form_id %} form="{{ form_id }}"{% endif %} class="btn {{ btn_class }}">
+    {{ icons.icon_save() }}
+    {{ text }}
+</button>
+{% endmacro %}
+
+{% macro action_buttons_save_cancel(save_text="Save", cancel_text="Cancel", cancel_url="#", form_id="") %}
+<div class="btn-list">
+    {{ button_cancel(cancel_text, cancel_url) }}
+    {{ button_save(save_text, form_id) }}
+</div>
+{% endmacro %}
+
+{% macro action_buttons_create_cancel(create_text="Create", cancel_text="Cancel", cancel_url="#", form_id="") %}
+<div class="btn-list">
+    {{ button_cancel(cancel_text, cancel_url) }}
+    {{ button_create(create_text, form_id) }}
+</div>
+{% endmacro %}
+
+{% macro action_buttons_delete_cancel(delete_text="Delete", cancel_text="Cancel", cancel_url="#", form_id="") %}
+<div class="btn-list">
+    {{ button_cancel(cancel_text, cancel_url) }}
+    {{ button_delete(delete_text, form_id) }}
+</div>
+{% endmacro %}

@@ -1,0 +1,223 @@
+{% extends "layout.html" %}
+{% from "macros/mannequin.html" import render_mannequin %}
+{% block content %}
+<!-- BEGIN PAGE HEADER -->
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Health</div>
+                <h2 class="page-title">Me</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE HEADER -->
+
+<!-- BEGIN PAGE BODY -->
+<div class="page-body">
+    <div class="container-xl">
+        <!-- Year Selector Card -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Visualization of body injuries and sicknesses for
+                    {% if year == 0 %}
+                    <strong>all years</strong>
+                    {% else %}
+                    <strong>{{ year }}</strong>
+                    {% endif %}
+                    . All symptoms are listed below, with links to the activities
+                    where they were recorded. Click on body parts in the diagram
+                    to filter the list, or use the dropdown to select a different year.
+                </p>
+
+                {% if years %}
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                            <path d="M16 3v4"></path>
+                            <path d="M8 3v4"></path>
+                            <path d="M4 11h16"></path>
+                        </svg>
+                        Year: {% if year == 0 %}ALL{% else %}{{ year }}{% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            {% if year == 0 %}
+                            <span class="dropdown-item active">ALL</span>
+                            {% else %}
+                            <a class="dropdown-item" href="{{ url_for('me', year=0) }}">ALL</a>
+                            {% endif %}
+                        </li>
+                        {% for y in years %}
+                        <li>
+                            {% if y == year %}
+                            <span class="dropdown-item active">{{ y }}</span>
+                            {% else %}
+                            <a class="dropdown-item" href="{{ url_for('me', year=y) }}">{{ y }}</a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Body Diagram Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Body Map</h3>
+                <div class="card-options">
+                    <span id="filter-indicator" class="badge bg-info text-info-fg" style="visibility:hidden;"></span>
+                    <button id="clear-filter" class="btn btn-sm btn-outline-secondary ms-2" style="visibility:hidden;">
+                        Clear Filter
+                    </button>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                {{ render_mannequin(
+                    mode="injury",
+                    injury_highlights=body_highlights,
+                    show_legend=true,
+                    picker_id="me-body"
+                ) }}
+            </div>
+        </div>
+
+        <!-- Symptoms Health Chart -->
+        {% if me_chart_div %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-dots me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 3v18h18"/>
+                        <path d="M9 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>
+                        <path d="M19 7m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>
+                        <path d="M14 15m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>
+                        <path d="M10.16 10.62l2.34 -2.24"/>
+                        <path d="M15.088 13.328l2.837 -4.586"/>
+                    </svg>
+                    Symptom Health Over Time
+                </h3>
+                <div class="card-options">
+                    <span class="text-muted small">Each dot is a recorded event — click legend items to toggle symptoms</span>
+                </div>
+            </div>
+            <div class="card-body p-0 pt-3 pb-2">
+                {{ me_chart_div | safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Injuries List Row -->
+        {% if injuries %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Active Injuries &amp; Sicknesses</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge bg-secondary text-secondary-fg">Healthy</span>
+                    <span class="badge bg-danger text-danger-fg">Injured/Sick</span>
+                </div>
+
+                <div class="list-group" id="injuries-list">
+                    {% for injury in injuries %}
+                    <div class="list-group-item injury-item"
+                         data-body-part="{{ injury.body_part }}"
+                         data-side="{{ injury.side }}"
+                         data-part-ids="{{ injury.body_parts | join(' ') }}">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-danger text-danger-fg">{{ injury.health }}%</span>
+                            </div>
+                            <div class="col">
+                                <strong>{{ symptoms.name(injury.symptom, injury.symptom) }}</strong>
+                                {% if injury.body_part %}
+                                — <span class="injury-body-part">{{ injury.body_part|replace('_', ' ')|title }}</span>
+                                {% endif %}
+                                {% if injury.side %}
+                                (<span class="injury-side">{{ injury.side }}</span>)
+                                {% endif %}
+                            </div>
+                            <div class="col-auto text-muted">
+                                <a href="{{ url_for('list_activities_for_date', year=injury.activity_year, month=injury.activity_month, day=injury.activity_day) }}" class="text-reset">{{ injury.date }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+<!-- END PAGE BODY -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var injuryItems    = document.querySelectorAll('.injury-item');
+    var filterIndicator = document.getElementById('filter-indicator');
+    var clearFilterBtn  = document.getElementById('clear-filter');
+    var activeFilter    = null;
+
+    function filterInjuries(partId) {
+        var visibleCount = 0;
+        injuryItems.forEach(function (item) {
+            var partIds = item.dataset.partIds ? item.dataset.partIds.split(' ') : [];
+            var matches = partIds.indexOf(partId) !== -1;
+            item.style.display = matches ? '' : 'none';
+            if (matches) { visibleCount++; }
+        });
+        var label = partId.replace(/-/g, ' ').replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+        if (visibleCount > 0) {
+            filterIndicator.textContent = 'Filtered: ' + label + ' — ' + visibleCount + ' item(s)';
+        } else {
+            filterIndicator.textContent = 'No injuries recorded for: ' + label;
+        }
+        filterIndicator.style.visibility = 'visible';
+        clearFilterBtn.style.visibility  = 'visible';
+    }
+
+    function clearFilter() {
+        injuryItems.forEach(function (item) { item.style.display = ''; });
+        filterIndicator.style.visibility = 'hidden';
+        clearFilterBtn.style.visibility  = 'hidden';
+        activeFilter = null;
+        document.querySelectorAll('.mnq').forEach(function (el) {
+            el.style.stroke      = '';
+            el.style.strokeWidth = '';
+        });
+    }
+
+    // attach click handlers via data-part-id attributes
+    document.querySelectorAll('[data-part-id]').forEach(function (el) {
+        el.addEventListener('click', function () {
+            var partId = el.dataset.partId;
+            if (activeFilter === partId) {
+                clearFilter();
+            } else {
+                activeFilter = partId;
+                filterInjuries(partId);
+                document.querySelectorAll('.mnq').forEach(function (p) {
+                    p.style.stroke = ''; p.style.strokeWidth = '';
+                });
+                el.style.stroke      = '#206bc4';
+                el.style.strokeWidth = '3';
+            }
+        });
+    });
+
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearFilter);
+    }
+});
+</script>
+
+{% endblock %}

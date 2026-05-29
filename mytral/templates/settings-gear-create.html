@@ -1,0 +1,78 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Add Gear</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_gear_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Add Gear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Commented out error section, similar to activity types page
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% else %}
+        <div class="alert alert-success">No errors</div>
+        {% endif %}
+        #}
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Gear Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ field_macros.add_field(form.name) }}
+                        {{ field_macros.add_field(form.comment) }}
+                        {{ field_macros.add_field(form.activity) }}
+                        {{ field_macros.add_checkbox_field(form.is_default) }}
+                        {{ field_macros.add_checkbox_field(form.retired) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ field_macros.add_field(form.vendor) }}
+                        {{ field_macros.add_field(form.model) }}
+                        {{ field_macros.add_field(form.size) }}
+                        {{ field_macros.add_field(form.url) }}
+                        {{ field_macros.add_field(form.purchased) }}
+                        {{ field_macros.add_field(form.tcoo_base) }}
+                        {{ field_macros.add_field(form.tcoo_additional) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

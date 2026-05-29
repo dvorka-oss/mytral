@@ -1,0 +1,127 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<!-- BEGIN PAGE HEADER -->
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">New Meditation</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE HEADER -->
+
+<!-- BEGIN PAGE BODY -->
+<div class="page-body">
+    <div class="container-xl">
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% else %}
+        <div class="alert alert-success">No errors</div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Activity details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{ field_macros.add_field(form.activity_type_key) }}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">When</label>
+                                        <div class="row g-2">
+                                            <div class="col">
+                                                {{ form.when_year(class="form-control", placeholder="Year") }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.when_month(class="form-control", placeholder="Month") }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.when_day(class="form-control", placeholder="Day") }}
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mt-2">
+                                            <div class="col">
+                                                {{ form.when_hour(class="form-control", placeholder="Hour") }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.when_minute(class="form-control", placeholder="Min") }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.when_second(class="form-control", placeholder="Sec") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Duration</label>
+                                        <div class="row g-2">
+                                            <div class="col">
+                                                {{ form.hours(class="form-control", placeholder="Hours") }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.minutes(class="form-control", placeholder="Minutes", value=20) }}
+                                            </div>
+                                            <div class="col">
+                                                {{ form.seconds(class="form-control", placeholder="Seconds") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    {{ field_macros.add_field(form.name(value="Vedic meditation")) }}
+                                    {{ field_macros.add_field(form.description) }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ field_macros.add_field(form.where) }}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Weight</label>
+                                        <div class="input-group">
+                                            {{ form.weight(class="form-control") }}
+                                            <span class="input-group-text">kg</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Save
+                        </button>
+                        <a href="{{ url_for('home') }}" class="btn btn-link">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE BODY -->
+{% endblock %}

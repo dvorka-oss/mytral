@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Login - MyTraL</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler.min.css') }}" rel="stylesheet" />
+    <style>
+        @import url("https://rsms.me/inter/inter.css");
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .border-primary {
+            border-color: #066fd1 !important;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler-theme.min.js') }}"></script>
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="text-center mb-4">
+                <a href="." class="navbar-brand navbar-brand-autodark d-inline-flex align-items-center" style="gap: 5px;">
+                    <img src="{{ url_for('static', filename='images/mytral-logo-transparent-bg.png') }}" alt="MyTraL" style="width: 25px; height: 25px;">
+                    <span style="font-size: 1.25rem;">MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span></span>
+                </a>
+            </div>
+            {% if is_migrate %}
+            <div class="card border-warning mb-4">
+                <div class="card-status-top bg-warning"></div>
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle text-warning" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 9v4"></path>
+                                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"></path>
+                                <path d="M12 16h.01"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="alert-title mb-2">Data Migration Required</h4>
+                            <p class="text-muted mb-3">
+                                Your training data was created with a previous version of
+                                MyTraL and needs to be upgraded before you can log in.
+                                Migration preserves all your data.
+                            </p>
+                            <form method="POST" action="{{ url_for('login_migrate') }}">
+                                {{ migrate_form.hidden_tag() }}
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path>
+                                        <path d="M7 11l5 5l5 -5"></path>
+                                        <path d="M12 4l0 12"></path>
+                                    </svg>
+                                    Migrate Data Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card card-md">
+                <div class="card-body">
+                    {% if auto_login_usernames %}
+                    <h2 class="h2 text-center mb-4">How are the legs?!</h2>
+                    <div class="text-center text-muted mb-3">
+                        <small>MyTraL Desktop does not make external connections.<br/>Your data stays securely on your local machine.</small>
+                    </div>
+
+                    {% else %}
+                    <h2 class="h2 text-center">Login to your account</h2>
+                    {% endif %}
+
+                    {# flash messages #}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'success' %}
+                                    <div class="alert alert-success alert-dismissible" role="alert">
+                                        <div class="d-flex">
+                                            <div>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path></svg>
+                                            </div>
+                                            <div>{{ message }}</div>
+                                        </div>
+                                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-danger alert-dismissible" role="alert">
+                                        <div class="d-flex">
+                                            <div class="p-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"></path><path d="M12 16h.01"></path></svg>
+                                            </div>
+                                            <div>{{ message }}</div>
+                                        </div>
+                                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    {# select user for auto-login #}
+                    {% if auto_login_usernames %}
+                    <form method="POST" action="" autocomplete="off">
+                        {# send CSRF token #}
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.username.label }}</label>
+                            <select class="form-select" name="{{ form.username.name }}" id="{{ form.username.id }}" autofocus>
+                                {% for uname in auto_login_usernames %}
+                                <option value="{{ uname }}">{{ uname }}</option>
+                                {% endfor %}
+                            </select>
+                            {{ form.password(value="", type="hidden") }}
+                        </div>
+
+                        <input id="page_width" name="page_width" type="hidden" value="">
+
+                        <div class="form-footer">
+                            {{ form.submit(class="btn btn-primary w-100") }}
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+
+                {% if auto_login_usernames %}
+                <div class="hr-text">or</div>
+                {% endif %}
+
+                {# sign in with password #}
+
+                <div class="card-body">
+                    <form method="POST" action="" autocomplete="off">
+                        {# send CSRF token #}
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.username.label }}</label>
+                            {{ form.username(class="form-control", placeholder="Enter username", autofocus=true) }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">
+                                {{ form.password.label }}
+                            </label>
+                            <div class="input-group input-group-flat">
+                                {{ form.password(class="form-control", placeholder="Enter password", id="password") }}
+                                <span class="input-group-text">
+                                    <a href="#" class="link-secondary" title="Show password" data-bs-toggle="tooltip" onclick="togglePassword(); return false;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+
+                        <input id="page_width" name="page_width" type="hidden" value="">
+
+                        <div class="form-footer">
+                            {{ form.submit(class="btn btn-primary w-100") }}
+                        </div>
+                    </form>
+                </div>
+
+                <div class="hr-text">or</div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <a href="{{ url_for('signup') }}" class="btn btn-success w-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path><path d="M6 21v-2a4 4 0 0 1 4 -4h3.5"></path><path d="M16 19h6"></path><path d="M19 16v6"></path></svg>
+                                {% if auto_login_usernames %}
+                                Add new user
+                                {% else %}
+                                Create new account
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-muted mt-3">
+                <small>Your personal training log for deeper insights and smarter progress.</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler.min.js') }}"></script>
+    <script>
+        document.getElementById('page_width').value = window.innerWidth;
+
+        function togglePassword() {
+            const password = document.getElementById("password");
+            if (password.type === "password") {
+                password.type = "text";
+            } else {
+                password.type = "password";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>

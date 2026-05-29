@@ -1,0 +1,1112 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">
+                    Today's Predictions
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Predictions and historical insights for today. Uses machine learning to analyze your training patterns and suggest activities, predict health risks, and estimate weight trends based on historical data from the same day of the week in previous years.">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                        <path d="M12 9h.01"></path>
+                        <path d="M11 12h1v4h1"></path>
+                    </svg>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Predictions and insights based on your historical training data.
+                The system analyzes patterns from the same weekday across previous years to
+                provide personalized activity suggestions, health risk predictions, and weight trends.
+                All predictions are based on machine learning algorithms trained on your personal data.
+            </p>
+        </div>
+    </div>
+
+    {% if insights and insights.is_available() %}
+
+    {# FIRST ROW: Predictions #}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brain me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"></path>
+                    <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8"></path>
+                    <path d="M17 5h-.01"></path>
+                    <path d="M7 5h-.01"></path>
+                    <path d="M12 12a4 4 0 1 0 -4 -4"></path>
+                    <path d="M12 12a4 4 0 1 1 4 -4"></path>
+                    <path d="M12 12v-9"></path>
+                </svg>
+                Today's Predictions
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Machine learning predictions for today based on historical patterns from the same weekday in previous years. Activity suggestions show probability percentages, health predictions show risk per thousand (‰), and weight predictions show estimated values in kilograms.">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                    <path d="M12 9h.01"></path>
+                    <path d="M11 12h1v4h1"></path>
+                </svg>
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-deck row-cards">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-robot me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z" /><path d="M12 2v2" /><path d="M9 12v9" /><path d="M15 12v9" /><path d="M5 16l4 -2" /><path d="M15 14l4 2" /><path d="M9 18h6" /><path d="M10 8v.01" /><path d="M14 8v.01" />
+                                </svg>
+                                Activity Suggestion
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Suggested activities for today based on machine learning analysis of your past training patterns on this weekday. Percentages indicate probability of each activity type.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.activity_preds %}
+                            <p class="text-muted small mb-3">Suggested activities for today based on past patterns:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.activity_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            <span class="badge bg-primary text-primary-fg">{{ s[1] }}%</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No activity predictions available. More historical data needed.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-robot me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 2 0 0 1 -2 -2z" /><path d="M12 2v2" /><path d="M9 12v9" /><path d="M15 12v9" /><path d="M5 16l4 -2" /><path d="M15 14l4 2" /><path d="M9 18h6" /><path d="M10 8v.01" /><path d="M14 8v.01" />
+                                </svg>
+                                Health Prediction
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Health status predictions for today based on historical data from this weekday. Shows percentage of years when you were sick, injured, or healthy. Percentages sum to 100%.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Health status based on historical patterns:</p>
+                            {% if insights.health_preds %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.health_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% if s[0] == "Healthy" %}
+                                            <span class="badge bg-success text-success-fg">{{ s[1] }}%</span>
+                                            {% elif s[0] == "Sick" %}
+                                            <span class="badge bg-danger text-danger-fg">{{ s[1] }}%</span>
+                                            {% elif s[0] == "Injured" %}
+                                            <span class="badge bg-warning text-warning-fg">{{ s[1] }}%</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No health data available for this weekday.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-robot me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z" /><path d="M12 2v2" /><path d="M9 12v9" /><path d="M15 12v9" /><path d="M5 16l4 -2" /><path d="M15 14l4 2" /><path d="M9 18h6" /><path d="M10 8v.01" /><path d="M14 8v.01" />
+                                </svg>
+                                Weight Prediction
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Predicted body weight for today based on historical weight measurements from the same weekday in previous years.
+
+Metrics:
+- Average: Mean of historical weights
+- Min/Max: Range of historical weights
+- Current: Your current weight
+
+Color Coding:
+🟢 Green: Healthy weight or below average
+🟡 Yellow: Slightly above healthy range
+🟠 Orange: Moderately above healthy range
+🔴 Red: Significantly above healthy range OR current > average
+⚫ Dark: Min/Max range (neutral)
+
+Healthy range based on BMI 18.5-24.9 if height is recorded.
+Current weight is red if higher than historical average.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.weight_preds %}
+                            <p class="text-muted small mb-3">Weight prediction based on past data:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.weight_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% set label = s[0] %}
+                                            {% set display_weight = s[1] %}
+                                            {% set actual_weight = s[2] %}
+                                            {% set current_weight = s[3] %}
+                                            {% set healthy_range = s[4] %}
+
+                                            {# Determine badge color #}
+                                            {% if label == "Current" %}
+                                                {# Current: Red if higher than average, green otherwise #}
+                                                {% if insights.weight_preds|length >= 4 %}
+                                                    {% set avg_weight = insights.weight_preds[0][2] %}
+                                                    {% if current_weight > avg_weight %}
+                                                        <span class="badge bg-danger text-white">{{ display_weight }} kg</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success text-white">{{ display_weight }} kg</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-success text-white">{{ display_weight }} kg</span>
+                                                {% endif %}
+                                            {% elif label == "Min" or label == "Max" %}
+                                                {# Range: Dark/neutral background #}
+                                                <span class="badge bg-dark text-white">{{ display_weight }} kg</span>
+                                            {% elif label == "Average" and healthy_range %}
+                                                {# Average: Color-code based on BMI/healthy range #}
+                                                {% set healthy_min = healthy_range[0] %}
+                                                {% set healthy_max = healthy_range[1] %}
+                                                {% if actual_weight < healthy_min %}
+                                                    {# Underweight #}
+                                                    <span class="badge bg-info text-white">{{ display_weight }} kg</span>
+                                                {% elif actual_weight > healthy_max %}
+                                                    {# Overweight - determine severity #}
+                                                    {% set excess = actual_weight - healthy_max %}
+                                                    {% set range_size = healthy_max - healthy_min %}
+                                                    {% if excess > range_size * 0.4 %}
+                                                        {# Severely over: Red #}
+                                                        <span class="badge bg-danger text-white">{{ display_weight }} kg</span>
+                                                    {% elif excess > range_size * 0.2 %}
+                                                        {# Moderately over: Orange #}
+                                                        <span class="badge bg-orange text-white">{{ display_weight }} kg</span>
+                                                    {% else %}
+                                                        {# Slightly over: Yellow #}
+                                                        <span class="badge bg-warning text-white">{{ display_weight }} kg</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {# Healthy range: Green #}
+                                                    <span class="badge bg-success text-white">{{ display_weight }} kg</span>
+                                                {% endif %}
+                                            {% else %}
+                                                {# Default: Green #}
+                                                <span class="badge bg-success text-white">{{ display_weight }} kg</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No weight predictions available. Record weight in activities to enable predictions.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# SECOND ROW: History #}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-history me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
+                </svg>
+                Historical Data for This Day
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Historical data from the same weekday ({{ insights.today.strftime('%A') }}) across previous years. Shows what activities you performed, health issues experienced, and weight measurements recorded on this day in the past.">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                    <path d="M12 9h.01"></path>
+                    <path d="M11 12h1v4h1"></path>
+                </svg>
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-deck row-cards">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-history me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
+                                </svg>
+                                Activity History
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Activities performed on this weekday ({{ insights.today.strftime('%A') }}) in previous years. Click on activity names to view full day details.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.activity_history %}
+                            <p class="text-muted small mb-3">Activities on this weekday in past years:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                    {% for s in insights.activity_history %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% for activity_name in s[3] %}
+                                                <a href="{{ url_for('list_activities_for_date', year=s[0], month=s[1], day=s[2]) }}" class="badge bg-blue-lt">{{ activity_name }}</a>{% if not loop.last %} {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No activity history available for this weekday.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-history me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
+                                </svg>
+                                Health History
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Health issues recorded on this weekday ({{ insights.today.strftime('%A') }}) in previous years. Click to view full day details and related activities.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.health_history %}
+                            <p class="text-muted small mb-3">Health issues on this weekday in past years:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                    {% for s in insights.health_history %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% for issue in s[3] %}
+                                                <a href="{{ url_for('list_activities_for_date', year=s[0], month=s[1], day=s[2]) }}" class="badge bg-red-lt">{{ issue }}</a>{% if not loop.last %} {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No health issues recorded on this weekday in past years.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-history me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path>
+                                </svg>
+                                Weight History
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Body weight measurements recorded on this weekday ({{ insights.today.strftime('%A') }}) in previous years. Red indicates weight gain, green indicates weight loss compared to the previous year.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.weight_history %}
+                            <p class="text-muted small mb-3">Body weight on this weekday in past years:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                    {% for s in insights.weight_history %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        {% if s[2] > 0 %}
+                                        <td class="text-start text-danger">{{ s[1] }} kg <small>(+{{ s[2] }})</small></td>
+                                        {% elif s[2] < 0 %}
+                                        <td class="text-start text-success">{{ s[1] }} kg <small>({{ s[2] }})</small></td>
+                                        {% else %}
+                                        <td class="text-start text-muted">{{ s[1] }} kg</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No weight history available for this weekday.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# THIRD ROW: New Advanced Predictions #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-dots me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 3v18h18"></path>
+                    <circle cx="9" cy="9" r="2"></circle>
+                    <circle cx="19" cy="7" r="2"></circle>
+                    <circle cx="14" cy="15" r="2"></circle>
+                    <path d="M10.16 10.62l2.34 2.88"></path>
+                    <path d="M15.088 13.328l2.837 -4.586"></path>
+                </svg>
+                Advanced Analytics
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Advanced predictions based on detailed analysis of your training patterns, performance metrics, and recovery habits from historical data.">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                    <path d="M12 9h.01"></path>
+                    <path d="M11 12h1v4h1"></path>
+                </svg>
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-deck row-cards">
+                {# Training Load Prediction #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12h4l3 8l4 -16l3 8h4" />
+                                </svg>
+                                Training Load
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Expected training volume based on historical data from this weekday ({{ insights.today.strftime('%A') }}) in week {{ insights.today.isocalendar()[1] }}.
+
+Avg Duration: Average total training time across all years
+Range: Minimum to maximum duration observed
+Avg Distance: Average total distance covered
+
+Intensity Distribution (sums to 100%):
+- Rest Day: Years with no activities
+- Single Activity: Years with one workout
+- Double Activity: Years with two workouts
+- Triple+: Years with three or more workouts
+
+Calculation: (count / total years) × 100%">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.training_load_preds or insights.intensity_preds %}
+                            <p class="text-muted small mb-3">Expected training volume:</p>
+                            {% if insights.training_load_preds %}
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.training_load_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            <span class="badge bg-cyan-lt">{{ s[1] }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% if insights.intensity_preds %}
+                            <p class="text-muted small mb-2">Activity intensity distribution:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.intensity_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            <span class="badge bg-azure-lt">{{ s[1] }}%</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <p class="text-muted">No training load data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Performance Pattern #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-gauge me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="1" /><path d="M13.41 10.59l2.83 -2.83" /><path d="M7 12a5 5 0 0 1 5 -5" />
+                                </svg>
+                                Performance Pattern
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Expected running performance based on historical pace data from this weekday.
+
+Running Pace (min:sec per km):
+- Avg Pace: mean(all paces)
+- Best: min(all paces) - fastest
+- Slowest: max(all paces)
+
+Performance Distribution (sums to 100%):
+- Peak: Top 25% fastest paces
+- Normal: Middle 50% of paces
+- Recovery: Bottom 25% slowest paces
+
+Formula: pace = (duration in minutes) / (distance in km)
+Only includes running activities with distance > 0.
+
+Note: Requires pace data from runs.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.performance_preds or insights.performance_category %}
+                            {% if insights.performance_preds %}
+                            <p class="text-muted small mb-3">Expected running pace:</p>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.performance_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            <span class="badge bg-purple-lt">{{ s[1] }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% if insights.performance_category %}
+                            <p class="text-muted small mb-2">Performance distribution:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.performance_category %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% if s[0] == "Peak Performance" %}
+                                            <span class="badge bg-lime text-lime-fg">{{ s[1] }}%</span>
+                                            {% elif s[0] == "Normal Pace" %}
+                                            <span class="badge bg-blue-lt">{{ s[1] }}%</span>
+                                            {% else %}
+                                            <span class="badge bg-teal-lt">{{ s[1] }}%</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <p class="text-muted">No performance data available. Track pace for running activities to see this.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Seasonal/Indoor-Outdoor #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-sun me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="4" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                                </svg>
+                                Activity Environment
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Indoor vs Outdoor activity preference for this time of year (week {{ insights.today.isocalendar()[1] }}).
+
+Classification:
+- Indoor: gym, treadmill, ergometer, indoor
+- Outdoor: all other activities
+
+Percentages (sum to 100%):
+Indoor % = (indoor activities / total activities) × 100
+Outdoor % = 100 - Indoor %
+
+Shows how weather/season affects training location. Higher indoor % suggests winter/bad weather period. Higher outdoor % suggests summer/good weather.
+
+Analyzed across all years on this specific weekday.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-sun me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="4" /><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                                </svg>
+                                Activity Environment
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.seasonal_preds %}
+                            <p class="text-muted small mb-3">Indoor vs Outdoor preference:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.seasonal_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% if s[0] == "Indoor" %}
+                                            <span class="badge bg-gray-lt">{{ s[1] }}%</span>
+                                            {% else %}
+                                            <span class="badge bg-green-lt">{{ s[1] }}%</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No environment data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Second row of advanced predictions #}
+            <div class="row row-deck row-cards mt-3">
+                {# Recovery Prediction #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bed me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7v11m0 -4h18m0 4v-8a2 2 0 0 0 -2 -2h-8v6" /><circle cx="7" cy="10" r="1" />
+                                </svg>
+                                Recovery Pattern
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Training, recovery, and rest day distribution for this weekday.
+
+Day Types (mutually exclusive, sum to 100%):
+- Rest Day: No activities at all (0 workouts)
+- Recovery: ONLY recovery activities (yoga, stretching, easy walks, regen runs)
+- Training: At least one non-recovery activity OR sick/injured day
+
+Calculation (all years in heatmap):
+Rest % = (years with 0 activities) / (all years) × 100
+Recovery % = (years with only recovery) / (all years) × 100
+Training % = 100 - Rest % - Recovery %
+
+Consistency Score:
+Shows % of years you were active (not resting).
+= (years with activity) / (all years) × 100
+Green ≥70%, Yellow 50-69%, Red <50%">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.recovery_preds %}
+                            <p class="text-muted small mb-3">Training vs rest distribution:</p>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.recovery_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% if s[0] == "Rest Day" %}
+                                            <span class="badge bg-pink-lt">{{ s[1] }}%</span>
+                                            {% elif s[0] == "Recovery" %}
+                                            <span class="badge bg-indigo-lt">{{ s[1] }}%</span>
+                                            {% else %}
+                                            <span class="badge bg-blue-lt">{{ s[1] }}%</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-auto">
+                                        <strong>Consistency Score</strong>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Shows what percentage of years you were active (not resting) on this weekday.
+
+Formula:
+Consistency = (years with activity / all years) × 100%
+
+Years with activity = all years MINUS rest years
+All years = total years in your training history
+
+Interpretation:
+🟢 Green (≥70%): Excellent - very consistent training
+🟡 Yellow (50-69%): Good - fairly consistent
+🔴 Red (<50%): Low - often rested on this day
+
+Example: If you have 10 years of data and were active on 7 of them on this weekday, consistency = 7/10 = 70%">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                            <path d="M12 9h.01"></path>
+                                            <path d="M11 12h1v4h1"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{{ 'success' if insights.consistency_score >= 70 else 'warning' if insights.consistency_score >= 50 else 'danger' }} text-white">{{ insights.consistency_score }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No recovery data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Goal Achievement #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-target me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="1" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="9" />
+                                </svg>
+                                Day Importance
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Importance of this day in your weekly training cycle.
+
+Day Type: Which day of the week (Monday-Sunday)
+
+Importance Level (based on average duration):
+- High importance: >60 min average (key training day)
+- Moderate: 30-60 min average (normal training)
+- Light: <30 min average (easy/recovery day)
+
+Avg Contribution: Average training time on this day
+= mean(all daily durations)
+
+Helps identify your typical 'long run day', 'rest day', etc.
+
+Calculated from all historical data for this specific weekday across all years.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% if insights.goal_preds %}
+                            <p class="text-muted small mb-3">This day's typical role in your training:</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                    {% for s in insights.goal_preds %}
+                                    <tr>
+                                        <td class="text-end"><strong>{{ s[0] }}</strong></td>
+                                        <td class="text-start">
+                                            {% if s[0] == "Importance" %}
+                                                {% if s[1] == "High importance day" %}
+                                                <span class="badge bg-red-lt">{{ s[1] }}</span>
+                                                {% elif s[1] == "Moderate day" %}
+                                                <span class="badge bg-yellow-lt">{{ s[1] }}</span>
+                                                {% else %}
+                                                <span class="badge bg-blue-lt">{{ s[1] }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                            <span class="badge bg-indigo-lt">{{ s[1] }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No goal data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Summary Statistics #}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-bar me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="12" width="6" height="8" rx="1" /><rect x="9" y="8" width="6" height="12" rx="1" /><rect x="15" y="4" width="6" height="16" rx="1" />
+                                </svg>
+                                Quick Stats
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Summary statistics for this weekday ({{ insights.today.strftime('%A') }}).
+
+Historical Days: Total years with ANY data (activities or health issues) on this day
+= count(years with data)
+
+Training Days: Years with sport activities (not just sick/injured)
+= count(years with activities)
+
+Consistency: % of years you were active
+= (training days / all years) × 100
+Color: Green ≥70%, Yellow 50-69%, Red <50%
+
+Top Activity: Most common activity type
+= activity with highest occurrence count">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Key insights for {{ insights.today.strftime('%A') }}:</p>
+                            <div class="datagrid">
+                                <div class="datagrid-item">
+                                    <div class="datagrid-title">Historical Days</div>
+                                    <div class="datagrid-content">{{ insights.activity_history|length + insights.health_history|length }}</div>
+                                </div>
+                                <div class="datagrid-item">
+                                    <div class="datagrid-title">Training Days</div>
+                                    <div class="datagrid-content">{{ insights.activity_history|length }}</div>
+                                </div>
+                                <div class="datagrid-item">
+                                    <div class="datagrid-title">
+                                        Consistency
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Percentage of years you were active on this weekday.
+Formula: (active years / all years) × 100%
+Green ≥70%, Yellow 50-69%, Red <50%">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                            <path d="M12 9h.01"></path>
+                                            <path d="M11 12h1v4h1"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="datagrid-content">
+                                        <span class="status status-{{ 'success' if insights.consistency_score >= 70 else 'warning' if insights.consistency_score >= 50 else 'danger' }}">
+                                            {{ insights.consistency_score }}%
+                                        </span>
+                                    </div>
+                                </div>
+                                {% if insights.activity_preds %}
+                                <div class="datagrid-item">
+                                    <div class="datagrid-title">Top Activity</div>
+                                    <div class="datagrid-content">{{ insights.activity_preds[0][0] }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-database-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 6v-2"></path>
+                        <path d="M4 6v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-6"></path>
+                        <path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-6"></path>
+                        <path d="M12 12v2"></path>
+                    </svg>
+                </div>
+                <p class="empty-title">No predictions available</p>
+                <p class="empty-subtitle text-muted">
+                    Insufficient historical data to generate predictions. Keep logging your activities to enable AI-powered insights!
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ICL / TabPFN AI-powered predictions section #}
+    <div class="card mb-3 mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-cpu me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 5m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" /><path d="M9 9h6v6h-6z" /><path d="M3 10h2" /><path d="M3 14h2" /><path d="M10 3v2" /><path d="M14 3v2" /><path d="M21 10h-2" /><path d="M21 14h-2" /><path d="M10 21v-2" /><path d="M14 21v-2" />
+                </svg>
+                AI Predictions — TabPFN
+            </h3>
+        </div>
+        <div class="card-body">
+            {% if icl_predictions is none %}
+            <div class="empty py-3">
+                <div class="empty-img mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brain" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8" /><path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8" /><path d="M17 5h-.01" /><path d="M7 5h-.01" /><path d="M12 12a4 4 0 1 0 -4 -4" /><path d="M12 12a4 4 0 1 1 4 -4" />
+                    </svg>
+                </div>
+                <p class="empty-title">AI predictions are not enabled</p>
+                <p class="empty-subtitle text-muted">
+                    Enable TabPFN in-context learning to unlock personalized fatigue scoring,
+                    illness risk prediction, race performance estimation, and more.
+                </p>
+                <div class="empty-action">
+                    <a href="{{ url_for('settings_tabpfn') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-settings me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                        </svg>
+                        Enable in ML Models Settings
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="row row-deck row-cards">
+
+                {# Illness Risk card #}
+                {% if icl_predictions.illness_risk is not none %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-virus me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" /><path d="M12 7v-4" /><path d="M11 3h2" /><path d="M15.536 8.464l2.828 -2.828" /><path d="M17.657 4.929l1.414 1.414" /><path d="M17 12h4" /><path d="M21 11v2" /><path d="M15.535 15.536l2.829 2.828" /><path d="M19.071 17.657l-1.414 1.414" /><path d="M12 17v4" /><path d="M13 21h-2" /><path d="M8.465 15.536l-2.829 2.828" /><path d="M6.344 19.071l-1.414 -1.414" /><path d="M7 12h-4" /><path d="M3 13v-2" /><path d="M8.464 8.464l-2.828 -2.828" /><path d="M4.929 6.344l1.414 -1.414" />
+                                </svg>
+                                Illness Risk
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% set ir = icl_predictions.illness_risk %}
+                            {% if ir.available %}
+                                {% if ir.label == "low" %}
+                                <span class="badge bg-success text-success-fg fs-5">Low risk</span>
+                                {% elif ir.label == "moderate" %}
+                                <span class="badge bg-yellow text-yellow-fg fs-5">Moderate risk</span>
+                                {% elif ir.label == "high" %}
+                                <span class="badge bg-orange text-orange-fg fs-5">High risk</span>
+                                {% else %}
+                                <span class="badge bg-danger text-danger-fg fs-5">Very high risk</span>
+                                {% endif %}
+                                <p class="text-muted small mt-2 mb-0">
+                                    Probability: {{ (ir.probability * 100) | round(1) }}%
+                                </p>
+                            {% else %}
+                                <p class="text-muted small">{{ ir.reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Fatigue / Readiness card #}
+                {% if icl_predictions.fatigue is not none %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-battery-charging me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-1" /><path d="M10 7h-3a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h3" /><path d="M12 8l-2 4h4l-2 4" />
+                                </svg>
+                                Fatigue Score
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% set fat = icl_predictions.fatigue %}
+                            {% if fat.available %}
+                                {% if fat.label == "fresh" %}
+                                <span class="badge bg-success text-success-fg fs-5">Fresh</span>
+                                {% elif fat.label == "normal" %}
+                                <span class="badge bg-blue text-blue-fg fs-5">Normal</span>
+                                {% elif fat.label == "fatigued" %}
+                                <span class="badge bg-yellow text-yellow-fg fs-5">Fatigued</span>
+                                {% else %}
+                                <span class="badge bg-danger text-danger-fg fs-5">Overreaching</span>
+                                {% endif %}
+                                <p class="text-muted small mt-2 mb-0">
+                                    Readiness: {{ fat.readiness_score }}/100
+                                </p>
+                            {% else %}
+                                <p class="text-muted small">{{ fat.reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Race Performance card #}
+                {% if icl_predictions.performance is not none %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trophy me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 21l8 0" /><path d="M12 17l0 4" /><path d="M7 4l10 0" /><path d="M17 4v8a5 5 0 0 1 -10 0v-8" /><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                                </svg>
+                                Race Performance
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% set perf = icl_predictions.performance %}
+                            {% if perf.available %}
+                                <p class="mb-1">
+                                    <strong>Est. 10K time:</strong>
+                                    <span class="badge bg-primary text-primary-fg fs-5">{{ perf.predicted_10k_label }}</span>
+                                </p>
+                                <p class="text-muted small mb-0">Based on recent run training data.</p>
+                            {% else %}
+                                <p class="text-muted small">{{ perf.reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Rest Day card #}
+                {% if icl_predictions.rest_day is not none %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bed me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7v11" /><path d="M21 17v-6a2 2 0 0 0 -2 -2h-10v8" /><path d="M3 17h18" /><path d="M7 10.5a.5 .5 0 1 0 1 0a.5 .5 0 0 0 -1 0" />
+                                </svg>
+                                Tomorrow's Plan
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% set rd = icl_predictions.rest_day %}
+                            {% if rd.available %}
+                                {% if rd.should_rest %}
+                                <span class="badge bg-blue text-blue-fg fs-5">Rest Day</span>
+                                {% else %}
+                                <span class="badge bg-green text-green-fg fs-5">Train</span>
+                                {% endif %}
+                                <p class="text-muted small mt-2 mb-0">
+                                    Confidence: {{ (rd.confidence * 100) | round(1) }}%
+                                </p>
+                            {% else %}
+                                <p class="text-muted small">{{ rd.reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Anomaly Detection card #}
+                {% if icl_predictions.anomaly is not none %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" />
+                                </svg>
+                                Activity Anomaly
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            {% set ano = icl_predictions.anomaly %}
+                            {% if ano.available %}
+                                {% if ano.is_anomaly %}
+                                <span class="badge bg-warning text-warning-fg fs-5">Anomaly Detected</span>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Last activity differs significantly from your baseline.
+                                </p>
+                                {% else %}
+                                <span class="badge bg-success text-success-fg fs-5">Normal</span>
+                                <p class="text-muted small mt-2 mb-0">Last activity is within normal range.</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted small">{{ ano.reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle me-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" />
+                </svg>
+                Powered by <a href="{{ url_for('settings_tabpfn') }}">TabPFN v2</a>
+                (Apache 2.0 · Prior Labs / Hollmann et al. Nature 2025).
+                Predictions use in-context learning on your personal training data — no cloud required.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

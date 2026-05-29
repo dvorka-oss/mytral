@@ -1,0 +1,5 @@
+{% from 'lib-entity-crud.html' import mytral_crud_delete_page %}
+{%extends "layout.html"%}
+{% block content %}
+{{ mytral_crud_delete_page('Lap', key, form, url_for('settings_laps_list'), name) }}
+{% endblock %}

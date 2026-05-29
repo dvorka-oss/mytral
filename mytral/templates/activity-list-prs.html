@@ -1,0 +1,119 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">
+                    Personal Bests
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Personal bests are the activities and laps you ranked &mdash; grouped by activity type, ordered by distance then time.
+                </p>
+
+                {% if unique_activity_types %}
+                <div class="mt-3">
+                    <form method="get" action="{{ url_for('list_activities_prs') }}">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label class="form-label">Activity type</label>
+                                <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    {% for s in unique_activity_types %}
+                                        <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                            {{ activity_types.name(s) }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# one card per activity type #}
+        {% for activity_type in unique_activity_types %}
+        {% set entries = prs_by_activity_type[activity_type] %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    {{ activity_types.emoji(activity_type) }}
+                    {{ activity_types.name(activity_type) }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>Name</th>
+                                <th>Distance</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for e in entries %}
+                            <tr{% if e.is_best %} class="table-success"{% endif %}>
+                                <td>
+                                    <div class="ps-2 mytral-{{ activity_types.color(e.activity_type_key) }}-border">
+                                        <a href="{{ url_for('get_activity', key=e.key) }}" class="text-reset">{{ e.when }}</a>
+                                        <div class="text-muted">{{ e.weekday }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <b>{{ e.name }}</b>
+                                </td>
+                                <td>
+                                    {% if e.distance %}{{ e.distance }} m{% endif %}
+                                </td>
+                                <td>
+                                    {% if e.duration %}
+                                        {{ (e.duration // 3600)|int|zfill(2) }}h{{ ((e.duration % 3600) // 60)|int|zfill(2) }}m{{ (e.duration % 60)|int|zfill(2) }}s
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {# empty state #}
+        {% if not unique_activity_types %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="empty">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trophy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M8 21l8 0"></path>
+                            <path d="M12 17l0 4"></path>
+                            <path d="M7 4l10 0"></path>
+                            <path d="M17 4v8a5 5 0 0 1 -10 0v-8"></path>
+                            <path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No personal bests yet</p>
+                    <p class="empty-subtitle text-muted">
+                        Mark activities or laps as ranked to track your personal bests.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

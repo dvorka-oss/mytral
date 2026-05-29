@@ -1,0 +1,536 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Import</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="row g-0">
+                <div class="col-12 col-md-3 border-end">
+                    <div class="card-body">
+                        <h4 class="subheader">Sources</h4>
+                        <div class="list-group list-group-transparent" id="import-nav">
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center active" data-section="section-concept2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-code me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                                    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                                    <path d="M10 13l-1 2l1 2"></path>
+                                    <path d="M14 13l1 2l-1 2"></path>
+                                </svg>
+                                Concept2
+                            </a>
+                            {% if ff.can("GSHEETS_DVORKA_IMPORT") %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-google-sheets">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-csv me-2"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M7 16.5a1.5 1.5 0 0 0 -3 0v3a1.5 1.5 0 0 0 3 0" /><path d="M10 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M16 15l2 6l2 -6" /></svg>
+                                Google Sheets
+                            </a>
+                            {% endif %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-mytral">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-code me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                                    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                                    <path d="M10 13l-1 2l1 2"></path>
+                                    <path d="M14 13l1 2l-1 2"></path>
+                                </svg>
+                                MyTraL
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-fit">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12h4l3 8l4 -16l3 8h4"></path>
+                                </svg>
+                                FIT
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-gpx">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-route me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                                    <path d="M17 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                                    <path d="M14 6h-4a3 3 0 0 0 -3 3v7"></path>
+                                    <path d="M14 6c0 2.667 1.333 5 4 7"></path>
+                                </svg>
+                                GPX
+                            </a>
+                            {% if is_desktop %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-polar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heartbeat me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M19.5 13.572l-7.5 7.428l-2.896 -2.868m-6.117 -8.104a5 5 0 0 1 9.013 -3.022a5 5 0 1 1 7.5 6.572"></path>
+                                    <path d="M3 13h2l2 3l2 -6l1 3h3"></path>
+                                </svg>
+                                Polar
+                            </a>
+                            {% endif %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-strava">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-strava me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M15 13l-5 -10l-5 10"></path>
+                                    <path d="M10 13l3 6l3 -6"></path>
+                                </svg>
+                                Strava
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-9 d-flex flex-column">
+                    <div class="card-body">
+
+                        {# ## Concept2 ########################################### #}
+                        <div id="section-concept2" class="import-section">
+                            <h2 class="mb-4">Concept2</h2>
+                            <p class="card-subtitle mb-3">Import training data exported from <a href="https://www.concept2.com/" class="link-primary" target="_blank">Concept2</a>.</p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Concept2 Workouts</div>
+                                    <p class="card-subtitle">Import workouts from the <a href="https://log.concept2.com/" class="link-primary" target="_blank">Concept2 Logbook</a>.</p>
+
+                                    <div class="mt-2">
+                                        <form method="POST"
+                                            action="{{ url_for('tool_import_concept2_workouts_csv') }}"
+                                            enctype="multipart/form-data">
+                                            {{ import_concept2_csv_form.hidden_tag() }}
+                                            <div class="mb-2 d-flex align-items-center gap-3">
+                                                <small class="text-muted text-nowrap">If already exists:</small>
+                                                <div class="d-inline-flex gap-3">
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="skip" checked>
+                                                        <span class="form-check-label">Skip</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="override">
+                                                        <span class="form-check-label">Override</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="new_key">
+                                                        <span class="form-check-label">Add as new</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="file"
+                                                    name="csv_file"
+                                                    accept=".csv"
+                                                    class="form-control form-control-sm"
+                                                    style="max-width: 280px;"
+                                                    required>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-csv"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M7 16.5a1.5 1.5 0 0 0 -3 0v3a1.5 1.5 0 0 0 3 0" /><path d="M10 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M16 15l2 6l2 -6" /></svg>
+                                                    Import CSV
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# ## Google Sheets ########################################### #}
+                        {% if ff.can("GSHEETS_DVORKA_IMPORT") %}
+                        <div id="section-google-sheets" class="import-section d-none">
+                            <h2 class="mb-4">Google Sheets</h2>
+                            <p class="card-subtitle mb-3">Import training data exported from the <a href="https://docs.google.com/spreadsheets" class="link-primary" target="_blank">Google Sheets</a>.</p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Year</div>
+                                    <p class="card-subtitle">Import activities for a single year from the <a href="https://docs.google.com/spreadsheets" class="link-primary" target="_blank">proprietary training log</a> Google Sheets CSV.</p>
+
+                                    <div class="mt-2">
+                                        <form method="POST"
+                                            action="{{ url_for('tool_import_gsheets_year_csv') }}"
+                                            enctype="multipart/form-data">
+                                            {{ import_gsheets_year_csv_form.hidden_tag() }}
+                                            <div class="mb-2 d-flex align-items-center gap-3">
+                                                <small class="text-muted text-nowrap">If already exists:</small>
+                                                <div class="d-inline-flex gap-3">
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="skip" checked>
+                                                        <span class="form-check-label">Skip</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="override">
+                                                        <span class="form-check-label">Override</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="new_key">
+                                                        <span class="form-check-label">Add as new</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="file"
+                                                    name="csv_file"
+                                                    accept=".csv"
+                                                    class="form-control form-control-sm"
+                                                    style="max-width: 280px;"
+                                                    required>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-csv"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M7 16.5a1.5 1.5 0 0 0 -3 0v3a1.5 1.5 0 0 0 3 0" /><path d="M10 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M16 15l2 6l2 -6" /></svg>
+                                                    Import CSV
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card card-md mt-2">
+                                <div class="card-body">
+                                    <div class="h3">All Years</div>
+                                    <p class="card-subtitle">Import yearly summary - one activity per sport per year - from the <a href="https://docs.google.com/spreadsheets" class="link-primary" target="_blank">proprietary training log</a> Google Sheets CSV.</p>
+                                    <div class="mt-2">
+                                        <form method="POST"
+                                            action="{{ url_for('tool_import_gsheets_all_years_csv') }}"
+                                            enctype="multipart/form-data">
+                                            {{ import_gsheets_all_years_csv_form.hidden_tag() }}
+                                            <div class="mb-2 d-flex align-items-center gap-3">
+                                                <small class="text-muted text-nowrap">If already exists:</small>
+                                                <div class="d-inline-flex gap-3">
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="skip" checked>
+                                                        <span class="form-check-label">Skip</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="override">
+                                                        <span class="form-check-label">Override</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="new_key">
+                                                        <span class="form-check-label">Add as new</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="file"
+                                                    name="csv_file"
+                                                    accept=".csv"
+                                                    class="form-control form-control-sm"
+                                                    style="max-width: 280px;"
+                                                    required>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-csv"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M7 16.5a1.5 1.5 0 0 0 -3 0v3a1.5 1.5 0 0 0 3 0" /><path d="M10 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M16 15l2 6l2 -6" /></svg>
+                                                    Import CSV
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card card-md mt-2">
+                                <div class="card-body">
+                                    <div class="h3">Races</div>
+                                    <p class="card-subtitle">Import races from <a href="https://docs.google.com/spreadsheets" class="link-primary" target="_blank">proprietary training log</a> Google Sheets CSV.</p>
+                                    <div class="mt-2">
+                                        <form method="POST"
+                                            action="{{ url_for('tool_import_gsheets_races_csv') }}"
+                                            enctype="multipart/form-data">
+                                            {{ import_races_csv_form.hidden_tag() }}
+                                            <div class="mb-2 d-flex align-items-center gap-3">
+                                                <small class="text-muted text-nowrap">If already exists:</small>
+                                                <div class="d-inline-flex gap-3">
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="skip" checked>
+                                                        <span class="form-check-label">Skip</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="override">
+                                                        <span class="form-check-label">Override</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="new_key">
+                                                        <span class="form-check-label">Add as new</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="file"
+                                                    name="csv_file"
+                                                    accept=".csv"
+                                                    class="form-control form-control-sm"
+                                                    style="max-width: 280px;"
+                                                    required>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-type-csv"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M7 16.5a1.5 1.5 0 0 0 -3 0v3a1.5 1.5 0 0 0 3 0" /><path d="M10 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M16 15l2 6l2 -6" /></svg>
+                                                    Import CSV
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# ## MyTraL #################################################### #}
+                        <div id="section-mytral" class="import-section d-none">
+                            <h2 class="mb-4">MyTraL</h2>
+                            <p class="card-subtitle mb-3">Import data in the native <a href="/static/documentation/normalization.html" class="link-primary" target="_blank">MyTraL JSON format</a>.</p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">MyTraL JSON</div>
+                                    <p class="card-subtitle">Import any MyTraL entity — activities, exercises, goals, gear, gear components, laps, outfits, symptoms — in MyTraL JSON format.</p>
+
+                                    <div class="mt-2">
+                                        <form method="POST" action="{{ url_for('tool_import_mytral_json') }}" enctype="multipart/form-data">
+                                            {{ import_mytral_json_form.hidden_tag() }}
+                                            <div class="mb-2 d-flex align-items-center gap-3">
+                                                <small class="text-muted text-nowrap">If already exists:</small>
+                                                <div class="d-inline-flex gap-3">
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="skip" checked>
+                                                        <span class="form-check-label">Skip</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="override">
+                                                        <span class="form-check-label">Override</span>
+                                                    </label>
+                                                    <label class="form-check form-check-inline mb-0">
+                                                        <input class="form-check-input" type="radio" name="on_conflict" value="new_key">
+                                                        <span class="form-check-label">Add as new</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="file"
+                                                    name="json_file"
+                                                    accept=".json"
+                                                    class="form-control form-control-sm"
+                                                    style="max-width: 280px;"
+                                                    required>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-import" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                                                        <path d="M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-11.5"></path>
+                                                        <path d="M2 19h7"></path>
+                                                        <path d="M5 16l-3 3l3 3"></path>
+                                                    </svg>
+                                                    Import JSON
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# ## FIT ####################################################### #}
+                        <div id="section-fit" class="import-section d-none">
+                            <h2 class="mb-4">FIT</h2>
+                            <p class="card-subtitle mb-3">Import a FIT activity recording and process it asynchronously.</p>
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">FIT Recording</div>
+                                    <form method="POST" action="{{ url_for('tool_import_fit') }}" enctype="multipart/form-data">
+                                        {{ import_fit_form.hidden_tag() }}
+                                        <div class="mb-2">
+                                            {{ import_fit_form.recording_file(class="form-control", accept=".fit") }}
+                                        </div>
+                                        <div class="mb-2">
+                                            {{ import_fit_form.activity_name(class="form-control", placeholder="Name (optional)") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_fit_form.activity_type(class="form-select") }}
+                                        </div>
+                                        {{ import_fit_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# ## GPX ####################################################### #}
+                        <div id="section-gpx" class="import-section d-none">
+                            <h2 class="mb-4">GPX</h2>
+                            <p class="card-subtitle mb-3">Import a GPX activity recording and process it asynchronously.</p>
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">GPX Recording</div>
+                                    <form method="POST" action="{{ url_for('tool_import_gpx') }}" enctype="multipart/form-data">
+                                        {{ import_gpx_form.hidden_tag() }}
+                                        <div class="mb-2">
+                                            {{ import_gpx_form.recording_file(class="form-control", accept=".gpx") }}
+                                        </div>
+                                        <div class="mb-2">
+                                            {{ import_gpx_form.activity_name(class="form-control", placeholder="Name (optional)") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_gpx_form.activity_type(class="form-select") }}
+                                        </div>
+                                        {{ import_gpx_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                            {% if is_desktop %}
+                            <div class="card card-md mt-2">
+                                <div class="card-body">
+                                    <div class="h3">GPX Directory</div>
+                                    <p class="card-subtitle mb-3">
+                                        Import all GPX files from a directory. Each file will create a new activity.
+                                    </p>
+                                    <form method="POST" action="{{ url_for('tool_import_gpx_directory') }}">
+                                        {{ import_gpx_directory_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_gpx_directory_form.data_dir.label(class="form-label") }}
+                                            {{ import_gpx_directory_form.data_dir(class="form-control", placeholder="/path/to/gpx/files/") }}
+                                            {% if import_gpx_directory_form.data_dir.description %}
+                                                <div class="form-text">{{ import_gpx_directory_form.data_dir.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_gpx_directory_form.sport_type.label(class="form-label") }}
+                                            {{ import_gpx_directory_form.sport_type(class="form-select") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_gpx_directory_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_gpx_directory_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_gpx_directory_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {# ## Polar ################################################## #}
+                        {% if is_desktop %}
+                        <div id="section-polar" class="import-section d-none">
+                            <h2 class="mb-4">Polar</h2>
+                            <p class="card-subtitle mb-3">
+                                Import training data from
+                                <a href="https://www.polar.com/" class="link-primary" target="_blank">Polar</a>.
+                            </p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Polar Precision Performance</div>
+                                    <p class="card-subtitle mb-3">
+                                        Import Polar HRM / PDD activities from a <a href="https://usermanual.wiki/Document/Userguideppp4.47767016.pdf" class="link-primary" target="_blank">Polar Precision Performance</a> directory structure.
+                                        Point to the athlete root folder that contains year sub-directories - like
+                                        <code>2003/</code> - with <code>*.hrm</code> and <code>*.pdd</code> files inside e.g.
+                                        <code>/path/to/Polar Precision Performance/Martin</code>.
+                                    </p>
+
+                                    <form method="POST" action="{{ url_for('tool_import_polar_hrm') }}">
+                                        {{ import_polar_hrm_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_polar_hrm_form.data_dir.label(class="form-label") }}
+                                            {{ import_polar_hrm_form.data_dir(class="form-control", placeholder="/path/to/Polar Precision Performance/Martin/") }}
+                                            {% if import_polar_hrm_form.data_dir.description %}
+                                                <div class="form-text">{{ import_polar_hrm_form.data_dir.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_polar_hrm_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_polar_hrm_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_polar_hrm_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# ## Strava ################################################# #}
+                        <div id="section-strava" class="import-section d-none">
+                            <h2 class="mb-4">Strava</h2>
+                            <p class="card-subtitle mb-3">Import your training data from <a href="https://www.strava.com/" class="link-primary" target="_blank">Strava</a>.</p>
+
+                            {% if ff.can("STRAVA_ZIP_IMPORT") %}
+                            <h3 class="card-title mt-4">Strava User ZIP Archive</h3>
+                            <p class="card-subtitle">Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from a Strava ZIP export.</p>
+                            <div class="mt-2">
+                                <a href="{{ url_for('tool_export_profile_zip') }}" class="btn btn-primary disabled">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-zip" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1"></path>
+                                        <path d="M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2z"></path>
+                                        <path d="M11 5l-1 0"></path><path d="M13 7l-1 0"></path>
+                                        <path d="M11 9l-1 0"></path><path d="M13 11l-1 0"></path>
+                                        <path d="M11 13l-1 0"></path><path d="M13 15l-1 0"></path>
+                                    </svg>
+                                    Import ZIP
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            {% if ff.can("STRAVA_API_IMPORT") %}
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Strava API (developer)</div>
+
+                                    <p class="card-subtitle">
+                                        Import activities using the <a href="https://developers.strava.com/" class="link-primary" target="_blank">Strava API</a>.
+                                    </p>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('strava_api_developer') }}" class="btn btn-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-strava" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M15 13l-5 -10l-5 10"></path>
+                                                <path d="M10 13l3 6l3 -6"></path>
+                                            </svg>
+                                            Strava API (developer)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var navLinks = document.querySelectorAll("#import-nav .list-group-item");
+
+        navLinks.forEach(function (link) {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                var targetId = link.getAttribute("data-section");
+
+                navLinks.forEach(function (l) { l.classList.remove("active"); });
+                link.classList.add("active");
+
+                document.querySelectorAll(".import-section").forEach(function (s) {
+                    s.classList.add("d-none");
+                });
+                var target = document.getElementById(targetId);
+                if (target) { target.classList.remove("d-none"); }
+            });
+        });
+    });
+</script>
+{% endblock %}

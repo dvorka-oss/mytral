@@ -1,0 +1,238 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Edit Account</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('profile') }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" form="profile-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Save Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Update your account information below. To edit your birthday, height and body metrics go to <a href="{{ url_for('athlete_metrics_update') }}">Edit Athlete Metrics</a>.
+            </p>
+        </div>
+    </div>
+
+    <form method="POST" action="" id="profile-form">
+        {{ form.hidden_tag() }}
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <div class="row row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header card-header-light">
+                        <h3 class="card-title">Preferences</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="user">
+                                        Athlete name
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.display_name(class="form-control") }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="currency">
+                                        Currency
+                                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="3-letter currency code (ISO 4217) for displaying prices and costs in your profile">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                <path d="M12 8l0 4"></path>
+                                                <path d="M12 16l.01 0"></path>
+                                            </svg>
+                                        </span>
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.currency(class="form-control", placeholder="e.g. USD, EUR, CZK", maxlength="3", style="text-transform: uppercase;") }}
+                                    </div>
+                                    <small class="form-hint">Enter 3-letter currency code (e.g., USD, EUR, CZK)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# only admin can enable/disable expert features #}
+            {% if user_profile.admin %}
+            <div class="col-12 mt-3">
+                <div class="card">
+                    <div class="card-header card-header-light">
+                        <h3 class="card-title">Advanced Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.expert(class="form-check-input") }}
+                                        <label class="form-check-label" for="expert">
+                                            Expert Mode
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Enable advanced features and detailed options for experienced users">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <small class="form-hint"><span class="badge bg-orange text-orange-fg">CAUTION</span> Enable expert mode for advanced features and options - proceed with caution.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="col-12 mt-3">
+                <div class="card">
+                    <div class="card-header card-header-light">
+                        <h3 class="card-title">Security</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="password">
+                                        Password
+                                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Update your account password. Leave empty to keep current password">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                <path d="M12 8l0 4"></path>
+                                                <path d="M12 16l.01 0"></path>
+                                            </svg>
+                                        </span>
+                                    </label>
+                                    {{ form.password(class="form-control", placeholder="Leave empty to keep current password") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="password_confirm">
+                                        Confirm Password
+                                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Re-enter your new password for confirmation">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                <path d="M12 8l0 4"></path>
+                                                <path d="M12 16l.01 0"></path>
+                                            </svg>
+                                        </span>
+                                    </label>
+                                    {{ form.password_confirm(class="form-control", placeholder="Confirm new password") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3 mt-3">
+                                    <div class="form-check form-switch">
+                                        {{ form.auto_login(class="form-check-input") }}
+                                        <label class="form-check-label" for="auto_login">
+                                            Auto Login
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="DANGER: Enable automatic login WITHOUT checking the PASSWORD">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <small class="form-hint bold"><span class="badge bg-red text-red-fg">DANGER</span> Enable automatic login <b>WITHOUT password</b> authentication for this account.</small>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="row row-cards mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header card-header-light">
+                    <h3 class="card-title">Avatar Photo</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            {% if user_profile.avatar_blob_key %}
+                            <img src="{{ url_for('get_user_avatar') }}" alt="{{ user_profile.user }}" style="width:80px;height:80px;object-fit:cover;border-radius:4px;">
+                            {% else %}
+                            <span class="avatar avatar-xl" style="width:80px;height:80px;font-size:2rem;">
+                                {{ user_profile.user[0] | upper }}{{ user_profile.user[-1] | upper }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <form method="POST" action="{{ url_for('upload_user_avatar') }}" enctype="multipart/form-data">
+                                {{ upload_avatar_form.hidden_tag() }}
+                                <div class="input-group">
+                                    {{ upload_avatar_form.photo(class="form-control", accept="image/*") }}
+                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                </div>
+                                <small class="form-hint">Photo will be cropped to a 200×200 px square JPEG.</small>
+                            </form>
+                            {% if user_profile.avatar_blob_key %}
+                            <form method="POST" action="{{ url_for('delete_user_avatar') }}" class="mt-2">
+                                {{ delete_avatar_form.hidden_tag() }}
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove your avatar photo?')">Remove Avatar</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

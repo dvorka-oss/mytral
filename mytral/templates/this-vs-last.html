@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">This vs. Last</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-toolbar" role="toolbar" aria-label="This vs Last controls">
+                    <div class="btn-group me-2 mb-2" role="group" aria-label="Activities">
+                        <span class="btn btn-light disabled fw-bold">Activities</span>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=activities&period=week" class="btn {{ 'btn-primary' if (aspect=='activities' and period=='week') else 'btn-outline-primary' }}">W</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=activities&period=month" class="btn {{ 'btn-primary' if (aspect=='activities' and period=='month') else 'btn-outline-primary' }}">M</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=activities&period=year" class="btn {{ 'btn-primary' if (aspect=='activities' and period=='year') else 'btn-outline-primary' }}">Y</a>
+                    </div>
+                    <div class="btn-group me-2 mb-2" role="group" aria-label="Distance">
+                        <span class="btn btn-light disabled fw-bold">Distance</span>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=distance&period=week" class="btn {{ 'btn-primary' if (aspect=='distance' and period=='week') else 'btn-outline-primary' }}">W</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=distance&period=month" class="btn {{ 'btn-primary' if (aspect=='distance' and period=='month') else 'btn-outline-primary' }}">M</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=distance&period=year" class="btn {{ 'btn-primary' if (aspect=='distance' and period=='year') else 'btn-outline-primary' }}">Y</a>
+                    </div>
+                    <div class="btn-group me-2 mb-2" role="group" aria-label="Duration">
+                        <span class="btn btn-light disabled fw-bold">Duration</span>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=duration&period=week" class="btn {{ 'btn-primary' if (aspect=='duration' and period=='week') else 'btn-outline-primary' }}">W</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=duration&period=month" class="btn {{ 'btn-primary' if (aspect=='duration' and period=='month') else 'btn-outline-primary' }}">M</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=duration&period=year" class="btn {{ 'btn-primary' if (aspect=='duration' and period=='year') else 'btn-outline-primary' }}">Y</a>
+                    </div>
+                    <div class="btn-group mb-2" role="group" aria-label="Kilograms">
+                        <span class="btn btn-light disabled fw-bold">kg</span>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=kgs&period=week" class="btn {{ 'btn-primary' if (aspect=='kgs' and period=='week') else 'btn-outline-primary' }}">W</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=kgs&period=month" class="btn {{ 'btn-primary' if (aspect=='kgs' and period=='month') else 'btn-outline-primary' }}">M</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=kgs&period=year" class="btn {{ 'btn-primary' if (aspect=='kgs' and period=='year') else 'btn-outline-primary' }}">Y</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Compare this and last week, month, and year activities by count, distance, duration, and kg.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

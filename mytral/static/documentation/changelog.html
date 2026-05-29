@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Changelog - MyTraL Documentation</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <meta
+      name="description"
+      content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL."
+    />
+
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="/static/tabler-dist/css/tabler.min.css" rel="stylesheet" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PLUGINS STYLES -->
+    <link href="/static/tabler-dist/css/tabler-flags.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-socials.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-payments.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-vendors.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-marketing.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-themes.min.css" rel="stylesheet"/>
+    <!-- END PLUGINS STYLES -->
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+      .carousel-inner img {
+        height: 300px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+      }
+    </style>
+
+  </head>
+  <body>
+    <!-- BEGIN GLOBAL THEME SCRIPT -->
+    <script src="/static/tabler-dist/js/tabler-theme.min.js"></script>
+    <!-- END GLOBAL THEME SCRIPT -->
+    <div class="page">
+      <!-- BEGIN NAVBAR  -->
+      <div class="sticky-top">
+        <header class="navbar navbar-expand-md sticky-top d-print-none">
+          <div class="container-xl">
+            <!-- BEGIN NAVBAR TOGGLER -->
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar-menu"
+              aria-controls="navbar-menu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- END NAVBAR TOGGLER -->
+            <!-- BEGIN NAVBAR LOGO -->
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3" style="gap: 0px;">
+              <img src="/static/images/mytral-logo-transparent-bg.png" alt="MyTraL" style="width: 25px; height: 25px; margin-right: 5px;">
+                MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span>
+            </div>
+            <!-- END NAVBAR LOGO -->
+            <div class="navbar-nav flex-row order-md-last">
+              <div class="d-none d-md-flex">
+
+                <div class="nav-item">
+                  <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+                    </svg>
+                  </a>
+                  <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                      <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <header class="navbar-expand-md">
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <div class="navbar">
+              <div class="container-xl">
+                <div class="row flex-column flex-md-row flex-fill align-items-center">
+                  <div class="col">
+                    <!-- BEGIN NAVBAR MENU -->
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> User Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="index.html">Manifesto</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="about.html">About</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-code"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Technical Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="architecture.html">Architecture</a>
+<a class="dropdown-item" href="normalization.html">Activity Normalization</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="license.html">License</a>
+<a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
+<a class="dropdown-item active" href="changelog.html">Changelog</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Digitalization </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="digitalization.html">Digitize, Normalize, Own!</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                    <!-- END NAVBAR MENU -->
+                  </div>
+                  <div class="col col-md-auto">
+                    <ul class="navbar-nav">
+                      <li class="nav-item">
+                        <a class="nav-link" href="/home">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+                              <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+                              <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> MyTraL </span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- END NAVBAR  -->
+      <div class="page-wrapper">
+
+      <!-- BEGIN MYTRAL PAGE CONTENT -->
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="page-pretitle">Technical Documentation</div>
+                        <h2 class="page-title">Changelog</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row">
+                    <!-- BEGIN MAIN CONTENT -->
+                    <div class="col-12 col-xxl-10">
+                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="190-2026-"><a href="https://github.com/dvorka/my-training-log/compare/v1.8.0...HEAD">1.9.0</a> - 2026-??-??</h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added">Added</h3>
+<ul>
+<li>Added import from FIT.</li>
+<li>Added import from GPX - file or directory.</li>
+<li>Added GPX recording management: upload, view metadata, edit name/description/keywords, download, and delete.</li>
+<li>Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based loading/saving.</li>
+<li>Added power zones.</li>
+<li>Added HR zones.</li>
+<li>Added the taxonomy of activity types which covers all sports defined by Strava API and FIT files.</li>
+<li>Added 2D maps rendering for GPX recordings.</li>
+<li>Added athlete performance metrics w/ FTP, aerobic/anaerobic thresholds, ... estimates.</li>
+<li>Added recorded data analytics - ridge/bar/line charts of various metrics.</li>
+<li>Added multi-photo upload support for activities - up to 50 photos per activity.</li>
+<li>Added outfits selection to activity create and update (all) forms.</li>
+<li>Added outfits display to activity detail page.</li>
+<li>Added sickness / injury in time chart.</li>
+<li>Added day-based navigation to the activity feed.</li>
+<li>Added week-based navigation to the caledar activity view.</li>
+<li>Added avatar/photo upload support for users, AI coaches, gear, goals, and exercises.</li>
+<li>Added preview of TabPFN ML-powered predictions feature with dedicated settings and predictions pages (behind feature flag).</li>
+<li>Added sponsor link to the application layout.</li>
+<li>Added Windows binary build.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="changed">Changed</h2>
+<ul>
+<li>Core data model changes:</li>
+<li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks backward compatibility.</li>
+<li>Added <code>ActivityEntity.avg_cadence</code> and <code>ActivityEntity.max_cadence</code> - consider rides, rowing, swimming, and other activities.</li>
+<li>Added <code>ActivityEntity.meta_activity_type</code> - consider <code>ski</code> aggregating DP/F roller ski, DP/F nordic ski, ...</li>
+<li>Added <code>ActivityEntity.tags</code>.</li>
+<li>Added <code>ActivityEntity.is_plan</code>.</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li>Blobstore exception handling in activity view/update routes now only silently ignores expected <code>BlobStoreError</code>; unexpected errors are logged and re-raised for easier debugging.</li>
+</ul>
+<h3 id="performance">Performance</h3>
+<ul>
+<li>Per-request total size limit is now enforced when uploading multiple photos in a single request, preventing excessive memory use.</li>
+<li>EXIF metadata stripping in image processing no longer materialises the full pixel array into a Python list; metadata is cleared in-place, reducing memory allocation significantly for large images.</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>HTML documentation is newly generated from Markdown files in this repository.</li>
+<li>Public HTML documentation for mytral.fitness is newly generated from Markdown files in this repository.</li>
+</ul>
+<h3 id="tests">Tests</h3>
+<ul>
+<li>Added random attack which generates synthetic data of all MyTraL entities including attachments and recordings.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="180"><a href="https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0">1.8.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_1">Added</h3>
+<ul>
+<li>ACoaches - AI coaching feature powered by LLM providers:</li>
+<li>Configure LLM providers: local Ollama, Anthropic Claude,
+    or OpenAI GPT — each with optional API key stored encrypted at rest.</li>
+<li>Define AI coaches with custom names and system prompts (personality, focus area,
+    coaching style); built-in out-of-the-box prompt templates to get started quickly.</li>
+<li>Persistent multi-turn chat sessions with each coach — full history saved per user.</li>
+<li>Context-aware responses: coaches automatically receive recent activities, PRs,
+    gear, symptoms, and athlete profile as structured context with every message.</li>
+<li>Streaming responses for real-time token-by-token output in the chat UI.</li>
+<li>Fetch available models directly from a running Ollama instance.</li>
+<li>New dependencies: <code>anthropic</code>, <code>openai</code>, <code>pydantic-ai</code>, <code>griffe</code>.</li>
+<li>Extensibility API: introducing ability of pluggable activities importers.</li>
+<li>Desktop and webapp MyTraL incarnation which controls sign-up and log-in process.</li>
+<li>Users are newly allowed to enable auto-login on desktop.</li>
+<li>Dashboard revamp for better UX - advanced charts refactored to <code>Insights</code>,
+  this vs. last month moved to the dashboard.</li>
+<li>Injection of feature flags to Jinja templates.</li>
+<li>Import of activities from Concept2 CSV, Google Sheets CSV, MyTraL JSON.</li>
+<li>Import of entities from MyTraL JSON files.</li>
+<li>Rewritten Strava API (developer) integration (deprecated due to legal term changes).</li>
+</ul>
+<h3 id="fixed_1">Fixed</h3>
+<ul>
+<li>Completely rewritten MyTraL configuration, ability to configure MyTraL using environment
+  variables and default values.</li>
+<li>Fixed directory resolution and use to by compliant with XDG base directory specification
+  https://specifications.freedesktop.org/basedir-spec/latest/</li>
+<li>Removed <code>desktop.key</code> to ensure portability in case that MyTraL is used on different
+  machines which share the data.</li>
+<li>Fixed discarded fields when updating activities - add/edit/delete
+  exercises/lap/symptom while other fields were modified lead to the loss of data.</li>
+<li>Fixed desktop distribution build as it became the main distribution incarnation going
+  forward.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="170"><a href="https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0">1.7.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_2">Added</h3>
+<ul>
+<li>Ability to specify muscle groups for exercises and activity types - shown in
+  the activity detail and day pages.</li>
+<li>Ability to specify body part for symptoms - shown in <code>Me</code> page.</li>
+<li>Muscle group heatmap in the day presented as manequinn.</li>
+<li>Previous / next day navigation in the day and activity view.</li>
+<li>Structured logging using <code>structlog</code>.</li>
+<li>User dataset size statistics to the account page.</li>
+</ul>
+<h3 id="performance_1">Performance</h3>
+<ul>
+<li>Deployments and build configuration upgraded from Python 3.10 to Python 3.11.</li>
+<li>Source code migrated to 3.11 constructions like <code>match</code> or <code>Self</code>.</li>
+</ul>
+<h3 id="fixed_2">Fixed</h3>
+<ul>
+<li>Progress/PRs grouping based on time e.g. 30' laps.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="160"><a href="https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0">1.6.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_3">Added</h3>
+<ul>
+<li>Filtering of fields in create / update activity HTML pages.</li>
+<li>Filtering of exercise types by tag.</li>
+<li>Markdown support for activity, exercise type, gear, outfit, goal, and lap/route descriptions.</li>
+<li>Ranked laps: added <code>ranked</code> boolean field to <code>LapEntity</code> so individual laps within
+  an activity can be marked as personal bests, mirroring the existing <code>ranked</code> flag on
+  activities.</li>
+<li>Progress / PRs page now includes ranked laps in addition to ranked activities, showing
+  lap name, distance, duration, activity types, and date with a link back to the parent activity.</li>
+</ul>
+<h3 id="performance_2">Performance</h3>
+<ul>
+<li>DRY of Jinja templates - new macros and includes.</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul>
+<li>Moved Flask <code>SECRET_KEY</code> to <code>MYTRAL_SECRET_KEY</code> (with a random per-start fallback +
+  warning) and restricted CORS origins via <code>MYTRAL_CORS_ORIGINS</code>.</li>
+<li>Made debug mode configurable via <code>MYTRAL_DEBUG</code> and default server bind host
+  configurable via <code>MYTRAL_HOST</code> (default <code>127.0.0.1</code>).</li>
+<li>Upgraded password hashing to <code>bcrypt</code> and introduced backward-compatible verification
+  for legacy <code>SHA-256</code> hashes; updated login to use <code>verify_password</code>.</li>
+<li>Hardened Strava integration: <code>HTTPS</code> OAuth authorize URL, removed token logging, and
+  switched activity export to <code>Authorization: Bearer</code> instead of query-string tokens.</li>
+<li>Fixed several runtime issues in routes (invalid <code>enum</code>/<code>int</code> handling, uninitialized
+  variables, and incorrect activity key type).</li>
+<li>Fixed negative index exploitation: added <code>index &lt; 1</code> guard after <code>int(index)</code>
+  conversion in exercise and symptom update/delete routes to prevent <code>pop(-1)</code> silently
+  deleting the last list element.</li>
+<li>Fixed timing side-channel in legacy <code>SHA-256</code> password verification: replaced <code>==</code>
+  with <code>hmac.compare_digest()</code>.</li>
+<li>Fixed CORS origins parsing: added <code>.strip()</code> to each origin to prevent
+  leading/trailing whitespace causing origin mismatches.</li>
+<li>Added <code>URL</code> and <code>DSN</code> to env-var redaction blocklist on the admin/settings page to
+  prevent credential-bearing connection strings from leaking.</li>
+<li>Added boot-time warning log when <code>MYTRAL_CORS_ORIGINS</code> is not set in the environment.</li>
+<li>Added <code>RuntimeError</code> fail-fast guard in <code>run.py</code> when <code>debug=True</code> is combined with a
+  non-loopback <code>MYTRAL_HOST</code> to prevent accidental remote debugger exposure.</li>
+<li>Added unit tests for <code>hash_password</code> and <code>verify_password</code> covering <code>bcrypt</code>, legacy
+  <code>SHA-256</code>, wrong passwords, and empty inputs.</li>
+</ul>
+<h3 id="fixed_3">Fixed</h3>
+<ul>
+<li>Fixed <code>enable_cache=False</code> (passthrough) mode: activities were still served from stale
+  in-memory data on subsequent requests because <code>dataset_name()</code> and <code>set_dataset_name()</code>
+  were not overridden in <code>PassthroughUserCache</code>, causing <code>_load()</code> to skip filesystem
+  re-reads after the first request. Both methods are now overridden so every request
+  always reloads activity data from the filesystem.</li>
+</ul>
+<h3 id="infrastructure">Infrastructure</h3>
+<ul>
+<li>All dependencies and dev dependency group items pinned with <code>~=</code> in <code>pyproject.toml</code>.</li>
+<li>Security: upgraded <code>bokeh</code> 3.6.3 → 3.8.2 (CVE-2026-21883), <code>flask</code> 3.1.0 → 3.1.3
+  (CVE-2025-47278, CVE-2026-27205), <code>flask-cors</code> 5.0.0 → 6.0.2 (CVE-2024-6866,
+  CVE-2024-6844, CVE-2024-6839), <code>jinja2</code> 3.1.5 → 3.1.6 (CVE-2025-27516), <code>pillow</code>
+  11.1.0 → 12.1.1 (CVE-2026-25990), <code>requests</code> 2.32.3 → 2.32.5 (CVE-2024-47081),
+  <code>tornado</code> 6.4.2 → 6.5.4 (CVE-2025-47287), <code>urllib3</code> 2.3.0 → 2.6.3 (CVE-2025-50182,
+  CVE-2025-50181, CVE-2025-66418, CVE-2025-66471, CVE-2026-21441), <code>werkzeug</code> 3.1.3 →
+  3.1.6 (CVE-2025-66221, CVE-2026-21860, CVE-2026-27199).</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="150"><a href="https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0">1.5.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_4">Added</h3>
+<ul>
+<li>Eisenhower matrix HTML page for goals.</li>
+<li>Ability to tag exercises to filter them and to create routines/sets.</li>
+<li>Admin view with the deployment environment introspection.</li>
+</ul>
+<h3 id="removed">Removed</h3>
+<ul>
+<li><code>CLAUDE.md</code> removed as its content is getting obsolete
+   (GitHub copilot and Augment AI is used for agent assisted coding).</li>
+<li><code>pip</code> based <code>Makefile</code> as well as <code>requirements*.txt</code> files removed as switch to <code>uv</code>
+  is definitive and there is no need to keep these files with gradually obsolete content.</li>
+</ul>
+<h3 id="fixed_4">Fixed</h3>
+<ul>
+<li>Fixed unexplainable set of minutes and seconds when creating / updating an activity.</li>
+<li>Units format and hints in charts y-axis legends as well as charts hover-over tooltips.</li>
+<li>GitHub Actions workflows to use <code>uv</code> instead of <code>pip</code>.</li>
+<li>Fixed deading and writing of unicode characters, like emojis, by forcing UTF-8 encoding
+  in JSON IO persistence functions.</li>
+</ul>
+<h3 id="documentation_1">Documentation</h3>
+<ul>
+<li>HTML documentation scripts revamp.</li>
+<li>Added "Why MyTraL?" HTML documentation page.</li>
+<li>End to end review of sources to ensure AGPL license omnipresence.</li>
+<li>SpaceShip.com deployment documentation and artifacts.</li>
+</ul>
+<h3 id="infrastructure_1">Infrastructure</h3>
+<ul>
+<li>Switched from <code>black</code>, <code>isort</code> and <code>flake8</code> to <code>ruff</code> for configurability and speed.</li>
+<li>Code quality toolchain configuration moved from files to <code>pyproject.toml</code>.</li>
+<li>Makefile target to sync data between SpaceShip.com and localhost.</li>
+<li>Updated 2026 year in the copyright.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="140"><a href="https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0">1.4.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_5">Added</h3>
+<ul>
+<li>Pass through cache allowing to operate on system where caching would cause data inconsistency
+  (data modified &amp; uploaded to cache on 1 node and then overwritten on another node).</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="132">[1.3.2]</h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_6">Added</h3>
+<ul>
+<li>Weight graph shows the Monday's date instead of the week number.</li>
+<li>Goals listing page shows activity type display name instead of the ID.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="130">[1.3.0]</h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_7">Added</h3>
+<ul>
+<li>Onboarding logic:</li>
+<li>checklist feature with progress tracking</li>
+<li>User onboarding state management</li>
+<li>Checklist items for profile completion and gear setup</li>
+<li>Completion percentage calculation</li>
+<li>Dismiss and reset functionality for onboarding</li>
+</ul>
+<h3 id="fixed_5">Fixed</h3>
+<ul>
+<li>Fixed strava.com import failing due to printing non-ASCII characters to console.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="120">[1.2.0]</h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_8">Added</h3>
+<ul>
+<li>Gear Components Feature: Track individual components of gear items</li>
+<li>Add, edit, delete components for any gear (e.g., bike chain, running shoe insoles)</li>
+<li>Automatic usage tracking from activities (distance and time)</li>
+<li>Service interval monitoring (km, hours, and time-based)</li>
+<li>Visual notifications when components require service</li>
+<li>Service history recording with costs</li>
+<li>Component replacement workflow with chain tracking</li>
+<li>Component status management (active/retired)</li>
+<li>Total Cost of Ownership (TCoO) includes all component and service costs</li>
+<li>Support for multiple service intervals per component</li>
+<li>Attention indicators in gear list showing components needing service</li>
+<li>Settings:</li>
+<li>Added 4 metrics for goals, exercises, symptoms, laps and outfits.</li>
+</ul>
+<h3 id="changed_1">Changed</h3>
+<ul>
+<li>Changed activities and settings (gear, exercises, symptoms, ...) JSON persistence from dicts to lists.</li>
+<li>Enhanced Gear class to support components and component history.</li>
+<li>Updated gear list to show service attention indicators.</li>
+<li>Updated gear detail page to show components table.</li>
+<li>Improved TCoO calculation to include all component costs.</li>
+<li>Activity creation/update now tracks component usage automatically.</li>
+</ul>
+<h3 id="infrastructure_2">Infrastructure</h3>
+<ul>
+<li>Added web application distribution build.</li>
+<li>Rewritten desktop application executable build.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="110">[1.1.0]</h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_9">Added</h3>
+<ul>
+<li>Lap type data model entity, forms, routes and HTML pages.</li>
+<li>Day view.</li>
+<li>Activity feed view.</li>
+<li>Body diagram with interactive injuries and sicknesses filtering.</li>
+</ul>
+<h3 id="changed_2">Changed</h3>
+<ul>
+<li>Removed <code>activity_key</code> field in the <code>activity/exercises[]</code> items.</li>
+<li>Renamed <code>activity/exercises[]/name</code> to <code>activity/exercises[]/name</code>.</li>
+<li>Activity can newly have more than one gear.</li>
+<li>Activity newly has 0 or more laps.</li>
+</ul>
+<h3 id="removed_1">Removed</h3>
+<ul>
+<li>Route data model entity, forms and HTML pages.</li>
+</ul>
+<h3 id="infrastructure_3">Infrastructure</h3>
+<ul>
+<li>Version management with the single source of truth (SSOT) approach.</li>
+</ul>
+<h3 id="documentation_2">Documentation</h3>
+<ul>
+<li>Scripts for building of the HTML documentation.</li>
+<li>Initial drafts of digitization, terminology and normalization documentation.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="100">[1.0.0]</h2>
+<p>This MyTraL <strong>major</strong> release brings:</p>
+<h3 id="added_10">Added</h3>
+<ul>
+<li>Initial release of MyTraL training log application.</li>
+<li>User authentication and session management.</li>
+<li>Training log entry creation and management.</li>
+<li>Activity tracking (running, cycling, swimming, strength training).</li>
+<li>Interactive Bokeh charts for training data visualization.</li>
+<li>Weekly and monthly training statistics.</li>
+<li>JSON-based data persistence.</li>
+<li>Responsive web interface using Tabler framework.</li>
+<li>WTForms-based form validation.</li>
+<li>Export training data to CSV format.</li>
+<li>Training calendar view.</li>
+<li>Activity filtering and search functionality.</li>
+</ul>
+<h3 id="security_1">Security</h3>
+<ul>
+<li>Secure password hashing for user accounts.</li>
+<li>Session management with Flask-Login.</li>
+<li>CSRF protection on all forms.</li>
+</ul>
+<h3 id="performance_3">Performance</h3>
+<ul>
+<li>Optimized JSON file operations for faster data loading.</li>
+<li>Lazy loading of chart data for improved page load times.</li>
+</ul>
+<h3 id="documentation_3">Documentation</h3>
+<ul>
+<li>Complete README with installation and setup instructions.</li>
+<li>API documentation for backend modules.</li>
+<li>User guide for training log features.</li>
+<li>Development setup guide.</li>
+</ul>
+<h3 id="infrastructure_4">Infrastructure</h3>
+<ul>
+<li>Flask-based web server configuration.</li>
+<li>Deployment configuration for PythonAnywhere.</li>
+<li>Automated testing with pytest.</li>
+<li>Code quality tools (black, flake8, isort).</li>
+<li>Makefile for common development tasks.</li>
+<li>UV-based dependency management.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="001">[0.0.1]</h2>
+<p>This MyTraL <strong>patch</strong> release brings:</p>
+<h3 id="added_11">Added</h3>
+<ul>
+<li>Initial YAML data format with applications.</li>
+<li>Manually written pure HTML pages no-JavaScript/no-CSS (bar) charts.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="000-2014-09-12">[0.0.0] - 2014-09-12</h2>
+<p>The first MyTraL commit - YAML based datasets with Python based scripts.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="changelog-conventions">Changelog Conventions</h2>
+<p>All notable changes to MyTraL (My Training Log) are documented by this file
+whose format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>.
+This project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.
+Find conventions details and template at the bottom of this document.</p>
+<p>Version Numbering (Semantic Versioning)</p>
+<ul>
+<li><strong>MAJOR</strong> (X.0.0): Incompatible API changes, breaking changes, or major functionality overhauls.</li>
+<li><strong>MINOR</strong> (x.Y.0): New features added in a backward-compatible manner.</li>
+<li><strong>PATCH</strong> (x.y.Z): Backward-compatible bug fixes, security patches, and <strong>minor</strong> improvements.</li>
+</ul>
+<p>Changes are organized into the following categories:</p>
+<ul>
+<li><strong>Added</strong>: New features, functionality, or capabilities.</li>
+<li><strong>Changed</strong>: Changes in existing functionality or behavior.</li>
+<li><strong>Deprecated</strong>: Features that will be removed in upcoming releases.</li>
+<li><strong>Removed</strong>: Features or functionality that have been removed.</li>
+<li><strong>Fixed</strong>: Bug fixes and error corrections.</li>
+<li><strong>Security</strong>: Security vulnerability fixes and improvements.</li>
+<li><strong>Performance</strong>: Performance improvements and optimizations.</li>
+<li><strong>Documentation</strong>: Documentation updates and improvements.</li>
+<li><strong>Dependencies</strong>: Dependency updates and changes.</li>
+<li><strong>Infrastructure</strong>: Build, deployment, and infrastructure changes.</li>
+</ul>
+<p>Entry Format</p>
+<ul>
+<li>Use present tense ("Add feature" not "Added feature").</li>
+<li>Start with a verb when possible.</li>
+<li>Be concise but descriptive.</li>
+<li>Reference issue/PR numbers when applicable: <code>[#123]</code>.</li>
+<li>Group related changes together.</li>
+<li>Most important changes first within each category.</li>
+</ul>
+<p>Release Date Format</p>
+<ul>
+<li>Use ISO 8601 date format: <code>YYYY-MM-DD</code>.</li>
+</ul>
+<p>Version History Links</p>
+<ul>
+<li>Unreleased: https://github.com/dvorka/my-training-log/compare/v1.0.0...HEAD</li>
+<li>1.0.0: https://github.com/dvorka/my-training-log/releases/tag/v0.9.0...v1.0.0</li>
+</ul>
+                        </div></div>
+                    </div>
+                    <!-- END MAIN CONTENT -->
+
+                    <!-- BEGIN TABLE OF CONTENTS SIDEBAR -->
+                    <div class="col-2 d-none d-xxl-block">
+                        <div class="mt-6 py-6 sticky-top">
+    <h3 class="mt-9">Table of Contents</h3>
+    <div class="nav nav-vertical" id="toc">
+        <a href="#added" class="nav-link ms-3">Added</a>
+<a href="#changed" class="nav-link">Changed</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#performance" class="nav-link ms-3">Performance</a>
+<a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#tests" class="nav-link ms-3">Tests</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#performance" class="nav-link ms-3">Performance</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#performance" class="nav-link ms-3">Performance</a>
+<a href="#security" class="nav-link ms-3">Security</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#removed" class="nav-link ms-3">Removed</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#132" class="nav-link">[1.3.2]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#130" class="nav-link">[1.3.0]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#120" class="nav-link">[1.2.0]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#changed" class="nav-link ms-3">Changed</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#110" class="nav-link">[1.1.0]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#changed" class="nav-link ms-3">Changed</a>
+<a href="#removed" class="nav-link ms-3">Removed</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#100" class="nav-link">[1.0.0]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#security" class="nav-link ms-3">Security</a>
+<a href="#performance" class="nav-link ms-3">Performance</a>
+<a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#001" class="nav-link">[0.0.1]</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#000---2014-09-12" class="nav-link">[0.0.0] - 2014-09-12</a>
+<a href="#changelog-conventions" class="nav-link">Changelog Conventions</a>
+    </div>
+</div>
+                    </div>
+                    <!-- END TABLE OF CONTENTS SIDEBAR -->
+                </div>
+            </div>
+        </div>
+
+        <!-- END MYTRAL PAGE CONTENT -->
+
+        <!--  BEGIN FOOTER  -->
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+              <div class="col-lg-auto ms-lg-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/CHANGELOG.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/CHANGELOG.md" class="link-secondary" target="_blank">Source</a></li>
+                </ul>
+              </div>
+              <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    Copyright &copy; 2026 MyTraL
+                  </li>
+                  <li class="list-inline-item">
+                    Your personal training log for deeper insights and smarter progress.
+                  </li>
+                  <li class="list-inline-item">
+                    Doc made with <a href="https://www.mindforger.com" target="_blank">MindForger</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!--  END FOOTER  -->
+      </div>
+    </div>
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="/static/tabler-dist/js/tabler.min.js" defer></script>
+    <!-- END GLOBAL MANDATORY SCRIPTS -->
+</body>
+</html>

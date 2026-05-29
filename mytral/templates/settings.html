@@ -1,0 +1,196 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Activities Datasets ({{ form.data_files.data|length }})
+                    <span class="fa fa-info-circle text-muted"></span>
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Activities are the main items managed by Mytral. They are stored in <b>datasets</b>. Each dataset is
+                    a collection of activities.
+                    You can create new datasets, add activities to them, and delete activities from them. You can also
+                    delete datasets. Deleting a dataset will delete all activities in it.
+                    All datasets are merged to a single in-memory dataset called <b>lifelong</b> which provides comprehensive
+                    view on your life in sport. <b>lifelong</b> is a symbolic dataset name which indicates that you work
+                    with all activities in all <b>year</b> datasets.
+                </p>
+            </div>
+        </div>
+
+        {% if user_profile.expert %}
+        <div class="card-body">
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Use</h3>
+                    <div class="card-actions">
+                        <button type="submit" class="btn btn-primary" name="{{ form.submit.name }}" value="{{ form.submit.label.text }}">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="icon icon-tabler icon-tabler-check" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M5 12l5 5l10 -10"></path>
+                            </svg>
+                            {{ form.submit.label.text }}
+                        </button>
+                        <button type="submit" class="btn btn-danger" name="action" value="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="icon icon-tabler icon-tabler-trash" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 7l16 0"></path>
+                                <path d="M10 11l0 6"></path>
+                                <path d="M14 11l0 6"></path>
+                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Choose activities dataset:</label>
+                        {{ field_macros.add_field(form.data_files) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">New</h3>
+                    <div class="card-actions">
+                        <button type="submit" class="btn btn-primary" name="action" value="Add">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="icon icon-tabler icon-tabler-plus" width="24" height="24"
+                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 5l0 14"></path>
+                                <path d="M5 12l14 0"></path>
+                            </svg>
+                            Add
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">New dataset name:</label>
+                        <span title="Dataset name must be NC name.">{{ field_macros.add_field(form.new_dataset_file) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Dataset Statistics Section #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Athlete Data Statistics</h3>
+                <div class="card-actions">
+                    <button type="submit" class="btn btn-outline-secondary" name="action" value="EvictUserCache">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-recycle"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 17l-2 2l2 2" /><path d="M10 19h9a2 2 0 0 0 1.75 -2.75l-.55 -1" /><path d="M8.536 11l-.732 -2.732l-2.732 .732" /><path d="M7.804 8.268l-4.5 7.794a2 2 0 0 0 1.506 2.89l1.141 .024" /><path d="M15.464 11l2.732 .732l.732 -2.732" /><path d="M18.196 11.732l-4.5 -7.794a2 2 0 0 0 -3.256 -.14l-.591 .976" /></svg>
+                        Evict User Cache
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row row-cards">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Activities</div>
+                                <div class="h3 mb-0">{{ '{0:,}'.format(dataset_stats.activities_count) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Gear</div>
+                                <div class="h3 mb-0">{{ dataset_stats.gear_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Goals</div>
+                                <div class="h3 mb-0">{{ dataset_stats.goals_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Exercises</div>
+                                <div class="h3 mb-0">{{ dataset_stats.exercises_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Laps</div>
+                                <div class="h3 mb-0">{{ dataset_stats.laps_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Symptoms</div>
+                                <div class="h3 mb-0">{{ dataset_stats.symptoms_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Outfits</div>
+                                <div class="h3 mb-0">{{ dataset_stats.outfits_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Activity Types</div>
+                                <div class="h3 mb-0">{{ dataset_stats.activity_types_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-2">Dataset Size</div>
+                                <div class="h3 mb-0">{{ "%.3f"|format(dataset_stats.dataset_size_mb) }} MB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile / Gear / {{ gear.name }}</div>
+                    <h2 class="page-title">Edit Component: {{ component.name }}</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_gear_update', key=gear.key) }}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-deck row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.name.label }}</label>
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.cost.label }}</label>
+                            {{ form.cost(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.installed_date.label }}</label>
+                            {{ form.installed_date(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.next_service_km.label }}</label>
+                            {{ form.next_service_km(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.next_service_hours.label }}</label>
+                            {{ form.next_service_hours(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.notes.label }}</label>
+                            {{ form.notes(class="form-control", rows="3") }}
+                        </div>
+                        {{ form.template() }}
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.replaces_component.label }}</label>
+                            <small class="form-hint">Change which component this one replaced (retires the selected component)</small>
+                            {{ form.replaces_component(class="form-select") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

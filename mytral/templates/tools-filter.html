@@ -1,0 +1,64 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Filter Activity Dataset</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-xl mt-3">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><b>Filter by Date</b></h3>
+                <div class="card-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-filter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.414 -4.414a2 2 0 0 1 -.586 -1.414v-2.172z"></path>
+                        </svg>
+                        Filter Activities
+                        <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <b>Filter</b> the <b>activities</b> in the current dataset by given date <b>range</b> - <b>new dataset</b>
+                    with matching activities will be created. The current dataset will be either kept unchanged or matching
+                    activities will be deleted.
+                </p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" title="Filter activities newer than (including the date)">From:</label>
+                            {{ form.filter_newer(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" title="Filter activities older than (including the date)">To:</label>
+                            {{ form.filter_older(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Delete matching:</label>
+                    {{ form.do_extract(class="form-check-input") }}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

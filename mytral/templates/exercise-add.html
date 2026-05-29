@@ -1,0 +1,114 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<form method="POST" action="" id="exercise-form">
+    {# send CSRF token #}
+    {{ form.hidden_tag() }}
+
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Exercises</div>
+                <h2 class="page-title">Add Exercise</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('update_activity', key=form.activity_key.data) }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" form="exercise-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Add Exercise
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-light">
+                                <h3 class="card-title">Exercise Details</h3>
+                            </div>
+                            <div class="card-body">
+                                {{ field_macros.add_field(form.exercise_name) }}
+                                <div class="mb-1" title="Default weight for exercise will be filled automatically when weight is 0.">
+                                    {% if form.weight.label %}<label class="form-label">{{ form.weight.label }} <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; display: inline;">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <circle cx="12" cy="12" r="9"></circle>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                        <polyline points="11 12 12 12 12 16 13 16"></polyline>
+                                    </svg></label>{% endif %}
+                                    {% if form.weight.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.weight.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {{ form.weight(class="form-control") }}
+                                </div>
+                                {{ field_macros.add_field(form.series) }}
+                                {{ field_macros.add_field(form.repetitions) }}
+                                {{ field_macros.add_field(form.duration) }}
+                                {{ field_macros.add_field(form.rest) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+<script>
+    // map exercise keys to their default weights
+    const exerciseWeights = {
+        {% for exercise_key, exercise in exercises.exercise_by_key.items() %}
+        "{{ exercise_key }}": {{ exercise.weight }},
+        {% endfor %}
+    };
+
+    // populate weight field when exercise is selected
+    const exerciseNameSelect = document.querySelector('select[name="exercise_name"]');
+    const weightInput = document.querySelector('input[name="weight"]');
+
+    if (exerciseNameSelect && weightInput) {
+        exerciseNameSelect.addEventListener('change', function() {
+            const selectedKey = this.value;
+            const currentWeight = parseFloat(weightInput.value);
+            // only populate if weight is 0
+            if (currentWeight === 0 && selectedKey in exerciseWeights) {
+                weightInput.value = exerciseWeights[selectedKey];
+            }
+        });
+    }
+</script>
+
+{% endblock %}

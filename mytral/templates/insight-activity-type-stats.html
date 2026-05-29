@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">
+                    Top Sport Statistics
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="All-time statistics ranked by total distance for each sport. Shows total distance, training time, and average speed per sport.">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                        <path d="M12 9h.01"></path>
+                        <path d="M11 12h1v4h1"></path>
+                    </svg>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                All-time statistics per sport ranked by total distance.
+                Shows total distance, training time, and average speed for each activity type.
+            </p>
+        </div>
+    </div>
+
+    {% if stats and stats.total_km_per_activity_type %}
+    <div class="row row-deck row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sport Rankings</h3>
+                </div>
+                <div class="card-table table-responsive">
+                    <table class="table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th class="w-1">#</th>
+                                <th>Sport</th>
+                                <th class="text-end">Distance (km)</th>
+                                <th class="text-end">Time</th>
+                                <th class="text-end">Avg Speed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sport_id in stats.total_m_per_activity_type|dictsort(by='value', reverse=true) %}
+                                {% set sport = sport_id[0] %}
+                                {% set km = stats.total_km_per_activity_type[sport] %}
+                                {% set time = stats.total_time_per_activity_type.get(sport, 'N/A') %}
+                                {% set avg_speed = (km / (stats.total_seconds_per_activity_type.get(sport, 1) / 3600))|round(1) if stats.total_seconds_per_activity_type.get(sport, 0) > 0 else 0 %}
+                                <tr>
+                                    <td>
+                                        <span class="avatar avatar-sm">{{ loop.index }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ activity_types.name(sport) if activity_types else sport }}</strong>
+                                    </td>
+                                    <td class="text-end">{{ '{:,}'.format(km) }}</td>
+                                    <td class="text-end">{{ time }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-primary text-primary-fg">{{ avg_speed }} km/h</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    No sport statistics available yet.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{%endblock%}

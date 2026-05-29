@@ -1,0 +1,346 @@
+{%extends "layout.html"%}
+{% from "macros/acoaches.html" import provider_form, model_form, coach_form, coach_edit_form %}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">AI Coaches ({{ ac_settings.coaches | length }})</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <a href="{{ url_for('acoaching') }}" class="btn btn-outline-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-message-bolt"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 18h-13a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h14a3 3 0 0 1 3 3v5" /><path d="M19 16l-2 3h4l-2 3" /></svg>
+                    Open AI Coach chat
+                </a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Team! Team! Team! ATEAM! Coach! Coach! Coach! AI COACH!
+                </p>
+                <p class="text-muted">
+                    AI Coaches are here to help you have a conversation with an AI about your training.
+                    You can create your own coach to analyze your recent workouts, suggest improvements, or help you plan your
+                    next training cycle.
+                    Customize your coach's personality, and choose from a variety of AI models
+                    to power it.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+            <div class="d-flex">
+                <div>{{ message }}</div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Providers -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-server me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 4m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M3 14m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /><path d="M7 8l0 .01" /><path d="M7 18l0 .01" /></svg>
+                            LLM Providers
+                        </h3>
+                        <div class="card-options">
+                            {% if can_add_provider %}
+                            <button class="btn btn-primary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#add-provider-form">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                                Add Provider
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if can_add_provider %}
+                    <div class="collapse" id="add-provider-form">
+                        <div class="card-body border-bottom">
+                            {{ provider_form(add_provider_form, ollama_env_set, anthropic_env_set, openai_env_set) }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="mb-3">
+                            LLM providers are the AI model hosts that power your coaches. You can configure multiple providers and choose which one to use for each coach.
+                            <span class="badge bg-green text-white">Green</span> providers run locally on your machine and do not send your data anywhere.
+                            <span class="badge bg-orange text-white">Orange</span> providers are hosted by third parties and will <strong>send your data to their servers</strong>.
+                        </div>
+                        {% if ac_settings.providers %}
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>URL</th>
+                                    <th>API Key</th>
+                                    <th>From ENV</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in ac_settings.providers %}
+                                <tr>
+                                    <td>
+                                        <span class="badge {% if p.type == 'ollama' %}bg-green text-white{% else %}bg-orange text-white{% endif %}">
+                                            {{ p.type }}
+                                        </span>
+                                    </td>
+                                    <td><code>{{ p.url or '(default)' }}</code></td>
+                                    <td>{% if p.api_key_enc %}<span class="text-muted">••••••••</span>{% else %}-{% endif %}</td>
+                                    <td>{% if p.api_key_from_env %}<span class="badge bg-blue text-white">ENV</span>{% else %}-{% endif %}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('settings_acoaches_provider_delete', provider_key=p.key) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ add_provider_form.csrf_token._value() }}">
+                                            <button type="submit" class="btn btn-danger btn-icon" onclick="return confirm('Delete this provider?')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M4 7l16 0"></path>
+                                                    <path d="M10 11l0 6"></path>
+                                                    <path d="M14 11l0 6"></path>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted">No providers configured yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Models -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-cpu me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 5m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" /><path d="M9 9h6v6h-6z" /><path d="M3 10h2" /><path d="M3 14h2" /><path d="M10 3v2" /><path d="M14 3v2" /><path d="M21 10h-2" /><path d="M21 14h-2" /><path d="M10 21v-2" /><path d="M14 21v-2" /></svg>
+                            LLM Models
+                        </h3>
+                        {% if ac_settings.providers %}
+                        <div class="card-options">
+                            <button class="btn btn-primary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#add-model-form-collapse">
+                                Add Model
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if ac_settings.providers %}
+                    <div class="collapse" id="add-model-form-collapse">
+                        <div class="card-body border-bottom">
+                            {{ model_form(add_model_form, ac_settings.providers) }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="mb-3">
+                            LLMs are the specific AI engines provided by your chosen LLM providers to power your coaches.
+                            You can assign a different model to each coach based on your needs.
+                            For local LLM providers, it is recommended to use high-performance open-source models
+                            like GPT-OSS or Qwen, which are optimized for machines with a normal amount of VRAM.
+                            For third-party providers, please note that apart from potential loss of privacy,
+                            larger models may increase both costs and response latency.
+                        </div>
+
+                        {% if not ac_settings.providers %}
+                        <p class="text-muted">Add a provider first before adding models.</p>
+                        {% elif ac_settings.models %}
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>Model name</th>
+                                    <th>Provider</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in ac_settings.models %}
+                                <tr>
+                                    <td><code>{{ m.model_name }}</code></td>
+                                    <td>
+                                        {% set prov = providers_by_key.get(m.provider_key) %}
+                                        {% if prov %}
+                                        <span class="badge {% if prov.type == 'ollama' %}bg-green text-white{% else %}bg-orange text-white{% endif %}">{{ prov.type }}</span>
+                                        <span class="text-muted">{{ prov.url or '(default)' }}</span>
+                                        {% else %}
+                                        <span class="text-muted">unknown</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('settings_acoaches_model_delete', model_key=m.key) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ add_model_form.csrf_token._value() }}">
+                                            <button type="submit" class="btn btn-danger btn-icon" onclick="return confirm('Delete this model?')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M4 7l16 0"></path>
+                                                    <path d="M10 11l0 6"></path>
+                                                    <path d="M14 11l0 6"></path>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted">No models configured yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coaches -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-user-star me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h1.5" /><path d="M17.8 20.817l-2.172 1.138a.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a.39 .39 0 0 1 -.567 .411l-2.172 -1.138z" /></svg>
+                            AI Coaches
+                        </h3>
+                        <div class="card-options">
+                            <button class="btn btn-primary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#add-coach-form-collapse">
+                                Add Coach
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collapse" id="add-coach-form-collapse">
+                        <div class="card-body border-bottom">
+                            {{ coach_form(add_coach_form, ootb_prompts) }}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            Coaches are the AI personas you interact with in AI coaching. Each coach can have a unique name, personality, and assigned LLM model.
+                            You can create coaches for different purposes, such as analyzing your recent workouts, suggesting improvements, or helping you plan your next training cycle.
+                            The quality of the coaching will depend on the AI model you choose and how you prompt it
+                            so feel free to experiment and find what works best for you!
+                        </div>
+
+                        {% if ac_settings.coaches %}
+                        <div class="row g-3">
+                            {% for c in ac_settings.coaches %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card card-sm">
+                                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                                            {% if c.photo_blob_key %}
+                                            <img src="{{ url_for('settings_acoaches_coach_avatar_thumbnail', coach_key=c.key) }}"
+                                                 class="avatar avatar-sm me-2"
+                                                 alt="{{ c.name }}"
+                                                 style="width:32px;height:32px;object-fit:cover;border-radius:4px;"
+                                                 onerror="this.style.display='none';this.nextElementSibling.style.display='';">
+                                            <span class="avatar avatar-sm me-2 bg-primary-lt text-primary" style="display:none;">
+                                                {{ c.name[0] | upper }}
+                                            </span>
+                                            {% else %}
+                                            <span class="avatar avatar-sm me-2 bg-primary-lt text-primary">
+                                                {{ c.name[0] | upper }}
+                                            </span>
+                                            {% endif %}
+                                            <strong>{{ c.name }}</strong>
+                                        </div>
+                                        {% set coach_model = models_by_key.get(c.model_key) %}
+                                        <div class="text-muted small mb-2">
+                                            Model: {% if coach_model %}<code>{{ coach_model.model_name }}</code>{% else %}<span class="text-danger">not set — edit to assign</span>{% endif %}
+                                        </div>
+                                        <details class="mb-2">
+                                            <summary class="text-muted small">System prompt</summary>
+                                            <pre class="mt-1 small text-muted" style="white-space: pre-wrap; max-height: 120px; overflow-y: auto;">{{ c.system_prompt }}</pre>
+                                        </details>
+                                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                                            <button class="btn btn btn-outline-primary"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#edit-coach-{{ c.key }}">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#avatar-coach-{{ c.key }}">
+                                                Photo
+                                            </button>
+                                            <form method="POST" action="{{ url_for('settings_acoaches_coach_delete', coach_key=c.key) }}" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ add_coach_form.csrf_token._value() }}">
+                                                <button type="submit" class="btn btn-danger btn-icon" onclick="return confirm('Delete this coach?')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                        <path d="M4 7l16 0"></path>
+                                                        <path d="M10 11l0 6"></path>
+                                                        <path d="M14 11l0 6"></path>
+                                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="collapse" id="edit-coach-{{ c.key }}">
+                                        <div class="card-body border-top">
+                                            {{ coach_edit_form(edit_coach_forms[c.key], c, ootb_prompts) }}
+                                        </div>
+                                    </div>
+                                    <div class="collapse" id="avatar-coach-{{ c.key }}">
+                                        <div class="card-body border-top">
+                                            <p class="text-muted small mb-2">Upload a square photo (JPG, PNG, WEBP). It will be cropped to 200×200 px.</p>
+                                            <form method="POST"
+                                                  action="{{ url_for('settings_acoaches_coach_avatar_upload', coach_key=c.key) }}"
+                                                  enctype="multipart/form-data">
+                                                {{ coach_avatar_upload_forms[c.key].hidden_tag() }}
+                                                <div class="input-group mb-2">
+                                                    {{ coach_avatar_upload_forms[c.key].photo(class="form-control", accept="image/*") }}
+                                                    <button type="submit" class="btn btn-primary">Upload</button>
+                                                </div>
+                                            </form>
+                                            {% if c.photo_blob_key %}
+                                            <form method="POST"
+                                                  action="{{ url_for('settings_acoaches_coach_avatar_delete', coach_key=c.key) }}">
+                                                {{ coach_avatar_delete_forms[c.key].hidden_tag() }}
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Remove coach avatar?')">Remove Photo</button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No coaches configured yet. Use the out-of-the-box prompts to get started quickly.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

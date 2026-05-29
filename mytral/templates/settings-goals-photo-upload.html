@@ -1,0 +1,93 @@
+{% import "macros/activity-fields.html" as field_macros %}
+{%extends "layout.html"%}
+{% block content %}
+<form method="POST" action="" id="goal-photo-upload-form" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="page-header d-print-none" aria-label="Page header">
+        <div class="container-xl">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Goals</div>
+                    <h2 class="page-title">Upload Photos</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_goal_get', key=key) }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M18 6l-12 12"/><path d="M6 6l12 12"/>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" form="goal-photo-upload-form" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-upload" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/>
+                                <path d="M7 9l5 -5l5 5"/>
+                                <path d="M12 4l0 12"/>
+                            </svg>
+                            Upload Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-body">
+        <div class="container-xl">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                Photo
+                                <span class="badge bg-secondary text-secondary-fg ms-2">{{ current_count }} / 20</span>
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            {% if form.errors %}
+                            <div class="alert alert-danger">{{ form.errors }}</div>
+                            {% endif %}
+
+                            {{ field_macros.add_file_field(form.photo, accept=".jpg,.jpeg,.png,.webp") }}
+                            {{ field_macros.add_field(form.name, placeholder="e.g. Goal cover") }}
+                            {{ field_macros.add_field(form.description, placeholder="Optional description") }}
+                            {{ field_macros.add_field(form.keywords, placeholder="annual, race, inspiration") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Upload Limits</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-success me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/>
+                                    </svg>
+                                    Formats: <strong>.jpg, .jpeg, .png, .webp</strong>
+                                </li>
+                                <li class="mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon text-success me-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                        <path stroke="none" d="M5 12l5 5l10 -10"/>
+                                    </svg>
+                                    Up to <strong>20 photos</strong> per goal
+                                </li>
+                            </ul>
+                            {% if current_count >= 20 %}
+                            <div class="alert alert-warning mt-2">
+                                Photo limit reached (20 / 20). Delete some photos before uploading more.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}

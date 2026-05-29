@@ -1,0 +1,227 @@
+/* MyTraL: my trailing log, Copyright (C) 2026 Martin Dvorak <martin.dvorak@mindforger.com> */
+
+/* Forms ******************************************************* */
+
+#distance {
+    width: 12ch;
+}
+
+#when_year, #weight, #from_year, #to_year {
+    width: 10ch;
+}
+#when_month, #from_month, #to_month {
+    width: 8ch;
+}
+#when_day, #from_day, #to_day {
+    width: 8ch;
+}
+
+#when_hour {
+    width: 8ch;
+}
+#when_minute {
+    width: 8ch;
+}
+#when_second {
+    width: 8ch;
+}
+
+#hours, #minutes, #seconds, #temperature {
+    width: 8ch;
+}
+
+#elevation_gain, #elevation_min, #elevation_max {
+    width: 7ch;
+}
+
+#sort_code, #workout_sort_code {
+    width: 7ch;
+}
+
+#max_speed, #kcal, #suffer_score, #fitness_score, #avg_watts, #max_watts {
+    width: 7ch;
+}
+
+#elevation_gain, #elevation_min, #elevation_max, #avg_watts, #max_watts {
+    width: 9ch;
+}
+
+#name {
+    width: 90%;
+}
+
+#description {
+    height: 7.5em;
+    width: 90%;
+}
+
+#formula {
+    width: 100%;
+}
+
+#where {
+    width: 90%;
+}
+
+/* table w/ list of fields */
+
+table.mytral-noborder,
+.monthview-datetable td,
+.monthview-datetable th {
+  border: none !important;
+}
+
+td.mytral-field-label {
+    color: darkslategrey;
+}
+
+th.mytral-mid-mid {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* heat map */
+
+div.heat_na {
+    width: 15px;
+    height: 15px;
+    background-color: #ffffff;
+}
+
+div.heat_y_low {
+    width: 15px;
+    height: 15px;
+    background-color: #00ff00;
+}
+div.heat_y_medium {
+    width: 15px;
+    height: 15px;
+    background-color: #00cc00;
+}
+div.heat_y_high {
+    width: 15px;
+    height: 15px;
+    background-color: #00aa00;
+}
+div.heat_active_sick_low {
+    width: 15px;
+    height: 15px;
+    background-color: #ff7500;
+}
+div.heat_active_sick_medium {
+    width: 15px;
+    height: 15px;
+    background-color: #ffa500;
+}
+div.heat_active_sick_high {
+    width: 15px;
+    height: 15px;
+    background-color: #ffd500;
+}
+div.heat_sick_low {
+    width: 15px;
+    height: 15px;
+    background-color: #ffcccc;
+}
+div.heat_sick_medium {
+    width: 15px;
+    height: 15px;
+    background-color: #cc5555;
+}
+div.heat_sick {
+    width: 15px;
+    height: 15px;
+    background-color: #aa0000;
+}
+div.heat_n {
+    width: 15px;
+    height: 15px;
+    background-color: #cccccc;
+}
+
+td.heat_n {
+    background-color: #eee;
+    padding: 3px;
+}
+
+div.heat_comment_only {
+    width: 15px;
+    height: 15px;
+    background-color: #4682B4;
+}
+
+/* Left menu: collapsible and styles ********************************************** */
+
+.collapsible {
+    cursor: pointer;
+}
+
+.collapsible-content {
+    display: none;
+}
+
+/* Left menu: style *************************************************************** */
+
+a.mytral-menu-button {
+    padding-top: 1px !important;
+    padding-bottom: 1px !important;
+}
+
+/* Tables ************************************************************************* */
+
+table.mytral-table-center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Mannequin (body diagram) ******************************************************* */
+
+.mannequin-wrapper { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.mannequin-panel   { flex: 0 0 auto; }
+.mannequin-panel svg { display: block; }
+
+/* base shape */
+.mnq { fill: #dde3ea; stroke: #8b96a6; stroke-width: 1; transition: fill .2s, opacity .2s, stroke .15s; }
+
+/* states */
+.mnq.state-active    { fill: #2fb344; stroke: #1a7431; }
+.mnq.state-secondary { fill: #f59f00; stroke: #b36d00; }
+.mnq.state-injured   { fill: #d63939; stroke: #922020; opacity: .75; }
+.mnq.state-inactive  { fill: #dde3ea; stroke: #8b96a6; }
+
+/* intensity overlays (stacked on state-active / state-secondary) */
+.mnq.intensity-1 { opacity: .30; }
+.mnq.intensity-2 { opacity: .50; }
+.mnq.intensity-3 { opacity: .70; }
+.mnq.intensity-4 { opacity: .85; }
+.mnq.intensity-5 { opacity: 1.00; }
+
+/* picker interaction */
+.mnq.picker-hover     { stroke: #206bc4; stroke-width: 2; cursor: pointer; }
+.mnq.picker-primary   { fill: #2fb344; stroke: #1a7431; stroke-width: 2; opacity: 1; }
+.mnq.picker-secondary { fill: #f59f00; stroke: #b36d00; stroke-width: 2; opacity: 1; }
+
+/* injury (backward compat with /me page) */
+.mnq.body-injured       { fill: #dc3545; stroke: #a71d2a; opacity: .7; }
+.mnq.body-injured:hover { opacity: .9; cursor: pointer; }
+
+
+/* legend */
+.mannequin-legend { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; justify-content: center; margin-top: .75rem; border: 1px solid #8b96a6; border-radius: 4px; padding: .5rem .75rem; }
+.mannequin-legend-item { display: flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--tblr-muted); }
+.mannequin-legend-swatch { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,.15); flex-shrink: 0; }
+
+/* badge row (picker selected groups) */
+.mannequin-badges { min-height: 28px; display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .6rem; }
+
+/* end of file */
+
+/* Strava brand compliance: "View on Strava" link style per Strava API Brand Guidelines */
+.strava-view-link {
+    color: #FC5200 !important;
+    font-weight: bold;
+    text-decoration: underline;
+}
+.strava-view-link:hover {
+    color: #e04a00 !important;
+}

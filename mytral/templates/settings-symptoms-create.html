@@ -1,0 +1,80 @@
+{%extends "layout.html"%}
+{% from "macros/mannequin.html" import render_mannequin %}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Add Symptom</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_symptoms_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Add Symptom
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Symptom Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label required">Name</label>
+                    {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.name.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {{ form.name(class="form-control") }}
+                    {% if form.name.description %}
+                    <div class="form-hint">{{ form.name.description }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Affected Body Parts</h3>
+                <div class="card-options">
+                    <span class="text-muted small">Click body parts to mark areas typically affected by this symptom</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {{ render_mannequin(
+                    mode="body_picker",
+                    selected_body_parts=selected_body_parts,
+                    input_name_body_parts="body_parts",
+                    show_legend=true,
+                    picker_id="symptom-create-picker"
+                ) }}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

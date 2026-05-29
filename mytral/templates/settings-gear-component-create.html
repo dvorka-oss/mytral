@@ -1,0 +1,105 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile / Gear / {{ gear.name }}</div>
+                    <h2 class="page-title">Add Component</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_gear_update', key=gear.key) }}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-deck row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.template.label }}</label>
+                            <small class="form-hint">Select a template to pre-fill service intervals</small>
+                            {{ form.template(class="form-select", id="component-template-select") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.name.label }}</label>
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.cost.label }}</label>
+                            {{ form.cost(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.installed_date.label }}</label>
+                            {{ form.installed_date(class="form-control") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.next_service_km.label }}</label>
+                            {{ form.next_service_km(class="form-control", id="next-service-km") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.next_service_hours.label }}</label>
+                            {{ form.next_service_hours(class="form-control", id="next-service-hours") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.replaces_component.label }}</label>
+                            {{ form.replaces_component(class="form-select") }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.notes.label }}</label>
+                            {{ form.notes(class="form-control", rows="3") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# embed template data for JS auto-fill #}
+<script>
+(function () {
+    var componentTemplatesUrl = {{ url_for('settings_component_templates_list') | tojson }};
+    // fetch template definitions from API and build lookup
+    fetch(componentTemplatesUrl)
+        .then(function (r) { return r.json(); })
+        .then(function (templates) {
+            var lookup = {};
+            templates.forEach(function (t) { lookup[t.key] = t; });
+
+            var sel = document.getElementById('component-template-select');
+            if (!sel) return;
+
+            sel.addEventListener('change', function () {
+                var chosen = lookup[this.value];
+                if (!chosen) return;
+
+                var kmField = document.getElementById('next-service-km');
+                var hField = document.getElementById('next-service-hours');
+
+                if (kmField) {
+                    kmField.value = (chosen.default_service_km != null) ? chosen.default_service_km : '';
+                }
+                if (hField) {
+                    hField.value = (chosen.default_service_hours != null) ? chosen.default_service_hours : '';
+                }
+
+                // pre-fill name only when it is still empty
+                var nameField = document.querySelector('input[name="name"]');
+                if (nameField && !nameField.value.trim()) {
+                    nameField.value = chosen.name;
+                }
+            });
+        });
+}());
+</script>
+{% endblock %}

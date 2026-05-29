@@ -1,0 +1,59 @@
+{% macro format_duration(duration) %}
+    {% set parts = duration.replace('h', 'h ').replace('m', 'm ').replace('s', 's ').split() %}
+    {% for part in parts %}{{ part[:-1] }}<b>{{ part[-1] }}</b>{% endfor %}
+{% endmacro %}
+
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">Y2Y Months Perspective</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Compare your activities distance and duration in the same month of different years. This will help you to understand how your activities have changed over the years.
+            </p>
+        </div>
+    </div>
+
+    <div class="card pt-3 pb-3 px-3">
+        <div class="table-responsive">
+            <table class="table table-vcenter cards-table small">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for month in data %}
+                                <th class="text-center bg-dark text-white">{{ month }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for year in years %}
+                        <tr>
+                            <td><strong>{{ year }}</strong></td>
+                            {% for month in data %}
+                                {% set d = data[month].get(year,[0.0,"", ""]) %}
+                                {% if not d[2] %}
+                                    <td>...</td>
+                                {% else %}
+                                    <td class="text-center" style="background-color: {{ d[2] }};">
+                                        {{ d[0] }} km<br/>
+                                        {{ format_duration(d[1]) }}
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

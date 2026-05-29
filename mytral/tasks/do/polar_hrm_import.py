@@ -1,0 +1,315 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Async task: import Polar Precision Performance (.hrm + .pdd) files."""
+
+import io
+import pathlib
+
+from mytral import app_logger
+from mytral import plugins
+from mytral import tasks
+from mytral.blobstore import activity_service as blob_svc_module
+from mytral.integrations import polar_hrm
+from mytral.recordings import parquet_converter
+
+
+class PolarHrmImportTask(tasks.TaskBase):
+    """Import Polar Precision Performance activities."""
+
+    TASK_TYPE = "polar_hrm_import"
+    TASK_DISPLAY_NAME = "Polar Precision Performance Import"
+
+    def __init__(
+        self,
+        task_entity: tasks.TaskEntity,
+        logger,
+        log_callback,
+        config=None,
+        dataset=None,
+        blobstore=None,
+        enc_key="",
+    ):
+        super().__init__(
+            task_entity=task_entity,
+            logger=logger,
+            log_callback=log_callback,
+            config=config,
+            dataset=dataset,
+            blobstore=blobstore,
+            enc_key=enc_key,
+        )
+
+    def execute(self) -> None:
+        """Execute Polar HRM import.
+
+        Raises
+        ------
+        RuntimeError
+            On unrecoverable failures.
+        """
+
+        params = self.task_entity.parameters
+        user_id: str = params["user_id"]
+        dataset_name: str = params["dataset_name"]
+        data_dir_str: str = params[polar_hrm.POLAR_HRM_DATA_DIR_KEY]
+        on_conflict: str = params.get("on_conflict", "skip")
+
+        self.log(
+            f"Polar HRM import started (dir={data_dir_str}, on_conflict={on_conflict})"
+        )
+        self.update_progress(2)
+
+        data_dir = pathlib.Path(data_dir_str)
+        if not data_dir.is_dir():
+            raise RuntimeError(f"Data directory not found: {data_dir}")
+
+        # ---- phase 1: parse + build activities via plugin ----
+        plugin: polar_hrm.PolarHrmImportPlugin = plugins.registry.get_plugin(
+            polar_hrm.PolarHrmImportPlugin.NAME
+        )
+        user_profile = self._dataset.profile(user_id)
+        self.log("Parsing .pdd and .hrm files…")
+
+        try:
+            activities = plugin.import_activities(
+                datasets={polar_hrm.POLAR_HRM_DATA_DIR_KEY: data_dir},
+                user_profile=user_profile,
+            )
+        except Exception as exc:
+            raise RuntimeError(f"Failed to parse Polar data: {exc}") from exc
+
+        total = len(activities)
+        self.log(f"Parsed {total} activities from {data_dir_str}")
+        self.update_progress(10)
+        self.check_cancellation()
+
+        if total == 0:
+            self.log("No activities found — import complete")
+            self.update_progress(100)
+            return
+
+        # ---- phase 2: persist activities + upload FIT blobs ----
+        blob_svc = blob_svc_module.ActivityBlobService(
+            store=self._blobstore,
+            dataset=self._dataset,
+            config=self._config,
+        )
+
+        imported = 0
+        skipped = 0
+        failed = 0
+
+        # year_cache: lazy per-year list of existing activities — eliminates
+        # O(n) list_activities() JSON reads (loaded once per unique year)
+        year_cache: dict[int, list] = {}
+        hrm_path_by_name = self._discover_hrm_paths(data_dir=data_dir)
+
+        # sequential persist — dataset writes and blob updates are not thread-safe
+        for i, activity in enumerate(activities):
+            self.check_cancellation()
+
+            existing_key = self._find_conflict(user_id, activity, year_cache)
+            if existing_key:
+                if on_conflict == "skip":
+                    skipped += 1
+                    continue
+                if on_conflict == "override":
+                    activity.key = existing_key
+                    try:
+                        self._dataset.update_activity(
+                            user_id=user_id,
+                            dataset_name=dataset_name,
+                            entity=activity,
+                        )
+                    except Exception as exc:
+                        app_logger.warning(
+                            "PolarHrmImportTask: update_activity failed",
+                            key=existing_key,
+                            error=str(exc),
+                        )
+                        failed += 1
+                        continue
+                else:
+                    # new_key: keep newly generated key and create as new
+                    existing_key = None
+
+            if not existing_key:
+                try:
+                    self._dataset.create_activity(
+                        user_id=user_id,
+                        dataset_name=dataset_name,
+                        entity=activity,
+                    )
+                except Exception as exc:
+                    app_logger.warning(
+                        "PolarHrmImportTask: create_activity failed",
+                        key=activity.key,
+                        error=str(exc),
+                    )
+                    failed += 1
+                    continue
+
+            try:
+                self._attach_hrm_recording_and_parquet(
+                    blob_svc=blob_svc,
+                    user_id=user_id,
+                    dataset_name=dataset_name,
+                    activity=activity,
+                    hrm_data=plugin._hrm_data_cache.get(activity.src_key),
+                    hrm_path=hrm_path_by_name.get(activity.src_key),
+                )
+            except Exception as exc:
+                app_logger.warning(
+                    "PolarHrmImportTask: HRM attachment failed",
+                    key=activity.key,
+                    hrm=activity.src_key,
+                    error=str(exc),
+                )
+
+            imported += 1
+            progress = 10 + int(88 * (i + 1) / total)
+            self.update_progress(progress)
+            self.log(
+                f"Progress: {i + 1}/{total} processed "
+                f"(imported={imported}, skipped={skipped}, failed={failed})"
+            )
+
+        self.log(
+            f"Polar HRM import complete: {imported} imported, "
+            f"{skipped} skipped, {failed} failed"
+        )
+        self.update_progress(100)
+
+    def _find_conflict(
+        self, user_id: str, activity, year_cache: dict[int, list]
+    ) -> str | None:
+        """Return the key of an existing conflicting activity or None.
+
+        Uses ``src`` + ``src_key`` matching for Polar-sourced activities.
+        The ``year_cache`` dict is populated lazily on first access per year,
+        eliminating repeated ``list_activities()`` JSON reads.
+
+        Parameters
+        ----------
+        user_id : str
+            User identifier.
+        activity
+            Activity to check against existing records.
+        year_cache : dict[int, list]
+            Mutable cache mapping ``when_year`` to existing activity list;
+            populated on demand and reused across calls.
+
+        Returns
+        -------
+        str or None
+            Existing activity key if a conflict is found, else None.
+        """
+        if not activity.src_key:
+            return None
+        year = activity.when_year
+        if year not in year_cache:
+            try:
+                year_cache[year] = self._dataset.list_activities(
+                    user_id=user_id,
+                    year=year,
+                )
+            except Exception:
+                year_cache[year] = []
+        for act in year_cache[year]:
+            if act.src == activity.src and act.src_key == activity.src_key:
+                return act.key
+        return None
+
+    def _discover_hrm_paths(self, data_dir: pathlib.Path) -> dict[str, pathlib.Path]:
+        """Discover HRM files and map base filename to full path."""
+        mapping: dict[str, pathlib.Path] = {}
+        for path in data_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() != ".hrm":
+                continue
+            mapping[path.name] = path
+        return mapping
+
+    def _attach_hrm_recording_and_parquet(
+        self,
+        blob_svc,
+        user_id: str,
+        dataset_name: str,
+        activity,
+        hrm_data: dict | None,
+        hrm_path: pathlib.Path | None,
+    ) -> None:
+        """Upload raw HRM recording, generate Parquet, and persist the activity.
+
+        Parameters
+        ----------
+        blob_svc : ActivityBlobService
+            Blob service for recording/parquet operations.
+        user_id : str
+            User identifier.
+        dataset_name : str
+            Target dataset name.
+        activity : ActivityEntity
+            Activity to enrich with recording references.
+        hrm_data : dict or None
+            Parsed HRM structure from plugin cache.
+        hrm_path : pathlib.Path or None
+            Path to the original ``.hrm`` file.
+        """
+        if hrm_path is None or not hrm_path.is_file():
+            self.log(
+                "WARNING: HRM file not found for activity "
+                f"{activity.key}: {activity.src_key}"
+            )
+            return
+        if not hrm_data or not hrm_data.get("rows"):
+            self.log(
+                f"WARNING: HRM parsed data missing for activity {activity.key}: "
+                f"{activity.src_key}"
+            )
+            return
+
+        with hrm_path.open("rb") as fh:
+            raw_bytes = fh.read()
+
+        meta = blob_svc.upload_recording(
+            user_id=user_id,
+            activity_key=activity.key,
+            uploaded_file=io.BytesIO(raw_bytes),
+            original_filename=hrm_path.name,
+            content_type="application/octet-stream",
+            name="Polar HRM",
+            description="Imported from Polar Precision Performance",
+            keywords="polar,hrm",
+        )
+        parquet_bytes = parquet_converter.hrm_to_parquet(hrm_data)
+        blob_svc.save_parquet(
+            user_id=user_id,
+            activity_key=activity.key,
+            source_blob_key=meta.blob_key,
+            parquet_data=parquet_bytes,
+        )
+
+        self._dataset.update_activity(
+            user_id=user_id,
+            dataset_name=dataset_name,
+            entity=activity,
+        )
+
+
+tasks.tasks_registry.register_task(PolarHrmImportTask)

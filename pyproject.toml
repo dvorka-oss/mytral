@@ -1,0 +1,197 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# project build system
+[build-system]
+requires = ["hatchling", "hatch-vcs"]  # package required by the build system
+build-backend = "hatchling.build"  # build system module to run
+
+# project description
+[project]
+name = "MyTraL"
+dynamic = ["version"]
+description="My training log."
+requires-python = "==3.11.*"
+license = "AGPL-3.0"
+authors = [
+  { name = "Martin Dvorak", email = "martin.dvorak@mindforger.com" },
+]
+
+# development dependencies
+dependencies = [
+  "anthropic~=0.101",
+  "bcrypt~=5.0.0",
+  "bleach~=6.3",
+  "bokeh==3.8.2",
+  "cryptography~=46.0",
+  "defusedxml~=0.7",
+  "email_validator~=2.2",
+  "fit-tool>=0.9.15",
+  "flask-cors~=6.0",
+  "flask-wtf~=1.2",
+  "flask~=3.1",
+  "markdown~=3.10",
+  "msgpack~=1.0",
+  "openai~=2.29",
+  "polars~=1.30",
+  "polyline~=2.0",
+  "pydantic-ai-slim[anthropic,openai]==1.94.0",
+  "rdp~=0.8",
+  "requests~=2.32",
+  "structlog~=25.5",
+  "wtforms~=3.2",
+]
+
+[project.scripts]
+mytral = "mytral.cli:main" # as mytral.cli has main() function: uv run mytral
+mytral-web = "mytral.run:main" # as mytral.run has main() function: uv run mytral-web
+mytral-desktop = "mytral.run_desktop:main" # desktop app: uv run mytral-desktop
+
+[project.urls]
+source = "https://github.com/dvorka/my-training-log"
+
+[tool.ruff]
+line-length = 88
+exclude = [
+    "deploy/",
+]
+
+# Python formatting
+[tool.ruff.format]
+quote-style = "double" # 'quote-style', 'indent-style', etc. can be customized here
+skip-magic-trailing-comma = false # encourage keeping return values encapsulated in parentheses
+
+# Python linting
+[tool.ruff.lint]
+# E: pycodestyle errors (PEP 8 violations like spacing and line length)
+# F: Pyflakes (logical errors, unused imports, undefined variables)
+# W: pycodestyle warnings (minor style guidelines)
+# I: isort (automatically sorts and groups import statements - done by format)
+select = ["E", "F", "W"]
+# E402: Allows imports to appear lower in the file (not strictly at the top),
+# which is useful when environment variables or paths must be set up first.
+extend-ignore = ["E402"]
+
+# Jinja linting
+[tool.djlint]
+profile = "jinja"
+indent = 4
+max_line_length = 120
+preserve_blank_lines = true
+format_attribute_template_tags = true
+# ignore = "H006,H030" # Add any HTML rules you want to skip
+exclude = ".venv"
+
+[tool.isort]
+case_sensitive = false
+force_single_line = true
+include_trailing_comma = true
+line_length = 88
+multi_line_output = 3
+order_by_type = false
+use_parentheses = true
+
+[tool.pytest.ini_options]
+markers = [
+    "benchmark: Benchmark - run manually.",
+    "migration: MyTraL data migration test in between versions - run manually.",
+    "mytral: My Training Log test.",
+    "tool: Not a test, but a MyTraL tool or ad-hoc swiss knife.",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.11"]
+
+# dependency groups for code style, testing and ML
+[dependency-groups]
+dev = [
+    "bandit~=1.7.0",
+    "detect-secrets~=1.4.0",
+    "djlint~=1.36",
+    "html2text>=2025.4.15",
+    "isort~=7.0",
+    "lorem>=0.1.1",
+    "markdown>=3.10.2",
+    "mistune>=3.2.0",
+    "mypy~=1.18",
+    "pandas-stubs~=2.3",
+    "pip-audit~=2.10.0",
+    "pygments>=2.19.2",
+    "pytest~=8.4",
+    "ruff~=0.15",
+    "types-Flask-Cors~=6.0",
+    "types-Flask~=1.1",
+    "types-WTForms~=3.2",
+    "types-requests~=2.32",
+]
+test = [
+    "pytest~=8.4",
+    "pytest-cov~=7.0",
+    "fitparse>=1.2.0",
+]
+desktop = [
+    # production WSGI server
+    "waitress~=3.0",
+    # desktop UI wrapper (opens a native browser window)
+    # NOTE: pin to 1.0.x — 1.1.x uses PEP 701 f-string syntax requiring Python 3.12+
+    "flaskwebgui~=1.0.0",
+    # flaskwebgui dependency: process/system utilities (native C extension)
+    # pin to 5.9.x: flaskwebgui 1.0.8 resolves to psutil 5.9.x
+    "psutil>=5.9,<6.0",
+    # executable packaging
+    "pyinstaller~=6.11",
+    # importlib compatibility shims needed by PyInstaller hooks
+    "importlib-metadata",
+    "importlib-resources",
+    # jaraco.context dependency (required by some PyInstaller hooks)
+    "backports.functools-lru-cache",
+    # timezone backport for Python < 3.9 (included for broad compatibility)
+    "backports.zoneinfo; python_version < '3.9'",
+    # tarfile backport required by some jaraco packages on Python < 3.12
+    "backports.tarfile; python_version < '3.12'",
+]
+
+ml = [
+    "xgboost-cpu~=3.2",
+    "scikit-learn>=1.5,<1.7",
+    "pandas~=2.2",
+    "tabpfn>=2.2.1,<3.0",
+]
+
+blob-common = [
+    "Pillow~=11.3",
+]
+blob-minio = [
+    "minio~=7.2",
+]
+blob-s3 = [
+    "boto3~=1.39",
+]
+blob-all = [
+    { include-group = "blob-common" },
+    { include-group = "blob-minio" },
+    { include-group = "blob-s3" },
+]
+
+notebook = [
+    "jupyterlab~=4.5",
+    "pandas~=2.2",
+]
+
+# version is loaded from mytral/version.py
+[tool.hatch.version]
+path = "mytral/version.py"

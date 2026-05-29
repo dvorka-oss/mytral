@@ -1,0 +1,194 @@
+{% from 'macros/mannequin.html' import render_mannequin %}
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('settings_exercises_list') }}" class="page-pretitle">Exercises</a>
+                <h2 class="page-title">{{ entity.name }}</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('settings_exercises_update', key=key) }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <div class="h3 mb-0">{{ entity.name }}</div>
+            </div>
+            <div class="card-body">
+                {% if entity.description %}
+                <div class="text-muted mb-4">{{ entity.description | markdown }}</div>
+                {% endif %}
+
+                <div class="row g-3">
+                    {% if entity.weight %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader">Default Weight</div>
+                                <div class="h2 mb-0">{{ entity.weight }} kg</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if entity.tags %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader">Tags</div>
+                                <div class="mt-1">
+                                    {% for tag in entity.tags %}
+                                    <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if entity.muscle_groups %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader">Primary Muscles</div>
+                                <div class="text-muted">{{ entity.muscle_groups | join(', ') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if entity.muscle_groups_secondary %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader">Secondary Muscles</div>
+                                <div class="text-muted">{{ entity.muscle_groups_secondary | join(', ') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Muscles</h3>
+            </div>
+            <div class="card-body">
+                {{ render_mannequin(
+                    mode="display",
+                    highlights=muscle_highlights,
+                    show_legend=true,
+                    picker_id="exercise-muscles"
+                ) }}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    Photos
+                    <span class="badge bg-secondary text-secondary-fg ms-2">{{ photos|length }} / 20</span>
+                </h3>
+                <div class="card-options">
+                    {% if photos|length < 20 %}
+                    <a href="{{ url_for('settings_exercises_upload_photo', key=key) }}" class="btn btn-outline-primary">Add Photos</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if photos %}
+                <div class="row g-3">
+                    {% for photo in photos %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card card-sm{% if entity.highlight_photo_blob_key == photo.blob_key %} border-primary{% endif %}">
+                            <div class="card-header">
+                                {% if entity.highlight_photo_blob_key == photo.blob_key %}
+                                <span class="badge bg-blue text-blue-fg me-2">Highlight</span>
+                                {% endif %}
+                                <div class="card-options">
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap mb-1">
+                                        <a href="{{ url_for('settings_exercises_update_photo_metadata', key=key, blob_key=photo.blob_key) }}"
+                                           class="btn btn-outline-primary btn-icon"
+                                           title="Edit metadata">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        {% if entity.highlight_photo_blob_key != photo.blob_key %}
+                                        <form action="{{ url_for('settings_exercises_highlight_photo', key=key, blob_key=photo.blob_key) }}" method="POST" class="d-inline">
+                                            {{ highlight_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-secondary btn-icon" title="Set as highlight">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <form action="{{ url_for('settings_exercises_delete_photo', key=key, blob_key=photo.blob_key) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this photo?')">
+                                            {{ delete_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete photo">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-1 text-center">
+                                <a data-fslightbox="exercise-photos" data-type="image" href="{{ url_for('settings_exercises_photo', key=key, blob_key=photo.blob_key) }}" class="d-block">
+                                    <img src="{{ url_for('settings_exercises_photo_thumbnail', key=key, blob_key=photo.blob_key) }}"
+                                         alt="{{ photo.name or photo.original_file_name }}"
+                                         class="img-fluid rounded"
+                                         style="max-height:140px;object-fit:cover;width:100%">
+                                </a>
+                                {% if photo.name %}
+                                <div class="subheader mt-3">Name</div>
+                                <div class="h3 text-truncate">{{ photo.name }}</div>
+                                {% endif %}
+
+                                {% if photo.description %}
+                                <div class="small text-muted mt-1 SKIP-text-truncate">{{ photo.description }}</div>
+                                {% endif %}
+
+                                <div class="mt-1">
+                                    {% for kw in photo.keywords %}
+                                    <span class="badge bg-azure text-azure-fg">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No photos - click "Add Photos" to upload.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

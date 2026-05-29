@@ -1,0 +1,1153 @@
+{%extends "layout.html"%}
+{% import "macros/maps.html" as maps_macros %}
+{% block content %}
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">
+                    {% if year %}
+                    {{ year }} Activities List <span class="badge bg-black text-indigo-fg badge-pill ms-2">{{ activities|length }}</span>
+                    {% else %}
+                    Activities List
+                    {% endif %}
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    {% if activities|length > 0 %}
+                    <div class="btn-group">
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                                <path d="M3 10h18"></path>
+                                <path d="M10 3v18"></path>
+                            </svg>
+                            List
+                        </a>
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='feed', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-layout-cards" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
+                                <path d="M14 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
+                            </svg>
+                            Feed
+                        </a>
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    List of <b>{{ year }}</b> activities.
+                    {% if age_at_year and year != current_year %}
+                        You were <b>{{ age_at_year }}</b> years old in {{ year }}.
+                    {% endif %}
+                </p>
+
+                {% if years %}
+                <div class="mb-3">
+                    <div class="dropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                                <path d="M16 3v4"></path>
+                                <path d="M8 3v4"></path>
+                                <path d="M4 11h16"></path>
+                            </svg>
+                            Year: {{ year }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for y in years %}
+                            <li>
+                                {% if y == year %}
+                                <span class="dropdown-item active">{{ y }}</span>
+                                {% else %}
+                                <a class="dropdown-item" href="{{ url_for('list_activities_year', year=y) }}">{{ y }}</a>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="accordion" id="accordion-default">
+                    <div class="accordion-item">
+                      <div class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1-default" aria-expanded="false">
+                          Filter &amp; sort
+                          <div class="accordion-button-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                              <path d="M6 9l6 6l6 -6"></path>
+                            </svg>
+                          </div>
+                        </button>
+                      </div>
+                      <div id="collapse-1-default" class="accordion-collapse collapse" data-bs-parent="#accordion-default">
+                        <div class="accordion-body">
+                            <form method="get" action="{{ url_for('list_activities_year', year=year) }}">
+                                {% if aspect %}
+                                <input type="hidden" name="aspect" value="{{ aspect }}">
+                                {% endif %}
+                                <div class="row g-3">
+                                    <div class="col-md-2">
+                                        <label class="form-label">Activity type</label>
+                                        <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            {% for s in unique_activity_types %}
+                                                <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                                    {{ activity_types.name(s) }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label">Gear</label>
+                                        <select class="form-select" name="gear" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            {% for g in gear.gear_by_key.values() %}
+                                                <option value="{{ g.key }}" {% if g.key == filter_gear %}selected{% endif %}>
+                                                    {{ g.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label">Intensity</label>
+                                        <select class="form-select" name="intensity" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            {% for intensity in unique_intensities %}
+                                                <option value="{{ intensity }}" {% if intensity == filter_intensity %}selected{% endif %}>
+                                                    {{ intensity }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label">Type</label>
+                                        <select class="form-select" name="type" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            <option value="commute" {% if filter_type == 'commute' %}selected{% endif %}>Commute</option>
+                                            <option value="warm-up" {% if filter_type == 'warm-up' %}selected{% endif %}>Warm-up</option>
+                                            <option value="cool-down" {% if filter_type == 'cool-down' %}selected{% endif %}>Cool-down</option>
+                                            <option value="race" {% if filter_type == 'race' %}selected{% endif %}>Race</option>
+                                            <option value="ranked" {% if filter_type == 'ranked' %}selected{% endif %}>Ranked</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label">Source</label>
+                                        <select class="form-select" name="source" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            {% for src in unique_sources %}
+                                                <option value="{{ src }}" {% if src == filter_source %}selected{% endif %}>
+                                                    {{ src }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Sort by</label>
+                                        <select class="form-select" name="sort" onchange="this.form.submit()">
+                                            <option value="when" {% if sort_by == 'when' %}selected{% endif %}>When</option>
+                                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                                            <option value="gear" {% if sort_by == 'gear' %}selected{% endif %}>Gear</option>
+                                            <option value="activity_type" {% if sort_by == 'activity_type' %}selected{% endif %}>Activity type</option>
+                                            <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duration</option>
+                                            <option value="distance" {% if sort_by == 'distance' %}selected{% endif %}>Distance</option>
+                                            <option value="elevation" {% if sort_by == 'elevation' %}selected{% endif %}>Elevation</option>
+                                            <option value="pace" {% if sort_by == 'pace' %}selected{% endif %}>Pace</option>
+                                            <option value="source" {% if sort_by == 'source' %}selected{% endif %}>Source</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">Order</label>
+                                        <select class="form-select" name="order" onchange="this.form.submit()">
+                                            <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                                            <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <a href="{{ url_for('list_activities_year', year=year) }}" class="btn">
+                                                Clear filters
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                {% if activities|length == 0 %}
+                <div class="alert alert-info mt-3">
+                    No activities found.
+                </div>
+                {% else %}
+                    {# Statistics Cards - shown for both list and feed views #}
+                    {% if activities|length > 0 %}
+                    <div class="row g-2 mb-3 mt-3">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="subheader small">
+                                            Fastest Activity
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Activity with the best pace in {{ year }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if year_fastest_activity %}
+                                    <div class="h3 mb-0 text-truncate" title="{{ year_fastest_activity.name }}">
+                                        <a href="{{ url_for('get_activity', key=year_fastest_activity.key) }}" class="text-reset">
+                                            {{ year_fastest_activity.name or activity_types.name(year_fastest_activity.activity_type_key) }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">{{ year_fastest_activity.pace }}/km</div>
+                                    {% else %}
+                                    <div class="h3 mb-0">—</div>
+                                    <div class="text-muted small">No data</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-3">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="subheader small">
+                                            Longest Activity
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Activity with the greatest distance in {{ year }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if year_longest_activity and year_longest_activity.distance > 0 %}
+                                    <div class="h3 mb-0 text-truncate" title="{{ year_longest_activity.name }}">
+                                        <a href="{{ url_for('get_activity', key=year_longest_activity.key) }}" class="text-reset">
+                                            {{ year_longest_activity.name or activity_types.name(year_longest_activity.activity_type_key) }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">{{ "{:,.1f}".format(year_longest_activity.distance / 1000) }} km</div>
+                                    {% else %}
+                                    <div class="h3 mb-0">—</div>
+                                    <div class="text-muted small">No data</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-3">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="subheader small">
+                                            Most Intense
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Activity with highest heart rate or power output in {{ year }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if year_most_intense_activity %}
+                                    <div class="h3 mb-0 text-truncate" title="{{ year_most_intense_activity.name }}">
+                                        <a href="{{ url_for('get_activity', key=year_most_intense_activity.key) }}" class="text-reset">
+                                            {{ year_most_intense_activity.name or activity_types.name(year_most_intense_activity.activity_type_key) }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">
+                                        {% if year_most_intense_activity.avg_hr %}
+                                        {{ year_most_intense_activity.avg_hr }} bpm
+                                        {% elif year_most_intense_activity.avg_watts %}
+                                        {{ year_most_intense_activity.avg_watts }} W
+                                        {% else %}
+                                        High intensity
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="h3 mb-0">—</div>
+                                    <div class="text-muted small">No data</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-md-3">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="subheader small">
+                                            Highest Climb
+                                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Activity with the most elevation gain in {{ year }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 8l0 4"></path>
+                                                    <path d="M12 16l.01 0"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if year_highest_elevation_activity and year_highest_elevation_activity.elevation_gain > 0 %}
+                                    <div class="h3 mb-0 text-truncate" title="{{ year_highest_elevation_activity.name }}">
+                                        <a href="{{ url_for('get_activity', key=year_highest_elevation_activity.key) }}" class="text-reset">
+                                            {{ year_highest_elevation_activity.name or activity_types.name(year_highest_elevation_activity.activity_type_key) }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">{{ "{:,}".format(year_highest_elevation_activity.elevation_gain) }} m</div>
+                                    {% else %}
+                                    <div class="h3 mb-0">—</div>
+                                    <div class="text-muted small">No data</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if aspect == 'list' %}
+                    {# List/Table View #}
+                    <div class="table-responsive mt-3">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    <th>Name<br/>Gear</th>
+                                    <th>Type</th>
+                                    {% if not is_mobile %}
+                                    <th>Duration</th>
+                                    <th>Distance<br/>Elevation</th>
+                                    <th>km/h<br/>Pace</th>
+                                    <th title="Exercises / Laps">Exs<br>Lps</th>
+                                    <th>Source</th>
+                                    <th title="Workout">W</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activities %}
+                                {# Calculate day of year (1-365/366) for scroll navigation from chart #}
+                                {% set activity_month = activity.when_month|int %}
+                                {% set activity_day = activity.when_day|int %}
+                                {% set is_leap = (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0) %}
+                                {% set days_in_months = [0, 31, 29 if is_leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] %}
+                                {# Use namespace to persist variable across loop #}
+                                {% set ns = namespace(day_of_year = activity_day) %}
+                                {% for m in range(1, activity_month) %}
+                                    {% set ns.day_of_year = ns.day_of_year + days_in_months[m] %}
+                                {% endfor %}
+                                <tr data-activity-day="{{ ns.day_of_year }}" data-activity-date="{{ activity.when }}" data-debug-month="{{ activity_month }}" data-debug-day="{{ activity_day }}">
+                                    <td>
+                                        <div class="ps-2 mytral-{{ activity_types.color(activity.activity_type_key) }}-border">
+                                            <a href="{{ url_for('get_activity', key=activity.key) }}">{{ activity.when }}</a>
+                                            <br/>
+                                            <span class="text-muted">{{ activities_weekdays[activity.key] }}</span>
+                                            {% if activity.commute %}
+                                            | <span class="badge bg-green-lt">commute</span>
+                                            {% elif activity.warm_up %}
+                                            | <span class="badge bg-yellow-lt">warm-up</span>
+                                            {% elif activity.cool_down %}
+                                            | <span class="badge bg-blue-lt">cool-down</span>
+                                            {% elif activity.race %}
+                                            | <span class="badge bg-red-lt">race</span>
+                                            {% elif activity.ranked %}
+                                            | <span class="badge bg-orange-lt">ranked</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td title="{{ activity.description }}">
+                                        {% if activity.name %}
+                                            <b>{{ activity.name }}</b>
+                                        {% else %}
+                                            <b>Activity: {{ activity_types.name(activity.activity_type_key) }}</b>
+                                        {% endif %}
+                                        <br>
+                                        {% set activity_gears = activity.gears if activity.gears is defined else ([activity.gear] if activity.gear else []) %}
+                                        {% for gear_key in activity_gears %}
+                                            {% if gear_key and not gear.to_dict().get(gear_key) %}
+                                            <span class="text-danger">{{ gear_key }}</span>
+                                            {% else %}
+                                            {{ gear.to_dict().get(gear_key, {}).name }}
+                                            {% endif %}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {{ activity_types.emoji(activity.activity_type_key) }}
+                                        <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
+                                    </td>
+                                    {% if not is_mobile %}
+                                    <td>
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                                        {{ activity.duration }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                        {{ "{:0,}".format(activity.distance) }} m<br/>
+                                        {{ "{:0,}".format(activity.elevation_gain) }} m
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                        {{ (activity.avg_speed)|round(1) }}<br/>
+                                        {{ activity.pace }}
+                                        {% endif %}
+                                    </td>
+                                    <td title="Exercises and laps">
+                                        {% if activity.activity_type_key in ["exercise", "physio"]  and activity.exercises and activity.exercises|length > 0%}
+                                        {{ activity.exercises|length }}
+                                        {%else%}
+                                        .
+                                        {% endif %}
+                                        <br/>
+                                        {% if activity.activity_type_key not in ["sick","injured","comment","meditation", "physio", "exercise"] and activity.laps and activity.laps|length > 0 %}
+                                        {{ activity.laps|length }}
+                                        {%else%}
+                                        .
+                                        {% endif %}
+                                    </td>
+                                    <td><span>{{ activity.src }}</span></td>
+                                    {# <td><span {% if activity.src =="strava" %}class="badge bg-orange-lt" {% endif %}>{{ activity.src }}</span></td> #}
+                                    {% if activity.workout_sort_code == 2 %}
+                                    <td title="Workout"><div class="mytral-workouts-few">
+                                    {% elif activity.workout_sort_code == 3 %}
+                                    <td title="Workout"><div class="mytral-workouts-more">
+                                    {% elif activity.workout_sort_code > 3 %}
+                                    <td title="Workout"><div class="mytral-workouts-many">
+                                    {% else %}
+                                        {% if activity.activity_type_key in ["sick","injured","comment"] %}
+                                        <td title="Workout">
+                                        {% else %}
+                                        <td title="Workout" class="mytral-workouts-1">
+                                        {% endif %}
+                                    {% endif %}
+                                        {% if activity.activity_type_key not in ["sick","injured","comment"] %}
+                                        {{ activity.workout_sort_code }}
+                                        {% endif %}
+                                    </div></td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    {# Feed View - DEFAULT #}
+                    <div class="mt-3">
+                        {% for activity in activities %}
+                        {# Calculate day of year (1-365/366) for scroll navigation from chart #}
+                        {% set activity_month = activity.when_month|int %}
+                        {% set activity_day = activity.when_day|int %}
+                        {% set is_leap = (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0) %}
+                        {% set days_in_months = [0, 31, 29 if is_leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] %}
+                        {# Use namespace to persist variable across loop #}
+                        {% set ns = namespace(day_of_year = activity_day) %}
+                        {% for m in range(1, activity_month) %}
+                            {% set ns.day_of_year = ns.day_of_year + days_in_months[m] %}
+                        {% endfor %}
+                        <div class="card mb-3" data-activity-day="{{ ns.day_of_year }}" data-activity-date="{{ activity.when }}" data-debug-month="{{ activity_month }}" data-debug-day="{{ activity_day }}">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <span class="avatar avatar-md me-3" style="border-left: 5px solid var(--tblr-{{ activity_types.color(activity.activity_type_key) }});">
+                                        {{ activity_types.emoji(activity.activity_type_key) }}
+                                    </span>
+                                    <div class="flex-fill">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none">
+                                                    <h3 class="mb-1">
+                                                        {% if activity.name %}
+                                                            {{ activity.name }}
+                                                        {% else %}
+                                                            Activity: {{ activity_types.name(activity.activity_type_key) }}
+                                                        {% endif %}
+                                                    </h3>
+                                                </a>
+                                                <div class="text-muted small">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                        <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                                                        <path d="M16 3v4"></path>
+                                                        <path d="M8 3v4"></path>
+                                                        <path d="M4 11h16"></path>
+                                                    </svg>
+                                                    {{ activity.when }} · {{ activities_weekdays[activity.key] }}
+                                                    <span class="mx-2">·</span>
+                                                    <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                {% if activity.commute %}
+                                                <span class="badge bg-green-lt">commute</span>
+                                                {% elif activity.warm_up %}
+                                                <span class="badge bg-yellow-lt">warm-up</span>
+                                                {% elif activity.cool_down %}
+                                                <span class="badge bg-blue-lt">cool-down</span>
+                                                {% elif activity.race %}
+                                                <span class="badge bg-red-lt">race</span>
+                                                {% elif activity.ranked %}
+                                                <span class="badge bg-orange-lt">ranked</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        {% set activity_map_preview = activity_maps.get(activity.key) %}
+                                        {% set has_highlight_photo = activity.highlight_photo_blob_key %}
+                                        {% set has_route_preview = activity_map_preview and activity_map_preview.summary_polyline %}
+
+                                        {% if has_highlight_photo and has_route_preview %}
+                                        <div class="row g-2 mb-3 align-items-stretch activity-media-split">
+                                            <div class="col-12 col-lg-8">
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}">
+                                                    <img src="{{ url_for('download_activity_photo_thumbnail', activity_key=activity.key, blob_key=activity.highlight_photo_blob_key) }}"
+                                                         alt="Highlight photo"
+                                                         class="img-fluid rounded w-100 h-100 activity-highlight-photo"
+                                                         loading="lazy">
+                                                </a>
+                                            </div>
+                                            <div class="col-12 col-lg-4">
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none h-100 d-block activity-map-link">
+                                                    {{ maps_macros.map_preview(activity_map_preview, "activity-map-preview-" ~ activity.key) }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% elif has_highlight_photo %}
+                                        <div class="mb-3">
+                                            <a href="{{ url_for('get_activity', key=activity.key) }}">
+                                                <img src="{{ url_for('download_activity_photo_thumbnail', activity_key=activity.key, blob_key=activity.highlight_photo_blob_key) }}"
+                                                     alt="Highlight photo"
+                                                     class="img-fluid rounded w-100"
+                                                     style="max-height:320px;object-fit:cover;"
+                                                     loading="lazy">
+                                            </a>
+                                        </div>
+                                        {% elif has_route_preview %}
+                                        <div class="row mb-3 justify-content-center">
+                                            <div class="col-12 col-lg-4">
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none d-block">
+                                                    {{ maps_macros.map_preview(activity_map_preview, "activity-map-preview-" ~ activity.key) }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        {% if activity.description %}
+                                        <div class="text-muted mb-3">{{ activity.description|markdown }}</div>
+                                        {% endif %}
+
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                        {# Main Stats Row - only show non-zero values #}
+                                        {% set has_distance = activity.distance and activity.distance > 0 %}
+                                        {% set has_duration = activity.activity_type_key not in ["sick","injured","exercise","comment"] and (activity.hours > 0 or activity.minutes > 0 or activity.seconds > 0) %}
+                                        {% set has_elevation = activity.elevation_gain and activity.elevation_gain > 0 %}
+                                        {% set stats_count = (1 if has_distance else 0) + (1 if has_duration else 0) + (1 if has_elevation else 0) %}
+
+                                        {% if stats_count > 0 %}
+                                        <div class="row g-2 mb-3">
+                                            {% if has_distance %}
+                                            <div class="col-{% if stats_count == 1 %}12{% elif stats_count == 2 %}6{% else %}4{% endif %}">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="text-muted small">Distance</div>
+                                                    <div class="h2 mb-0">{{ "{:,.1f}".format(activity.distance / 1000) }}</div>
+                                                    <div class="text-muted small">km</div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if has_duration %}
+                                            <div class="col-{% if stats_count == 1 %}12{% elif stats_count == 2 %}6{% else %}4{% endif %}">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="text-muted small">Duration</div>
+                                                    <div class="h2 mb-0">{{ activity.duration }}</div>
+                                                    <div class="text-muted small">&nbsp;</div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if has_elevation %}
+                                            <div class="col-{% if stats_count == 1 %}12{% elif stats_count == 2 %}6{% else %}4{% endif %}">
+                                                <div class="text-center p-2 bg-light rounded">
+                                                    <div class="text-muted small">Elevation</div>
+                                                    <div class="h2 mb-0">{{ "{:,}".format(activity.elevation_gain) }}</div>
+                                                    <div class="text-muted small">m</div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+
+                                        {# Performance metrics - only show non-zero values #}
+                                        {% set has_pace = activity.pace and activity.pace != '0:00' and activity.pace != '00:00' %}
+                                        {% set has_speed = activity.avg_speed and activity.avg_speed > 0 %}
+
+                                        {% if has_pace or has_speed %}
+                                        <div class="mb-3">
+                                            <div class="row g-2">
+                                                {% if has_pace %}
+                                                <div class="col-{% if has_pace and has_speed %}6{% else %}12{% endif %}">
+                                                    <div class="d-flex align-items-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm me-2 text-muted" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                            <path d="M13 20v-6l-5 -5l5 -5v-3"></path>
+                                                        </svg>
+                                                        <div class="flex-fill">
+                                                            <div class="text-muted small">Pace</div>
+                                                            <div class="fw-bold">{{ activity.pace }}/km</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                {% if has_speed %}
+                                                <div class="col-{% if has_pace and has_speed %}6{% else %}12{% endif %}">
+                                                    <div class="d-flex align-items-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm me-2 text-muted" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                            <path d="M3 12l3 0"></path>
+                                                            <path d="M12 3l0 18"></path>
+                                                            <path d="M7.8 7.8l2.4 2.4"></path>
+                                                            <path d="M7.8 16.2l2.4 -2.4"></path>
+                                                            <path d="M16.2 7.8l-2.4 2.4"></path>
+                                                            <path d="M16.2 16.2l-2.4 -2.4"></path>
+                                                            <path d="M21 12l-3 0"></path>
+                                                        </svg>
+                                                        <div class="flex-fill">
+                                                            <div class="text-muted small">Speed</div>
+                                                            <div class="fw-bold">{{ (activity.avg_speed)|round(1) }} km/h</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        {# Graphical bars for distance, duration, and elevation #}
+                                        {% if has_distance or has_duration or has_elevation %}
+                                        <div class="row g-2 mb-2">
+                                            {% if has_distance %}
+                                            <div class="col-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="text-muted small">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                            <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13"></path>
+                                                            <path d="M9 4v13"></path>
+                                                            <path d="M15 7v13"></path>
+                                                        </svg>
+                                                        Distance
+                                                    </span>
+                                                    <span class="fw-bold small">{{ "{:,.1f}".format(activity.distance / 1000) }} km</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ [100, (activity.distance / 1000)|round|int]|min }}%"></div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if has_duration %}
+                                            <div class="col-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="text-muted small">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                                            <path d="M12 7v5l3 3"></path>
+                                                        </svg>
+                                                        Duration
+                                                    </span>
+                                                    <span class="fw-bold small">{{ activity.duration }}</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    {% set duration_minutes = activity.hours * 60 + activity.minutes + activity.seconds / 60 %}
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ [100, (duration_minutes / 2)|round|int]|min }}%"></div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if has_elevation %}
+                                            <div class="col-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="text-muted small">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                            <path d="M3 20l3 -6l4 6l4 -12l2 6l4 -6"></path>
+                                                        </svg>
+                                                        Elevation
+                                                    </span>
+                                                    <span class="fw-bold small">{{ "{:,}".format(activity.elevation_gain) }} m</span>
+                                                </div>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-{{ activity_types.color(activity.activity_type_key) }}" role="progressbar" style="width: {{ [100, (activity.elevation_gain / 10)|round|int]|min }}%"></div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        {% endif %}
+
+                                        {# Footer with metadata #}
+                                        <div class="mt-3 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                                            {% set activity_gears = activity.gears if activity.gears is defined else ([activity.gear] if activity.gear else []) %}
+                                            {% if activity_gears %}
+                                            <span class="text-muted small">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M4 6h5.426a1 1 0 0 1 .863 .496l1.064 1.823a3 3 0 0 0 2.583 1.481h5.064a3 3 0 0 1 0 6h-13a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1z"></path>
+                                                </svg>
+                                                {% for gear_key in activity_gears %}
+                                                    {% if gear.to_dict().get(gear_key) %}
+                                                    {{ gear.to_dict().get(gear_key).name }}
+                                                    {% else %}
+                                                    <span class="text-danger">{{ gear_key }}</span>
+                                                    {% endif %}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.src %}
+                                            {# <span class="badge {% if activity.src == 'strava' %}bg-orange-lt{% else %}bg-gray-lt{% endif %}"> #}
+                                            <span class="badge bg-green-lt">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                    <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
+                                                    <path d="M11 13l9 -9" />
+                                                    <path d="M15 4h5v5" />
+                                                </svg>
+                                                {{ activity.src }}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.workout_sort_code and activity.activity_type_key not in ["sick","injured","comment"] %}
+                                            <span class="badge {% if activity.workout_sort_code == 2 %}bg-blue-lt{% elif activity.workout_sort_code == 3 %}bg-indigo-lt{% elif activity.workout_sort_code > 3 %}bg-purple-lt{% else %}bg-gray-lt{% endif %}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M7 21h10"></path>
+                                                    <path d="M12 21v-4"></path>
+                                                    <path d="M12 17c-3.314 0 -6 -1.567 -6 -3.5s2.686 -3.5 6 -3.5s6 1.567 6 3.5s-2.686 3.5 -6 3.5z"></path>
+                                                    <path d="M6 13.5v-8a1.5 1.5 0 0 1 3 0v5.5"></path>
+                                                    <path d="M9 10v-6a1.5 1.5 0 0 1 3 0v8"></path>
+                                                    <path d="M12 4v10"></path>
+                                                    <path d="M15 3.5v10.5"></path>
+                                                    <path d="M18 5v8"></path>
+                                                </svg>
+                                                Workout {{ activity.workout_sort_code }}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.activity_type_key not in ["sick","injured","comment","meditation","physio"] and activity.exercises|length > 0 %}
+                                            <span class="text-muted small">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M6.5 6.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0"></path>
+                                                    <path d="M6.5 21l0 -4.5"></path>
+                                                    <path d="M6.5 16.5l-2 -3l5 -4"></path>
+                                                    <path d="M14.5 6.5l5.5 0"></path>
+                                                    <path d="M14.5 21l5.5 0"></path>
+                                                    <path d="M14.5 12l5.5 0"></path>
+                                                </svg>
+                                                {{ activity.exercises|length }} exercise{% if activity.exercises|length != 1 %}s{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.laps and activity.laps|length > 0 %}
+                                            <span class="text-muted small">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                                    <path d="M12 12l3.5 3.5"></path>
+                                                    <path d="M12 7v5"></path>
+                                                </svg>
+                                                {{ activity.laps|length }} lap{% if activity.laps|length != 1 %}s{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.recorded_blob_keys and activity.recorded_blob_keys|length > 0 %}
+                                            <span class="badge bg-yellow-lt">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
+                                                    <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
+                                                    <path d="M9 12l.01 0"></path>
+                                                    <path d="M13 12l2 0"></path>
+                                                    <path d="M9 16l.01 0"></path>
+                                                    <path d="M13 16l2 0"></path>
+                                                </svg>
+                                                {{ activity.recorded_blob_keys|length }} recording{% if activity.recorded_blob_keys|length != 1 %}s{% endif %}
+                                                ({% for rec in activity.recorded_blob_keys %}{{ rec.split('.')[-1] }}{% if not loop.last %}, {% endif %}{% endfor %})
+                                            </span>
+                                            {% endif %}
+                                            {% if activity.cost and activity.cost > 0 %}
+                                            <span class="badge bg-yellow-lt">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-sm" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2"></path>
+                                                    <path d="M12 3v3m0 12v3"></path>
+                                                </svg>
+                                                {{ "{:.2f}".format(activity.cost) }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .mytral-map-preview {
+        height: 220px;
+        width: 100%;
+        background-color: #f9fafb;
+        border-radius: var(--tblr-border-radius);
+        position: relative;
+        overflow: hidden;
+        background-image:
+            linear-gradient(to right, color-mix(in srgb, var(--tblr-body-color) 5%, transparent) 1px, transparent 1px),
+            linear-gradient(to bottom, color-mix(in srgb, var(--tblr-body-color) 5%, transparent) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    .activity-media-split .activity-highlight-photo {
+        min-height: 220px;
+        max-height: 320px;
+        object-fit: cover;
+    }
+
+    .activity-media-split .activity-map-link .mytral-map-preview {
+        height: 100%;
+        min-height: 220px;
+    }
+
+    .mytral-map-preview svg {
+        position: relative;
+    }
+
+    .mytral-map-preview .mytral-route-start {
+        filter: drop-shadow(0 0 3px rgba(47, 179, 68, 0.6));
+    }
+
+    .mytral-map-preview .mytral-route-end {
+        filter: drop-shadow(0 0 3px rgba(214, 57, 57, 0.6));
+    }
+</style>
+<script>
+    (() => {
+        const svgNs = "http://www.w3.org/2000/svg";
+        const previewElements = document.querySelectorAll(".mytral-map-preview");
+        if (!previewElements.length) {
+            return;
+        }
+
+        ensureSharedDefs();
+
+        function decodePolyline(encoded, precision = 5) {
+            if (!encoded) {
+                return [];
+            }
+            const points = [];
+            let index = 0;
+            let lat = 0;
+            let lng = 0;
+            const factor = Math.pow(10, precision);
+
+            while (index < encoded.length) {
+                let shift = 0;
+                let result = 0;
+                let byte;
+                do {
+                    byte = encoded.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20 && index < encoded.length);
+                const dLat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+                lat += dLat;
+
+                shift = 0;
+                result = 0;
+                do {
+                    byte = encoded.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20 && index < encoded.length);
+                const dLng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
+                lng += dLng;
+
+                points.push([lat / factor, lng / factor]);
+            }
+            return points;
+        }
+
+        function mapPointsToSvg(points, bbox, width, height, padding) {
+            const minLat = bbox[0];
+            const minLon = bbox[1];
+            const maxLat = bbox[2];
+            const maxLon = bbox[3];
+            const latRange = Math.max(maxLat - minLat, 1e-9);
+            const lonRange = Math.max(maxLon - minLon, 1e-9);
+            const drawWidth = width - 2 * padding;
+            const drawHeight = height - 2 * padding;
+
+            return points.map((point) => {
+                const x = padding + ((point[1] - minLon) / lonRange) * drawWidth;
+                const y = padding + (1 - (point[0] - minLat) / latRange) * drawHeight;
+                return [x, y];
+            });
+        }
+
+        function buildPathData(mapped) {
+            if (!mapped.length) {
+                return "";
+            }
+            let d = `M ${mapped[0][0]} ${mapped[0][1]}`;
+            for (let i = 1; i < mapped.length; i += 1) {
+                d += ` L ${mapped[i][0]} ${mapped[i][1]}`;
+            }
+            return d;
+        }
+
+        function ensureSharedDefs() {
+            if (document.getElementById("mytral-map-defs")) {
+                return;
+            }
+            const defsSvg = document.createElementNS(svgNs, "svg");
+            defsSvg.id = "mytral-map-defs";
+            defsSvg.setAttribute("width", "0");
+            defsSvg.setAttribute("height", "0");
+            defsSvg.setAttribute("aria-hidden", "true");
+            defsSvg.style.position = "absolute";
+            defsSvg.style.visibility = "hidden";
+
+            const defs = document.createElementNS(svgNs, "defs");
+
+            // glow filter: blur + merge with original
+            const filter = document.createElementNS(svgNs, "filter");
+            filter.setAttribute("id", "mytral-route-glow");
+            filter.setAttribute("x", "-50%");
+            filter.setAttribute("y", "-50%");
+            filter.setAttribute("width", "200%");
+            filter.setAttribute("height", "200%");
+            const blur = document.createElementNS(svgNs, "feGaussianBlur");
+            blur.setAttribute("stdDeviation", "2.5");
+            blur.setAttribute("result", "blur");
+            filter.appendChild(blur);
+            const merge = document.createElementNS(svgNs, "feMerge");
+            const mn1 = document.createElementNS(svgNs, "feMergeNode");
+            mn1.setAttribute("in", "blur");
+            const mn2 = document.createElementNS(svgNs, "feMergeNode");
+            mn2.setAttribute("in", "SourceGraphic");
+            merge.appendChild(mn1);
+            merge.appendChild(mn2);
+            filter.appendChild(merge);
+            defs.appendChild(filter);
+
+            // diagonal gradient from Tabler blue to cyan
+            const grad = document.createElementNS(svgNs, "linearGradient");
+            grad.setAttribute("id", "mytral-route-gradient");
+            grad.setAttribute("x1", "0%");
+            grad.setAttribute("y1", "0%");
+            grad.setAttribute("x2", "100%");
+            grad.setAttribute("y2", "100%");
+            const s1 = document.createElementNS(svgNs, "stop");
+            s1.setAttribute("offset", "0%");
+            s1.setAttribute("stop-color", "#206bc4");
+            const s2 = document.createElementNS(svgNs, "stop");
+            s2.setAttribute("offset", "100%");
+            s2.setAttribute("stop-color", "#4facfe");
+            grad.appendChild(s1);
+            grad.appendChild(s2);
+            defs.appendChild(grad);
+
+            defsSvg.appendChild(defs);
+            document.body.prepend(defsSvg);
+        }
+
+        function attachHoverAnimation(container, mapped, svg) {
+            if (mapped.length < 2) {
+                return;
+            }
+            let animFrame = null;
+            let dot = null;
+
+            container.addEventListener("mouseenter", () => {
+                dot = document.createElementNS(svgNs, "circle");
+                dot.setAttribute("r", "4.5");
+                dot.setAttribute("fill", "#ffffff");
+                dot.setAttribute("stroke", "#d63939");
+                dot.setAttribute("stroke-width", "2");
+                dot.setAttribute("filter", "url(#mytral-route-glow)");
+                dot.style.opacity = "0";
+                svg.appendChild(dot);
+
+                // fade in
+                requestAnimationFrame(() => {
+                    dot.style.transition = "opacity 0.15s ease";
+                    dot.style.opacity = "1";
+                });
+
+                let idx = 0;
+                const lastIdx = mapped.length - 1;
+                const step = Math.max(1, Math.floor(mapped.length / 120));
+
+                function animate() {
+                    const pos = Math.min(idx, lastIdx);
+                    dot.setAttribute("cx", mapped[pos][0]);
+                    dot.setAttribute("cy", mapped[pos][1]);
+                    if (idx < lastIdx) {
+                        idx = Math.min(idx + step, lastIdx);
+                        animFrame = requestAnimationFrame(animate);
+                    }
+                }
+                animFrame = requestAnimationFrame(animate);
+            });
+
+            container.addEventListener("mouseleave", () => {
+                if (animFrame) {
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+                if (dot) {
+                    dot.remove();
+                    dot = null;
+                }
+            });
+        }
+
+        function initPreviewMap(element) {
+            if (element.dataset.mapReady === "1") {
+                return;
+            }
+            const encoded = JSON.parse(element.dataset.polyline || "\"\"");
+            if (!encoded) {
+                return;
+            }
+            const points = decodePolyline(encoded);
+            if (!points.length) {
+                return;
+            }
+            let bbox = JSON.parse(element.dataset.bbox || "null");
+            if (!bbox || bbox.length !== 4) {
+                const lats = points.map((p) => p[0]);
+                const lons = points.map((p) => p[1]);
+                bbox = [
+                    Math.min(...lats),
+                    Math.min(...lons),
+                    Math.max(...lats),
+                    Math.max(...lons),
+                ];
+            }
+
+            const width = element.clientWidth || 600;
+            const height = element.clientHeight || 220;
+            const padding = 10;
+            const mapped = mapPointsToSvg(points, bbox, width, height, padding);
+            if (!mapped.length) {
+                return;
+            }
+
+            const svg = document.createElementNS(svgNs, "svg");
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            svg.setAttribute("preserveAspectRatio", "none");
+
+            // route path with gradient + glow
+            const path = document.createElementNS(svgNs, "path");
+            path.setAttribute("d", buildPathData(mapped));
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "url(#mytral-route-gradient)");
+            path.setAttribute("stroke-width", "2.5");
+            path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("stroke-linejoin", "round");
+            path.setAttribute("vector-effect", "non-scaling-stroke");
+            path.setAttribute("filter", "url(#mytral-route-glow)");
+            svg.appendChild(path);
+
+            // start marker
+            const startDot = document.createElementNS(svgNs, "circle");
+            startDot.setAttribute("cx", mapped[0][0]);
+            startDot.setAttribute("cy", mapped[0][1]);
+            startDot.setAttribute("r", "4");
+            startDot.setAttribute("fill", "#2fb344");
+            startDot.setAttribute("stroke", "#ffffff");
+            startDot.setAttribute("stroke-width", "1.5");
+            startDot.classList.add("mytral-route-start");
+            svg.appendChild(startDot);
+
+            // end marker
+            const endDot = document.createElementNS(svgNs, "circle");
+            endDot.setAttribute("cx", mapped[mapped.length - 1][0]);
+            endDot.setAttribute("cy", mapped[mapped.length - 1][1]);
+            endDot.setAttribute("r", "4");
+            endDot.setAttribute("fill", "#d63939");
+            endDot.setAttribute("stroke", "#ffffff");
+            endDot.setAttribute("stroke-width", "1.5");
+            endDot.classList.add("mytral-route-end");
+            svg.appendChild(endDot);
+
+            element.replaceChildren(svg);
+            element.dataset.mapReady = "1";
+
+            attachHoverAnimation(element, mapped, svg);
+        }
+
+        if ("IntersectionObserver" in window) {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            initPreviewMap(entry.target);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                { rootMargin: "50px" },
+            );
+            previewElements.forEach((el) => observer.observe(el));
+        } else {
+            previewElements.forEach((el) => initPreviewMap(el));
+        }
+    })();
+</script>
+{% endblock %}

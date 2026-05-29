@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">
+                    Gear Performance
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_gear_list') }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        List
+                    </a>
+                    <a href="{{ url_for('settings_gear_list') }}?aspect=chart" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-pie" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8"></path>
+                            <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a.9 .9 0 0 1 -.9 -.9v-4.5"></path>
+                        </svg>
+                        Chart
+                    </a>
+                    <a href="{{ url_for('insight_gear_performance') }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trending-up" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 17l4 -4l4 4l4 -4l4 4"></path>
+                            <path d="M3 7l4 4l4 -4l4 4l4 -4"></path>
+                        </svg>
+                        Performance
+                    </a>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_gear_merge_strava') }}" class="btn btn-secondary" title="Merge Strava gear (previously synchronized using Strava tools) to your gear">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-refresh" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+                            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+                        </svg>
+                        Merge Strava Gear
+                    </a>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_gear_create') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Gear
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Usage statistics for all your gear ranked by total activities.
+                Shows distance, time, usage period, and mileage status for each piece of equipment.
+                High Mileage (&gt;800 km) indicates gear may need replacing.
+            </p>
+        </div>
+    </div>
+
+    {% if stats and stats.gear_count %}
+    <div class="row row-deck row-cards">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gear Usage</h3>
+                </div>
+                <div class="card-table table-responsive">
+                    <table class="table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>Gear</th>
+                                <th class="text-end">Usage Count</th>
+                                <th class="text-end">Distance (km)</th>
+                                <th class="text-end">Time</th>
+                                <th class="text-end">First Use</th>
+                                <th class="text-end">Last Use</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gear_id in stats.gear_count|dictsort(by='value', reverse=true) %}
+                                {% set gear_key = gear_id[0] %}
+                                {% set count = stats.gear_count[gear_key] %}
+                                {% set km = (stats.total_m_per_gear.get(gear_key, 0) / 1000)|int %}
+                                {% set seconds = stats.total_seconds_per_gear.get(gear_key, 0) %}
+                                {% set time_str = (seconds / 3600)|int|string + 'h' if seconds > 0 else '0h' %}
+                                {% set from_date = stats.gear_used_from.get(gear_key, (0,0,0)) %}
+                                {% set to_date = stats.gear_used_to.get(gear_key, (0,0,0)) %}
+                                {% set gear_obj = user_gear.gear_by_key.get(gear_key) if user_gear else none %}
+                                <tr>
+                                    <td>
+                                        {% if gear_obj %}
+                                            <a href="{{ url_for('settings_gear_get', key=gear_key) }}"><strong>{{ gear_obj.name }}</strong></a>
+                                            {% if gear_obj.vendor %}
+                                                <div class="text-muted small">{{ gear_obj.vendor }}{% if gear_obj.model %} {{ gear_obj.model }}{% endif %}</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">{{ gear_key[:8] }}...</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">{{ count }}</td>
+                                    <td class="text-end">{{ '{:,}'.format(km) }}</td>
+                                    <td class="text-end">{{ time_str }}</td>
+                                    <td class="text-end">
+                                        {% if from_date[0] > 0 %}
+                                            {{ '{:04d}-{:02d}-{:02d}'.format(from_date[0], from_date[1], from_date[2]) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if to_date[0] > 0 %}
+                                            {{ '{:04d}-{:02d}-{:02d}'.format(to_date[0], to_date[1], to_date[2]) }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if km > 800 %}
+                                            <span class="badge bg-danger text-danger-fg">High Mileage</span>
+                                        {% elif km > 500 %}
+                                            <span class="badge bg-warning text-warning-fg">Medium Mileage</span>
+                                        {% else %}
+                                            <span class="badge bg-success text-success-fg">Good</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row row-deck row-cards mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-muted">
+                    No gear data available yet. Add gear in your profile settings and assign it to activities.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{%endblock%}

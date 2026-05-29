@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Push-up",
+        "description": "Standard push-up exercise",
+        "weight": 0.0,
+        "tags": ["calisthenics", "upper-body"],
+        "muscle_groups": ["pecs", "triceps"],
+        "muscle_groups_secondary": ["shoulders", "abs"],
+        "key": "ex-test-pushup-001"
+    },
+    {
+        "name": "Squat",
+        "description": "Bodyweight squat",
+        "weight": 0.0,
+        "tags": ["calisthenics", "lower-body"],
+        "muscle_groups": ["quads", "glutes"],
+        "muscle_groups_secondary": ["hamstrings", "calves"],
+        "key": "ex-test-squat-002"
+    }
+]

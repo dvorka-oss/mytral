@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">Sickness Heatmap</h2>
+            </div>
+        </div>
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Data from the past years are used to create a heatmap of sicknesses. The heatmap is a calendar view where each day is colored
+                    according to the number of sicknesses that day. The color scale is from gray (no sickness) to red (many sicknesses). The heatmap is interactive,
+                    and you can click on a day to see the details for that date.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% for year in data.heatmap %}
+            <div class="mb-4">
+                <div class="heatmap-container">
+                    <div class="table-responsive">
+                        <table class="heatmap-calendar">
+                        {% if is_mobile %}
+                            {% for week_number in data.heatmap[year] %}
+                                <tr>
+                                {% for week_day in range(7) %}
+                                    {% if week_day in data.heatmap[year][week_number] %}
+                                        {% set date_parts = data.heatmap[year][week_number][week_day].slash_date.split('/') %}
+                                        <td title="{{ data.heatmap[year][week_number][week_day].count or 0 }}">
+                                            <a href="/activities/month-day/{{ date_parts[1] }}/{{ date_parts[2] }}">
+                                            {% if data.heatmap[year][week_number][week_day].count %}
+                                                {% if data.heatmap[year][week_number][week_day].count < 2 %}
+                                                <div class="heat_sick_low"></div></a></td>
+                                                {% elif data.heatmap[year][week_number][week_day].count < 3 %}
+                                                <div class="heat_sick_medium"></div></a></td>
+                                                {% else %}
+                                                <div class="heat_sick"></div></a></td>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="heat_n"></div></a></td>
+                                            {% endif %}
+                                    {% else %}
+                                        <td><div class="heat_na"></div></td>
+                                    {% endif %}
+                                {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            {% for week_day in range(7) %}
+                                <tr>
+                                {% for week_number in data.heatmap[year] %}
+                                    {% if week_day in data.heatmap[year][week_number] %}
+                                        {% set date_parts = data.heatmap[year][week_number][week_day].slash_date.split('/') %}
+                                        <td title="{{ data.heatmap[year][week_number][week_day].count or 0 }}">
+                                            <a href="/activities/month-day/{{ date_parts[1] }}/{{ date_parts[2] }}">
+                                            {% if data.heatmap[year][week_number][week_day].count %}
+                                                {% if data.heatmap[year][week_number][week_day].count < 2 %}
+                                                <div class="heat_sick_low"></div></a></td>
+                                                {% elif data.heatmap[year][week_number][week_day].count < 3 %}
+                                                <div class="heat_sick_medium"></div></a></td>
+                                                {% else %}
+                                                <div class="heat_sick"></div></a></td>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="heat_n"></div></a></td>
+                                            {% endif %}
+                                    {% else %}
+                                        <td><div class="heat_na"></div></td>
+                                    {% endif %}
+                                {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if ff.mode("mock") %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="card-title">Insights</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Injury Predictions</h4>
+                            <p class="text-muted">Possibility of injury for today given the past years and months:</p>
+                            <ol class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong>achilles tendon</strong>
+                                    <span class="badge bg-primary ms-2">37.21%</span>
+                                </li>
+                                <li class="mb-2">
+                                    <strong>left psoar</strong>
+                                    <span class="badge bg-primary ms-2">21.12%</span>
+                                </li>
+                                <li class="mb-2">
+                                    <strong>frozen shoulder</strong>
+                                    <span class="badge bg-primary ms-2">15.23%</span>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">Sickness Predictions</h4>
+                            <p class="text-muted">Possibility of sickness for today given the past years and months:</p>
+                            <ol class="list-unstyled">
+                                <li class="mb-2">
+                                    <strong>cold</strong>
+                                    <span class="badge bg-primary ms-2">37.21%</span>
+                                </li>
+                                <li class="mb-2">
+                                    <strong>flu</strong>
+                                    <span class="badge bg-primary ms-2">21.12%</span>
+                                </li>
+                                <li class="mb-2">
+                                    <strong>caught</strong>
+                                    <span class="badge bg-primary ms-2">15.23%</span>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

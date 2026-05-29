@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">Active in Week</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Which days and at which times are you the most active?
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

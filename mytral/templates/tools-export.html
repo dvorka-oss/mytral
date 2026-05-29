@@ -1,0 +1,72 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Export</h2>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Export tools allow you to download your data in various formats. You can export activities as JSON
+                    or download a complete user data package including activities, goals, gear, symptoms, routes and user data.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-xl">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><b>Export Activities</b></h3>
+            <div class="card-actions">
+                <a href="{{ url_for('tool_export_activities_json') }}" class="btn btn-primary" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-code" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                        <path d="M10 13l-1 2l1 2"></path>
+                        <path d="M14 13l1 2l-1 2"></path>
+                    </svg>
+                    Export as JSON
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Export <b>all activities</b> of the current datasets as JSON format.</p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title"><b>Export User Data</b></h3>
+            <div class="card-actions">
+                <a href="{{ url_for('tool_export_profile_zip') }}" class="btn btn-primary" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-zip" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1"></path>
+                        <path d="M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2z"></path>
+                        <path d="M11 5l-1 0"></path>
+                        <path d="M13 7l-1 0"></path>
+                        <path d="M11 9l-1 0"></path>
+                        <path d="M13 11l-1 0"></path>
+                        <path d="M11 13l-1 0"></path>
+                        <path d="M13 15l-1 0"></path>
+                    </svg>
+                    Export as ZIP
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Export <b>user data</b> - activities, goals, gear, symptoms, routes and user data as a ZIP package.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

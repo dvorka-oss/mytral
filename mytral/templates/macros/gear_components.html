@@ -1,0 +1,328 @@
+{# Macros for the Components sidebar+detail UI used in gear-get and gear-update pages. #}
+
+
+{# Left sidebar navigation listing active and retired components. #}
+{% macro comp_sidebar(active_components, retired_components, gear_key) %}
+<div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h4 class="subheader mb-0">Components</h4>
+        <a href="{{ url_for('settings_gear_component_create', gear_key=gear_key) }}" class="btn btn-md btn-outline-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Add new component">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add
+        </a>
+    </div>
+    {% if active_components %}
+    <div class="list-group list-group-transparent mb-0" id="components-nav">
+        {% for comp in active_components %}
+        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between{% if loop.first %} active{% endif %}" data-section="comp-{{ comp.key }}">
+            <span class="text-truncate me-2">{{ comp.name }}</span>
+            {% if comp.requires_service %}
+            <span class="badge bg-danger text-red-fg flex-shrink-0">Service</span>
+            {% else %}
+            <span class="badge bg-success text-green-fg flex-shrink-0">OK</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if retired_components %}
+    <div class="mt-3">
+        <h4 class="subheader">Retired</h4>
+        <div class="list-group list-group-transparent" id="retired-components-nav">
+            {% for comp in retired_components %}
+            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between text-muted{% if not active_components and loop.first %} active{% endif %}" data-section="comp-{{ comp.key }}">
+                <span class="text-truncate me-2">{{ comp.name }}</span>
+                <span class="badge bg-secondary text-secondary-fg flex-shrink-0">Retired</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if not active_components and not retired_components %}
+    <p class="text-muted small mt-2">No components yet.</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# Stats mini-cards row for a component.
+   Active components get 4 cards (Cost, Installed, Usage, Service Interval).
+   Retired components get 3 cards (Cost, Installed, Usage at Retirement). #}
+{% macro comp_stats_cards(comp, is_retired=False) %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="subheader">Cost</div>
+                <div class="h3 mb-0">🪙{{ "{:0,.0f}".format(comp.cost) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="subheader">Installed</div>
+                <div class="h3 mb-0">{{ comp.installed_date or '—' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="subheader">{% if is_retired %}Usage at Retirement{% else %}Usage{% endif %}</div>
+                <div class="h3 mb-0">{{ "{:0,.0f}".format(comp.distance_km) }} km</div>
+                <small class="text-muted">{{ "%.1f"|format(comp.time_hours) }} h</small>
+            </div>
+        </div>
+    </div>
+    {% if not is_retired %}
+    <div class="col-sm-6 col-lg-3">
+        <div class="card card-sm">
+            <div class="card-body">
+                <div class="subheader">Service Interval</div>
+                {% if comp.next_service_km or comp.next_service_hours or comp.next_service_months %}
+                <div class="h3 mb-0">
+                    {% if comp.next_service_km %}{{ comp.next_service_km }} km{% endif %}
+                    {% if comp.next_service_hours %}{{ comp.next_service_hours }} h{% endif %}
+                    {% if comp.next_service_months %}{{ comp.next_service_months }} mo{% endif %}
+                </div>
+                {% else %}
+                <div class="h3 mb-0 text-muted">—</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# Service progress bars (rendered only when at least one interval is configured). #}
+{% macro comp_service_progress(comp) %}
+{% if comp.next_service_km or comp.next_service_hours or comp.next_service_months %}
+<div class="mb-4">
+    <div class="subheader mb-2">Service Progress</div>
+    {% if comp.next_service_km %}
+    <div class="mb-2">
+        <div class="d-flex justify-content-between small mb-1">
+            <span>Distance: {{ "{:0,.0f}".format(comp.km_since_service) }} / {{ comp.next_service_km }} km</span>
+            <span>{{ "%.0f"|format([comp.service_progress_km * 100, 100]|min) }}%</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar {% if comp.requires_service_km %}bg-danger{% else %}bg-primary{% endif %}" style="width: {{ [comp.service_progress_km * 100, 100]|min }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+    {% if comp.next_service_hours %}
+    <div class="mb-2">
+        <div class="d-flex justify-content-between small mb-1">
+            <span>Time: {{ "%.1f"|format(comp.hours_since_service) }} / {{ comp.next_service_hours }} h</span>
+            <span>{{ "%.0f"|format([comp.service_progress_hours * 100, 100]|min) }}%</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar {% if comp.requires_service_hours %}bg-danger{% else %}bg-primary{% endif %}" style="width: {{ [comp.service_progress_hours * 100, 100]|min }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+    {% if comp.next_service_months %}
+    <div class="mb-2">
+        <div class="d-flex justify-content-between small mb-1">
+            <span>Calendar: every {{ comp.next_service_months }} months</span>
+            <span>{{ "%.0f"|format([comp.service_progress_time * 100, 100]|min) }}%</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar {% if comp.requires_service_time %}bg-danger{% else %}bg-primary{% endif %}" style="width: {{ [comp.service_progress_time * 100, 100]|min }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# Service history table for a component.
+   show_edit: render an Edit link in the actions column.
+   delete_form_prefix: if set, render a Delete button referencing an external form
+     with id="{{ delete_form_prefix }}-{{ comp.key }}-{{ original_index }}". #}
+{% macro comp_service_history_table(comp, gear, key, show_edit=False, delete_form_prefix=None) %}
+{% if gear.component_history.get(comp.key) %}
+{% set has_actions = show_edit or delete_form_prefix %}
+<h4 class="subheader mb-2">Service History</h4>
+<div class="table-responsive mb-4">
+    <table class="table table-vcenter table-sm">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Usage at Service</th>
+                <th>Cost</th>
+                <th>Notes</th>
+                {% if has_actions %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% set history_with_indices = [] %}
+            {% for entry in gear.component_history[comp.key] %}
+                {% set _ = history_with_indices.append((loop.index0, entry)) %}
+            {% endfor %}
+            {% for original_index, entry in history_with_indices|sort(attribute='1.date', reverse=True) %}
+            <tr>
+                <td>{{ entry.date }}</td>
+                <td>
+                    {% if entry.service_type == 'replacement' %}
+                    <span class="badge bg-warning text-yellow-fg">Replacement</span>
+                    {% elif entry.service_type == 'service' %}
+                    <span class="badge bg-primary text-blue-fg">Service</span>
+                    {% else %}
+                    <span class="badge bg-secondary text-secondary-fg">{{ entry.service_type|title }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ "%.1f"|format(entry.km_at_service) }} km / {{ "%.1f"|format(entry.hours_at_service) }} h</td>
+                <td>🪙{{ "%.0f"|format(entry.cost) }}</td>
+                <td>{{ entry.notes or '—' }}</td>
+                {% if has_actions %}
+                <td class="text-end">
+                    {% if show_edit %}
+                    <a href="{{ url_for('settings_gear_component_service_update', gear_key=key, component_key=comp.key, service_index=original_index) }}" class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit service entry">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                    </a>
+                    {% endif %}
+                    {% if delete_form_prefix %}
+                    <button type="submit" form="{{ delete_form_prefix }}-{{ comp.key }}-{{ original_index }}" class="btn btn-link text-danger p-0 ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete service entry" onclick="return confirm('Delete this service entry?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 7l16 0"></path>
+                            <path d="M10 11l0 6"></path>
+                            <path d="M14 11l0 6"></path>
+                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                        </svg>
+                    </button>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{# Full detail pane for a retired component.
+   visible: controls whether the pane starts visible (True) or hidden (False).
+   Callers should pass visible=(not active_components and loop.first) from their for-loop. #}
+{% macro comp_retired_pane(comp, gear, key, visible=False, section_class='comp-section') %}
+<div id="comp-{{ comp.key }}" class="{{ section_class }}{% if not visible %} d-none{% endif %}">
+    <div class="card-body border-bottom">
+        <div class="d-flex align-items-start justify-content-between">
+            <div>
+                <h3 class="mb-0">{{ comp.name }}</h3>
+                {% if comp.notes %}
+                <p class="text-muted small mt-1 mb-0">{{ comp.notes }}</p>
+                {% endif %}
+            </div>
+            <span class="badge bg-secondary text-secondary-fg ms-3 flex-shrink-0">Retired</span>
+        </div>
+    </div>
+    <div class="card-body">
+        {{ comp_stats_cards(comp, is_retired=True) }}
+        {% if gear.component_history.get(comp.key) %}
+        <h4 class="subheader mb-2">Service History</h4>
+        <div class="table-responsive">
+            <table class="table table-vcenter table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Usage at Service</th>
+                        <th>Cost</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set retired_hist_indexed = [] %}
+                    {% for entry in gear.component_history[comp.key] %}
+                        {% set _ = retired_hist_indexed.append((loop.index0, entry)) %}
+                    {% endfor %}
+                    {% for _idx, entry in retired_hist_indexed|sort(attribute='1.date', reverse=True) %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>
+                            {% if entry.service_type == 'replacement' %}
+                            <span class="badge bg-warning text-yellow-fg">Replacement</span>
+                            {% elif entry.service_type == 'service' %}
+                            <span class="badge bg-primary text-blue-fg">Service</span>
+                            {% else %}
+                            <span class="badge bg-secondary text-secondary-fg">{{ entry.service_type|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ "%.1f"|format(entry.km_at_service) }} km / {{ "%.1f"|format(entry.hours_at_service) }} h</td>
+                        <td>🪙{{ "%.0f"|format(entry.cost) }}</td>
+                        <td>{{ entry.notes or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+
+{# Empty state shown when a gear has no components at all. #}
+{% macro comp_empty_state(gear_key) %}
+<div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-5 text-muted">
+    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-components mb-2" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M3 12l3 3l3 -3l-3 -3z"/>
+        <path d="M15 12l3 3l3 -3l-3 -3z"/>
+        <path d="M9 6l3 3l3 -3l-3 -3z"/>
+        <path d="M9 18l3 3l3 -3l-3 -3z"/>
+    </svg>
+    <p class="mt-1 mb-3">No components added yet.</p>
+    <a href="{{ url_for('settings_gear_component_create', gear_key=gear_key) }}" class="btn btn-outline-primary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Component
+    </a>
+</div>
+{% endmacro %}
+
+
+{# JS section-switcher for the components sidebar nav.
+   section_class: CSS class applied to each component detail div. #}
+{% macro comp_js(section_class='comp-section') %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const allNavLinks = document.querySelectorAll('[data-section]');
+    const allSections = document.querySelectorAll('.{{ section_class }}');
+
+    allNavLinks.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            allNavLinks.forEach(function (l) { l.classList.remove('active'); });
+            this.classList.add('active');
+            const sectionId = this.getAttribute('data-section');
+            allSections.forEach(function (section) {
+                section.classList.toggle('d-none', section.id !== sectionId);
+            });
+        });
+    });
+});
+</script>
+{% endmacro %}

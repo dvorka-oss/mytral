@@ -1,0 +1,30 @@
+[
+    {
+        "name": "Running",
+        "is_distance": true,
+        "is_exercise": false,
+        "is_regen": false,
+        "is_meta": false,
+        "is_built_in": false,
+        "emoji": "",
+        "color": "blue",
+        "count": 0,
+        "key": "at-test-running-001",
+        "muscle_groups": ["quads", "glutes", "hamstrings"],
+        "muscle_groups_secondary": ["calves", "lower_back"]
+    },
+    {
+        "name": "Yoga",
+        "is_distance": false,
+        "is_exercise": true,
+        "is_regen": true,
+        "is_meta": false,
+        "is_built_in": false,
+        "emoji": "",
+        "color": "green",
+        "count": 0,
+        "key": "at-test-yoga-002",
+        "muscle_groups": [],
+        "muscle_groups_secondary": []
+    }
+]

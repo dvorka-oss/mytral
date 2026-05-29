@@ -1,0 +1,369 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">
+                    Races
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Activities marked as races - grouped by sport, ordered by distance or time.
+                </p>
+
+                {% if filter_activity_types %}
+                <div class="mt-3">
+                    <form method="get" action="{{ url_for('list_activities_races') }}">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label class="form-label">Activity type</label>
+                                <select class="form-select" name="sport" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    {% for s in filter_activity_types %}
+                                        <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                            {{ activity_types.name(s) }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if total_races and total_races > 0 %}
+        {# Statistics Cards #}
+        <div class="row g-2 mb-3 mt-3">
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Total Races
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of activities marked as races">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="h2 mb-0">{{ total_races }}</div>
+                        <div class="text-muted small">
+                            {% if sport_count > 0 %}
+                            {{ sport_count }} sport{% if sport_count != 1 %}s{% endif %}
+                            {% else %}
+                            No sports
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Total Cost
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Sum of all race registration fees and associated costs">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if total_cost > 0 %}
+                        <div class="h2 mb-0">{{ "{:,.2f}".format(total_cost) }}</div>
+                        <div class="text-muted small">
+                            {{ "{:,.2f}".format(total_cost / total_races) }}/race avg
+                        </div>
+                        {% else %}
+                        <div class="h2 mb-0">—</div>
+                        <div class="text-muted small">No cost tracked</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Total Distance
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Cumulative distance covered in all races">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if total_distance > 0 %}
+                        <div class="h2 mb-0">{{ "{:,.1f}".format(total_distance / 1000) }} km</div>
+                        <div class="text-muted small">{{ "{:,.0f}".format(total_distance) }} meters</div>
+                        {% else %}
+                        <div class="h2 mb-0">—</div>
+                        <div class="text-muted small">No distance tracked</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Total Time
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total time spent racing">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if total_duration_seconds > 0 %}
+                        {% set hours = (total_duration_seconds // 3600)|int %}
+                        {% set minutes = ((total_duration_seconds % 3600) // 60)|int %}
+                        <div class="h2 mb-0">{{ hours }}h {{ minutes }}m</div>
+                        <div class="text-muted small">{{ "{:,.0f}".format(total_duration_seconds) }} seconds</div>
+                        {% else %}
+                        <div class="h2 mb-0">—</div>
+                        <div class="text-muted small">No time tracked</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Second row of statistics #}
+        <div class="row g-2 mb-3">
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Longest Race
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Race with the greatest distance covered">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if longest_race and longest_race.distance > 0 %}
+                        <div class="h3 mb-0 text-truncate" title="{{ longest_race.name }}">
+                            <a href="{{ url_for('get_activity', key=longest_race.key) }}" class="text-reset">
+                                {{ longest_race.name or activity_types.name(longest_race.activity_type_key) }}
+                            </a>
+                        </div>
+                        <div class="text-muted small">{{ "{:,.1f}".format(longest_race.distance / 1000) }} km</div>
+                        {% else %}
+                        <div class="h3 mb-0">—</div>
+                        <div class="text-muted small">No data</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Fastest Pace
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Best average pace achieved in any race">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if fastest_race %}
+                        <div class="h3 mb-0 text-truncate" title="{{ fastest_race.name }}">
+                            <a href="{{ url_for('get_activity', key=fastest_race.key) }}" class="text-reset">
+                                {{ fastest_race.name or activity_types.name(fastest_race.activity_type_key) }}
+                            </a>
+                        </div>
+                        <div class="text-muted small">{{ fastest_race.pace }}/km</div>
+                        {% else %}
+                        <div class="h3 mb-0">—</div>
+                        <div class="text-muted small">No data</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Most Active Year
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Year with the most races completed">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if races_by_year %}
+                        {% set most_active = races_by_year.items()|sort(attribute='1', reverse=true)|first %}
+                        <div class="h2 mb-0">{{ most_active[0] }}</div>
+                        <div class="text-muted small">{{ most_active[1] }} race{% if most_active[1] != 1 %}s{% endif %}</div>
+                        {% else %}
+                        <div class="h2 mb-0">—</div>
+                        <div class="text-muted small">No data</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-3">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center">
+                            <div class="subheader small">
+                                Avg Cost/Race
+                                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Average cost per race (only races with recorded costs)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                        <path d="M12 8l0 4"></path>
+                                        <path d="M12 16l.01 0"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        {% if total_cost > 0 %}
+                        {% set races_with_cost = activities_by_activity_type.values()|sum(start=[])|selectattr('cost', 'greaterthan', 0)|list|length %}
+                        <div class="h2 mb-0">{{ "{:,.2f}".format(total_cost / races_with_cost) }}</div>
+                        <div class="text-muted small">{{ races_with_cost }} race{% if races_with_cost != 1 %}s{% endif %} with cost</div>
+                        {% else %}
+                        <div class="h2 mb-0">—</div>
+                        <div class="text-muted small">No cost data</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# NO activities #}
+        {% if activities_by_activity_type|length == 0 %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="empty">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-book" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2 -2v-14a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v14z"></path>
+                            <path d="M3 9h14"></path>
+                            <path d="M3 5h14"></path>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No activities</p>
+                    <p class="empty-subtitle text-muted">
+                        Start by adding your first diary entry.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+            {% for sport in activities_by_activity_type %}
+            <div class="card mt-3">
+                <div class="card-header fw-bold text-capitalize">{{ sport|lower }}</div>
+                <div class="card-body">
+                    {% set activities = activities_by_activity_type[sport] %}
+                    {# TABLE with activities #}
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>When</th>
+                                    {% if not is_mobile %}
+                                    <th>Name</th>
+                                    <th>Distance</th>
+                                    <th>Time</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activities %}
+                                <tr>
+                                    <td>
+                                        <div class="ps-2 mytral-{{ activity_types.color(activity.activity_type_key) }}-border">
+                                            <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset">{{ activity.when }}</a>
+                                            {% if activity.activity_type_key == "sick" %}
+                                            <span class="badge bg-pink text-blue-fg">{{ activity.activity_type_key }}</span>
+                                            {% elif activity.activity_type_key == "injured" %}
+                                            <span class="badge bg-red text-blue-fg">{{ activity.activity_type_key }}</span>
+                                            {% else %}
+                                            <span class="badge bg-black text-blue-fg">{{ activity.activity_type_key }}</span>
+                                            {% endif %}
+
+                                            {% if is_mobile %}
+                                            <div class="mt-2">
+                                                {{ activity_types.emoji(activity.activity_type_key) }}
+                                                <b>{{ activity.name }}</b>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    {% if not is_mobile %}
+                                    <td title="{{ activity.description }}">
+                                        {{ activity_types.emoji(activity.activity_type_key) }}
+                                        <b>{{ activity.name }}</b>
+                                    </td>
+                                    <td>
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                        {{ "{:0,}".format(activity.distance) }} m
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                                        {{ activity.duration }}
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

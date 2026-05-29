@@ -1,0 +1,121 @@
+{%extends "layout.html"%}
+{% from "macros/mannequin.html" import render_mannequin %}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('settings_activity_types_list') }}" class="page-pretitle">Profile · Activity Types</a>
+                <h2 class="page-title">{{ entity.emoji }} {{ entity.name }}</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('settings_activity_types_update', key=key) }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+
+        {# ── Details card ──────────────────────────────────────────────── #}
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    {% if entity.color %}
+                    <div class="avatar avatar-md me-3" style="background-color: var(--tblr-{{ entity.color }});">
+                        {{ entity.emoji }}
+                    </div>
+                    {% else %}
+                    <div class="avatar avatar-md me-3">
+                        {{ entity.emoji }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div class="h3 mb-0">{{ entity.name }}</div>
+                        {% if entity.color %}
+                        <div class="text-muted small">color: {{ entity.color }}</div>
+                        {% endif %}
+                        <div class="text-muted small">
+                            meta activity type: {{ entity.meta_activity_type or "—" }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    {% if entity.is_built_in %}
+                    <span class="badge bg-light text-dark">built-in</span>
+                    {% endif %}
+                    {% if entity.is_distance %}
+                    <span class="badge bg-green text-green-fg">distance</span>
+                    {% endif %}
+                    {% if entity.is_exercise %}
+                    <span class="badge bg-purple text-purple-fg">exercise</span>
+                    {% endif %}
+                    {% if entity.is_regen %}
+                    <span class="badge bg-info text-info-fg">regeneration</span>
+                    {% endif %}
+                    {% if entity.is_meta %}
+                    <span class="badge bg-secondary text-secondary-fg">metadata</span>
+                    {% endif %}
+                    <span class="badge bg-secondary text-secondary-fg">
+                        meta: {{ entity.meta_activity_type or "—" }}
+                    </span>
+                </div>
+            </div>
+            {% if entity.count %}
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card card-sm">
+                            <div class="card-body">
+                                <div class="subheader mb-1">Activities logged</div>
+                                <div class="h1 mb-0">{{ entity.count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ── Muscle groups card ────────────────────────────────────────── #}
+        {% if highlights %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Muscle Groups</h3>
+            </div>
+            <div class="card-body">
+                {{ render_mannequin(
+                    mode="display",
+                    highlights=highlights,
+                    show_legend=true,
+                    picker_id="activity-type-get"
+                ) }}
+            </div>
+        </div>
+        {% else %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Muscle Groups</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">No muscle groups defined for this activity type.
+                    <a href="{{ url_for('settings_activity_types_update', key=key) }}">Edit</a> to add them.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

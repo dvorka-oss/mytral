@@ -1,0 +1,74 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Prune Activity Dataset</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-xl mt-3">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><b>Prune Activities</b></h3>
+                <div class="card-actions">
+                    <button type="submit" class="btn btn-danger" name="{{ form.submit.name }}" value="{{ form.submit.label.text }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 7l16 0"></path>
+                            <path d="M10 11l0 6"></path>
+                            <path d="M14 11l0 6"></path>
+                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                        </svg>
+                        {{ form.submit.label.text }}
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <b>Permanently remove</b> all activities from the <b>current</b> dataset that match
+                    <b>all</b> selected criteria. Set a filter to <code>ALL</code> to skip that criterion.
+                    Activities matching every non-<code>ALL</code> filter will be deleted.
+                </p>
+
+                <div class="row mt-2">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.when_year.id }}">Year:</label>
+                            {{ form.when_year(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.src.id }}">Source:</label>
+                            {{ form.src(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.src_descriptor.id }}">Source Descriptor:</label>
+                            {{ form.src_descriptor(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.src_key.id }}">Source Key:</label>
+                            {{ form.src_key(class="form-select") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

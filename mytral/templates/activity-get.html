@@ -1,0 +1,1178 @@
+{%extends "layout.html"%}
+{% import "macros/maps.html" as maps_macros %}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">Activity Details</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('update_activity', key=activity_entity.key) }}"
+                        class="btn btn-primary"
+                        title="Edit activity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                    {#
+                    <div class="btn-group" role="group" aria-label="Uploads">
+                        <a href="{{ url_for('upload_activity_photos', activity_key=activity_entity.key) }}"
+                            class="btn btn-primary btn-icon"
+                            title="Upload photos">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-photo">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M15 8h.01" />
+                                    <path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" />
+                                    <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" />
+                                    <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" />
+                                </svg>
+                        </a>
+                        <a href="{{ url_for('upload_activity_recording', activity_key=activity_entity.key) }}"
+                            class="btn btn-primary btn-icon"
+                            title="Upload GPX/FIT/* recording">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-paperclip">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" />
+                                </svg>
+                        </a>
+                    </div>
+                    #}
+                    <a href="{{ url_for('get_activity_analysis', key=activity_entity.key) }}"
+                        title="Activity Analysis"
+                        class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 19l4 -6l4 3l4 -6l4 4"></path>
+                            <path d="M3 19h18"></path>
+                        </svg>
+                        Analysis
+                    </a>
+                    <div class="btn-group" role="group" aria-label="Clone activity">
+                        <a href="{{ url_for('clone_to_new_activity', key=activity_entity.key) }}"
+                            title="Clone this activity, edit it to create easily a (similar) new activity"
+                            class="btn btn-outline-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path>
+                                <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path>
+                            </svg>
+                            Clone to New
+                        </a>
+                        <a href="{{ url_for('extend_to_date_range', key=activity_entity.key) }}"
+                            title="Clone this activity to any number of days following the date of this activity"
+                            class="btn btn-outline-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4"></path>
+                                <path d="M18 18v-4h-4v2"></path>
+                                <path d="M15 3v4"></path>
+                                <path d="M7 3v4"></path>
+                                <path d="M3 11h16"></path>
+                                <path d="M18 16.496v1.504l1 1"></path>
+                            </svg>
+                            Clone to Date Range
+                        </a>
+                    </div>
+                    <a href="{{ url_for('delete_activity', key=activity_entity.key) }}" class="btn btn-danger btn-icon" title="Delete activity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 7l16 0"></path>
+                            <path d="M10 11l0 6"></path>
+                            <path d="M14 11l0 6"></path>
+                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# highlight photo hero #}
+{% if activity_entity.highlight_photo_blob_key and photo_list %}
+    {% set highlight_photo = photo_list | selectattr('blob_key', 'equalto', activity_entity.highlight_photo_blob_key) | first %}
+    {% if highlight_photo %}
+<div class="page-body mt-2 mb-3">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body p-0">
+                <a data-fslightbox="activity-photos" data-type="image" id="highlight-photo-fslightbox" href="{{ url_for('download_activity_photo', activity_key=activity_entity.key, blob_key=highlight_photo.blob_key) }}">
+                <img src="{{ url_for('download_activity_photo', activity_key=activity_entity.key, blob_key=highlight_photo.blob_key) }}"
+                     alt="{{ highlight_photo.name or highlight_photo.original_file_name }}"
+                     class="img-fluid rounded" style="max-height:480px;object-fit:cover;width:100%;cursor:pointer">
+                </a>
+            </div>
+            {% if highlight_photo.name or highlight_photo.description %}
+            <div class="card-footer text-muted">
+                {% if highlight_photo.name %}<strong>{{ highlight_photo.name }}</strong>{% endif %}
+                {% if highlight_photo.description %} — {{ highlight_photo.description }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+    {% endif %}
+{% endif %}
+
+{{ maps_macros.map_detail(activity_map_data, "activity-map-detail-" ~ activity_entity.key) }}
+
+<div class="page-body mt-0">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md" style="background-color: {{ activity_types.color(activity_entity.activity_type_key) }}">
+                        {{ activity_types.emoji(activity_entity.activity_type_key ) }}
+                    </div>
+                    <div class="ms-3">
+                        <div class="h3 mb-0">{{ activity_types.name(activity_entity.activity_type_key) }}</div>
+                        <div class="text-muted">
+                            {{ activity_entity.intensity }}
+                            {% if activity_entity.weather %} · {{ activity_entity.weather }}{% endif %}
+                            {% if activity_entity.temperature %} · {{ activity_entity.temperature }}℃{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    {% if activity_entity.race %}
+                    <span class="badge bg-red text-red-fg">race</span>
+                    {% endif %}
+                    {% if activity_entity.ranked %}
+                    <span class="badge bg-orange text-orange-fg">ranked</span>
+                    {% endif %}
+
+                    {% if activity_entity.commute %}
+                    <span class="badge bg-green text-green-fg">commute</span>
+                    {% endif %}
+
+                    {% if activity_entity.warm_up %}
+                    <span class="badge bg-yellow text-yellow-fg">warm up</span>
+                    {% endif %}
+                    {% if activity_entity.cool_down %}
+                    <span class="badge bg-azure text-azure-fg">cool down</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="text-muted mb-3"><a href="{{ url_for('list_activities_for_date', year=prev_year, month=prev_month, day=prev_day) }}" class="text-reset">&lt;</a> {{ week_day }} · <a href="{{ url_for('list_activities_for_date', year=activity_entity.when_year, month=activity_entity.when_month, day=activity_entity.when_day) }}" class="text-reset">{{ activity_entity.when }}</a> <a href="{{ url_for('list_activities_for_date', year=next_year, month=next_month, day=next_day) }}" class="text-reset">&gt;</a>{% if activity_entity.where %} · {{ activity_entity.where }}{% endif %}</div>
+
+                <h2 class="mb-3">
+                    {% if activity_entity.name %}
+                        {{ activity_entity.name }}
+                    {% else %}
+                        Activity: {{ activity_types.name(activity_entity.activity_type_key) }}
+                    {% endif %}
+                </h2>
+                <div class="text-muted mb-4">
+                    {{ activity_entity.description|markdown }}
+                </div>
+
+                {% if activity_entity.distance %}
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Distance</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.distance|int) }} m</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Time</div>
+                                </div>
+                                <div class="h1 mb-3">{{ activity_entity.duration }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if activity_entity.avg_speed %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Speed</div>
+                                </div>
+                                <div class="h1 mb-3">{{ '{:.2f}'.format(activity_entity.avg_speed|float) }} km/h</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if activity_entity.pace %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Pace</div>
+                                </div>
+                                <div class="h1 mb-3">{{ activity_entity.pace }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-4">
+                    {% set activity_gears = activity_entity.gears if activity_entity.gears is defined else ([activity_entity.gear] if activity_entity.gear else []) %}
+                    {% if activity_gears %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Gear{{ 's' if activity_gears|length > 1 }}</div>
+                                </div>
+                                <div class="h1 mb-3">
+                                    {% for gear_key in activity_gears %}
+                                        <a href="{{ url_for('settings_gear_list', key=gear_key) }}" class="text-reset">
+                                            {% if gear_key and not gear.to_dict().get(gear_key) %}
+                                            <span class="text-danger">{{ gear_key }}</span>
+                                            {% else %}
+                                            {{ gear.to_dict().get(gear_key, {}).name }}
+                                            {% endif %}
+                                        </a>{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.outfit %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Outfit</div>
+                                </div>
+                                <div class="h1 mb-3">
+                                    <a href="{{ url_for('settings_outfits_list', key=activity_entity.outfit) }}" class="text-reset">
+                                        {{ outfits.outfits_by_key.get(activity_entity.outfit, {}).name or activity_entity.outfit }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.elevation_gain %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Elevation</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.elevation_gain|int) }} m</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.elevation_min %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Elevation min</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.elevation_min|int) }} m</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.elevation_max %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Elevation max</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.elevation_max|int) }} m</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.avg_hr %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Avg HR</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.avg_hr|int) }} bpm</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.max_hr %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Max HR</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.max_hr|int) }} bpm</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.min_hr %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Resting HR</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.min_hr|int) }} bpm</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.avg_watts %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Avg Watts</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.avg_watts|int) }} W</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.max_watts %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Max Watts</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.max_watts|int) }} W</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.avg_cadence %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Avg Cadence</div>
+                                </div>
+                                <div class="h1 mb-3">{{ activity_entity.avg_cadence }} rpm</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.max_cadence %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Max Cadence</div>
+                                </div>
+                                <div class="h1 mb-3">{{ activity_entity.max_cadence }} rpm</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if activity_entity.exercises %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Exercises</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>Exercise</th>
+                                    <th>Weight</th>
+                                    <th>Series</th>
+                                    <th>Repetitions</th>
+                                    <th>Duration</th>
+                                    <th>Rest</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exercise_entity in activity_entity.exercises %}
+                                <tr>
+                                    <td>{{ exercises.exercise_by_key[exercise_entity.name].name }}</td>
+                                    <td>
+                                        {% if exercise_entity.weight %}
+                                        {{ exercise_entity.weight }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if exercise_entity.series %}
+                                        {{ exercise_entity.series }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if exercise_entity.repetitions %}
+                                        {{ exercise_entity.repetitions }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if exercise_entity.duration %}
+                                        {{ exercise_entity.duration }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if exercise_entity.rest %}
+                                        {{ exercise_entity.rest }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if activity_entity.sickness_symptoms %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Sickness Symptoms</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th>Symptom</th>
+                                    <th>Side</th>
+                                    <th>Body Part</th>
+                                    <th>Health</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sick_entity in activity_entity.sickness_symptoms %}
+                                <tr>
+                                    <td>{{ symptoms.symptoms_by_key[sick_entity.symptom].name }}</td>
+                                    <td>{{ sick_entity.side }}</td>
+                                    <td>{{ sick_entity.body_part }}</td>
+                                    <td>{{ sick_entity.health }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if activity_entity.laps %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Laps</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 25%;">Name</th>
+                                    <th style="width: 20%;">Distance</th>
+                                    <th style="width: 20%;">Duration</th>
+                                    <th style="width: 30%;">Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lap in activity_entity.laps %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td><strong>{{ lap.name }}</strong></td>
+                                    <td>
+                                        {% if lap.distance %}
+                                            {{ "{:,}".format(lap.distance) }} m
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if lap.duration %}
+                                            {{ (lap.duration // 3600)|int|zfill(2) }}h{{ ((lap.duration % 3600) // 60)|int|zfill(2) }}m{{ (lap.duration % 60)|int|zfill(2) }}s
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ lap.comment if lap.comment else "—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    {% if activity_entity.weight %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Weight</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:0,}".format(activity_entity.weight|float|round(1)) }} kg</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.cost %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Cost</div>
+                                </div>
+                                <div class="h1 mb-3">{{ "{:.2f}".format(activity_entity.cost|float) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.kcal %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Energy</div>
+                                </div>
+                                <div class="h1 mb-3">{{ activity_entity.kcal }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.suffer_score %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Suffer Score</div>
+                                </div>
+                                <div class="h1 mb-3">{{ '{:.2f}'.format(activity_entity.suffer_score|float) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.fitness_score %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Fitness Score</div>
+                                </div>
+                                <div class="h1 mb-3">{{ '{:.2f}'.format(activity_entity.fitness_score|float) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if activity_entity.weight or activity_entity.kcal %}
+                <div class="row g-3 mb-4">
+                    {% if activity_entity.sort_code %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Activity order</div>
+                                </div>
+                                <div class="h1 mb-3">{{ '{:0,}'.format(activity_entity.sort_code|int) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if activity_entity.workout_sort_code %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Workout order</div>
+                                </div>
+                                <div class="h1 mb-3">{{ '{:0,}'.format(activity_entity.workout_sort_code|int) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if activity_entity.src %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Activity Source</h3>
+                    </div>
+                    <div class="card-body">
+                        {#
+                        {% if activity_entity.src == "strava" %}
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="subheader">Source</div>
+                                {% if activity_entity.src_url %}
+                                <a href="{{ activity_entity.src_url }}"
+                                       target="_blank"
+                                       rel="noopener"
+                                       class="strava-view-link">
+                                {% endif %}
+                                <div class="h3">
+                                    <img src="{{ url_for('static', filename='images/strava-logo-20x20.png') }}" width="16" height="16" alt="Strava" class="me-1">Strava
+                                </div>
+                                {% if activity_entity.src_url %}
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        #}
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="subheader">Source</div>
+                                <div class="h3">{{ activity_entity.src }}</div>
+                            </div>
+                            {% if activity_entity.src_descriptor %}
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="subheader">Descriptor</div>
+                                <div class="h3">{{ activity_entity.src_descriptor }}</div>
+                            </div>
+                            {% endif %}
+                            {% if activity_entity.src_key %}
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="subheader">Key</div>
+                                <div class="h3">{{ activity_entity.src_key }}</div>
+                            </div>
+                            {% endif %}
+                            {% if activity_entity.src_descriptor %}
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="subheader">URL</div>
+                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank">{{ activity_entity.src_url }}</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {# endif #}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Recordings and Photos Attachments Section #}
+    <div id="recordings-row" class="container-xl mt-3">
+        {# Row: recordings #}
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h3 class="card-title">Recordings</h3>
+                        <span class="badge bg-secondary text-secondary-fg ms-2">{{ recordings_metadata|length }}</span>
+                        <div class="card-options">
+                            <a href="{{ url_for('upload_activity_recording', activity_key=activity_entity.key) }}" class="btn btn-outline-primary">
+                                Add Recording
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if recordings_metadata %}
+                        <div class="row g-3 mb-4">
+                            {% for recording in recordings_metadata %}
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="badge bg-blue text-blue-fg me-2">
+                                            {{ recording.ext | upper | replace(".", "") }}
+                                        </span>
+                                        <div class="card-options">
+                                            <form action="{{ url_for('delete_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}" method="POST" onsubmit="return confirm('Delete recording?')">
+                                                <a href="{{ url_for('download_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}"
+                                                    class="btn btn-outline-secondary btn-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                                                </a>
+
+                                                <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete recording">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                        <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="subheader">Name</div>
+                                        <div class="h3 text-truncate">{{ recording.name or recording.original_file_name }}</div>
+
+                                        <div class="subheader">File</div>
+                                        <div class="mb-2">{{ recording.original_file_name or "(unknown)" }}</div>
+
+                                        <div class="subheader">Size</div>
+                                        <div>{{ "%.1f"|format(recording.size_bytes / 1024) }} KiB</div>
+
+                                        {% if recording.has_parquet %}
+                                        <span class="badge bg-green text-green-fg mt-2">Parquet ready</span>
+                                        {% else %}
+                                        <span class="badge bg-yellow text-yellow-fg mt-2">Parquet pending</span>
+                                        {% endif %}
+
+                                        {% if recording.description %}
+                                        <div class="mt-4 small text-muted SKIP-text-truncate" title="{{ recording.description }}">
+                                            {{ recording.description }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                            <p class="text-muted">No recordings attached. Click "Add Recording" to upload.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Row : Photos #}
+        <div id="photos-row" class="row g-3">
+
+            {# Photos Card #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            Photos
+                            <span class="badge bg-secondary text-secondary-fg ms-2">{{ photo_list|length }} / 50</span>
+                        </h3>
+                        <div class="card-options">
+                            {% if photo_list|length < 50 %}
+                                <a href="{{ url_for('upload_activity_photos', activity_key=activity_entity.key) }}" class="btn btn-outline-primary">Add Photos</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if photo_list %}
+                            <div class="row g-3">
+                                {% for photo in photo_list %}
+                                    {% set photo_id = photo.blob_key | replace('-', '') %}
+                                    <div class="col-6 col-md-4 col-lg-3">
+                                        <div class="card card-sm {% if photo.blob_key == activity_entity.highlight_photo_blob_key %}border-primary{% endif %}">
+                                            <div class="card-header">
+                                                    {% if photo.blob_key == activity_entity.highlight_photo_blob_key %}
+                                                        <span class="badge bg-blue text-blue-fg me-2">
+                                                            Highlight
+                                                        </span>
+                                                    {% endif %}
+                                                <div class="card-options">
+                                                    <div class="d-flex gap-1 justify-content-center flex-wrap mb-1">
+                                                        <a href="{{ url_for('update_activity_photo_metadata', activity_key=activity_entity.key, blob_key=photo.blob_key) }}"
+                                                          class="btn btn-icon btn-outline-primary"
+                                                          title="Edit metadata">
+                                                           <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-pencil" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                               <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                               <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/>
+                                                               <path d="M13.5 6.5l4 4"/>
+                                                           </svg>
+                                                        </a>
+                                                        {% if photo.blob_key != activity_entity.highlight_photo_blob_key %}
+                                                            <form action="{{ url_for('set_activity_highlight_photo', activity_key=activity_entity.key, blob_key=photo.blob_key) }}" method="POST" class="d-inline">
+                                                                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                                                <button type="submit" class="btn btn-icon btn-outline-secondary" title="Set as highlight">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                                        <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>
+                                                                    </svg>
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
+                                                        <form action="{{ url_for('delete_activity_photo', activity_key=activity_entity.key, blob_key=photo.blob_key) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this photo?')">
+                                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                                            <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete photo">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                                    <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-1 SKIP-text-center">
+                                                {% if photo.blob_key == activity_entity.highlight_photo_blob_key %}
+                                                <a href="{{ url_for('download_activity_photo', activity_key=activity_entity.key, blob_key=photo.blob_key) }}" class="d-block" onclick="document.getElementById('highlight-photo-fslightbox').click(); return false;">
+                                                {% else %}
+                                                <a data-fslightbox="activity-photos" data-type="image" href="{{ url_for('download_activity_photo', activity_key=activity_entity.key, blob_key=photo.blob_key) }}" class="d-block">
+                                                {% endif %}
+                                                    <img src="{{ url_for('download_activity_photo_thumbnail', activity_key=activity_entity.key, blob_key=photo.blob_key) }}"
+                                                            alt="{{ photo.name or photo.original_file_name }}"
+                                                            class="img-fluid rounded" style="max-height:140px;object-fit:cover;width:100%">
+                                                </a>
+                                                {% if photo.name %}
+                                                <div class="subheader mt-3">Name</div>
+                                                <div class="h3 text-truncate">{{ photo.name }}</div>
+                                                {% endif %}
+
+                                                {% if photo.description %}
+                                                    <div class="small text-muted mt-1 SKIP-text-truncate">{{ photo.description }}</div>
+                                                {% endif %}
+                                                <div class="mt-1">
+                                                    {% for kw in photo.keywords %}
+                                                        <span class="badge bg-azure text-azure-fg">{{ kw }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No photos - click "Add Photos" to upload.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+    .mytral-map-detail {
+        height: 420px;
+        width: 100%;
+    }
+
+    .mytral-elevation-profile {
+        height: 194px;
+        width: 100%;
+        border-top: 1px solid var(--tblr-border-color);
+        background-color: var(--tblr-bg-surface-secondary);
+    }
+</style>
+<script>
+    (() => {
+        if (typeof L === "undefined") {
+            return;
+        }
+        const mapElement = document.querySelector(".mytral-map-detail");
+        if (!mapElement) {
+            return;
+        }
+        if (mapElement.dataset.mapReady === "1") {
+            return;
+        }
+
+        const points = JSON.parse(mapElement.dataset.points || "[]");
+        if (!points.length) {
+            return;
+        }
+        const map = L.map(mapElement.id, {
+            zoomControl: true,
+            attributionControl: true,
+            scrollWheelZoom: true,
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        const latLngs = points.map((point) => [point[0], point[1]]);
+        const route = L.polyline(latLngs, {
+            color: "#206bc4",
+            weight: 4,
+            opacity: 0.9,
+        }).addTo(map);
+        map.fitBounds(route.getBounds(), { padding: [18, 18] });
+
+        let hoverMarker = null;
+        if (latLngs.length > 1) {
+            L.circleMarker(latLngs[0], { radius: 5, color: "#2fb344" }).addTo(map);
+            L.circleMarker(latLngs[latLngs.length - 1], { radius: 5, color: "#d63939" }).addTo(map);
+            hoverMarker = L.circleMarker(latLngs[0], {
+                radius: 6,
+                color: "#f59f00",
+                fillColor: "#f59f00",
+                fillOpacity: 1,
+                opacity: 0.95,
+            }).addTo(map);
+            hoverMarker.setStyle({ opacity: 0, fillOpacity: 0 });
+        }
+
+        const profileElement = document.querySelector(".mytral-elevation-profile");
+        if (profileElement) {
+            const profile = JSON.parse(profileElement.dataset.profile || "[]");
+            if (profile.length > 1) {
+                const width = profileElement.clientWidth || 800;
+                const height = profileElement.clientHeight || 180;
+                const paddingLeft = 12;
+                const paddingRight = 32;
+                const paddingTop = 10;
+                const paddingBottom = 18;
+                const axisHeight = 14;
+
+                const maxDistance = Math.max(...profile.map((p) => p[0]), 1);
+                const minElevation = Math.min(...profile.map((p) => p[1]));
+                const maxElevation = Math.max(...profile.map((p) => p[1]));
+                const elevationRange = Math.max(maxElevation - minElevation, 1);
+                const drawWidth = width - paddingLeft - paddingRight;
+                const drawHeight = height - paddingTop - paddingBottom - axisHeight;
+                const chartBottom = height - paddingBottom - axisHeight;
+
+                const svgNs = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNs, "svg");
+                svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+                svg.setAttribute("preserveAspectRatio", "none");
+                svg.setAttribute("width", "100%");
+                svg.setAttribute("height", "100%");
+                svg.style.display = "block";
+                svg.style.cursor = "crosshair";
+
+                const defs = document.createElementNS(svgNs, "defs");
+                const gradient = document.createElementNS(svgNs, "linearGradient");
+                gradient.setAttribute("id", `${mapElement.id}-elevation-gradient`);
+                gradient.setAttribute("x1", "0");
+                gradient.setAttribute("y1", "0");
+                gradient.setAttribute("x2", "0");
+                gradient.setAttribute("y2", "1");
+                const stopTop = document.createElementNS(svgNs, "stop");
+                stopTop.setAttribute("offset", "0%");
+                stopTop.setAttribute("stop-color", "#74c0fc");
+                stopTop.setAttribute("stop-opacity", "0.75");
+                const stopBottom = document.createElementNS(svgNs, "stop");
+                stopBottom.setAttribute("offset", "100%");
+                stopBottom.setAttribute("stop-color", "#206bc4");
+                stopBottom.setAttribute("stop-opacity", "0.20");
+                gradient.appendChild(stopTop);
+                gradient.appendChild(stopBottom);
+                defs.appendChild(gradient);
+                svg.appendChild(defs);
+
+                const toX = (distance) => paddingLeft + (distance / maxDistance) * drawWidth;
+                const toY = (elevation) => {
+                    const normalized = (elevation - minElevation) / elevationRange;
+                    return paddingTop + (1 - normalized) * drawHeight;
+                };
+
+                const coords = profile.map((point) => [toX(point[0]), toY(point[1])]);
+                let linePath = `M ${coords[0][0]} ${coords[0][1]}`;
+                for (let idx = 1; idx < coords.length; idx += 1) {
+                    linePath += ` L ${coords[idx][0]} ${coords[idx][1]}`;
+                }
+
+                // horizontal altitude guides (behind chart)
+                const altStep = elevationRange <= 10 ? 2 : elevationRange <= 50 ? 5 : elevationRange <= 100 ? 10 : elevationRange <= 500 ? 50 : elevationRange <= 1000 ? 100 : elevationRange <= 3000 ? 200 : 500;
+                const altStart = Math.ceil((minElevation + altStep) / altStep) * altStep;
+                const guideGroup = document.createElementNS(svgNs, "g");
+                guideGroup.style.pointerEvents = "none";
+                for (let alt = altStart; alt < maxElevation; alt += altStep) {
+                    const gy = toY(alt);
+                    if (gy < paddingTop + 8) continue;
+                    const guide = document.createElementNS(svgNs, "line");
+                    guide.setAttribute("x1", String(paddingLeft));
+                    guide.setAttribute("y1", String(gy));
+                    guide.setAttribute("x2", String(width - paddingRight));
+                    guide.setAttribute("y2", String(gy));
+                    guide.setAttribute("stroke", "#999999");
+                    guide.setAttribute("stroke-width", "0.5");
+                    guide.setAttribute("stroke-dasharray", "3 3");
+                    guideGroup.appendChild(guide);
+                }
+                svg.appendChild(guideGroup);
+
+                const areaPath = `${linePath} L ${coords[coords.length - 1][0]} ${chartBottom} L ${coords[0][0]} ${chartBottom} Z`;
+
+                const areaBg = document.createElementNS(svgNs, "path");
+                areaBg.setAttribute("d", areaPath);
+                areaBg.setAttribute("fill", "var(--tblr-bg-surface-secondary, #f5f7fb)");
+                areaBg.setAttribute("stroke", "none");
+                svg.appendChild(areaBg);
+
+                const area = document.createElementNS(svgNs, "path");
+                area.setAttribute("d", areaPath);
+                area.setAttribute("fill", `url(#${mapElement.id}-elevation-gradient)`);
+                area.setAttribute("stroke", "none");
+                svg.appendChild(area);
+
+                function colorForGrade(gradePercent) {
+                    if (gradePercent >= 8) {
+                        return "#d63939";
+                    }
+                    if (gradePercent >= 4) {
+                        return "#f59f00";
+                    }
+                    if (gradePercent > -4) {
+                        return "#2fb344";
+                    }
+                    if (gradePercent > -8) {
+                        return "#4299e1";
+                    }
+                    return "#206bc4";
+                }
+
+                const segmentLayer = document.createElementNS(svgNs, "g");
+                for (let idx = 1; idx < coords.length; idx += 1) {
+                    const segment = document.createElementNS(svgNs, "line");
+                    const dxMeters = profile[idx][0] - profile[idx - 1][0];
+                    const dyMeters = profile[idx][1] - profile[idx - 1][1];
+                    const gradePercent = dxMeters > 0 ? (dyMeters / dxMeters) * 100 : 0;
+                    segment.setAttribute("x1", String(coords[idx - 1][0]));
+                    segment.setAttribute("y1", String(coords[idx - 1][1]));
+                    segment.setAttribute("x2", String(coords[idx][0]));
+                    segment.setAttribute("y2", String(coords[idx][1]));
+                    segment.setAttribute("stroke", colorForGrade(gradePercent));
+                    segment.setAttribute("stroke-width", "2.8");
+                    segment.setAttribute("stroke-linecap", "round");
+                    segmentLayer.appendChild(segment);
+                }
+                svg.appendChild(segmentLayer);
+
+                const line = document.createElementNS(svgNs, "path");
+                line.setAttribute("d", linePath);
+                line.setAttribute("fill", "none");
+                line.setAttribute("stroke", "rgba(32, 107, 196, 0.25)");
+                line.setAttribute("stroke-width", "1.2");
+                line.setAttribute("stroke-linecap", "round");
+                line.setAttribute("stroke-linejoin", "round");
+                svg.appendChild(line);
+
+                // km markers on x-axis
+                const totalKm = maxDistance / 1000;
+                const kmStep = totalKm <= 1 ? 0.25 : totalKm <= 5 ? 0.5 : totalKm <= 10 ? 1 : totalKm <= 25 ? 2 : totalKm <= 50 ? 5 : 10;
+                const axisY = height - paddingBottom;
+                const tickTop = axisY - 3;
+                const tickBottom = axisY;
+                const axisGroup = document.createElementNS(svgNs, "g");
+                axisGroup.style.pointerEvents = "none";
+                const kmLabelY = axisY - 2;
+                for (let km = 0; km <= totalKm + kmStep * 0.5; km += kmStep) {
+                    const x = toX(km * 1000);
+                    if (x > width - paddingRight) break;
+                    const tick = document.createElementNS(svgNs, "line");
+                    tick.setAttribute("x1", String(x));
+                    tick.setAttribute("y1", String(tickTop));
+                    tick.setAttribute("x2", String(x));
+                    tick.setAttribute("y2", String(tickBottom));
+                    tick.setAttribute("stroke", "var(--tblr-border-color, #cbd5e1)");
+                    tick.setAttribute("stroke-width", "1");
+                    axisGroup.appendChild(tick);
+                    const label = document.createElementNS(svgNs, "text");
+                    label.setAttribute("x", String(x));
+                    label.setAttribute("y", String(kmLabelY));
+                    label.setAttribute("text-anchor", "middle");
+                    label.setAttribute("dominant-baseline", "text-after-edge");
+                    label.setAttribute("fill", "var(--tblr-muted, #64748b)");
+                    label.setAttribute("font-size", "10");
+                    label.setAttribute("font-family", "var(--tblr-font-sans-serif, sans-serif)");
+                    label.textContent = km % 1 === 0 ? String(Math.round(km)) : km.toFixed(km < 10 ? 1 : 0);
+                    axisGroup.appendChild(label);
+                }
+                // altitude labels on y-axis (right side)
+                const labelX = width - paddingRight + 6;
+                for (let alt = altStart; alt < maxElevation; alt += altStep) {
+                    const y = toY(alt);
+                    if (y < paddingTop + 8) continue;
+                    const tick = document.createElementNS(svgNs, "line");
+                    tick.setAttribute("x1", String(width - paddingRight));
+                    tick.setAttribute("y1", String(y));
+                    tick.setAttribute("x2", String(width - paddingRight + 3));
+                    tick.setAttribute("y2", String(y));
+                    tick.setAttribute("stroke", "var(--tblr-border-color, #cbd5e1)");
+                    tick.setAttribute("stroke-width", "1");
+                    axisGroup.appendChild(tick);
+                    const label = document.createElementNS(svgNs, "text");
+                    label.setAttribute("x", String(labelX));
+                    label.setAttribute("y", String(y));
+                    label.setAttribute("text-anchor", "start");
+                    label.setAttribute("dominant-baseline", "central");
+                    label.setAttribute("fill", "var(--tblr-muted, #64748b)");
+                    label.setAttribute("font-size", "9");
+                    label.setAttribute("font-family", "var(--tblr-font-sans-serif, sans-serif)");
+                    label.textContent = String(Math.round(alt));
+                    axisGroup.appendChild(label);
+                }
+                svg.appendChild(axisGroup);
+
+                const guideLine = document.createElementNS(svgNs, "line");
+                guideLine.setAttribute("y1", String(paddingTop));
+                guideLine.setAttribute("y2", String(chartBottom));
+                guideLine.setAttribute("stroke", "#f59f00");
+                guideLine.setAttribute("stroke-width", "1");
+                guideLine.setAttribute("stroke-dasharray", "4 3");
+                guideLine.style.opacity = "0";
+                svg.appendChild(guideLine);
+
+                const guideDot = document.createElementNS(svgNs, "circle");
+                guideDot.setAttribute("r", "4");
+                guideDot.setAttribute("fill", "#f59f00");
+                guideDot.style.opacity = "0";
+                svg.appendChild(guideDot);
+
+                function setGuide(index) {
+                    const clampedIndex = Math.max(0, Math.min(coords.length - 1, index));
+                    const [x, y] = coords[clampedIndex];
+                    guideLine.setAttribute("x1", String(x));
+                    guideLine.setAttribute("x2", String(x));
+                    guideDot.setAttribute("cx", String(x));
+                    guideDot.setAttribute("cy", String(y));
+                    guideLine.style.opacity = "1";
+                    guideDot.style.opacity = "1";
+
+                    if (hoverMarker && latLngs.length > 1) {
+                        const mapIndex = Math.round(
+                            (clampedIndex / (coords.length - 1)) * (latLngs.length - 1),
+                        );
+                        hoverMarker.setLatLng(latLngs[mapIndex]);
+                        hoverMarker.setStyle({ opacity: 1, fillOpacity: 1 });
+                    }
+                }
+
+                // build distance array for fast lookup
+                const distances = profile.map((p) => p[0]);
+
+                svg.addEventListener("mousemove", (event) => {
+                    const rect = svg.getBoundingClientRect();
+                    const scale = Math.min(rect.width / width, rect.height / height);
+                    const offsetX = (rect.width - width * scale) / 2;
+                    const x = (event.clientX - rect.left - offsetX) / scale;
+                    const targetDist = Math.max(0, Math.min(1, (x - paddingLeft) / drawWidth)) * maxDistance;
+                    // binary search for closest distance
+                    let lo = 0;
+                    let hi = distances.length - 1;
+                    while (lo < hi) {
+                        const mid = (lo + hi) >> 1;
+                        if (distances[mid] < targetDist) {
+                            lo = mid + 1;
+                        } else {
+                            hi = mid;
+                        }
+                    }
+                    if (lo > 0 && targetDist - distances[lo - 1] < distances[lo] - targetDist) {
+                        lo = lo - 1;
+                    }
+                    setGuide(lo);
+                });
+                svg.addEventListener("mouseleave", () => {
+                    guideLine.style.opacity = "0";
+                    guideDot.style.opacity = "0";
+                    if (hoverMarker) {
+                        hoverMarker.setStyle({ opacity: 0, fillOpacity: 0 });
+                    }
+                });
+
+                profileElement.replaceChildren(svg);
+            }
+        }
+        mapElement.dataset.mapReady = "1";
+    })();
+</script>
+{% endblock %}

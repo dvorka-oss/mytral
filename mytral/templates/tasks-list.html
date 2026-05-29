@@ -1,0 +1,152 @@
+{%extends "layout.html"%}
+{% block content %}
+<!-- BEGIN PAGE HEADER -->
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <!-- Page pre-title -->
+                <div class="page-pretitle">Task Management</div>
+                <h2 class="page-title">Background Tasks</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <form action="{{ url_for('tasks_cleanup') }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete all finished (completed/failed) tasks? This cannot be undone.');">
+                        {{ cleanup_form.hidden_tag() }}
+                        <button type="submit" class="btn btn-outline-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                            Cleanup Finished
+                        </button>
+                    </form>
+                    {% if ff.can("TASKS_DEV") %}
+                    <form action="{{ url_for('task_submit_hello_world') }}" method="POST" style="display: inline;">
+                        {{ hello_world_form.hidden_tag() }}
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+                            Test Task (Hello World)
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Background tasks are operations that run asynchronously, allowing
+                    you to perform long running actions - like data processing or large
+                    datasets import - without blocking the application.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">All Tasks</h3>
+                <div class="card-actions">
+                    <span class="badge bg-blue text-blue-fg">{{ tasks|length }} total</span>
+                    <span class="badge bg-orange text-orange-fg">{{ running_tasks_count }} running</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if tasks|length == 0 %}
+                <p class="text-muted">No tasks yet.</p>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Task Type</th>
+                                <th>Started</th>
+                                <th>Duration</th>
+                                <th>Progress</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>
+                                    {% if task.status.value == 'running' %}
+                                    <span class="badge bg-blue text-blue-fg">Running</span>
+                                    {% elif task.status.value == 'completed' %}
+                                    <span class="badge bg-green text-green-fg">Completed</span>
+                                    {% elif task.status.value == 'failed' %}
+                                    <span class="badge bg-red text-red-fg">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-gray text-gray-fg">Queued</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ task.display_name }}
+                                </td>
+                                <td>
+                                    {% if task.started_at %}
+                                    {{ task.started_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% else %}
+                                    <span class="text-muted">Not started</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.started_at and task.completed_at %}
+                                    {{ (task.completed_at - task.started_at).total_seconds() | int }}s
+                                    {% elif task.started_at %}
+                                    <span class="text-muted">Running...</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress position-relative bg-secondary" style="width: 120px; height: 1.5rem;">
+                                        <div class="progress-bar {% if task.status.value == 'failed' %}bg-red{% elif task.status.value == 'completed' %}bg-green{% else %}bg-blue{% endif %}"
+                                             style="width: {{ task.progress }}%;"></div>
+                                        <span class="position-absolute w-100 text-center text-white" style="font-size: 0.875rem; line-height: 1.5rem; left: 0;">
+                                            {{ task.progress }}%
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        {% if task.status.value in ['completed','failed'] %}
+                                        <form action="{{ url_for('task_delete', task_id=task.key) }}" method="POST" onsubmit="return confirm('Delete this task?');" style="display: inline;">
+                                            {{ delete_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete task">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <a href="{{ url_for('task_detail', task_id=task.key) }}" class="btn btn-outline-primary" title="Task details">Details</a>
+                                        {% if task.status.value == 'completed' %}
+                                            <a href="{{ url_for(task.result_route, **task.result_route_kwargs) }}" class="btn btn-primary">Result</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh for running tasks -->
+<script>
+    // Reload page every 5 seconds if there are running tasks
+    {% if running_tasks_count > 0 %}
+    setTimeout(function() {
+        window.location.reload();
+    }, 5000);
+    {% endif %}
+</script>
+
+{% endblock %}

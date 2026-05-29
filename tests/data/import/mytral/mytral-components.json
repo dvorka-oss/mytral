@@ -1,0 +1,20 @@
+[
+    {
+        "key": "ct-test-chain-001",
+        "name": "Drive chain",
+        "category": "drivetrain",
+        "default_service_km": 3000,
+        "default_service_hours": null,
+        "default_service_months": 12,
+        "notes": "Replace or clean every 3000 km"
+    },
+    {
+        "key": "ct-test-tire-002",
+        "name": "Tyre",
+        "category": "wheels",
+        "default_service_km": 8000,
+        "default_service_hours": null,
+        "default_service_months": null,
+        "notes": "Check pressure before every ride"
+    }
+]

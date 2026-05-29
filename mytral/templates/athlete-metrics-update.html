@@ -1,0 +1,531 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Edit Athlete Metrics</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('athlete_metrics') }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" form="athlete-metrics-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Save Metrics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Leave any field blank or set to <strong>0</strong> to use an automatically estimated value.
+                MyTraL computes estimates from your age, weight, and activity data.
+                For best results, enter values measured during a proper test (e.g. a lab test or field test).
+            </p>
+        </div>
+    </div>
+
+    <form id="athlete-metrics-form" action="{{ url_for('athlete_metrics_update') }}" method="post">
+        {{ form.hidden_tag() }}
+
+        {# Body Composition #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Body Composition</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            Birthday (year / month / day)
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Your date of birth is used to calculate age, Max HR and other age-dependent estimates.">?</span>
+                        </label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                {{ form.birthday_year(class="form-control" + (" is-invalid" if form.birthday_year.errors else ""), placeholder="Year") }}
+                            </div>
+                            <div class="col-4">
+                                {{ form.birthday_month(class="form-control" + (" is-invalid" if form.birthday_month.errors else ""), placeholder="Month") }}
+                            </div>
+                            <div class="col-4">
+                                {{ form.birthday_day(class="form-control" + (" is-invalid" if form.birthday_day.errors else ""), placeholder="Day") }}
+                            </div>
+                        </div>
+                        {% if form.birthday_year.errors or form.birthday_month.errors or form.birthday_day.errors %}
+                        <div class="text-danger small">{{ (form.birthday_year.errors + form.birthday_month.errors + form.birthday_day.errors)[0] }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.height.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Height in metres is used to calculate BMI and BMR.">?</span>
+                        </label>
+                        <div class="input-group">
+                            {{ form.height(class="form-control" + (" is-invalid" if form.height.errors else ""), placeholder="e.g. 1.75") }}
+                            <span class="input-group-text">m</span>
+                        </div>
+                        {% if form.height.errors %}
+                        <div class="invalid-feedback d-block">{{ form.height.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">Enter height in metres (e.g., 1.75)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Performance Thresholds #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Performance Thresholds</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.max_hr.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Your highest observed heart rate in BPM. Measured in a maximum effort test. Estimated: 208 - (0.7 x age).">?</span>
+                        </label>
+                        {{ form.max_hr(class="form-control" + (" is-invalid" if form.max_hr.errors else ""), placeholder="e.g. 183") }}
+                        {% if form.max_hr.errors %}
+                        <div class="invalid-feedback">{{ form.max_hr.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_max_hr }} BPM
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.anaerobic_threshold_hr.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Lactate threshold heart rate (LTHR). Measured via a 30-minute TT (last 20 min avg). Estimated: 85% of Max HR.">?</span>
+                        </label>
+                        {{ form.anaerobic_threshold_hr(class="form-control" + (" is-invalid" if form.anaerobic_threshold_hr.errors else ""), placeholder="e.g. 156") }}
+                        {% if form.anaerobic_threshold_hr.errors %}
+                        <div class="invalid-feedback">{{ form.anaerobic_threshold_hr.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_anaerobic_threshold_hr }} BPM
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.aerobic_threshold_hr.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Aerobic threshold / first lactate threshold (LT1). Measured in a lab or via MAF test. Estimated: max(MAF, LTHR-25).">?</span>
+                        </label>
+                        {{ form.aerobic_threshold_hr(class="form-control" + (" is-invalid" if form.aerobic_threshold_hr.errors else ""), placeholder="e.g. 131") }}
+                        {% if form.aerobic_threshold_hr.errors %}
+                        <div class="invalid-feedback">{{ form.aerobic_threshold_hr.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_aerobic_threshold_hr }} BPM
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# FTP & Power #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">FTP &amp; Power</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.ftp.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Functional threshold power in Watts. Measured as 95% of your average power in a 20-minute all-out effort. Estimated from activity power data.">?</span>
+                        </label>
+                        {{ form.ftp(class="form-control" + (" is-invalid" if form.ftp.errors else ""), placeholder="e.g. 220") }}
+                        {% if form.ftp.errors %}
+                        <div class="invalid-feedback">{{ form.ftp.errors[0] }}</div>
+                        {% endif %}
+                        {% if user_profile.athlete_metrics.e_ftp > 0 %}
+                        <small class="form-hint">
+                            Estimated: {{ "%.0f"|format(user_profile.athlete_metrics.e_ftp) }} W
+                        </small>
+                        {% else %}
+                        <small class="form-hint text-muted">No power activity data available for estimation</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Advanced Metrics #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Advanced Metrics</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.vo2max.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Maximal oxygen uptake in mL/kg/min. Measured in a lab. Estimated: 15.3 x (Max HR / Rest HR).">?</span>
+                        </label>
+                        {{ form.vo2max(class="form-control" + (" is-invalid" if form.vo2max.errors else ""), placeholder="e.g. 48.5") }}
+                        {% if form.vo2max.errors %}
+                        <div class="invalid-feedback">{{ form.vo2max.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ "%.1f"|format(user_profile.athlete_metrics.e_vo2max) }} mL/kg/min
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.hrv_rmssd.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Heart rate variability (root mean square of successive differences) in milliseconds. Measured with an HRV app each morning. Estimated: 80 - (0.9 x age).">?</span>
+                        </label>
+                        {{ form.hrv_rmssd(class="form-control" + (" is-invalid" if form.hrv_rmssd.errors else ""), placeholder="e.g. 42.0") }}
+                        {% if form.hrv_rmssd.errors %}
+                        <div class="invalid-feedback">{{ form.hrv_rmssd.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ "%.1f"|format(user_profile.athlete_metrics.e_hrv_rmssd) }} ms
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-4 mb-3">
+                        <label class="form-label">
+                            {{ form.fat_max.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Maximum fat oxidation rate in g/hr. Measured via metabolic testing. Estimated: body weight x 0.45 g/hr.">?</span>
+                        </label>
+                        {{ form.fat_max(class="form-control" + (" is-invalid" if form.fat_max.errors else ""), placeholder="e.g. 35.0") }}
+                        {% if form.fat_max.errors %}
+                        <div class="invalid-feedback">{{ form.fat_max.errors[0] }}</div>
+                        {% endif %}
+                        {% if user_profile.athlete_metrics.e_fat_max > 0 %}
+                        <small class="form-hint">
+                            Estimated: {{ "%.1f"|format(user_profile.athlete_metrics.e_fat_max) }} g/hr
+                        </small>
+                        {% else %}
+                        <small class="form-hint text-muted">No weight data available for estimation</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# HR Zones #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">HR Zone Boundaries</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Optionally set all four zone boundaries to use custom HR zones.
+                    Leave any field blank or at 0 to use automatically estimated zones derived from LTHR.
+                </p>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.z1_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of Z1 (Recovery). Estimated: LTHR x 0.85.">?</span>
+                        </label>
+                        {{ form.z1_high(class="form-control" + (" is-invalid" if form.z1_high.errors else ""), placeholder="e.g. 143") }}
+                        {% if form.z1_high.errors %}
+                        <div class="invalid-feedback">{{ form.z1_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_z1_high }} BPM
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.z2_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of Z2 (Aerobic). Estimated: LTHR x 0.90.">?</span>
+                        </label>
+                        {{ form.z2_high(class="form-control" + (" is-invalid" if form.z2_high.errors else ""), placeholder="e.g. 151") }}
+                        {% if form.z2_high.errors %}
+                        <div class="invalid-feedback">{{ form.z2_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_z2_high }} BPM
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.z3_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of Z3 (Tempo). Estimated: LTHR x 0.95.">?</span>
+                        </label>
+                        {{ form.z3_high(class="form-control" + (" is-invalid" if form.z3_high.errors else ""), placeholder="e.g. 160") }}
+                        {% if form.z3_high.errors %}
+                        <div class="invalid-feedback">{{ form.z3_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_z3_high }} BPM
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.z4_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of Z4 (Threshold). Estimated: LTHR x 1.06.">?</span>
+                        </label>
+                        {{ form.z4_high(class="form-control" + (" is-invalid" if form.z4_high.errors else ""), placeholder="e.g. 179") }}
+                        {% if form.z4_high.errors %}
+                        <div class="invalid-feedback">{{ form.z4_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_z4_high }} BPM
+                        </small>
+                    </div>
+                </div>
+
+                {# Estimated zone table for reference #}
+                <div class="mt-2">
+                    <small class="text-muted">Current zone estimates:</small>
+                    <div class="table-responsive mt-1">
+                        <table class="table table-bordered table-sm table-condensed" style="max-width:480px">
+                            <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Name</th>
+                                    <th>Low</th>
+                                    <th>High</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-green-lt">
+                                    <td>Z1</td><td>Recovery</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z1_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z1_high }}</td>
+                                </tr>
+                                <tr class="bg-teal-lt">
+                                    <td>Z2</td><td>Aerobic</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z2_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z2_high }}</td>
+                                </tr>
+                                <tr class="bg-yellow-lt">
+                                    <td>Z3</td><td>Tempo</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z3_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z3_high }}</td>
+                                </tr>
+                                <tr class="bg-orange-lt">
+                                    <td>Z4</td><td>Threshold</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z4_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z4_high }}</td>
+                                </tr>
+                                <tr class="bg-red-lt">
+                                    <td>Z5</td><td>Anaerobic</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z5_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_z5_high }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Power Zones #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Power Zone Boundaries</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Optionally set all seven zone boundaries to use custom power zones.
+                    Leave any field blank or at 0 to use automatically estimated zones derived from FTP (Coggan 7-zone model).
+                </p>
+                <div class="row">
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz1_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ1 (Recovery). Estimated: FTP x 0.61.">?</span>
+                        </label>
+                        {{ form.pz1_high(class="form-control" + (" is-invalid" if form.pz1_high.errors else ""), placeholder="e.g. 152") }}
+                        {% if form.pz1_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz1_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz1_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz2_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ2 (Endurance). Estimated: FTP x 0.83.">?</span>
+                        </label>
+                        {{ form.pz2_high(class="form-control" + (" is-invalid" if form.pz2_high.errors else ""), placeholder="e.g. 208") }}
+                        {% if form.pz2_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz2_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz2_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz3_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ3 (Tempo). Estimated: FTP x 1.00.">?</span>
+                        </label>
+                        {{ form.pz3_high(class="form-control" + (" is-invalid" if form.pz3_high.errors else ""), placeholder="e.g. 250") }}
+                        {% if form.pz3_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz3_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz3_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz4_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ4 (Threshold). Estimated: FTP x 1.17.">?</span>
+                        </label>
+                        {{ form.pz4_high(class="form-control" + (" is-invalid" if form.pz4_high.errors else ""), placeholder="e.g. 292") }}
+                        {% if form.pz4_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz4_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz4_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz5_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ5 (VO2Max). Estimated: FTP x 1.33.">?</span>
+                        </label>
+                        {{ form.pz5_high(class="form-control" + (" is-invalid" if form.pz5_high.errors else ""), placeholder="e.g. 332") }}
+                        {% if form.pz5_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz5_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz5_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz6_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ6 (Anaerobic). Estimated: FTP x 1.67.">?</span>
+                        </label>
+                        {{ form.pz6_high(class="form-control" + (" is-invalid" if form.pz6_high.errors else ""), placeholder="e.g. 418") }}
+                        {% if form.pz6_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz6_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz6_high }} W
+                        </small>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3 mb-3">
+                        <label class="form-label">
+                            {{ form.pz7_high.label.text }}
+                            <span class="form-help" data-bs-toggle="tooltip"
+                                  title="Upper bound of PZ7 (Neuromuscular). No upper limit; estimated ceiling at 100,000 W.">?</span>
+                        </label>
+                        {{ form.pz7_high(class="form-control" + (" is-invalid" if form.pz7_high.errors else ""), placeholder="e.g. 500") }}
+                        {% if form.pz7_high.errors %}
+                        <div class="invalid-feedback">{{ form.pz7_high.errors[0] }}</div>
+                        {% endif %}
+                        <small class="form-hint">
+                            Estimated: {{ user_profile.athlete_metrics.e_pz7_high }} W
+                        </small>
+                    </div>
+                </div>
+
+                {# Estimated zone table for reference #}
+                <div class="mt-2">
+                    <small class="text-muted">Current zone estimates:</small>
+                    <div class="table-responsive mt-1">
+                        <table class="table table-bordered table-sm table-condensed" style="max-width:600px">
+                            <thead>
+                                <tr>
+                                    <th>Zone</th>
+                                    <th>Name</th>
+                                    <th>Low (W)</th>
+                                    <th>High (W)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-green-lt">
+                                    <td>PZ1</td><td>Recovery</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz1_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz1_high }}</td>
+                                </tr>
+                                <tr class="bg-teal-lt">
+                                    <td>PZ2</td><td>Endurance</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz2_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz2_high }}</td>
+                                </tr>
+                                <tr class="bg-yellow-lt">
+                                    <td>PZ3</td><td>Tempo</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz3_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz3_high }}</td>
+                                </tr>
+                                <tr class="bg-orange-lt">
+                                    <td>PZ4</td><td>Threshold</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz4_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz4_high }}</td>
+                                </tr>
+                                <tr class="bg-red-lt">
+                                    <td>PZ5</td><td>VO2Max</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz5_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz5_high }}</td>
+                                </tr>
+                                <tr class="bg-purple-lt">
+                                    <td>PZ6</td><td>Anaerobic</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz6_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz6_high }}</td>
+                                </tr>
+                                <tr class="bg-gray-lt">
+                                    <td>PZ7</td><td>Neuromuscular</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz7_low }}</td>
+                                    <td>{{ user_profile.athlete_metrics.e_pz7_high }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

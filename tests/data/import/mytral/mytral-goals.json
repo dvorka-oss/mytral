@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Sub-4h marathon",
+        "activity_type": "run",
+        "description": "Run a marathon under 4 hours",
+        "tag": "race",
+        "done": false,
+        "urgency": 0.8,
+        "importance": 0.9,
+        "key": "goal-test-marathon-001"
+    },
+    {
+        "name": "100km month",
+        "activity_type": "run",
+        "description": "Run 100 km in a single month",
+        "tag": "volume",
+        "done": true,
+        "urgency": 0.5,
+        "importance": 0.6,
+        "key": "goal-test-100km-002"
+    }
+]

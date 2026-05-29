@@ -1,0 +1,156 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<form method="POST" action="" id="lap-form">
+    {# send CSRF token #}
+    {{ form.hidden_tag() }}
+
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Laps</div>
+                <h2 class="page-title">Update Lap</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('update_activity', key=form.activity_key.data) }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" form="lap-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Save Lap
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-light">
+                                <h3 class="card-title">Lap Details</h3>
+                            </div>
+                            <div class="card-body">
+                                {{ field_macros.add_field(form.lap_name) }}
+                                {{ field_macros.add_field(form.comment) }}
+                                <div class="form-check form-switch mt-3">
+                                    {{ form.ranked(class="form-check-input") }}
+                                    <label class="form-check-label">Ranked</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header card-header-light">
+                                <h3 class="card-title">Distance &amp; Duration</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3" title="Default distance for lap will be filled automatically when distance is 0.">
+                                    {% if form.distance.label %}<label class="form-label">{{ form.distance.label }} <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; display: inline;">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <circle cx="12" cy="12" r="9"></circle>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                        <polyline points="11 12 12 12 12 16 13 16"></polyline>
+                                    </svg></label>{% endif %}
+                                    {% if form.distance.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.distance.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    {{ form.distance(class="form-control") }}
+                                </div>
+
+                                <div title="Default duration for lap will be filled automatically when all duration fields are 0.">
+                                    <table>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.hours) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.minutes) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.seconds) }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+<script>
+    // map lap names to their default distance and duration
+    const lapDefaults = {
+        {% for lap_key, lap in laps.lap_by_key.items() %}
+        "{{ lap.name }}": {
+            distance: {{ lap.default_distance }},
+            duration: {{ lap.default_duration }}
+        },
+        {% endfor %}
+    };
+
+    // populate distance and duration fields when lap is selected
+    const lapNameSelect = document.querySelector('select[name="lap_name"]');
+    const distanceInput = document.querySelector('input[name="distance"]');
+    const hoursInput = document.querySelector('input[name="hours"]');
+    const minutesInput = document.querySelector('input[name="minutes"]');
+    const secondsInput = document.querySelector('input[name="seconds"]');
+
+    if (lapNameSelect && distanceInput && hoursInput && minutesInput && secondsInput) {
+        lapNameSelect.addEventListener('change', function() {
+            const selectedName = this.value;
+            const currentDistance = parseInt(distanceInput.value);
+            const currentHours = parseInt(hoursInput.value) || 0;
+            const currentMinutes = parseInt(minutesInput.value) || 0;
+            const currentSeconds = parseInt(secondsInput.value) || 0;
+            const currentTotalSeconds = currentHours * 3600 + currentMinutes * 60 + currentSeconds;
+
+            // only populate if current values are 0
+            if (selectedName in lapDefaults) {
+                if (currentDistance === 0) {
+                    distanceInput.value = lapDefaults[selectedName].distance;
+                }
+                if (currentTotalSeconds === 0) {
+                    const totalSeconds = lapDefaults[selectedName].duration;
+                    hoursInput.value = Math.floor(totalSeconds / 3600);
+                    minutesInput.value = Math.floor((totalSeconds % 3600) / 60);
+                    secondsInput.value = totalSeconds % 60;
+                }
+            }
+        });
+    }
+</script>
+
+{% endblock %}

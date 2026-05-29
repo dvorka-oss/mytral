@@ -1,0 +1,492 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Profile</div>
+                <h2 class="page-title">Goals ({{ goals.goals_by_key | length }})</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if goals.goals_by_key %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_goals_list') }}?aspect=list" class="btn {% if aspect == 'list' or not aspect %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        List
+                    </a>
+                    <a href="{{ url_for('settings_goals_list') }}?aspect=eisenhower" class="btn {% if aspect == 'eisenhower'%}btn-primary{% else %}btn-outline-primary{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-grid-dots" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M5 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M19 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M5 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                            <path d="M19 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                        </svg>
+                        Matrix
+                    </a>
+                </div>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{{ url_for('settings_goal_create') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Add Goal
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mt-3 mb-3">
+                <div class="card-body">
+                    <p class="text-muted">
+                        Goal setting is a powerful process for thinking about your ideal future, and for motivating yourself to turn your vision of this future into reality. The process of setting goals helps you choose where you want to go in life. By knowing precisely what you want to achieve, you know where you have to concentrate your efforts. You'll also quickly spot the distractions that can, so easily, lead you astray.
+                    </p>
+                </div>
+            </div>
+
+            {% if goals.goals_by_key %}
+            {# Statistics Cards #}
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Total Goals
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total number of goals you have set">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="h2 mb-0">{{ goals.goals_by_key|length }}</div>
+                            <div class="text-muted small">
+                                {% set active_count = goals.goals_by_key.values()|selectattr('done', 'equalto', false)|list|length %}
+                                {% set done_count = goals.goals_by_key.values()|selectattr('done', 'equalto', true)|list|length %}
+                                {{ active_count }} active, {{ done_count }} done
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Completion Rate
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Percentage of goals you have completed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set done_count = goals.goals_by_key.values()|selectattr('done', 'equalto', true)|list|length %}
+                            {% set total_count = goals.goals_by_key|length %}
+                            {% if total_count > 0 %}
+                            {% set completion_rate = (done_count / total_count * 100)|round(0) %}
+                            <div class="h2 mb-0">{{ "{:.0f}".format(completion_rate) }}%</div>
+                            <div class="text-muted small">
+                                {% if completion_rate >= 75 %}
+                                <span class="text-success">Excellent progress!</span>
+                                {% elif completion_rate >= 50 %}
+                                <span class="text-info">Good progress</span>
+                                {% elif completion_rate >= 25 %}
+                                <span class="text-warning">Keep pushing</span>
+                                {% else %}
+                                <span class="text-muted">Just getting started</span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="h2 mb-0">—</div>
+                            <div class="text-muted small">No goals set</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Goals by Category
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Breakdown of goals by category (bucket list, life goals, annual goals)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set bucket_count = namespace(value=0) %}
+                            {% set life_count = namespace(value=0) %}
+                            {% set annual_count = namespace(value=0) %}
+                            {% set other_count = namespace(value=0) %}
+                            {% for goal in goals.goals_by_key.values() %}
+                                {% if "bucket" in goal.tag %}
+                                    {% set bucket_count.value = bucket_count.value + 1 %}
+                                {% elif "life" in goal.tag %}
+                                    {% set life_count.value = life_count.value + 1 %}
+                                {% elif "annual" in goal.tag %}
+                                    {% set annual_count.value = annual_count.value + 1 %}
+                                {% else %}
+                                    {% set other_count.value = other_count.value + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            <div class="h3 mb-0">
+                                {% if bucket_count.value > 0 %}
+                                <span class="badge bg-green text-green-fg">{{ bucket_count.value }}</span>
+                                {% endif %}
+                                {% if life_count.value > 0 %}
+                                <span class="badge bg-orange text-orange-fg">{{ life_count.value }}</span>
+                                {% endif %}
+                                {% if annual_count.value > 0 %}
+                                <span class="badge bg-azure text-azure-fg">{{ annual_count.value }}</span>
+                                {% endif %}
+                                {% if other_count.value > 0 %}
+                                <span class="badge bg-dark text-dark-fg">{{ other_count.value }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-muted small">
+                                {% if bucket_count.value > 0 %}bucket {% endif %}{% if life_count.value > 0 %}life {% endif %}{% if annual_count.value > 0 %}annual {% endif %}{% if other_count.value > 0 %}other{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">
+                                    Most Focused Activity
+                                    <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Activity type with the most goals set">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            {% set activity_counts = namespace(dict={}) %}
+                            {% for goal in goals.goals_by_key.values() %}
+                                {% if goal.activity_type in activity_counts.dict %}
+                                    {% set _ = activity_counts.dict.update({goal.activity_type: activity_counts.dict[goal.activity_type] + 1}) %}
+                                {% else %}
+                                    {% set _ = activity_counts.dict.update({goal.activity_type: 1}) %}
+                                {% endif %}
+                            {% endfor %}
+                            {% set most_focused = namespace(activity=none, count=0) %}
+                            {% for activity, count in activity_counts.dict.items() %}
+                                {% if count > most_focused.count %}
+                                    {% set most_focused.activity = activity %}
+                                    {% set most_focused.count = count %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if most_focused.activity %}
+                            {% set focused_activity = activity_types.activity_types_by_key.get(most_focused.activity) %}
+                            {% if focused_activity %}
+                            <div class="h3 mb-0 text-truncate" title="{{ focused_activity.name }}">{{ focused_activity.emoji }} {{ focused_activity.name }}</div>
+                            {% else %}
+                            <div class="h3 mb-0 text-truncate" title="{{ most_focused.activity }}">{{ most_focused.activity }}</div>
+                            {% endif %}
+                            <div class="text-muted small">{{ most_focused.count }} goal{% if most_focused.count != 1 %}s{% endif %}</div>
+                            {% else %}
+                            <div class="h3 mb-0">—</div>
+                            <div class="text-muted small">No goals set</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# List View - only show when NOT in eisenhower mode #}
+        {% if not aspect or aspect != 'eisenhower' %}
+        {% if goals.goals_by_key %}
+            {% for goal_type in ["DONE", ""] %}
+            {% set goals_in_category = goals.goals_by_key.values() | selectattr("done", "equalto", (goal_type == "DONE")) | list %}
+            {% if goals_in_category or goal_type == "" %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-vcenter card-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">
+                                        {{ goal_type }} Goal ({{ goals_in_category | length }})
+                                    </th>
+                                    <th style="width: 10%;">Activity</th>
+                                    <th style="width: 10%;">Tag</th>
+                                    <th style="width: 50%;">Description</th>
+                                    <th style="width: 12%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for g in goals.goals_by_key.values() %}
+                                {% if (goal_type == "DONE" and g.done) or (goal_type == "" and not g.done) %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('settings_goal_get', key=g.key) }}" class="text-reset">
+                                            {% if g.done %}
+                                            <span>🟢</span>
+                                            {% else %}
+                                            <span>🎯</span>
+                                            {% endif %}
+                                            <b>{{ g.name }}</b>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% set activity = activity_types.activity_types_by_key.get(g.activity_type) %}
+                                        {% if activity %}
+                                        <a href="{{ url_for('settings_activity_types_list') }}">{{ activity.emoji }} {{ activity.name }}</a>
+                                        {% else %}
+                                        <a href="{{ url_for('settings_activity_types_list') }}">{{ g.activity_type }}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if "bucket" in g.tag %}
+                                        <span class="badge bg-green text-green-fg">{{ g.tag }}</span>
+                                        {% elif "life" in g.tag %}
+                                        <span class="badge bg-orange text-orange-fg">{{ g.tag }}</span>
+                                        {% elif "annual" in g.tag %}
+                                        <span class="badge bg-azure text-azure-fg">{{ g.tag }}</span>
+                                        {% elif  g.tag %}
+                                        <span class="badge bg-dark text-dark-fg">{{ g.tag }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ g.description | markdown }}</td>
+                                    <td>
+                                        <div class="btn-list">
+                                            <a href="{{ url_for('settings_goal_update', key=g.key) }}" class="btn btn-primary btn-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                    <path d="M16 5l3 3"></path>
+                                                </svg>
+                                            </a>
+                                            {% if not g.count %}
+                                            <a href="{{ url_for('settings_goal_delete', key=g.key) }}" class="btn btn-danger btn-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M4 7l16 0"></path>
+                                                    <path d="M10 11l0 6"></path>
+                                                    <path d="M14 11l0 6"></path>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                </svg>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% endif %}
+
+        {# Eisenhower Matrix View - only show in eisenhower mode #}
+        {% if aspect == 'eisenhower' and div %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Eisenhower Matrix</h3>
+                <div class="card-actions">
+                    <div class="btn-group">
+                        <a href="{{ url_for('settings_goals_list') }}?aspect=eisenhower&zoom={{ [0.3, (zoom_level|default(0.7) - 0.1)]|max }}"
+                           class="btn btn-sm btn-outline-primary {% if (zoom_level|default(0.7)) <= 0.3 %}disabled{% endif %}"
+                           title="Zoom Out">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                                <path d="M7 10l6 0"></path>
+                                <path d="M21 21l-6 -6"></path>
+                            </svg>
+                        </a>
+                        <a href="{{ url_for('settings_goals_list') }}?aspect=eisenhower&zoom=0.7"
+                           class="btn btn-sm btn-outline-primary"
+                           title="Reset Zoom">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                                <path d="M21 21l-6 -6"></path>
+                            </svg>
+                        </a>
+                        <a href="{{ url_for('settings_goals_list') }}?aspect=eisenhower&zoom={{ [1.5, (zoom_level|default(0.7) + 0.1)]|min }}"
+                           class="btn btn-sm btn-outline-primary {% if (zoom_level|default(0.7)) >= 1.5 %}disabled{% endif %}"
+                           title="Zoom In">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+                                <path d="M7 10l6 0"></path>
+                                <path d="M10 7l0 6"></path>
+                                <path d="M21 21l-6 -6"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <span class="ms-2 text-muted">{{ ((zoom_level|default(0.7)) * 100)|round|int }}%</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-center">
+                    {{ div|safe }}
+                </div>
+            </div>
+        </div>
+
+        {# Quadrant Tables #}
+        {% if goals.goals_by_key %}
+        {% set quadrants = [
+            {'name': 'Q1: Focus Now', 'desc': 'Urgent & Important', 'class': 'danger', 'goals': []},
+            {'name': 'Q2: Plan & Build', 'desc': 'Important, Not Urgent', 'class': 'info', 'goals': []},
+            {'name': 'Q3: Quick Wins', 'desc': 'Urgent, Less Important', 'class': 'warning', 'goals': []},
+            {'name': 'Q4: Reconsider', 'desc': 'Re-evaluate Priority', 'class': 'secondary', 'goals': []}
+        ] %}
+
+        {# Populate quadrants with goals and calculate priority scores #}
+        {% for g in goals.goals_by_key.values() %}
+            {% if not g.done %}
+                {% set priority_score = g.urgency + g.importance %}
+                {% set goal_with_score = {'goal': g, 'score': priority_score} %}
+                {% if g.urgency >= 0.5 and g.importance >= 0.5 %}
+                    {% set _ = quadrants[0].goals.append(goal_with_score) %}
+                {% elif g.urgency < 0.5 and g.importance >= 0.5 %}
+                    {% set _ = quadrants[1].goals.append(goal_with_score) %}
+                {% elif g.urgency >= 0.5 and g.importance < 0.5 %}
+                    {% set _ = quadrants[2].goals.append(goal_with_score) %}
+                {% else %}
+                    {% set _ = quadrants[3].goals.append(goal_with_score) %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% for q in quadrants %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span class="badge bg-{{ q.class }} text-{{ q.class }}-fg">{{ q.name }}</span>
+                    <span class="text-muted">({{ q.desc }}) - {{ q.goals|length }} goals</span>
+                </h3>
+            </div>
+            {% if q.goals %}
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Goal</th>
+                                <th>Activity</th>
+                                <th>Urgency</th>
+                                <th>Importance</th>
+                                <th>Quick Move</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in q.goals|sort(attribute='score', reverse=True) %}
+                            {% set g = item.goal %}
+                            <tr>
+                                <td><a href="{{ url_for('settings_goal_get', key=g.key) }}" class="text-reset"><b>{{ g.name }}</b></a></td>
+                                <td>
+                                    {% set activity = activity_types.activity_types_by_key.get(g.activity_type) %}
+                                    {% if activity %}
+                                    {{ activity.emoji }} {{ activity.name }}
+                                    {% else %}
+                                    {{ g.activity_type }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 1.5rem;">
+                                        <div class="progress-bar" style="width: {{ (g.urgency * 100)|round }}%">
+                                            {{ (g.urgency * 100)|round|int }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 1.5rem;">
+                                        <div class="progress-bar" style="width: {{ (g.importance * 100)|round }}%">
+                                            {{ (g.importance * 100)|round|int }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <form method="POST" action="{{ url_for('settings_goal_quick_move', key=g.key) }}?aspect=eisenhower" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                            <input type="hidden" name="quadrant" value="Q1">
+                                            <button type="submit" class="btn btn-outline-danger" title="Move to Q1 (Focus Now)">Q1</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('settings_goal_quick_move', key=g.key) }}?aspect=eisenhower" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                            <input type="hidden" name="quadrant" value="Q2">
+                                            <button type="submit" class="btn btn-outline-info" title="Move to Q2 (Plan & Build)">Q2</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('settings_goal_quick_move', key=g.key) }}?aspect=eisenhower" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                            <input type="hidden" name="quadrant" value="Q3">
+                                            <button type="submit" class="btn btn-outline-warning" title="Move to Q3 (Quick Wins)">Q3</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('settings_goal_quick_move', key=g.key) }}?aspect=eisenhower" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                            <input type="hidden" name="quadrant" value="Q4">
+                                            <button type="submit" class="btn btn-outline-secondary" title="Move to Q4 (Reconsider)">Q4</button>
+                                        </form>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-list">
+                                        <a href="{{ url_for('settings_goal_update', key=g.key) }}" class="btn btn-primary btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

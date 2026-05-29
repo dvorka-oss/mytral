@@ -1,0 +1,16 @@
+[
+    {
+        "name": "400m",
+        "description": "Standard 400m track interval",
+        "default_distance": 400,
+        "default_duration": 90,
+        "key": "lap-test-400m-001"
+    },
+    {
+        "name": "1km",
+        "description": "1 kilometre interval",
+        "default_distance": 1000,
+        "default_duration": 240,
+        "key": "lap-test-1km-002"
+    }
+]

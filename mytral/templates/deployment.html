@@ -1,0 +1,196 @@
+{% macro add_field(form_field) %}
+<div>
+    {{ form_field.label }}
+    {% if form_field.errors %}
+    <div>
+        {% for errors in form_field.errors %}
+        <span>{{ error }}</span>
+        {% endfor %}
+    </div>
+    {% else %}
+    {{ form_field }}
+    {% endif %}
+</div>
+{% endmacro %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Deployment</div>
+                <h2 class="page-title">Properties & Attributes
+                    <span class="fa fa-info-circle text-muted" title="{{ deployment_attrs }}"></span>
+                </h2>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    This page shows properties and attributes of the current deployment. It is intended for debugging
+                    purposes and is only visible to admin users.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+
+            <div class="card-body">
+                <h2 class="mb-3">Instance: {{ deployment_attrs.instance_id }}</h2>
+                <div class="text-muted mb-4">
+                    This section shows properties and attributes of the current MyTraL application instance.
+                </div>
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Host</div>
+                                </div>
+                                <div class="h1 mb-3">{{ deployment_attrs.host }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">URL</div>
+                                </div>
+                                <a href="{{ deployment_attrs.url }}" class="h1 mb-3">{{ deployment_attrs.url }}</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> {# row #}
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">CORS Origins</div>
+                                </div>
+                                <div class="h1 mb-3">{{ deployment_attrs.cors_origins }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Flask Secret Key (session encryption)</div>
+                                </div>
+                                <div class="h1 mb-3" {% if deployment_attrs.flask_secret_key %}style="color: green;"{% else %}style="color: red;"{% endif %}>{{ deployment_attrs.flask_secret_key }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> {# row #}
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Persistence type</div>
+                                </div>
+                                <div class="h1 mb-3">{{ deployment_attrs.persistence_type }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Persistence data dir</div>
+                                </div>
+                                <div class="h3 mb-3">{{ deployment_attrs.persistence_data_dir }}</div>
+                            </div>
+                        </div>
+                </div> {# row #}
+
+                <div class="row g-3 mb-4">
+
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Cache enabled</div>
+                                </div>
+                                <div class="h1 mb-3" {% if deployment_attrs.mytral_cache %}style="color: red;"{% else %}style="color: green;"{% endif %}>{{ deployment_attrs.mytral_cache }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Auto account creation</div>
+                                </div>
+                                <div class="h1 mb-3"  {% if deployment_attrs.auto_account_creation %}style="color: red;"{% else %}style="color: green;"{% endif %}>{{ deployment_attrs.auto_account_creation }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">User registration</div>
+                                </div>
+                                <div class="h1 mb-3" {% if deployment_attrs.user_registration %}style="color: red;"{% else %}style="color: green;"{% endif %}>{{ deployment_attrs.user_registration }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Flask in debug mode</div>
+                                </div>
+                                <div class="h1 mb-3" {% if deployment_attrs.flask_debug_mode %}style="color: red;"{% else %}style="color: green;"{% endif %}>{{ deployment_attrs.flask_debug_mode }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div> {# row #}
+
+                <div class="row g-3 mb-4">
+                    <div class="">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Environment Variables</div>
+                                </div>
+                                <div class="mb-3 mt-3">
+                                    <table class="table table-sm table-hover">
+                                        {% for k, v in deployment_attrs.env_vars.items() %}
+                                        <tr><td><strong>{{ k }}</strong></td>
+                                        <td style="word-break: break-all;">{{ v }}</td></tr>
+                                        {% endfor %}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                </div> {# row #}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

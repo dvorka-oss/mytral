@@ -1,0 +1,129 @@
+{% if onboarding_active and onboarding_state %}
+<div class="card mb-3" id="onboarding-card">
+    <div class="card-header">
+        <div class="d-flex align-items-center">
+            <div class="flex-fill">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rocket" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"></path>
+                        <path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"></path>
+                        <path d="M15 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                    </svg>
+                    Skol! Forza! Aupa! Allez! Send it!
+                </h3>
+                <div class="card-subtitle mt-2">Complete steps below to unlock MyTraL's full potential.</div>
+            </div>
+            <div class="ms-auto">
+                <a href="#" class="btn btn-sm btn-ghost-secondary ms-2" onclick="toggleOnboardingCard(); return false;">
+                    <span id="onboarding-toggle-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 9l6 6l6 -6"></path>
+                        </svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body" id="onboarding-body">
+        <!-- Progress Bar -->
+        <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+                <div class="flex-fill">
+                    <div class="progress">
+                        <div class="progress-bar {% if onboarding_state.completion_percentage >= 100 %}bg-success{% else %}bg-primary{% endif %}"
+                             role="progressbar"
+                             style="width: {{ onboarding_state.completion_percentage }}%"
+                             aria-valuenow="{{ onboarding_state.completion_percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                <div class="ms-3">
+                    <span class="text-muted">{{ onboarding_state.completion_percentage }}%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist Items -->
+        <div class="divide-y">
+            {% for item in checklist_items %}
+            <div class="row py-2 align-items-center">
+                <div class="col-auto">
+                    {% if item.completed %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle-check text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                        <path d="M9 12l2 2l4 -4"></path>
+                    </svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-circle text-muted" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="col">
+                    {% if item.completed %}
+                    <span class="text-muted text-decoration-line-through">{{ item.label }}</span>
+                    {% else %}
+                    <a href="{{ item.url }}" class="text-reset">{{ item.label }}</a>
+                    {% endif %}
+                </div>
+                {% if not item.completed %}
+                <div class="col-auto">
+                    <a href="{{ item.url }}" class="btn btn-sm btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M9 6l6 6l-6 6"></path>
+                        </svg>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card-footer" id="onboarding-footer">
+        <div class="d-flex">
+            <form method="POST" action="{{ url_for('onboarding_dismiss') }}" class="me-auto">
+                <button type="submit" class="btn btn-outline-secondary">
+                    Dismiss
+                </button>
+            </form>
+
+            {% if onboarding_state.completion_percentage >= 100 %}
+            <a href="#" class="btn btn-success ms-2" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-check" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M5 12l5 5l10 -10"></path>
+                </svg>
+                Completed
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleOnboardingCard() {
+    var body = document.getElementById('onboarding-body');
+    var footer = document.getElementById('onboarding-footer');
+    var icon = document.getElementById('onboarding-toggle-icon');
+
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        footer.style.display = 'block';
+        icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 9l6 6l6 -6"></path></svg>';
+    } else {
+        body.style.display = 'none';
+        footer.style.display = 'none';
+        icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 15l-6 -6l-6 6"></path></svg>';
+    }
+}
+</script>
+{% endif %}

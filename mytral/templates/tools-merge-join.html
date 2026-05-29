@@ -1,0 +1,123 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Data</div>
+                <h2 class="page-title">Merge & Join Activity Datasets</h2>
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Combine datasets using merge or join operations. Merge appends all activities, while join overrides matching activity fields from one dataset to another.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user_profile.expert %}
+<div class="container-xl">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><b>Merge All Datasets</b></h3>
+                    <div class="card-actions">
+                        <a href="{{ url_for('tool_merge_all_datasets') }}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-git-merge" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M7 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M7 8l0 8"></path>
+                                <path d="M7 8a4 4 0 0 0 4 4h4"></path>
+                            </svg>
+                            Merge All
+                            <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Merge all partial datasets to the <b>lifelong</b> dataset and switch to it.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><b>Merge Another Dataset</b></h3>
+                    <div class="card-actions">
+                        {% set btn = merge_form.submit %}
+                        <button type="submit" form="merge-form" class="btn btn-primary" name="{{ btn.name }}" value="{{ btn.label.text }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-git-merge" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M7 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M17 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M7 8l0 8"></path>
+                                <path d="M7 8a4 4 0 0 0 4 4h4"></path>
+                            </svg>
+                            {{ btn.label.text }}
+                            <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Merge <b>another</b> dataset activities to the <b>currently</b> opened dataset.</p>
+                    <form id="merge-form" method="POST" action="{{ url_for('tools_merge') }}">
+                        {{ merge_form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ field_macros.add_field(merge_form.data_files) }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title"><b>Join Fields from Another Dataset</b></h3>
+            <div class="card-actions">
+                {% set btn = join_form.submit %}
+                <button type="submit" form="join-form" class="btn btn-primary" name="{{ btn.name }}" value="{{ btn.label.text }}">
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-arrows-join"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7h5l3.5 5h9.5" /><path d="M3 17h5l3.495 -5" /><path d="M18 15l3 -3l-3 -3" /></svg>
+                    {{ btn.label.text }}
+                    <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Join <b>fields</b> of activities from the <b>source</b> dataset to the <b>current</b> dataset — override only
+                activity <b>fields</b> of activities that already exist in the current dataset.
+            </p>
+            <p class="text-muted mb-2">A join happens if all of the following match:</p>
+            <ul class="text-muted">
+                <li><b>When</b> (activity timestamp)</li>
+                <li><b>Activity type</b></li>
+                <li>Exactly the same number of <b>meters</b></li>
+            </ul>
+
+            <form id="join-form" method="POST" action="{{ url_for('tools_merge') }}">
+                {{ join_form.hidden_tag() }}
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        {{ field_macros.add_field(join_form.data_files) }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,534 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Progress</div>
+                <h2 class="page-title">Athlete Metrics</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('athlete_metrics_update') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                This page shows your key metrics and
+                performance benchmarks which are used throughout MyTraL for zone calculations,
+                analytics, and coaching.
+            </p>
+            <ul class="text-muted">
+                <li>
+                    Values marked <span class="badge bg-blue text-blue-fg">Measured</span>
+                    were set by you.
+                </li>
+                <li>
+                    Values marked <span class="badge bg-yellow text-yellow-fg">Estimated</span>
+                    are automatically computed from your age, weight, or activity data.
+                </li>
+                <li>
+                    Values marked <span class="badge bg-gray text-gray-fg">Derived</span>
+                    are always computed and never stored.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    {# Body Composition #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Body Composition</h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-cards">
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Birthday</div>
+                            <div class="h3 mb-0">
+                                {{ user_profile.born_year }} / {{ user_profile.born_month }} / {{ user_profile.born_day }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Age</div>
+                            <div class="h3 mb-0">{{ user_profile.age }}</div>
+                            <div class="text-muted small">~{{ '{0:,}'.format(user_profile.age * 365) }} days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Height</div>
+                            <div class="h3 mb-0">{{ user_profile.height }} m</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Weight
+                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                            </div>
+                            <div class="h3 mb-0">
+                                <a href="{{ url_for('insight_weight') }}" class="text-reset">
+                                    {{ stats.weight }} kg
+                                </a>
+                            </div>
+                            <div class="text-muted small">From last activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Resting HR
+                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                            </div>
+                            <div class="h3 mb-0">
+                                <a href="{{ url_for('insight_resting_hr') }}" class="text-reset">
+                                    {{ stats.resting_hr }} <small class="text-muted">BPM</small>
+                                </a>
+                            </div>
+                            <div class="text-muted small">From last activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Body Mass Index
+                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                            </div>
+                            <div class="h3 mb-0">
+                                {{ "%.2f"|format(stats.bmi) }}
+                                <span class="badge {% if stats.bmi_rank == 'normal' %}bg-green{% else %}bg-red{% endif %} text-{% if stats.bmi_rank == 'normal' %}green{% else %}red{% endif %}-fg ms-1">
+                                    {{ stats.bmi_rank }}
+                                </span>
+                            </div>
+                            <div class="text-muted small">Healthy: 18.5 – 25.0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">Base Metabolic Rate
+                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                            </div>
+                            <div class="h3 mb-0">{{ "%.0f"|format(stats.bmr) }} <small class="text-muted">kcal/day</small></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# Performance Thresholds #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Performance Thresholds</h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-cards">
+
+                {# Max HR #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Max Heart Rate (Max HR)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Maximum Heart Rate (Max HR) — the highest heart rate you can reach. Estimation formula: Tanaka: 208 − (0.7 × age)."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.max_hr > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.max_hr > 0 %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.max_hr }} <small class="text-muted">BPM</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.e_max_hr }} <small class="text-muted">BPM</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Anaerobic Threshold HR (LTHR) #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Lactate Threshold HR (LTHR)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Lactate Threshold Heart Rate (LTHR) — the heart rate at which blood lactate starts to accumulate rapidly. Also called anaerobic threshold. Estimation: 85% of Max HR."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.anaerobic_threshold_hr > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.anaerobic_threshold_hr > 0 %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.anaerobic_threshold_hr }} <small class="text-muted">BPM</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.e_anaerobic_threshold_hr }} <small class="text-muted">BPM</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Aerobic Threshold HR (LT1) #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Aerobic Threshold HR (LT1)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="First Lactate Threshold (LT1) — the heart rate at the aerobic–anaerobic crossover where fat oxidation begins to decline. Estimation: higher of MAF (180 − age) or LTHR − 25 BPM."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.aerobic_threshold_hr > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.aerobic_threshold_hr > 0 %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.aerobic_threshold_hr }} <small class="text-muted">BPM</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">{{ user_profile.athlete_metrics.e_aerobic_threshold_hr }} <small class="text-muted">BPM</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# FTP & Power #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Functional Threshold Power (FTP) &amp; Power</h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-cards">
+
+                {# FTP #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Functional Threshold Power (FTP)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Functional Threshold Power (FTP) — the highest average power output you can sustain for ~1 hour. Estimation: derived from activity power data using a duration-scaled model (e.g. 20 min effort ÷ 1.053)."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.ftp > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                    {% if user_profile.athlete_metrics.e_ftp > 0 %}
+                                    <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                    {% else %}
+                                    <span class="badge bg-gray text-gray-fg ms-1">Unknown</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.ftp > 0 %}
+                            <div class="h3 mb-0">{{ "%.0f"|format(user_profile.athlete_metrics.ftp) }} <small class="text-muted">W</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">
+                                {% if user_profile.athlete_metrics.e_ftp > 0 %}
+                                {{ "%.0f"|format(user_profile.athlete_metrics.e_ftp) }} <small class="text-muted">W</small>
+                                {% else %}
+                                <small class="text-muted">No power data</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Power-to-Weight #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Power-to-Weight Ratio (W/kg)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Power-to-Weight Ratio — FTP divided by body weight in kg. A key performance indicator in cycling. Always derived from FTP and current weight."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                            </div>
+                            <div class="h3 mb-0">
+                                {% if user_profile.athlete_metrics.e_power_to_weight > 0 %}
+                                {{ "%.2f"|format(user_profile.athlete_metrics.e_power_to_weight) }} <small class="text-muted">W/kg</small>
+                                {% else %}
+                                <small class="text-muted">No data</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# HR Zones #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Heart Rate Zones (HR Zones)
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Heart Rate Training Zones (HR Zones) — intensity ranges defined by BPM boundaries, used to guide training effort. Z1 Recovery → Z2 Aerobic → Z3 Tempo → Z4 Threshold → Z5 Anaerobic. Estimated from your LTHR when zones are not set manually."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                {% set zones_set = user_profile.athlete_metrics.z1_high > 0
+                                   and user_profile.athlete_metrics.z2_high > 0
+                                   and user_profile.athlete_metrics.z3_high > 0
+                                   and user_profile.athlete_metrics.z4_high > 0 %}
+                {% if zones_set %}
+                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                {% else %}
+                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated from LTHR</span>
+                {% endif %}
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Zone</th>
+                            <th>Name</th>
+                            <th>Low (BPM)</th>
+                            <th>High (BPM)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-green-lt">
+                            <td><strong>Z1</strong></td>
+                            <td>Recovery</td>
+                            <td>{{ user_profile.athlete_metrics.e_z1_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_z1_high }}</td>
+                        </tr>
+                        <tr class="bg-teal-lt">
+                            <td><strong>Z2</strong></td>
+                            <td>Aerobic</td>
+                            <td>{{ user_profile.athlete_metrics.e_z2_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_z2_high }}</td>
+                        </tr>
+                        <tr class="bg-yellow-lt">
+                            <td><strong>Z3</strong></td>
+                            <td>Tempo</td>
+                            <td>{{ user_profile.athlete_metrics.e_z3_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_z3_high }}</td>
+                        </tr>
+                        <tr class="bg-orange-lt">
+                            <td><strong>Z4</strong></td>
+                            <td>Threshold</td>
+                            <td>{{ user_profile.athlete_metrics.e_z4_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_z4_high }}</td>
+                        </tr>
+                        <tr class="bg-red-lt">
+                            <td><strong>Z5</strong></td>
+                            <td>Anaerobic</td>
+                            <td>{{ user_profile.athlete_metrics.e_z5_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_z5_high }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Power Zones #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Power Zones (PZ)
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Power Training Zones (PZ) — intensity ranges defined by watts (W) boundaries, used to guide cycling training effort. PZ1 Recovery → PZ2 Endurance → PZ3 Tempo → PZ4 Threshold → PZ5 VO2Max → PZ6 Anaerobic → PZ7 Neuromuscular. Estimated from your FTP when zones are not set manually."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                {% set power_zones_set = user_profile.athlete_metrics.pz1_high > 0
+                                       and user_profile.athlete_metrics.pz2_high > 0
+                                       and user_profile.athlete_metrics.pz3_high > 0
+                                       and user_profile.athlete_metrics.pz4_high > 0
+                                       and user_profile.athlete_metrics.pz5_high > 0
+                                       and user_profile.athlete_metrics.pz6_high > 0
+                                       and user_profile.athlete_metrics.pz7_high > 0 %}
+                {% if power_zones_set %}
+                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                {% else %}
+                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated from FTP</span>
+                {% endif %}
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Zone</th>
+                            <th>Name</th>
+                            <th>Low (W)</th>
+                            <th>High (W)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-green-lt">
+                            <td><strong>PZ1</strong></td>
+                            <td>Recovery</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz1_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz1_high }}</td>
+                        </tr>
+                        <tr class="bg-teal-lt">
+                            <td><strong>PZ2</strong></td>
+                            <td>Endurance</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz2_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz2_high }}</td>
+                        </tr>
+                        <tr class="bg-yellow-lt">
+                            <td><strong>PZ3</strong></td>
+                            <td>Tempo</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz3_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz3_high }}</td>
+                        </tr>
+                        <tr class="bg-orange-lt">
+                            <td><strong>PZ4</strong></td>
+                            <td>Threshold</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz4_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz4_high }}</td>
+                        </tr>
+                        <tr class="bg-red-lt">
+                            <td><strong>PZ5</strong></td>
+                            <td>VO2Max</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz5_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz5_high }}</td>
+                        </tr>
+                        <tr class="bg-purple-lt">
+                            <td><strong>PZ6</strong></td>
+                            <td>Anaerobic</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz6_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz6_high }}</td>
+                        </tr>
+                        <tr class="bg-gray-lt">
+                            <td><strong>PZ7</strong></td>
+                            <td>Neuromuscular</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz7_low }}</td>
+                            <td>{{ user_profile.athlete_metrics.e_pz7_high }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Advanced Metrics #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Advanced Metrics</h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-cards">
+
+                {# VO2 Max #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Maximal Oxygen Uptake (VO2max)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="VO2max — the maximum rate at which your body can consume oxygen during intense exercise, expressed in mL/kg/min. A primary indicator of aerobic fitness. Estimation: Uth-Sørensen formula: 15.3 × (Max HR ÷ Rest HR)."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.vo2max > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.vo2max > 0 %}
+                            <div class="h3 mb-0">{{ "%.1f"|format(user_profile.athlete_metrics.vo2max) }} <small class="text-muted">mL/kg/min</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">{{ "%.1f"|format(user_profile.athlete_metrics.e_vo2max) }} <small class="text-muted">mL/kg/min</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# HRV RMSSD #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Heart Rate Variability (HRV RMSSD)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Heart Rate Variability — Root Mean Square of Successive Differences (HRV RMSSD) — measures variation between consecutive heartbeats in ms. Higher values indicate better autonomic recovery. Estimation: population baseline 80 − (0.9 × age)."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.hrv_rmssd > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.hrv_rmssd > 0 %}
+                            <div class="h3 mb-0">{{ "%.1f"|format(user_profile.athlete_metrics.hrv_rmssd) }} <small class="text-muted">ms</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">{{ "%.1f"|format(user_profile.athlete_metrics.e_hrv_rmssd) }} <small class="text-muted">ms</small></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# FatMax #}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="subheader">
+                                Max Fat Oxidation Rate (FatMax)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="FatMax — the maximum rate at which your body can oxidise fat for energy, in g/hr. Peaks near aerobic threshold (LT1). Estimation: body weight × 0.45 g/hr."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if user_profile.athlete_metrics.fat_max > 0 %}
+                                <span class="badge bg-blue text-blue-fg ms-1">Measured</span>
+                                {% else %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% endif %}
+                            </div>
+                            {% if user_profile.athlete_metrics.fat_max > 0 %}
+                            <div class="h3 mb-0">{{ "%.1f"|format(user_profile.athlete_metrics.fat_max) }} <small class="text-muted">g/hr</small></div>
+                            {% else %}
+                            <div class="h3 mb-0">
+                                {% if user_profile.athlete_metrics.e_fat_max > 0 %}
+                                {{ "%.1f"|format(user_profile.athlete_metrics.e_fat_max) }} <small class="text-muted">g/hr</small>
+                                {% else %}
+                                <small class="text-muted">No weight data</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

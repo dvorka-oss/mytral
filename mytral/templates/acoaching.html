@@ -1,0 +1,389 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Progress</div>
+                <h2 class="page-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-message-bolt me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 18h-13a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h14a3 3 0 0 1 3 3v5" /><path d="M19 16l-2 3h4l-2 3" /></svg>
+                    AI Coach Chat
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <a href="{{ url_for('settings_acoaches') }}" class="btn btn-outline-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                    ACoach Settings
+                </a>
+                <a href="{{ url_for('acoaching') }}" class="btn btn-primary me-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-message-plus me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 18h-13a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h14a3 3 0 0 1 3 3v5" /><path d="M15 18h6" /><path d="M18 15v6" /></svg>
+                    New Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    AI coaching is a feature that allows you to have a conversation with an AI coach about your training.
+                    You can ask your coach to analyze your recent workouts, suggest improvements, or help you plan your
+                    next training cycle.
+                    Create your own coaches with personality you like, and choose from a variety of AI models
+                    to power the coaching.
+                    The quality of the coaching will depend on the AI model you choose and how you prompt it,
+                    so feel free to experiment and find what works best for you!
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+            <div class="d-flex">
+                <div>{{ message }}</div>
+            </div>
+            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% if not ready_coaches %}
+        <div class="alert alert-info">
+            <h4 class="alert-title">Get started with AI coaching</h4>
+            <div>
+                {% if ac_settings.coaches and not ready_coaches %}
+                <p class="mb-2">You have coaches configured, but none have a model assigned yet.</p>
+                {% endif %}
+                <ol>
+                    <li>Go to <a href="{{ url_for('settings_acoaches') }}">AI Coach Settings</a> and add a <strong>Provider</strong> (Ollama recommended for privacy).</li>
+                    <li>Add a <strong>Model</strong> (e.g. <code>llama3</code> for Ollama, <code>gpt-4o</code> for OpenAI).</li>
+                    <li>Edit each <strong>Coach</strong> to assign it a model.</li>
+                    <li>Come back here and start a coaching conversation!</li>
+                </ol>
+            </div>
+        </div>
+        {% else %}
+
+        <div class="row">
+            <!-- Chat history sidebar -->
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title">Chats</h3>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% if chats %}
+                        {% for c in chats %}
+                        {% set _is_active = active_chat and active_chat.key == c.key %}
+                        <div class="list-group-item p-0{% if _is_active %} bg-primary-lt border-start border-3 border-primary{% endif %}">
+                            <div class="d-flex align-items-stretch">
+                                <a href="{{ url_for('acoaching_chat', chat_key=c.key) }}"
+                                   class="flex-grow-1 p-2 text-decoration-none text-body">
+                                    <div class="text-truncate small{% if _is_active %} fw-semibold text-primary{% endif %}"
+                                         style="max-width: 150px;">{{ c.title }}</div>
+                                    <div class="text-muted small">{{ c.created_at[:10] }}</div>
+                                </a>
+                                <form method="POST" action="{{ url_for('acoaching_chat_delete', chat_key=c.key) }}"
+                                      class="d-flex align-items-center pe-1">
+                                    <input type="hidden" name="csrf_token" value="{{ message_form.csrf_token._value() }}">
+                                    <button type="submit"
+                                            class="btn btn-sm btn-ghost-danger p-1"
+                                            onclick="return confirm('Delete this chat?')"
+                                            title="Delete chat">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                             class="icon icon-tabler icon-tabler-trash">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                            <path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" />
+                                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+                                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="list-group-item text-muted small">No chats yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main chat area -->
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+
+                        {% if active_chat %}
+                        <!-- resolve coach name once for the whole thread -->
+                        {% set _coach_obj = ac_settings.coaches | selectattr('key', 'equalto', active_chat.coach_key) | first %}
+                        {% set _coach_name = _coach_obj.name if _coach_obj else 'Coach' %}
+                        {% set _coach_initial = _coach_name[0] | upper %}
+                        {% set _coach_photo_key = _coach_obj.photo_blob_key if _coach_obj else '' %}
+
+                        <!-- Chat messages -->
+                        <div id="chat-messages" class="mb-4" style="max-height: 60vh; overflow-y: auto;">
+                            {% for m in active_chat.messages %}
+                            <div class="d-flex {% if m.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %} mb-3">
+
+                                {% if m.role == 'assistant' %}
+                                <!-- coach avatar -->
+                                {% if _coach_photo_key %}
+                                <img src="{{ url_for('settings_acoaches_coach_avatar_thumbnail', coach_key=active_chat.coach_key) }}"
+                                     class="avatar avatar-sm me-2 flex-shrink-0"
+                                     alt="{{ _coach_name }}"
+                                     title="{{ _coach_name }}"
+                                     style="align-self:flex-start;margin-top:2px;width:32px;height:32px;object-fit:cover;border-radius:4px;"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='';">
+                                <span class="avatar avatar-sm me-2 flex-shrink-0" style="display:none;align-self:flex-start;margin-top:2px;"
+                                      title="{{ _coach_name }}">{{ _coach_initial }}</span>
+                                {% else %}
+                                <span class="avatar avatar-sm me-2 flex-shrink-0" style="align-self: flex-start; margin-top: 2px;"
+                                      title="{{ _coach_name }}">{{ _coach_initial }}</span>
+                                {% endif %}
+                                {% endif %}
+
+                                <div class="card {% if m.role == 'user' %}bg-primary text-white{% else %}bg-light{% endif %}"
+                                     style="max-width: 78%;">
+                                    <div class="card-body p-2">
+                                        {% if m.role == 'assistant' %}
+                                            <div class="fw-semibold small text-muted mb-1">{{ _coach_name }}</div>
+                                            {% if m.status == 'pending' %}
+                                            <div class="d-flex align-items-center gap-2 text-muted" id="pending-indicator">
+                                                <div class="spinner-border spinner-border-sm" role="status">
+                                                    <span class="visually-hidden">Thinking…</span>
+                                                </div>
+                                                <span>{{ _coach_name }} is thinking…</span>
+                                            </div>
+                                            {% elif m.status == 'error' %}
+                                            <div class="text-danger">
+                                                <div class="markdown-content" data-markdown="{{ m.content | e }}"></div>
+                                            </div>
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    onclick="window.location.reload()">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="16" height="16" viewBox="0 0 24 24"
+                                                        stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                        <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/>
+                                                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                                                    </svg>
+                                                    Start over
+                                                </button>
+                                            </div>
+                                            {% else %}
+                                            <div class="markdown-content" data-markdown="{{ m.content | e }}"></div>
+                                            {% endif %}
+                                        {% else %}
+                                        <span>{{ m.content }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Follow-up message form (disabled while pending) -->
+                        {% set chat_pending = active_chat.messages | selectattr('status', 'equalto', 'pending') | list %}
+                        {% set chat_errors  = active_chat.messages | selectattr('status', 'equalto', 'error') | list %}
+                        <form method="POST" action="{{ url_for('acoaching_chat_message', chat_key=active_chat.key) }}" id="follow-up-form">
+                            <input type="hidden" name="csrf_token" value="{{ message_form.csrf_token._value() }}">
+                            <div class="input-group">
+                                <textarea class="form-control" name="content" rows="2"
+                                    placeholder="{% if chat_pending %}Waiting for coach response…{% else %}Ask a follow-up question…{% endif %}"
+                                    {% if chat_pending %}disabled{% endif %}></textarea>
+                                <button type="submit" class="btn btn-primary" {% if chat_pending %}disabled{% endif %}>
+                                    {% if chat_pending %}
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Thinking…
+                                    {% else %}Send{% endif %}
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-2 d-flex justify-content-start align-items-center">
+                            {% if chat_errors %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="window.location.reload()">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="16" height="16" viewBox="0 0 24 24"
+                                    stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/>
+                                    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                                </svg>
+                                Start over
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        {% else %}
+                        <!-- New chat form -->
+                        <h3 class="mb-3">Start a new coaching session</h3>
+                        <form method="POST" action="{{ url_for('acoaching_chat_new') }}" id="new-chat-form">
+                            <input type="hidden" name="csrf_token" value="{{ message_form.csrf_token._value() }}">
+                            <div class="mb-3">
+                                <label class="form-label">Coach</label>
+                                <select class="form-select" name="coach_key" id="new-chat-coach">
+                                    <option value="">— select a coach —</option>
+                                    {% for c in ready_coaches %}
+                                    <option value="{{ c.key }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Your message or question</label>
+                                <textarea class="form-control" name="content" id="new-chat-content" rows="4"
+                                    placeholder="Ask your coach to analyze your recent training, suggest improvements, or help you plan your next workout…"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="send-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-send me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>
+                                Ask Coach
+                            </button>
+                        </form>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='katex/katex.min.css') }}">
+<script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/purify.min.js') }}"></script>
+<script src="{{ url_for('static', filename='katex/katex.min.js') }}"></script>
+<script src="{{ url_for('static', filename='katex/auto-render.min.js') }}"></script>
+<script>
+(function () {
+    'use strict';
+
+    // render markdown in all completed assistant messages — sanitize first to prevent XSS
+    // math blocks must be extracted before marked.parse() because marked strips backslashes
+    // from \[ and \( delimiters, breaking KaTeX auto-render
+    document.querySelectorAll('.markdown-content').forEach(function (el) {
+        var raw = el.dataset.markdown || '';
+
+        // extract math blocks and replace with placeholders before markdown parsing
+        var mathBlocks = [];
+        function protect(text) {
+            // display math: \[...\]
+            text = text.replace(/\\\[([\s\S]*?)\\\]/g, function (m) {
+                mathBlocks.push(m);
+                return '%%MATHBLOCK_' + (mathBlocks.length - 1) + '%%';
+            });
+            // display math: $$...$$
+            text = text.replace(/\$\$([\s\S]*?)\$\$/g, function (m) {
+                mathBlocks.push(m);
+                return '%%MATHBLOCK_' + (mathBlocks.length - 1) + '%%';
+            });
+            // inline math: \(...\)
+            text = text.replace(/\\\(([\s\S]*?)\\\)/g, function (m) {
+                mathBlocks.push(m);
+                return '%%MATHBLOCK_' + (mathBlocks.length - 1) + '%%';
+            });
+            return text;
+        }
+
+        var protected_ = protect(raw);
+        var html = DOMPurify.sanitize(marked.parse(protected_));
+
+        // restore math blocks after markdown+sanitize (placeholders are safe plain text)
+        html = html.replace(/%%MATHBLOCK_(\d+)%%/g, function (_, i) {
+            return mathBlocks[parseInt(i, 10)];
+        });
+        el.innerHTML = html;
+    });
+
+    // render LaTeX math in chat messages
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+        ],
+        throwOnError: false,
+    });
+
+    // auto-scroll chat to bottom
+    var chatMessages = document.getElementById('chat-messages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // -------------------------------------------------------------------------
+    // new-chat form: disable controls and show spinner on submit
+    // IMPORTANT: do NOT set disabled=true on named form fields — disabled
+    // elements are excluded from the POST body. Use readOnly / visual-only
+    // styling instead; only the submit button (not a named field) is disabled.
+    // -------------------------------------------------------------------------
+    var newForm = document.getElementById('new-chat-form');
+    if (newForm) {
+        newForm.addEventListener('submit', function () {
+            var btn     = document.getElementById('send-btn');
+            var content = document.getElementById('new-chat-content');
+            var coach   = document.getElementById('new-chat-coach');
+            // make fields look non-interactive without removing them from POST body
+            if (content) { content.readOnly = true; content.style.opacity = '0.6'; }
+            if (coach)   { coach.style.pointerEvents = 'none'; coach.style.opacity = '0.6'; }
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending…';
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // follow-up form: same treatment
+    // -------------------------------------------------------------------------
+    var followUpForm = document.getElementById('follow-up-form');
+    if (followUpForm) {
+        followUpForm.addEventListener('submit', function () {
+            var btn = followUpForm.querySelector('button[type=submit]');
+            followUpForm.querySelectorAll('textarea').forEach(function (el) {
+                el.readOnly = true; el.style.opacity = '0.6';
+            });
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending…';
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // polling: if any message has status="pending" reload when all done
+    // -------------------------------------------------------------------------
+    {% if active_chat %}
+    var hasPending = {{ 'true' if (active_chat.messages | selectattr('status', 'equalto', 'pending') | list) else 'false' }};
+    var pollUrl   = '{{ url_for("acoaching_chat_poll", chat_key=active_chat.key) }}';
+
+    if (hasPending) {
+        var pollInterval = setInterval(function () {
+            fetch(pollUrl, {credentials: 'same-origin'})
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.pending) {
+                        clearInterval(pollInterval);
+                        window.location.reload();
+                    }
+                })
+                .catch(function () { /* network error — keep polling */ });
+        }, 3000);
+    }
+    {% endif %}
+}());
+</script>
+{% endblock %}

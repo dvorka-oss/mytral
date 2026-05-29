@@ -1,0 +1,198 @@
+{% from 'macros/gear_components.html' import comp_sidebar, comp_stats_cards, comp_service_progress, comp_service_history_table, comp_retired_pane, comp_empty_state, comp_js %}
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Edit Gear</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_gear_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <a href="{{ url_for('settings_gear_component_create', gear_key=key) }}" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                            Add Component
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Save Gear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Commented out error section, similar to activity types page
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% else %}
+        <div class="alert alert-success">No errors</div>
+        {% endif %}
+        #}
+
+        <div class="row row-deck row-cards mt-1">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Gear Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ field_macros.add_field(form.name) }}
+                                {{ field_macros.add_field(form.comment) }}
+                                {{ field_macros.add_field(form.activity) }}
+                                {{ field_macros.add_checkbox_field(form.is_default) }}
+                                {{ field_macros.add_checkbox_field(form.retired) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ field_macros.add_field(form.vendor) }}
+                                {{ field_macros.add_field(form.model) }}
+                                {{ field_macros.add_field(form.size) }}
+                                {{ field_macros.add_field(form.url) }}
+                                {{ field_macros.add_field(form.purchased) }}
+                                {{ field_macros.add_field(form.tcoo_base) }}
+                                {{ field_macros.add_field(form.tcoo_additional) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {# Components Section: outside the gear form so retire/svc-delete forms are not nested #}
+    {% set active_components = gear.get_components() %}
+    {% set all_components_inc_retired = gear.get_components(include_retired=True) %}
+    {% set retired_components = all_components_inc_retired | rejectattr('status', 'equalto', 'active') | list %}
+    <div class="row row-deck row-cards mt-0">
+        <div class="col-12">
+            <div class="card">
+                <div class="row g-0">
+
+                    <div class="col-12 col-md-3 border-end">
+                        {{ comp_sidebar(active_components, retired_components, key) }}
+                    </div>
+
+                    <div class="col-12 col-md-9 d-flex flex-column">
+                        {% if active_components or retired_components %}
+
+                            {% for comp in active_components %}
+                            <div id="comp-{{ comp.key }}" class="comp-section{% if not loop.first %} d-none{% endif %}">
+                                <div class="card-body border-bottom">
+                                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                                        <div>
+                                            <h3 class="mb-0">
+                                                {{ comp.name }}
+                                                {% if comp.requires_service %}
+                                                <span class="h5 badge bg-danger text-red-fg">Service Due</span>
+                                                {% else %}
+                                                <span class="h5 badge bg-success text-green-fg">OK</span>
+                                                {% endif %}
+                                            </h3>
+                                            {% if comp.notes %}
+                                            <p class="text-muted small mt-1 mb-0">{{ comp.notes }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                            <a href="{{ url_for('settings_gear_component_service', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-primary btn-md" data-bs-toggle="tooltip" data-bs-placement="top" title="Record service">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-tool" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/>
+                                                </svg>
+                                                Service
+                                            </a>
+                                            <a href="{{ url_for('settings_gear_component_update', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-secondary btn-md" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit component">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                    <path d="M16 5l3 3"></path>
+                                                </svg>
+                                                Edit
+                                            </a>
+                                            <button type="submit" form="retire-form-{{ comp.key }}" class="btn btn-outline-warning btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Retire component" onclick="return confirm('Retire this component? It will be moved to the Retired section.')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-box" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5"/>
+                                                    <path d="M12 12l8 -4.5"/>
+                                                    <path d="M12 12l0 9"/>
+                                                    <path d="M12 12l-8 -4.5"/>
+                                                </svg>
+                                            </button>
+                                            <a href="{{ url_for('settings_gear_component_delete', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-danger btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete component">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                    <path d="M4 7l16 0"></path>
+                                                    <path d="M10 11l0 6"></path>
+                                                    <path d="M14 11l0 6"></path>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
+                                    {{ comp_stats_cards(comp) }}
+                                    {{ comp_service_progress(comp) }}
+                                    {{ comp_service_history_table(comp, gear, key, show_edit=True, delete_form_prefix='svc-del-form') }}
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            {% for comp in retired_components %}
+                            {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first)) }}
+                            {% endfor %}
+
+                        {% else %}
+                            {{ comp_empty_state(key) }}
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Hidden forms for retire and service-delete actions (outside the gear form to avoid nesting) #}
+{% for comp in active_components %}
+<form id="retire-form-{{ comp.key }}" method="POST" action="{{ url_for('settings_gear_component_retire', gear_key=key, component_key=comp.key) }}" class="d-none">
+    <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}"/>
+</form>
+{% if gear.component_history.get(comp.key) %}
+{% for idx in range(gear.component_history[comp.key]|length) %}
+<form id="svc-del-form-{{ comp.key }}-{{ idx }}" method="POST" action="{{ url_for('settings_gear_component_service_delete', gear_key=key, component_key=comp.key, service_index=idx) }}" class="d-none">
+    <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}"/>
+</form>
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{{ comp_js('comp-section') }}
+{% endblock %}

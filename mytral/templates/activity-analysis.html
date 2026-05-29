@@ -1,0 +1,560 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year', year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">Activity Analysis</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list flex-wrap">
+                    {% if fit_chart_div or fit_ridge_div %}
+                    <div class="btn-group">
+                        <a href="#section-fit" class="btn btn-outline-primary" title="Recording Charts">Recording Charts</a>
+                    </div>
+                    {% endif %}
+                    {% if hr_ts_div or hr_zones_div %}
+                    <div class="btn-group">
+                        <a href="#section-hr" class="btn btn-outline-primary" title="Heart Rate">HR</a>
+                        <a href="#section-hr-zones" class="btn btn-outline-primary" title="Heart Rate Zones">HR Zones</a>
+                    </div>
+                    {% endif %}
+                    {% if speed_cadence_ts_div or cadence_hist_div %}
+                    <div class="btn-group">
+                        <a href="#section-speed-cadence" class="btn btn-outline-primary" title="Speed and Cadence">Speed</a>
+                        <a href="#section-cadence" class="btn btn-outline-primary" title="Cadence">Cadence</a>
+                    </div>
+                    {% endif %}
+                    {% if power_ts_div or power_curve_div or power_zones_div %}
+                    <div class="btn-group">
+                        <a href="#section-power" class="btn btn-outline-primary" title="Power">Power</a>
+                        <a href="#section-power-curve" class="btn btn-outline-primary" title="Power Curve">Power Curve</a>
+                        <a href="#section-power-zones" class="btn btn-outline-primary" title="Power Zones">Power Zones</a>
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('get_activity', key=activity_entity.key) }}"
+                        title="Back to Activity Details"
+                        class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M5 12l14 0"></path>
+                            <path d="M5 12l6 6"></path>
+                            <path d="M5 12l6 -6"></path>
+                        </svg>
+                        Activity Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md" style="background-color: {{ activity_types.color(activity_entity.activity_type_key) }}">
+                        {{ activity_types.emoji(activity_entity.activity_type_key) }}
+                    </div>
+                    <div class="ms-3">
+                        <div class="h3 mb-0">{{ activity_types.name(activity_entity.activity_type_key) }}</div>
+                        <div class="text-muted">
+                            {{ activity_entity.intensity }}
+                            {% if activity_entity.weather %} · {{ activity_entity.weather }}{% endif %}
+                            {% if activity_entity.temperature %} · {{ activity_entity.temperature }}℃{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    {% if activity_entity.race %}
+                    <span class="badge bg-red text-red-fg">race</span>
+                    {% endif %}
+                    {% if activity_entity.ranked %}
+                    <span class="badge bg-orange text-orange-fg">ranked</span>
+                    {% endif %}
+
+                    {% if activity_entity.commute %}
+                    <span class="badge bg-green text-green-fg">commute</span>
+                    {% endif %}
+
+                    {% if activity_entity.warm_up %}
+                    <span class="badge bg-yellow text-yellow-fg">warm up</span>
+                    {% endif %}
+                    {% if activity_entity.cool_down %}
+                    <span class="badge bg-azure text-azure-fg">cool down</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <h2 class="mb-3">
+                    {% if activity_entity.name %}
+                        {{ activity_entity.name }}
+                    {% else %}
+                        Activity: {{ activity_types.name(activity_entity.activity_type_key) }}
+                    {% endif %}
+                </h2>
+                <div class="text-muted mb-4">
+                    {{ activity_entity.description|markdown }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if recordings_metadata | length >= 1 %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recording Source</h3>
+                <div class="card-options text-muted small">
+                    {% if selected_blob_uuid %}
+                    <a href="{{ url_for('download_activity_recording', activity_key=activity_entity.key, blob_uuid=selected_blob_uuid) }}" class="btn btn-outline-secondary">Download</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        Recording to analyze:
+                        <select class="form-select" onchange="location.href = this.options[this.selectedIndex].value">
+                            {% for recording in recordings_metadata %}
+                            <option
+                                value="{{ url_for('get_activity_analysis', key=activity_entity.key, blob_uuid=recording.blob_uuid) }}"
+                                {% if recording.blob_uuid == selected_blob_uuid %}selected{% endif %}>
+                                {{ recording.ext | upper | replace(".", "") }}
+                                — {{ recording.name or recording.original_file_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# recording charts                                                     #}
+
+    {% if fit_chart_div or fit_ridge_div %}
+    <div class="container-xl mt-4" id="section-fit">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4 fw-bold">Recording Charts</span>
+            <div class="flex-fill border-top ms-2"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Heart Rate & Performance chart #}
+    {# Overlaid multi-axis chart (existing) #}
+    {% if fit_chart_div %}
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4 19l4 -6l4 3l4 -6l4 4"/>
+                        <path d="M3 19h18"/>
+                    </svg>
+                    Heart Rate &amp; Performance
+                    <span class="badge bg-secondary text-secondary-fg ms-2">overlay</span>
+                </h3>
+                {#
+                {% if selected_blob_uuid %}
+                <div class="card-options text-muted small">
+                    {% for recording in recordings_metadata %}
+                        {% if recording.blob_uuid == selected_blob_uuid %}
+                            {{ recording.original_file_name or selected_blob_uuid }}
+                        {% endif %}
+                    {% endfor %}
+                    <a href="{{ url_for('download_activity_recording', activity_key=activity_entity.key, blob_uuid=selected_blob_uuid) }}" class="btn btn-outline-secondary ms-2">Download</a>
+                </div>
+                {% endif %}
+                #}
+            </div>
+            <div class="card-body">
+                {{ fit_chart_script | safe }}
+                {{ fit_chart_div | safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Ridge (swimlane) chart - one panel per channel #}
+    {% if fit_ridge_div %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-layout-rows me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>
+                        <path d="M4 15m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v1a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>
+                    </svg>
+                    Heart Rate &amp; Performance
+                    <span class="badge bg-secondary text-secondary-fg ms-2">swimlanes</span>
+                </h3>
+            </div>
+            <div class="card-body">
+                {{ fit_ridge_script | safe }}
+                {{ fit_ridge_div | safe }}
+            </div>
+        </div>
+    </div>
+    {% elif selected_blob_uuid and parquet_available %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4 19l4 -6l4 3l4 -6l4 4"/>
+                        <path d="M3 19h18"/>
+                    </svg>
+                    Heart Rate &amp; Performance
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Recording is available but no chart data could be generated.</p>
+            </div>
+        </div>
+    </div>
+    {% elif selected_blob_uuid and not parquet_available %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="empty">
+                    <p class="empty-title">Parquet not available yet</p>
+                    <p class="empty-subtitle text-muted">
+                        This recording is uploaded, but derived Parquet data is still missing.
+                    </p>
+                    <div class="empty-action">
+                        <form method="POST" action="{{ url_for('reprocess_activity_recording', activity_key=activity_entity.key, blob_uuid=selected_blob_uuid) }}">
+                            <button type="submit" class="btn btn-primary">Re-process recording</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="empty">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 19l4 -6l4 3l4 -6l4 4"></path>
+                            <path d="M3 19h18"></path>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No analysis data</p>
+                    <p class="empty-subtitle text-muted">
+                        Upload FIT or GPX recording to see heart rate and performance charts.
+                    </p>
+                    <div class="empty-action">
+                        <a href="{{ url_for('upload_activity_recording', activity_key=activity_entity.key) }}" class="btn btn-primary">
+                            Upload recording
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# Heart Rate sections                                                #}
+
+    {% if hr_ts_div or hr_zones_div %}
+    <div class="container-xl mt-4" id="section-hr">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heart-rate-monitor text-red" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                <path d="M7 20h10"/>
+                <path d="M9 16v4"/>
+                <path d="M15 16v4"/>
+                <path d="M7 10l2 -2l2 4l2 -6l1 4l1 0"/>
+            </svg>
+            <span class="fs-4 fw-bold">Heart Rate</span>
+            <div class="flex-fill border-top ms-2"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Heart Rate time series #}
+    {% if hr_ts_div %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heart-rate-monitor me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                        <path d="M7 20h10"/>
+                        <path d="M9 16v4"/>
+                        <path d="M15 16v4"/>
+                        <path d="M7 10l2 -2l2 4l2 -6l1 4l1 0"/>
+                    </svg>
+                    Heart Rate
+                </h3>
+                <div class="card-options text-muted small">
+                    Heart rate over time (bpm)
+                </div>
+            </div>
+            <div class="card-body">
+                {%autoescape false%}{{ hr_ts_script }}{%endautoescape%}
+                {%autoescape false%}{{ hr_ts_div }}{%endautoescape%}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Heart Rate Zones #}
+    {% if hr_zones_div %}
+    <div class="container-xl mt-3" id="section-hr-zones">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-bar me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 12m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M9 8m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M15 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M4 20l14 0"/>
+                    </svg>
+                    Heart Rate Zones
+                </h3>
+                <div class="card-options text-muted small">
+                    Time spent in each heart rate zone (Z1 – Z5)
+                </div>
+            </div>
+            <div class="card-body">
+                {{ hr_zones_script | safe }}
+                {{ hr_zones_div | safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# Speed & Cadence sections                                           #}
+
+    {% if speed_cadence_ts_div or cadence_hist_div %}
+    <div class="container-xl mt-4" id="section-speed-cadence">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-gauge text-blue" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+                <path d="M12 3l0 2"/>
+                <path d="M12 19l0 2"/>
+                <path d="M3 12l2 0"/>
+                <path d="M19 12l2 0"/>
+            </svg>
+            <span class="fs-4 fw-bold">Speed &amp; Cadence</span>
+            <div class="flex-fill border-top ms-2"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Speed and Cadence time series #}
+    {% if speed_cadence_ts_div %}
+    <div class="container-xl mt-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-gauge me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>
+                        <path d="M12 3l0 2"/>
+                        <path d="M12 19l0 2"/>
+                        <path d="M3 12l2 0"/>
+                        <path d="M19 12l2 0"/>
+                    </svg>
+                    Speed & Cadence
+                </h3>
+                <div class="card-options text-muted small">
+                    Speed (km/h) and cadence (rpm) over time
+                </div>
+            </div>
+            <div class="card-body">
+                {%autoescape false%}{{ speed_cadence_ts_script }}{%endautoescape%}
+                {%autoescape false%}{{ speed_cadence_ts_div }}{%endautoescape%}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Cadence histogram #}
+    {% if cadence_hist_div %}
+    <div class="container-xl mt-3" id="section-cadence">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-rotate-clockwise me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"/>
+                    </svg>
+                    Cadence
+                </h3>
+                <div class="card-options text-muted small">
+                    Time distribution across cadence bins (rpm / spm)
+                </div>
+            </div>
+            <div class="card-body">
+                {{ cadence_hist_script | safe }}
+                {{ cadence_hist_div | safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {# Power sections                                                     #}
+
+    {% if power_ts_div or power_curve_div or power_zones_div %}
+    <div class="container-xl mt-4" id="section-power">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bolt text-yellow" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M13 3l-7 11h6l-1 7l7 -11h-6l1 -7"/>
+            </svg>
+            <span class="fs-4 fw-bold">Power</span>
+            <div class="flex-fill border-top ms-2"></div>
+        </div>
+    </div>
+    {%endif%}
+
+    {# Power time series #}
+    {%if power_ts_div is not none %}
+    <div class="container-xl mt-3 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bolt me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M13 3l-7 11h6l-1 7l7 -11h-6l1 -7"/>
+                    </svg>
+                    Power
+                </h3>
+                <div class="card-options text-muted small">
+                    Power output over time (W)
+                </div>
+            </div>
+            <div class="card-body">
+                {%if power_ts_div%}
+                    {%autoescape false%}{{ power_ts_script }}{%endautoescape%}
+                    {%autoescape false%}{{ power_ts_div }}{%endautoescape%}
+                {%else%}
+                    <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                         style="height:200px; border: 2px dashed #dee2e6;">
+                        <div class="text-center text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line mb-2" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 19l4 -6l4 3l4 -6l4 4"/>
+                                <path d="M3 19h18"/>
+                            </svg>
+                            <div class="fw-medium">Power chart</div>
+                            <div class="small">Time series &mdash; watts over activity duration</div>
+                        </div>
+                    </div>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+    {%endif%}
+
+    {# Power Curve #}
+    {%if power_curve_div is not none%}
+    <div class="container-xl" id="section-power-curve">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-area me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4 19l4 -6l4 3l4 -6l4 4"/>
+                        <path d="M3 19h18"/>
+                        <path d="M3 19l1 0l3 -5l4 3l4 -6l4 4l1 0"/>
+                    </svg>
+                    Power Curve
+                </h3>
+                <div class="card-options text-muted small">
+                    Peak power for each duration (1 s – 60 min)
+                </div>
+            </div>
+            <div class="card-body">
+                {%if power_curve_div%}
+                    {%autoescape false%}{{ power_curve_script }}{%endautoescape%}
+                    {%autoescape false%}{{ power_curve_div }}{%endautoescape%}
+                {%else%}
+                    <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                         style="height:220px; border: 2px dashed #dee2e6;">
+                        <div class="text-center text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-area mb-2" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M4 19l4 -6l4 3l4 -6l4 4"/>
+                                <path d="M3 19h18"/>
+                            </svg>
+                            <div class="fw-medium">Power Curve chart</div>
+                            <div class="small">Log-scale x-axis &mdash; W vs duration</div>
+                        </div>
+                    </div>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+    {%endif%}
+
+    {# Power Zones #}
+    {%if power_zones_div is not none%}
+    <div class="container-xl mt-3" id="section-power-zones">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-bar me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 12m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M9 8m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M15 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                        <path d="M4 20l14 0"/>
+                    </svg>
+                    Power Zones
+                </h3>
+                <div class="card-options text-muted small">
+                    Time spent in each power zone (Z1 – Z7)
+                </div>
+            </div>
+            <div class="card-body">
+                {%if power_zones_div%}
+                    {%autoescape false%}{{ power_zones_script }}{%endautoescape%}
+                    {%autoescape false%}{{ power_zones_div }}{%endautoescape%}
+                {%else%}
+                    <div class="d-flex align-items-center justify-content-center bg-light rounded"
+                         style="height:200px; border: 2px dashed #dee2e6;">
+                        <div class="text-center text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-bar mb-2" width="40" height="40" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M3 12m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                                <path d="M9 8m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                                <path d="M15 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>
+                                <path d="M4 20l14 0"/>
+                            </svg>
+                            <div class="fw-medium">Power Zones chart</div>
+                            <div class="small">Horizontal bars &mdash; Z1 Active Recovery through Z7 Neuromuscular</div>
+                        </div>
+                    </div>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+    {%endif%}
+
+</div>{# page-body #}
+
+{% endblock %}

@@ -1,0 +1,168 @@
+{% import "macros/activity-fields.html" as field_macros %}
+{% from "macros/entity_photos.html" import entity_photo_gallery, entity_photo_link_strip %}
+{% from "macros/mannequin.html" import render_mannequin %}
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {# send CSRF token #}
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Edit Exercise</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_exercises_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Save Exercise
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Exercise Details</h3>
+            </div>
+            <div class="card-body">
+                {{ field_macros.add_field(form.name) }}
+                <div class="mb-3">
+                    <div class="subheader mb-2">Photos</div>
+                    <div class="text-muted small mb-2">Click a photo to insert its Markdown link into the description.</div>
+                    {{ entity_photo_link_strip(
+                        photos=photos,
+                        photo_route='settings_exercises_photo',
+                        thumbnail_route='settings_exercises_photo_thumbnail',
+                        entity_key=key,
+                        description_target_id=description_target_id,
+                        markdown_link_text=markdown_link_text
+                    ) }}
+                </div>
+                {{ field_macros.add_field(form.description) }}
+                {{ field_macros.add_field(form.weight) }}
+                {{ field_macros.add_field(form.tags) }}
+            </div>
+        </div>
+
+        <div class="card mt-3 mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Muscle Groups</h3>
+                <div class="card-options">
+                    <span class="text-muted small">Click on the body map to select which muscles this exercise activates</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {{ render_mannequin(
+                    mode="picker",
+                    selected=selected_muscles,
+                    selected_secondary=selected_muscles_secondary,
+                    input_name="muscle_groups",
+                    input_name_secondary="muscle_groups_secondary",
+                    show_legend=true,
+                    picker_id="exercise-update-picker"
+                ) }}
+            </div>
+        </div>
+    </form>
+
+    {{ entity_photo_gallery(
+        entity=entity,
+        photos=photos,
+        upload_route='settings_exercises_upload_photo',
+        photo_route='settings_exercises_photo',
+        thumbnail_route='settings_exercises_photo_thumbnail',
+        delete_route='settings_exercises_delete_photo',
+        highlight_route='settings_exercises_highlight_photo',
+        entity_key=key,
+        upload_form=upload_form,
+        delete_form=delete_form,
+        highlight_form=highlight_form,
+        edit_route=photo_edit_route,
+        show_open_button=false,
+        description_target_id=description_target_id,
+        markdown_link_text=markdown_link_text
+    ) }}
+</div>
+
+<script>
+    document.querySelectorAll(".js-photo-markdown-link").forEach((button) => {
+        button.addEventListener("click", () => {
+            const targetId = button.dataset.photoTarget;
+            const target = targetId ? document.getElementById(targetId) : null;
+            const markdown = button.dataset.photoMarkdown || "";
+            if (!target || !markdown) {
+                return;
+            }
+
+            target.focus();
+            if (typeof target.selectionStart === "number" && typeof target.selectionEnd === "number") {
+                const start = target.selectionStart;
+                const end = target.selectionEnd;
+                const value = target.value;
+                target.value = value.slice(0, start) + markdown + value.slice(end);
+                const caret = start + markdown.length;
+                target.selectionStart = caret;
+                target.selectionEnd = caret;
+            } else {
+                target.value = target.value ? `${target.value}\n${markdown}` : markdown;
+            }
+        });
+    });
+</script>
+<style>
+    .photo-link-card {
+        flex: 0 0 auto;
+        width: 96px;
+        text-decoration: none;
+    }
+
+    .photo-link-frame {
+        position: relative;
+        display: block;
+        width: 96px;
+        height: 96px;
+    }
+
+    .photo-link-thumb {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-link-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.55);
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+    }
+
+    .photo-link-card:hover .photo-link-overlay,
+    .photo-link-card:focus-visible .photo-link-overlay {
+        opacity: 1;
+    }
+</style>
+{% endblock %}

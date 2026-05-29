@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Athlete</div>
+                <h2 class="page-title">Settings</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('profile_update') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Athlete account settings.
+            </p>
+        </div>
+    </div>
+
+    {# Account Section #}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Account</h3>
+        </div>
+        <div class="card-body">
+            <div class="row row-cards">
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader">Athlete Name</div>
+                            </div>
+                            <div class="h3 mb-3" title="{{ form.user_id.data }}">{{ form.user_name.data }}</div>
+                            <div>
+                                {% if form.auto_login.data %}
+                                <span class="badge bg-red text-red-fg">auto-login</span>
+                                {% endif %}
+                                {% if form.expert.data %}
+                                <span class="badge bg-green text-green-fg">expert</span>
+                                {% endif %}
+                                {% if form.admin.data %}
+                                <span class="badge bg-green text-red-fg">admin</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader">Email</div>
+                            </div>
+                            <div class="h3 mb-3">
+                                <a href="mailto:{{ form.email.data }}" class="text-decoration-none">{{ form.email.data }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader">Location</div>
+                            </div>
+                            <div class="h3 mb-3">{{ form.location.data }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader">Currency</div>
+                            </div>
+                            <div class="h3 mb-3">{{ user_profile.currency }}</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# Onboarding Section #}
+    {% if user_profile.onboarding_state %}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">Onboarding & Getting Started</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text-muted">
+                        {% if user_profile.onboarding_state.onboarding_dismissed %}
+                        You've dismissed the onboarding checklist.
+                        {% elif user_profile.onboarding_state.completion_percentage >= 100 %}
+                        You've completed all onboarding steps! 🎉
+                        {% else %}
+                        You're {{ user_profile.onboarding_state.completion_percentage }}% through setup.
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    {% if user_profile.onboarding_state.onboarding_dismissed or user_profile.onboarding_state.completion_percentage >= 100 %}
+                    <form method="POST" action="{{ url_for('onboarding_reset') }}" style="display: inline;">
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+                                <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+                            </svg>
+                            Restart Onboarding
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

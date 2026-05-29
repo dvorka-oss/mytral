@@ -1,0 +1,640 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">Edit Activity</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('home') }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <input type="submit" form="activity-form" name="action" class="btn btn-outline-primary" value="Add Exercise">
+                    <input type="submit" form="activity-form" name="action" class="btn btn-outline-primary" value="Add Symptom">
+                    <input type="submit" form="activity-form" name="action" class="btn btn-outline-primary" value="Add Lap">
+                    <a href="{{ url_for('upload_activity_photos', activity_key=key) }}" class="btn btn-outline-primary {% if photo_list|length >= 50 %}disabled{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-photo-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M15 8h.01"/><path d="M12.5 21h-6.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6.5"/>
+                            <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l3 3"/>
+                            <path d="M16 19h6"/><path d="M19 16v6"/>
+                        </svg>
+                        Add Photo
+                    </a>
+                    <a href="{{ url_for('upload_activity_recording', activity_key=key) }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-upload" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/>
+                            <path d="M12 11v6"/>
+                            <path d="M9.5 13.5l2.5 -2.5l2.5 2.5"/>
+                        </svg>
+                        Add Recording
+                    </a>
+                    <button type="submit" form="activity-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Save Activity
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">No errors</div>
+                {% endif %}
+
+                <form method="POST" action="" id="activity-form">
+                    {# send CSRF token #}
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Activity Type</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.activity_type_key) }}
+                                    {% if form.activity_type_key.data in ["run", "ride", "swimming", "hike", "erg_row", "rowing", "rollerski", "nordicski"] %}
+                                        {{ field_macros.add_field(form.gears) }}
+                                        {{ field_macros.add_field(form.outfit) }}
+                                        {{ field_macros.add_field(form.intensity) }}
+                                    {% endif %}
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">When</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_year) }}
+                                        </div>
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_month) }}
+                                        </div>
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_day) }}
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_hour) }}
+                                        </div>
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_minute) }}
+                                        </div>
+                                        <div class="col-4">
+                                            {{ field_macros.add_inline_field(form.when_second) }}
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        {{ field_macros.add_inline_field(form.workout_sort_code) }}
+                                    </div>
+                                    <div class="mt-3">
+                                        {{ field_macros.add_inline_field(form.sort_code) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            {% if form.activity_type_key.data in ["run", "ride", "swimming", "hike", "erg_row", "rowing", "rollerski", "nordicski"] %}
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Activity Flags</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            {{ form.commute(class="form-check-input") }}
+                                            <label class="form-check-label">Commute</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.ranked(class="form-check-input") }}
+                                            <label class="form-check-label">Ranked</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.race(class="form-check-input") }}
+                                            <label class="form-check-label">Race</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.warm_up(class="form-check-input") }}
+                                            <label class="form-check-label">Warm-up</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.cool_down(class="form-check-input") }}
+                                            <label class="form-check-label">Cool-down</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if form.activity_type_key.data in ["run", "ride", "swimming", "hike", "erg_row", "rowing", "rollerski", "nordicski"] %}
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Distance</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group">
+                                            {{ field_macros.add_inline_field(form.distance) }}
+                                            <span class="input-group-text">m</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Duration</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-2">
+                                            <div class="col-4">
+                                                {{ field_macros.add_inline_field(form.hours) }}
+                                                <span class="form-label">h</span>
+                                            </div>
+                                            <div class="col-4">
+                                                {{ field_macros.add_inline_field(form.minutes) }}
+                                                <span class="form-label">m</span>
+                                            </div>
+                                            <div class="col-4">
+                                                {{ field_macros.add_inline_field(form.seconds) }}
+                                                <span class="form-label">s</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Elevation</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Gain:</label>
+                                            <div class="input-group">
+                                                {{ field_macros.add_inline_field(form.elevation_gain) }}
+                                                <span class="input-group-text">m</span>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label">Min:</label>
+                                                <div class="input-group">
+                                                    {{ field_macros.add_inline_field(form.elevation_min) }}
+                                                    <span class="input-group-text">m</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label">Max:</label>
+                                                <div class="input-group">
+                                                    {{ field_macros.add_inline_field(form.elevation_max) }}
+                                                    <span class="input-group-text">m</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Details</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.name) }}
+                                    {{ field_macros.add_field(form.description) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Weather</h3>
+                                </div>
+                                <div class="card-body">
+                                    {% if form.activity_type_key.data in ["run", "ride", "swimming", "hike", "erg_row", "rowing", "rollerski", "nordicski"] %}
+                                        {{ field_macros.add_field(form.weather) }}
+                                        <div class="input-group">
+                                            {{ field_macros.add_inline_field(form.temperature) }}
+                                            <span class="input-group-text">℃</span>
+                                        </div>
+                                    {% endif %}
+                                    {{ field_macros.add_field(form.where) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Weight</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-group">
+                                        {{ field_macros.add_inline_field(form.weight) }}
+                                        <span class="input-group-text">kg</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Formula</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.formula) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if form.activity_type_key.data in ["run", "ride", "swimming", "hike", "erg_row", "rowing", "rollerski", "nordicski"] %}
+                        {% if form.exercises %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Exercises</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-vcenter card-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Exercise</th>
+                                                            <th>Weight</th>
+                                                            <th>Series</th>
+                                                            <th>Repetitions</th>
+                                                            <th>Duration</th>
+                                                            <th>Rest</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for exercise_form in form.exercises %}
+                                                            <tr>
+                                                                <td>{{ exercise_form.exercise_name.data }}</td>
+                                                                <td>
+                                                                    {% if exercise_form.weight.data %}
+                                                                    {{ exercise_form.weight.data }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if exercise_form.series.data %}
+                                                                    {{ exercise_form.series.data }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if exercise_form.repetitions.data %}
+                                                                    {{ exercise_form.repetitions.data }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if exercise_form.duration.data %}
+                                                                    {{ exercise_form.duration.data }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if exercise_form.rest.data %}
+                                                                    {{ exercise_form.rest.data }}
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    <button type="submit" name="action" value="delete_exercise_{{ exercise_form.id.data }}" class="btn btn-danger btn-icon">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                                            <path d="M4 7l16 0"></path>
+                                                                            <path d="M10 11l0 6"></path>
+                                                                            <path d="M14 11l0 6"></path>
+                                                                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <button type="submit" name="action" value="Add Symptom" class="btn btn-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 5l0 14"></path>
+                                            <path d="M5 12l14 0"></path>
+                                        </svg>
+                                        Add Symptom
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+                    {# Laps Section #}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Laps</h3>
+                                </div>
+                                <div class="card-body">
+                                    <form method="POST" action="" style="display: inline;">
+                                        {# send CSRF token #}
+                                        {{ form.hidden_tag() }}
+                                        <button type="submit" name="action" value="Add Lap" class="btn btn-primary mb-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 5l0 14"></path>
+                                            <path d="M5 12l14 0"></path>
+                                        </svg>
+                                        Add Lap
+                                    </button>
+                                    </form>
+
+                                    {% if db_entity.laps %}
+                                    <div class="table-responsive">
+                                        <table class="table table-vcenter">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 5%;">#</th>
+                                                    <th style="width: 25%;">Name</th>
+                                                    <th style="width: 15%;">Distance</th>
+                                                    <th style="width: 15%;">Duration</th>
+                                                    <th style="width: 25%;">Comment</th>
+                                                    <th style="width: 15%;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for lap in db_entity.laps %}
+                                                <tr>
+                                                    <td>{{ loop.index }}</td>
+                                                    <td><strong>{{ lap.name }}</strong></td>
+                                                    <td>
+                                                        {% if lap.distance %}
+                                                            {{ "{:,}".format(lap.distance) }} m
+                                                        {% else %}
+                                                            —
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if lap.duration %}
+                                                            {{ (lap.duration // 3600)|int|zfill(2) }}h{{ ((lap.duration % 3600) // 60)|int|zfill(2) }}m{{ (lap.duration % 60)|int|zfill(2) }}s
+                                                        {% else %}
+                                                            —
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ lap.comment if lap.comment else "—" }}</td>
+                                                    <td>
+                                                        <div class="btn-list">
+                                                            <a href="{{ url_for('update_activity_lap', activity_key=key, lap_index=loop.index0) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                                    <path d="M16 5l3 3"></path>
+                                                                </svg>
+                                                            </a>
+                                                            {% if loop.index > 1 %}
+                                                            <form method="POST" action="{{ url_for('move_activity_lap', activity_key=key, lap_index=loop.index0, direction='up') }}" style="display: inline;">
+                                                                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}"/>
+                                                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Move up">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-up" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                                        <path d="M12 5l0 14"></path>
+                                                                        <path d="M18 11l-6 -6"></path>
+                                                                        <path d="M6 11l6 -6"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </form>
+                                                            {% endif %}
+                                                            {% if loop.index < db_entity.laps|length %}
+                                                            <form method="POST" action="{{ url_for('move_activity_lap', activity_key=key, lap_index=loop.index0, direction='down') }}" style="display: inline;">
+                                                                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}"/>
+                                                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Move down">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-down" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                                        <path d="M12 5l0 14"></path>
+                                                                        <path d="M18 13l-6 6"></path>
+                                                                        <path d="M6 13l6 6"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </form>
+                                                            {% endif %}
+                                                            <form method="POST" action="{{ url_for('delete_activity_lap', activity_key=key, lap_index=loop.index0) }}" style="display: inline;">
+                                                                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}"/>
+                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this lap?');" title="Delete">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                                        <path d="M4 7l16 0"></path>
+                                                                        <path d="M10 11l0 6"></path>
+                                                                        <path d="M14 11l0 6"></path>
+                                                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                                                    </svg>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No laps added yet. Click "Add Lap" to add your first lap.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Recordings and Photo Attachments Section #}
+<div class="page-body mt-0 pt-0">
+    <div class="container-xl">
+        <div class="row g-3">
+
+            {# Recordings Card #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recordings</h3>
+                        <div class="card-options">
+                            <a href="{{ url_for('upload_activity_recording', activity_key=db_entity.key) }}" class="btn btn-sm btn-outline-primary">Upload Recording</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if recordings_metadata %}
+                        <div class="d-flex flex-column gap-2">
+                            {% for recording in recordings_metadata %}
+                            <div class="border rounded p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">
+                                            {{ recording.ext | upper | replace(".", "") }}:
+                                            {{ recording.original_file_name or "(unknown)" }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            {{ "%.1f"|format(recording.size_bytes / 1024 / 1024) }} MiB
+                                            {% if recording.has_parquet %}
+                                            <span class="badge bg-green text-green-fg ms-2">parquet ready</span>
+                                            {% else %}
+                                            <span class="badge bg-yellow text-yellow-fg ms-2">parquet pending</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <a href="{{ url_for('download_activity_recording', activity_key=db_entity.key, blob_uuid=recording.blob_uuid) }}" class="btn btn-sm btn-outline-secondary">Download</a>
+                                        <form action="{{ url_for('delete_activity_recording', activity_key=db_entity.key, blob_uuid=recording.blob_uuid) }}" method="POST" onsubmit="return confirm('Delete recording?')">
+                                            <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No recordings attached. Click "Upload Recording" to add one.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Photos Card #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-photo me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M15 8h.01"/>
+                                <path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z"/>
+                                <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l4 4"/>
+                                <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"/>
+                            </svg>
+                            Photos
+                            <span class="badge bg-secondary text-secondary-fg ms-2">{{ photo_list|length }} / 50</span>
+                        </h3>
+                        <div class="card-options">
+                            {% if photo_list|length < 50 %}
+                                <a href="{{ url_for('upload_activity_photos', activity_key=db_entity.key) }}" class="btn btn-sm btn-outline-primary">Add Photos</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if photo_list %}
+                            <div class="row g-2">
+                                {% for photo in photo_list %}
+                                    <div class="col-6 col-md-4">
+                                        <div class="card card-sm {% if photo.blob_key == db_entity.highlight_photo_blob_key %}border-primary{% endif %}">
+                                            <div class="card-body p-1 text-center">
+                                                <img src="{{ url_for('download_activity_photo_thumbnail', activity_key=db_entity.key, blob_key=photo.blob_key) }}"
+                                                     alt="{{ photo.name or photo.original_file_name }}"
+                                                     class="img-fluid rounded" style="max-height:120px;object-fit:cover;width:100%">
+                                                {% if photo.blob_key == db_entity.highlight_photo_blob_key %}
+                                                    <span class="badge bg-primary text-primary-fg mt-1">Highlight</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="card-footer p-1 d-flex gap-1 justify-content-center flex-wrap">
+                                                {% if photo.blob_key != db_entity.highlight_photo_blob_key %}
+                                                    <form action="{{ url_for('set_activity_highlight_photo', activity_key=db_entity.key, blob_key=photo.blob_key) }}" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                                        <button type="submit" class="btn btn-xs btn-outline-primary" title="Set as highlight">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                                <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                <form action="{{ url_for('delete_activity_photo', activity_key=db_entity.key, blob_key=photo.blob_key) }}" method="POST" onsubmit="return confirm('Delete this photo?')">
+                                                    <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}">
+                                                    <button type="submit" class="btn btn-xs btn-outline-danger" title="Delete photo">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                            <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No photos attached. Click "Add Photos" to upload.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

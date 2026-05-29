@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MyTraL @@MYTRAL_VERSION@@
+Comment=My Training Log @@MYTRAL_VERSION@@ - Desktop Application
+Exec=@@EXEC_PATH@@
+Icon=mytral
+Terminal=false
+Categories=Sports;Utility;
+Keywords=training;fitness;sports;log;
+StartupWMClass=MyTraL
+X-AppVersion=@@MYTRAL_VERSION@@

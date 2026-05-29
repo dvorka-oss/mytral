@@ -1,0 +1,209 @@
+{% macro provider_form(form, ollama_env_set, anthropic_env_set, openai_env_set) %}
+<form method="POST" action="{{ url_for('settings_acoaches_provider_add') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label">Provider type</label>
+        {{ form.type(class="form-select", id="provider-type-select") }}
+    </div>
+
+    {# third-party privacy warning — shown for anthropic / openai only #}
+    <div id="privacy-warning" class="alert alert-warning mb-3" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon alert-icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+        <div>
+            <strong>Privacy notice:</strong> Using <strong id="privacy-provider-name">this provider</strong>
+            will send your personal training data to third-party servers outside your control.
+            For maximum privacy, use <strong>Ollama</strong> instead - it runs entirely on your machine.
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">
+            URL
+            <span class="text-muted" id="url-hint">(e.g. http://localhost:11434)</span>
+        </label>
+        {{ form.url(class="form-control", placeholder="Leave blank for default") }}
+    </div>
+    <div class="mb-3" id="api-key-row">
+        <label class="form-label">
+            API key <span class="text-muted">(stored encrypted)</span>
+            <span id="api-key-optional" class="text-muted" style="display:none"> - optional for Ollama</span>
+        </label>
+        {{ form.api_key(class="form-control", rows=2, placeholder="Paste your API key here") }}
+    </div>
+    <div class="mb-3">
+        <div class="form-check">
+            {{ form.from_env(class="form-check-input") }}
+            <label class="form-check-label">
+                {% if ollama_env_set or anthropic_env_set or openai_env_set %}
+                read API key from environment variable
+                {% else %}
+                read API key from <code>MYTRAL_ANTHROPIC_API_KEY</code> / <code>MYTRAL_OPENAI_API_KEY</code> environment variable (not set)
+                {% endif %}
+                {% if ollama_env_set %}<span class="badge bg-green text-green-fg ms-1" id="env-badge-ollama">MYTRAL_OLLAMA_KEY set</span>{% endif %}
+                {% if anthropic_env_set %}<span class="badge bg-green text-green-fg ms-1" id="env-badge-anthropic">MYTRAL_ANTHROPIC_API_KEY set</span>{% endif %}
+                {% if openai_env_set %}<span class="badge bg-green text-green-fg ms-1" id="env-badge-openai">MYTRAL_OPENAI_API_KEY set</span>{% endif %}
+            </label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Provider</button>
+</form>
+<script>
+(function () {
+    var sel = document.getElementById('provider-type-select');
+    var privacyDiv = document.getElementById('privacy-warning');
+    var privacyName = document.getElementById('privacy-provider-name');
+    var apiKeyOptional = document.getElementById('api-key-optional');
+
+    function updateProviderUI() {
+        var t = sel.value;
+        var isThirdParty = t === 'anthropic' || t === 'openai';
+        privacyDiv.style.display = isThirdParty ? '' : 'none';
+        if (isThirdParty) {
+            privacyName.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+        }
+        apiKeyOptional.style.display = t === 'ollama' ? '' : 'none';
+    }
+
+    sel.addEventListener('change', updateProviderUI);
+    updateProviderUI();
+})();
+</script>
+{% endmacro %}
+
+
+{% macro model_form(form, providers) %}
+<form method="POST" action="{{ url_for('settings_acoaches_model_add') }}">
+    {{ form.hidden_tag() }}
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Provider</label>
+            {{ form.provider_key(class="form-select", id="model-provider-select") }}
+        </div>
+        <div class="col-md-8">
+            <label class="form-label">Model name</label>
+            <div class="input-group">
+                {{ form.model_name(class="form-control", id="model-name-input", placeholder="e.g. llama3.2, claude-sonnet-4-5, gpt-4o", list="ollama-models-datalist") }}
+                <button type="button" class="btn btn-outline-secondary" id="fetch-models-btn"
+                        style="display:none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                    Fetch from Ollama
+                </button>
+            </div>
+            <datalist id="ollama-models-datalist"></datalist>
+            <div id="fetch-models-status" class="form-hint mt-1" style="display:none"></div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Add Model</button>
+    </div>
+</form>
+<script>
+(function () {
+    var providerTypes = {
+        {% for p in providers %}"{{ p.key }}": "{{ p.type }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+    var providerSelect = document.getElementById('model-provider-select');
+    var fetchBtn = document.getElementById('fetch-models-btn');
+    var statusDiv = document.getElementById('fetch-models-status');
+    var modelInput = document.getElementById('model-name-input');
+    var datalist = document.getElementById('ollama-models-datalist');
+
+    function updateFetchBtn() {
+        var key = providerSelect.value;
+        var ptype = providerTypes[key] || '';
+        fetchBtn.style.display = ptype === 'ollama' ? '' : 'none';
+        statusDiv.style.display = 'none';
+    }
+
+    providerSelect.addEventListener('change', updateFetchBtn);
+    updateFetchBtn();
+
+    fetchBtn.addEventListener('click', function () {
+        var providerKey = providerSelect.value;
+        fetchBtn.disabled = true;
+        statusDiv.style.display = '';
+        statusDiv.textContent = 'Fetching models from Ollama\u2026';
+        fetch('/app/settings/acoaches/providers/' + providerKey + '/list-models')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    statusDiv.textContent = 'Error: ' + data.error;
+                } else if (!data.models || data.models.length === 0) {
+                    statusDiv.textContent = 'No models found on Ollama server.';
+                } else {
+                    datalist.innerHTML = '';
+                    data.models.forEach(function (m) {
+                        var opt = document.createElement('option');
+                        opt.value = m;
+                        datalist.appendChild(opt);
+                    });
+                    statusDiv.textContent = data.models.length + ' models available \u2014 start typing or pick from the list above.';
+                    modelInput.focus();
+                }
+            })
+            .catch(function (err) {
+                statusDiv.textContent = 'Failed to reach Ollama: ' + err;
+            })
+            .finally(function () { fetchBtn.disabled = false; });
+    });
+})();
+</script>
+{% endmacro %}
+
+
+{% macro coach_form(form, ootb_prompts) %}
+<form method="POST" action="{{ url_for('settings_acoaches_coach_add') }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label">Coach name</label>
+        {{ form.name(class="form-control", placeholder="e.g. My Running Coach") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Model</label>
+        {{ form.model_key(class="form-select") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">System prompt / personality</label>
+        {{ form.system_prompt(class="form-control", rows=6) }}
+        <div class="form-hint mt-1">
+            Quick-fill:
+            <a href="#" class="me-2" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.tony_d | tojson }}; return false;">Tony D'Amato</a>
+            <a href="#" class="me-2" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.bohous | tojson }}; return false;">Bohouš Kolibrk</a>
+            <a href="#" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.emil | tojson }}; return false;">Emil Zátopek</a>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Coach</button>
+</form>
+{% endmacro %}
+
+
+{% macro coach_edit_form(form, coach, ootb_prompts) %}
+<form method="POST" action="{{ url_for('settings_acoaches_coach_update', coach_key=coach.key) }}">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        <label class="form-label">Coach name</label>
+        {{ form.name(class="form-control", value=coach.name) }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Model</label>
+        {{ form.model_key(class="form-select") }}
+    </div>
+    <div class="mb-3">
+        <label class="form-label">System prompt / personality</label>
+        {{ form.system_prompt(class="form-control", rows=6) }}
+        <div class="form-hint mt-1">
+            Quick-fill:
+            <a href="#" class="me-2" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.tony_d | tojson }}; return false;">Tony D'Amato</a>
+            <a href="#" class="me-2" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.bohous | tojson }}; return false;">Bohouš Kolibrk</a>
+            <a href="#" onclick="document.getElementById('{{ form.system_prompt.id }}').value = {{ ootb_prompts.emil | tojson }}; return false;">Emil Zátopek</a>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-outline-secondary"
+                data-bs-toggle="collapse"
+                data-bs-target="#edit-coach-{{ coach.key }}">Cancel</button>
+    </div>
+</form>
+{% endmacro %}

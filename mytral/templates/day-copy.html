@@ -1,0 +1,131 @@
+{%extends "layout.html"%}
+{% block content %}
+<form method="post" action="{{ url_for('copy_day', year=year, month=month, day=day) }}">
+    {{ form.hidden_tag() }}
+
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Copy Day</div>
+                <h2 class="page-title">
+                    Copy activities from {{ year }}/{{ month }}/{{ day }}
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('list_activities_for_date', year=year, month=month, day=day) }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
+                            <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                        </svg>
+                        Copy Activities
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Activities to Copy</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    You are about to copy <strong>{{ activities|length }}</strong> activit{% if activities|length != 1 %}ies{% else %}y{% endif %} from <strong>{{ year }}/{{ month }}/{{ day }}</strong> to a new date.
+                </p>
+
+                {% if activities|length > 0 %}
+                <div class="list-group list-group-flush mb-0">
+                    {% for activity in activities %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="avatar">{{ activity_types.emoji(activity.activity_type_key) }}</span>
+                            </div>
+                            <div class="col">
+                                <div class="text-truncate">
+                                    <strong>{{ activity.name }}</strong>
+                                </div>
+                                <div class="text-muted">
+                                    {{ activity_types.name(activity.activity_type_key) }}
+                                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                        · {{ "{:0.1f}".format(activity.distance / 1000) }} km
+                                    {% endif %}
+                                    {% if activity.activity_type_key not in ["sick","injured","comment"] %}
+                                        · {{ activity.duration }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Target Date</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    Select the date to which you want to copy all activities.
+                </p>
+
+                <div class="row g-3 justify-content-center">
+                    <div class="col-auto">
+                        <label class="form-label required">{{ form.target_year.label }}</label>
+                        {{ form.target_year(class="form-control", placeholder="YYYY", style="width: 100px;") }}
+                        {% if form.target_year.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.target_year.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-auto">
+                        <label class="form-label required">{{ form.target_month.label }}</label>
+                        {{ form.target_month(class="form-control", placeholder="MM", style="width: 80px;") }}
+                        {% if form.target_month.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.target_month.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-auto">
+                        <label class="form-label required">{{ form.target_day.label }}</label>
+                        {{ form.target_day(class="form-control", placeholder="DD", style="width: 80px;") }}
+                        {% if form.target_day.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.target_day.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}

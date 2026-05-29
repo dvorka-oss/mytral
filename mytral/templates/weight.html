@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">
+                    Weight
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Track your body weight trends over time. Weight data is extracted from your activities
+                and aggregated per week to show long-term patterns. This helps you correlate weight changes
+                with your training volume and intensity.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                Weight per Week
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Weekly minimum weight measurements. Each data point represents the minimum weight for that week, based on activities where weight was recorded. Gaps indicate weeks without weight measurements.">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                    <path d="M12 9h.01"></path>
+                    <path d="M11 12h1v4h1"></path>
+                </svg>
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

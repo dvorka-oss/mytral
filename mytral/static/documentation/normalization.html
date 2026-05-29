@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Activity Normalization - MyTraL Documentation</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <meta
+      name="description"
+      content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL."
+    />
+
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="/static/tabler-dist/css/tabler.min.css" rel="stylesheet" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PLUGINS STYLES -->
+    <link href="/static/tabler-dist/css/tabler-flags.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-socials.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-payments.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-vendors.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-marketing.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-themes.min.css" rel="stylesheet"/>
+    <!-- END PLUGINS STYLES -->
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+      .carousel-inner img {
+        height: 300px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+      }
+    </style>
+
+  </head>
+  <body>
+    <!-- BEGIN GLOBAL THEME SCRIPT -->
+    <script src="/static/tabler-dist/js/tabler-theme.min.js"></script>
+    <!-- END GLOBAL THEME SCRIPT -->
+    <div class="page">
+      <!-- BEGIN NAVBAR  -->
+      <div class="sticky-top">
+        <header class="navbar navbar-expand-md sticky-top d-print-none">
+          <div class="container-xl">
+            <!-- BEGIN NAVBAR TOGGLER -->
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar-menu"
+              aria-controls="navbar-menu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- END NAVBAR TOGGLER -->
+            <!-- BEGIN NAVBAR LOGO -->
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3" style="gap: 0px;">
+              <img src="/static/images/mytral-logo-transparent-bg.png" alt="MyTraL" style="width: 25px; height: 25px; margin-right: 5px;">
+                MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span>
+            </div>
+            <!-- END NAVBAR LOGO -->
+            <div class="navbar-nav flex-row order-md-last">
+              <div class="d-none d-md-flex">
+
+                <div class="nav-item">
+                  <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+                    </svg>
+                  </a>
+                  <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                      <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <header class="navbar-expand-md">
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <div class="navbar">
+              <div class="container-xl">
+                <div class="row flex-column flex-md-row flex-fill align-items-center">
+                  <div class="col">
+                    <!-- BEGIN NAVBAR MENU -->
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> User Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="index.html">Manifesto</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="about.html">About</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-code"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Technical Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="architecture.html">Architecture</a>
+<a class="dropdown-item active" href="normalization.html">Activity Normalization</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="license.html">License</a>
+<a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
+<a class="dropdown-item" href="changelog.html">Changelog</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Digitalization </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="digitalization.html">Digitize, Normalize, Own!</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                    <!-- END NAVBAR MENU -->
+                  </div>
+                  <div class="col col-md-auto">
+                    <ul class="navbar-nav">
+                      <li class="nav-item">
+                        <a class="nav-link" href="/home">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+                              <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+                              <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> MyTraL </span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- END NAVBAR  -->
+      <div class="page-wrapper">
+
+      <!-- BEGIN MYTRAL PAGE CONTENT -->
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="page-pretitle">Technical Documentation</div>
+                        <h2 class="page-title">Activity Normalization</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row">
+                    <!-- BEGIN MAIN CONTENT -->
+                    <div class="col-12 col-xxl-10">
+                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="activity-data-model">Activity Data Model</h2>
+<p>MyTraL normalizes all training activities from various sources (Strava, Concept2, Google Sheets, paper logs) into a unified JSON data structure. This normalization ensures consistency across different data sources and enables comprehensive analysis and visualization of your training history.</p>
+<p>An <strong>Activity</strong> is the fundamental building block of a workout. A typical workout consists of multiple activities: warm-up, main workout, and cool-down. Activities are grouped into workouts using the <code>workout_sort_code</code> field.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="core-entity-fields">Core Entity Fields</h2>
+<p>All activities inherit base fields from the <code>DbEntity</code> class:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>key</code></td>
+<td>string</td>
+<td>""</td>
+<td>Unique identifier for the activity</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>""</td>
+<td>Human-readable name of the activity</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>""</td>
+<td>Detailed description or notes about the activity</td>
+</tr>
+<tr>
+<td><code>when_year</code></td>
+<td>int</td>
+<td>current year</td>
+<td>Year when the activity occurred</td>
+</tr>
+<tr>
+<td><code>when_month</code></td>
+<td>int</td>
+<td>current month</td>
+<td>Month when the activity occurred (1-12)</td>
+</tr>
+<tr>
+<td><code>when_day</code></td>
+<td>int</td>
+<td>current day</td>
+<td>Day when the activity occurred (1-31)</td>
+</tr>
+<tr>
+<td><code>when_hour</code></td>
+<td>int</td>
+<td>current hour</td>
+<td>Hour when the activity started (0-23)</td>
+</tr>
+<tr>
+<td><code>when_minute</code></td>
+<td>int</td>
+<td>current minute</td>
+<td>Minute when the activity started (0-59)</td>
+</tr>
+<tr>
+<td><code>when_second</code></td>
+<td>int</td>
+<td>current second</td>
+<td>Second when the activity started (0-59)</td>
+</tr>
+<tr>
+<td><code>when</code></td>
+<td>string</td>
+<td>""</td>
+<td>ISO formatted timestamp string (auto-generated)</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="activity-specific-fields">Activity-Specific Fields</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="workout-organization">Workout Organization</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sort_code</code></td>
+<td>int</td>
+<td>1</td>
+<td>Order of this activity within the workout (1-based)</td>
+</tr>
+<tr>
+<td><code>workout_sort_code</code></td>
+<td>int</td>
+<td>1</td>
+<td>Identifier grouping activities into a workout. Morning workouts have lower codes than evening workouts</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="basic-activity-information">Basic Activity Information</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>where</code></td>
+<td>string</td>
+<td>""</td>
+<td>Location where the activity took place</td>
+</tr>
+<tr>
+<td><code>sport</code></td>
+<td>string</td>
+<td>"run"</td>
+<td>Type of sport: run, ride, rowing, ski, rollerski, swim, etc. (open enum)</td>
+</tr>
+<tr>
+<td><code>intensity</code></td>
+<td>string</td>
+<td>"easy"</td>
+<td>Intensity level: easy, hard, regen, LSD, fartlek, tempo, race, etc. (open enum)</td>
+</tr>
+<tr>
+<td><code>gear</code></td>
+<td>string</td>
+<td>""</td>
+<td>Equipment used (e.g., bike name, shoe model)</td>
+</tr>
+<tr>
+<td><code>formula</code></td>
+<td>string</td>
+<td>""</td>
+<td>Workout formula using DSL: e.g., "3<em>(2k/r30s + 3k/r20s)" or "3</em>(10<em>squats + 5</em>crunches)"</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="duration-and-distance">Duration and Distance</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hours</code></td>
+<td>int</td>
+<td>0</td>
+<td>Duration hours component</td>
+</tr>
+<tr>
+<td><code>minutes</code></td>
+<td>int</td>
+<td>30</td>
+<td>Duration minutes component (0-59)</td>
+</tr>
+<tr>
+<td><code>seconds</code></td>
+<td>int</td>
+<td>0</td>
+<td>Duration seconds component (0-59)</td>
+</tr>
+<tr>
+<td><code>distance</code></td>
+<td>int</td>
+<td>0</td>
+<td>Distance covered in meters</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="activity-flags">Activity Flags</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>warm_up</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this is a warm-up activity</td>
+</tr>
+<tr>
+<td><code>cool_down</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this is a cool-down activity</td>
+</tr>
+<tr>
+<td><code>commute</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this was a commute activity</td>
+</tr>
+<tr>
+<td><code>race</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this was a race/competition</td>
+</tr>
+<tr>
+<td><code>ranked</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this activity is used for personal records (like Concept2 rankings)</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="performance-metrics">Performance Metrics</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kcal</code></td>
+<td>int</td>
+<td>0</td>
+<td>Calories burned (kcal)</td>
+</tr>
+<tr>
+<td><code>max_speed</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Maximum speed in km/h</td>
+</tr>
+<tr>
+<td><code>elevation_gain</code></td>
+<td>int</td>
+<td>0</td>
+<td>Total elevation gain in meters</td>
+</tr>
+<tr>
+<td><code>elevation_min</code></td>
+<td>int</td>
+<td>0</td>
+<td>Minimum elevation in meters</td>
+</tr>
+<tr>
+<td><code>elevation_max</code></td>
+<td>int</td>
+<td>0</td>
+<td>Maximum elevation in meters</td>
+</tr>
+<tr>
+<td><code>avg_watts</code></td>
+<td>int</td>
+<td>0</td>
+<td>Average power output in watts</td>
+</tr>
+<tr>
+<td><code>max_watts</code></td>
+<td>int</td>
+<td>0</td>
+<td>Maximum power output in watts</td>
+</tr>
+<tr>
+<td><code>avg_hr</code></td>
+<td>int</td>
+<td>0</td>
+<td>Average heart rate in bpm</td>
+</tr>
+<tr>
+<td><code>max_hr</code></td>
+<td>int</td>
+<td>0</td>
+<td>Maximum heart rate in bpm</td>
+</tr>
+<tr>
+<td><code>min_hr</code></td>
+<td>int</td>
+<td>0</td>
+<td>Minimum heart rate in bpm</td>
+</tr>
+<tr>
+<td><code>suffer_score</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Strava's suffer score metric</td>
+</tr>
+<tr>
+<td><code>fitness_score</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Fitness/form score</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="body-metrics-environment">Body Metrics &amp; Environment</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weight</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Body weight in kg at time of activity</td>
+</tr>
+<tr>
+<td><code>weather</code></td>
+<td>string</td>
+<td>""</td>
+<td>Weather conditions: cloudy, sunny, windy, rainy, etc.</td>
+</tr>
+<tr>
+<td><code>temperature</code></td>
+<td>int</td>
+<td>18</td>
+<td>Temperature in Celsius</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="source-tracking">Source Tracking</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src</code></td>
+<td>string</td>
+<td>"manual"</td>
+<td>Data source: manual, strava-import, concept2-import, paper-import, etc.</td>
+</tr>
+<tr>
+<td><code>src_descriptor</code></td>
+<td>string</td>
+<td>""</td>
+<td>Additional source information (e.g., "green paper log book '97")</td>
+</tr>
+<tr>
+<td><code>src_key</code></td>
+<td>string</td>
+<td>""</td>
+<td>External service ID (e.g., Strava activity UUID)</td>
+</tr>
+<tr>
+<td><code>src_url</code></td>
+<td>string</td>
+<td>""</td>
+<td>Link to original activity (e.g., Strava activity URL)</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="calculated-fields-transient">Calculated Fields (Transient)</h2>
+<p>These fields are calculated from input values and are not stored in the database:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>duration</code></td>
+<td>string</td>
+<td>""</td>
+<td>Formatted duration string: "HHhMMmSSs"</td>
+</tr>
+<tr>
+<td><code>duration_seconds</code></td>
+<td>int</td>
+<td>0</td>
+<td>Total duration in seconds</td>
+</tr>
+<tr>
+<td><code>exercise_kgs</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Total weight lifted (kg) from exercises</td>
+</tr>
+<tr>
+<td><code>avg_speed</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Average speed in km/h</td>
+</tr>
+<tr>
+<td><code>pace</code></td>
+<td>string</td>
+<td>""</td>
+<td>Pace as min/km</td>
+</tr>
+<tr>
+<td><code>bmi</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Body Mass Index calculated from weight and height</td>
+</tr>
+<tr>
+<td><code>burnt_fat</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Estimated fat burned in grams</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="nested-entities">Nested Entities</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="exercises">Exercises</h2>
+<p>Activities can contain multiple exercise entities for strength training:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>activity_key</code></td>
+<td>string</td>
+<td>""</td>
+<td>Reference to parent activity</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>""</td>
+<td>Exercise name (e.g., "squats", "bench press")</td>
+</tr>
+<tr>
+<td><code>weight</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Weight used in kg</td>
+</tr>
+<tr>
+<td><code>series</code></td>
+<td>int</td>
+<td>0</td>
+<td>Number of sets</td>
+</tr>
+<tr>
+<td><code>repetitions</code></td>
+<td>int</td>
+<td>0</td>
+<td>Repetitions per set</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>int</td>
+<td>0</td>
+<td>Exercise duration in seconds</td>
+</tr>
+<tr>
+<td><code>rest</code></td>
+<td>int</td>
+<td>0</td>
+<td>Rest period in seconds</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="sickness-symptoms">Sickness Symptoms</h2>
+<p>Activities can track illness or injury symptoms:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>activity_key</code></td>
+<td>string</td>
+<td>""</td>
+<td>Reference to parent activity</td>
+</tr>
+<tr>
+<td><code>symptom</code></td>
+<td>string</td>
+<td>""</td>
+<td>Symptom description (injury or disease)</td>
+</tr>
+<tr>
+<td><code>side</code></td>
+<td>string</td>
+<td>""</td>
+<td>Body side affected: "left", "right", or "" for both/general</td>
+</tr>
+<tr>
+<td><code>body_part</code></td>
+<td>string</td>
+<td>""</td>
+<td>Affected body part (e.g., "knee", "shoulder")</td>
+</tr>
+<tr>
+<td><code>health</code></td>
+<td>int</td>
+<td>0</td>
+<td>Health percentage: 100 = fully healthy, 0 = severely sick/injured</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="json-example">JSON Example</h2>
+<p>Example of a normalized running activity in JSON format:</p>
+<div class="codehilite"><pre><span></span><code>{
+  &quot;key&quot;: &quot;2024-01-15-123456&quot;,
+  &quot;name&quot;: &quot;Morning Run&quot;,
+  &quot;description&quot;: &quot;Easy recovery run along the river&quot;,
+  &quot;when_year&quot;: 2024,
+  &quot;when_month&quot;: 1,
+  &quot;when_day&quot;: 15,
+  &quot;when_hour&quot;: 7,
+  &quot;when_minute&quot;: 30,
+  &quot;when_second&quot;: 0,
+  &quot;when&quot;: &quot;2024-01-15T07:30:00&quot;,
+  &quot;sort_code&quot;: 1,
+  &quot;workout_sort_code&quot;: 1,
+  &quot;where&quot;: &quot;Prague riverside&quot;,
+  &quot;sport&quot;: &quot;run&quot;,
+  &quot;intensity&quot;: &quot;easy&quot;,
+  &quot;gear&quot;: &quot;Nike Pegasus 40&quot;,
+  &quot;hours&quot;: 0,
+  &quot;minutes&quot;: 45,
+  &quot;seconds&quot;: 30,
+  &quot;distance&quot;: 8500,
+  &quot;kcal&quot;: 650,
+  &quot;max_speed&quot;: 14.2,
+  &quot;elevation_gain&quot;: 85,
+  &quot;avg_hr&quot;: 145,
+  &quot;max_hr&quot;: 162,
+  &quot;weight&quot;: 75.5,
+  &quot;weather&quot;: &quot;cloudy&quot;,
+  &quot;temperature&quot;: 8,
+  &quot;src&quot;: &quot;strava-import&quot;,
+  &quot;src_key&quot;: &quot;1234567890&quot;,
+  &quot;src_url&quot;: &quot;https://www.strava.com/activities/1234567890&quot;,
+  &quot;duration&quot;: &quot;00h45m30s&quot;,
+  &quot;duration_seconds&quot;: 2730,
+  &quot;avg_speed&quot;: 11.2,
+  &quot;pace&quot;: &quot;5:21&quot;,
+  &quot;exercises&quot;: [],
+  &quot;sickness_symptoms&quot;: []
+}
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="conventions-and-best-practices">Conventions and Best Practices</h2>
+<ul>
+<li><strong>Zero as unused value:</strong> 0 represents an unused or unset value for numeric fields</li>
+<li><strong>1-based indexing:</strong> Sort codes and workout identifiers start from 1, not 0</li>
+<li><strong>Open enums:</strong> Fields like <code>sport</code>, <code>intensity</code>, and <code>src</code> use open enumeration - new values are automatically accepted</li>
+<li><strong>Sparse storage:</strong> Only non-default values are persisted to disk using <code>to_sparse_dict()</code> method</li>
+<li><strong>Transient fields:</strong> Calculated fields are marked in <code>transient_fields</code> dictionary and excluded from database storage</li>
+<li><strong>Metric units:</strong> All measurements use metric units (meters, kg, Celsius, km/h)</li>
+<li><strong>Time components:</strong> Duration is stored as separate hour/minute/second components for easier querying and display</li>
+</ul>
+                        </div></div>
+                    </div>
+                    <!-- END MAIN CONTENT -->
+
+                    <!-- BEGIN TABLE OF CONTENTS SIDEBAR -->
+                    <div class="col-2 d-none d-xxl-block">
+                        <div class="mt-6 py-6 sticky-top">
+    <h3 class="mt-9">Table of Contents</h3>
+    <div class="nav nav-vertical" id="toc">
+        <a href="#activity-normalization" class="nav-link">Activity Normalization</a>
+<a href="#activity-data-model" class="nav-link">Activity Data Model</a>
+<a href="#core-entity-fields" class="nav-link">Core Entity Fields</a>
+<a href="#activity-specific-fields" class="nav-link">Activity-Specific Fields</a>
+<a href="#workout-organization" class="nav-link">Workout Organization</a>
+<a href="#basic-activity-information" class="nav-link">Basic Activity Information</a>
+<a href="#duration-and-distance" class="nav-link">Duration and Distance</a>
+<a href="#activity-flags" class="nav-link">Activity Flags</a>
+<a href="#performance-metrics" class="nav-link">Performance Metrics</a>
+<a href="#body-metrics-amp-environment" class="nav-link">Body Metrics &amp; Environment</a>
+<a href="#source-tracking" class="nav-link">Source Tracking</a>
+<a href="#calculated-fields-transient" class="nav-link">Calculated Fields (Transient)</a>
+<a href="#nested-entities" class="nav-link">Nested Entities</a>
+<a href="#exercises" class="nav-link">Exercises</a>
+<a href="#sickness-symptoms" class="nav-link">Sickness Symptoms</a>
+<a href="#json-example" class="nav-link">JSON Example</a>
+<a href="#conventions-and-best-practices" class="nav-link">Conventions and Best Practices</a>
+    </div>
+</div>
+                    </div>
+                    <!-- END TABLE OF CONTENTS SIDEBAR -->
+                </div>
+            </div>
+        </div>
+
+        <!-- END MYTRAL PAGE CONTENT -->
+
+        <!--  BEGIN FOOTER  -->
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+              <div class="col-lg-auto ms-lg-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/NORMALIZATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/NORMALIZATION.md" class="link-secondary" target="_blank">Source</a></li>
+                </ul>
+              </div>
+              <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    Copyright &copy; 2026 MyTraL
+                  </li>
+                  <li class="list-inline-item">
+                    Your personal training log for deeper insights and smarter progress.
+                  </li>
+                  <li class="list-inline-item">
+                    Doc made with <a href="https://www.mindforger.com" target="_blank">MindForger</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!--  END FOOTER  -->
+      </div>
+    </div>
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="/static/tabler-dist/js/tabler.min.js" defer></script>
+    <!-- END GLOBAL MANDATORY SCRIPTS -->
+</body>
+</html>

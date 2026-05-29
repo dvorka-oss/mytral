@@ -1,0 +1,505 @@
+{% from 'macros/gear_components.html' import comp_sidebar, comp_stats_cards, comp_service_progress, comp_service_history_table, comp_retired_pane, comp_empty_state, comp_js %}
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('settings_gear_list') }}" class="page-pretitle">Gears</a>
+                <h2 class="page-title">Gear Details</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('settings_gear_update', key=key) }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                            <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                            <path d="M16 5l3 3"></path>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <div class="avatar avatar-md" style="background-color: {{ activity_types.color(gear.activity_type_key) }}">
+                        {{ activity_types.emoji(gear.activity_type_key) }}
+                    </div>
+                    <div class="ms-3">
+                        <div class="h3 mb-0">{{ gear.name }}</div>
+                        <div class="text-muted">
+                            {{ activity_types.name(gear.activity_type_key) }}
+                            {% if gear.vendor %} · {{ gear.vendor }}{% endif %}
+                            {% if gear.model %} {{ gear.model }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    {% if gear.is_default %}
+                    <span class="badge bg-green text-green-fg">default</span>
+                    {% endif %}
+                    {% if gear.retired %}
+                    <span class="badge bg-warning text-warning-fg">retired</span>
+                    {% else %}
+                    <span class="badge bg-success text-green-fg">active</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if gear.comment %}
+                <div class="text-muted mb-4">{{ gear.comment | markdown }}</div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    {% if gear.vendor %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Vendor</div>
+                                </div>
+                                <div class="h1 mb-3">{{ gear.vendor }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.model %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Model</div>
+                                </div>
+                                <div class="h1 mb-3">{{ gear.model }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.size %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Size</div>
+                                </div>
+                                <div class="h1 mb-3">{{ gear.size }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.purchased %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Purchased</div>
+                                </div>
+                                <div class="h1 mb-3">{{ gear.purchased|replace('-', '/') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Activity Type</div>
+                                </div>
+                                <div class="h1 mb-3">
+                                    <a href="{{ url_for('settings_activity_types_list') }}" class="text-reset">{{ activity_types.name(gear.activity_type_key) }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Total Cost (TCoO)</div>
+                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Complete cost of ownership including purchase, maintenance, and additional costs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_total) }}</div>
+                                <small class="text-muted">Base + Maintenance + Additional</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if gear.tcoo_base %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Base Price</div>
+                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Initial purchase price">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_base) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.tcoo_cost %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Maintenance Cost</div>
+                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Sum of all component costs and service actions">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_cost) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.tcoo_additional and gear.tcoo_additional > 0 %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Additional Cost</div>
+                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Other costs like fitting, shipping, insurance, etc.">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_additional) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.url %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">URL</div>
+                                </div>
+                                <div class="h1 mb-3">
+                                    <a href="{{ gear.url }}" target="_blank" rel="noopener noreferrer" class="text-reset" style="font-size: 1rem;">{{ gear.url[:30] }}...</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Components Section: sidebar list + detail pane #}
+        {% set active_components = gear.get_components() %}
+        {% set all_components_inc_retired = gear.get_components(include_retired=True) %}
+        {% set retired_components = all_components_inc_retired | rejectattr('status', 'equalto', 'active') | list %}
+        <div class="card mt-3">
+            <div class="row g-0">
+
+                <div class="col-12 col-md-3 border-end">
+                    {{ comp_sidebar(active_components, retired_components, key) }}
+                </div>
+
+                <div class="col-12 col-md-9 d-flex flex-column">
+                    {% if active_components or retired_components %}
+
+                        {% for comp in active_components %}
+                        {% set predecessor_chain = gear.get_predecessor_chain(comp.key) %}
+                        <div id="comp-{{ comp.key }}" class="comp-section{% if not loop.first %} d-none{% endif %}">
+                            <div class="card-body border-bottom">
+                                <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                                    <div>
+                                        <h3 class="mb-0">
+                                            {{ comp.name }}
+                                            {% if comp.requires_service %}
+                                            <span class="h5 badge bg-danger text-red-fg">Service Due</span>
+                                            {% else %}
+                                            <span class="h5 badge bg-success text-green-fg">OK</span>
+                                            {% endif %}
+                                        </h3>
+                                        {% if comp.notes %}
+                                        <p class="text-muted small mt-1 mb-0">{{ comp.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                        <a href="{{ url_for('settings_gear_component_service', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-primary btn-md" data-bs-toggle="tooltip" data-bs-placement="top" title="Record service">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-tool" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                <path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/>
+                                            </svg>
+                                            Service
+                                        </a>
+                                        <a href="{{ url_for('settings_gear_component_update', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-secondary btn-md" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit component">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                            Edit
+                                        </a>
+                                        <form method="POST" action="{{ url_for('settings_gear_component_retire', gear_key=key, component_key=comp.key) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_form.csrf_token._value() }}"/>
+                                            <button type="submit" class="btn btn-outline-warning btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Retire component" onclick="return confirm('Retire this component? It will be moved to the Retired section.')">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-box" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5"/>
+                                                    <path d="M12 12l8 -4.5"/>
+                                                    <path d="M12 12l0 9"/>
+                                                    <path d="M12 12l-8 -4.5"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <a href="{{ url_for('settings_gear_component_delete', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-danger btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete component">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M4 7l16 0"></path>
+                                                <path d="M10 11l0 6"></path>
+                                                <path d="M14 11l0 6"></path>
+                                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                {{ comp_stats_cards(comp) }}
+                                {{ comp_service_progress(comp) }}
+                                {{ comp_service_history_table(comp, gear, key, show_edit=True) }}
+
+                                {# Predecessor chain / replacement history (get page only) #}
+                                {% if predecessor_chain %}
+                                <h4 class="subheader mb-2">Replacement History</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-vcenter table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Component</th>
+                                                <th>Cost</th>
+                                                <th>Installed</th>
+                                                <th>Usage at Retirement</th>
+                                                <th>Service History</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for pred in predecessor_chain %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-secondary text-secondary-fg me-1">Retired</span>
+                                                    <a href="#" class="text-reset" data-section="comp-{{ pred.key }}" title="View retired component details">{{ pred.name }}</a>
+                                                    {% if pred.notes %}
+                                                    <br><small class="text-muted">{{ pred.notes }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td>🪙{{ "{:0,.0f}".format(pred.cost) }}</td>
+                                                <td>{{ pred.installed_date or '—' }}</td>
+                                                <td>
+                                                    {{ "{:0,.0f}".format(pred.distance_km) }} km<br>
+                                                    <small class="text-muted">{{ "%.1f"|format(pred.time_hours) }} h</small>
+                                                </td>
+                                                <td>
+                                                    {% if gear.component_history.get(pred.key) %}
+                                                    <a href="#pred-hist-{{ pred.key }}-{{ comp.key }}" data-bs-toggle="collapse" class="text-muted small">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-history me-1" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                            <path d="M12 8l0 4l2 2"/>
+                                                            <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/>
+                                                        </svg>
+                                                        {{ gear.component_history[pred.key]|length }} entries
+                                                    </a>
+                                                    {% else %}
+                                                    <span class="text-muted">—</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% if gear.component_history.get(pred.key) %}
+                                            <tr class="collapse" id="pred-hist-{{ pred.key }}-{{ comp.key }}">
+                                                <td colspan="5" class="p-0">
+                                                    <table class="table table-sm mb-0" style="background: var(--tblr-bg-surface-secondary);">
+                                                        <thead>
+                                                            <tr class="text-muted small">
+                                                                <th style="padding-left: 2rem;">Date</th>
+                                                                <th>Type</th>
+                                                                <th>Usage at Service</th>
+                                                                <th>Cost</th>
+                                                                <th>Notes</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% set pred_history_indexed = [] %}
+                                                            {% for entry in gear.component_history[pred.key] %}
+                                                                {% set _ = pred_history_indexed.append((loop.index0, entry)) %}
+                                                            {% endfor %}
+                                                            {% for _idx, entry in pred_history_indexed|sort(attribute='1.date', reverse=True) %}
+                                                            <tr class="small">
+                                                                <td style="padding-left: 2rem;">{{ entry.date }}</td>
+                                                                <td>
+                                                                    {% if entry.service_type == 'replacement' %}
+                                                                    <span class="badge bg-warning text-yellow-fg">Replacement</span>
+                                                                    {% elif entry.service_type == 'service' %}
+                                                                    <span class="badge bg-primary text-blue-fg">Service</span>
+                                                                    {% else %}
+                                                                    <span class="badge bg-secondary text-secondary-fg">{{ entry.service_type|title }}</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>{{ "%.1f"|format(entry.km_at_service) }} km / {{ "%.1f"|format(entry.hours_at_service) }} h</td>
+                                                                <td>🪙{{ "%.0f"|format(entry.cost) }}</td>
+                                                                <td>{{ entry.notes or '—' }}</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        {% for comp in retired_components %}
+                        {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first)) }}
+                        {% endfor %}
+
+                    {% else %}
+                        {{ comp_empty_state(key) }}
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xl mt-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    Photos
+                    <span class="badge bg-secondary text-secondary-fg ms-2">{{ photos|length }} / 20</span>
+                </h3>
+                <div class="card-options">
+                    {% if photos|length < 20 %}
+                    <a href="{{ url_for('settings_gear_upload_photo', key=key) }}" class="btn btn-outline-primary">Add Photos</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if photos %}
+                <div class="row g-3">
+                    {% for photo in photos %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card card-sm{% if gear.highlight_photo_blob_key == photo.blob_key %} border-primary{% endif %}">
+                            <div class="card-header">
+                                {% if gear.highlight_photo_blob_key == photo.blob_key %}
+                                <span class="badge bg-blue text-blue-fg me-2">Highlight</span>
+                                {% endif %}
+                                <div class="card-options">
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap mb-1">
+                                        <a href="{{ url_for('settings_gear_update_photo_metadata', key=key, blob_key=photo.blob_key) }}"
+                                           class="btn btn-outline-primary btn-icon"
+                                           title="Edit metadata">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        {% if gear.highlight_photo_blob_key != photo.blob_key %}
+                                        <form action="{{ url_for('settings_gear_highlight_photo', key=key, blob_key=photo.blob_key) }}" method="POST" class="d-inline">
+                                            {{ highlight_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-secondary btn-icon" title="Set as highlight">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <form action="{{ url_for('settings_gear_delete_photo', key=key, blob_key=photo.blob_key) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this photo?')">
+                                            {{ delete_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete photo">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-1 text-center">
+                                <a data-fslightbox="gear-photos" data-type="image" href="{{ url_for('settings_gear_photo', key=key, blob_key=photo.blob_key) }}" class="d-block">
+                                    <img src="{{ url_for('settings_gear_photo_thumbnail', key=key, blob_key=photo.blob_key) }}"
+                                         alt="{{ photo.name or photo.original_file_name }}"
+                                         class="img-fluid rounded"
+                                         style="max-height:140px;object-fit:cover;width:100%">
+                                </a>
+                                {% if photo.name %}
+                                <div class="subheader mt-3">Name</div>
+                                <div class="h3 text-truncate">{{ photo.name }}</div>
+                                {% endif %}
+
+                                {% if photo.description %}
+                                <div class="small text-muted mt-1 SKIP-text-truncate">{{ photo.description }}</div>
+                                {% endif %}
+
+                                <div class="mt-1">
+                                    {% for kw in photo.keywords %}
+                                    <span class="badge bg-azure text-azure-fg">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No photos - click "Add Photos" to upload.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ comp_js('comp-section') }}
+{% endblock %}

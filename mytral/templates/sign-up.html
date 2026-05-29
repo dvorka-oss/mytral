@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    {% if is_desktop %}
+    <title>Add User - MyTraL</title>
+    {% else %}
+    <title>Sign Up - MyTraL</title>
+    {% endif %}
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link href="{{ url_for('static', filename='tabler-dist/css/tabler.min.css') }}" rel="stylesheet" />
+    <style>
+        @import url("https://rsms.me/inter/inter.css");
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler-theme.min.js') }}"></script>
+    <div class="page page-center">
+        <div class="container container-tight py-4">
+            <div class="text-center mb-4">
+                <a href="." class="navbar-brand navbar-brand-autodark d-inline-flex align-items-center" style="gap: 5px;">
+                    <img src="{{ url_for('static', filename='images/mytral-logo-transparent-bg.png') }}" alt="MyTraL" style="width: 25px; height: 25px;">
+                    <span style="font-size: 1.25rem;">MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span></span>
+                </a>
+            </div>
+            <form class="card card-md" method="POST" action="" autocomplete="off">
+                <div class="card-body">
+                    {% if is_desktop %}
+                    <h2 class="h2 text-center mb-4">Add user</h2>
+                    {% else %}
+                    <h2 class="h2 text-center mb-4">Create your account</h2>
+                    {% endif %}
+
+                    {# send CSRF token #}
+                    {{ form.hidden_tag() }}
+
+                    {% if not is_auto_user_registration and not is_desktop %}
+                    <div class="mb-3">
+                        <label class="form-label required">Sign up code</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Enter your invitation code" autocomplete="off">
+                            <a href="https://mytral.fitness/#contact" class="btn btn-outline-primary" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"></path><path d="M3 7l9 6l9 -6"></path></svg>
+                                Request
+                            </a>
+                        </div>
+                        <small class="form-hint">You need an invitation code to sign up. Click Request to get one.</small>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label required">{{ form.username.label }}</label>
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Choose a username", autofocus=true) }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if not is_desktop %}
+                    <div class="mb-3">
+                        <label class="form-label required">{{ form.email.label }}</label>
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="your@email.com", type="email") }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if not is_desktop %}
+                    <div class="mb-3">
+                        <label class="form-label required">{{ form.password.label }}</label>
+                        <div class="input-group input-group-flat">
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Create a password", id="password") }}
+                            <span class="input-group-text">
+                                <a href="#" class="link-secondary" title="Show password" data-bs-toggle="tooltip" onclick="togglePassword('password'); return false;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>
+                                </a>
+                            </span>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-hint">Your password should be at least 8 characters long.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">{{ form.password_confirm.label }}</label>
+                        <div class="input-group input-group-flat">
+                            {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else ""), placeholder="Confirm password", id="password_confirm") }}
+                            <span class="input-group-text">
+                                <a href="#" class="link-secondary" title="Show password" data-bs-toggle="tooltip" onclick="togglePassword('password_confirm'); return false;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>
+                                </a>
+                            </span>
+                        </div>
+                        {% if form.password_confirm.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password_confirm.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-check">
+                            <input type="checkbox" class="form-check-input" required />
+                            <span class="form-check-label">I agree to the <a href="{{ url_for('static', filename='documentation/license.html') }}" target="_blank" tabindex="-1">terms and policy</a>.</span>
+                        </label>
+                    </div>
+
+                    <div class="form-footer">
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </div>
+                </div>
+            </form>
+            <div class="text-center text-muted mt-3">
+                Already have an account? <a href="{{ url_for('login') }}" tabindex="-1">Sign in</a>
+            </div>
+            <div class="text-center text-muted mt-2">
+                <small>Your personal training log for deeper insights and smarter progress.</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='tabler-dist/js/tabler.min.js') }}"></script>
+    <script>
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+            } else {
+                field.type = "password";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>

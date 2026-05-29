@@ -1,0 +1,205 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <!-- Page pre-title -->
+                <div class="page-pretitle">
+                    <a href="{{ url_for('tasks_list') }}">Background Tasks</a>
+                </div>
+                <h2 class="page-title">Task Details</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if task.status.value == 'running' %}
+                <form action="{{ url_for('task_cancel', task_id=task.key) }}" method="POST" style="display: inline;">
+                    {{ cancel_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-warning">Cancel Task</button>
+                </form>
+                {% elif task.status.value in ['completed', 'failed'] %}
+                <form action="{{ url_for('task_delete', task_id=task.key) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this task?');">
+                    {{ delete_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-outline-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                        Delete Task
+                    </button>
+                </form>
+                {% endif %}
+                {% if task.status.value != 'queued' %}
+                <a href="{{ url_for('task_download_log', task_id=task.key) }}" class="btn btn-outline-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                    Download Log
+                </a>
+                {% endif %}
+                {% if task.status.value == 'completed' %}
+                <form action="{{ url_for(task.result_route, **task.result_route_kwargs) }}" method="GET" style="display: inline;">
+                    {{ cancel_form.hidden_tag() }}
+                    <button type="submit" class="btn btn-primary">View Result</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BEGIN PAGE BODY -->
+<div class="page-body">
+    <div class="container-xl">
+        <!-- Task Information Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Task Information</h3>
+                <div class="card-actions">
+                    {% if task.status.value == 'running' %}
+                    <span class="badge bg-blue text-blue-fg">Running</span>
+                    {% elif task.status.value == 'completed' %}
+                    <span class="badge bg-green text-green-fg">Completed</span>
+                    {% elif task.status.value == 'failed' %}
+                    <span class="badge bg-red text-red-fg">Failed</span>
+                    {% else %}
+                    <span class="badge bg-gray text-gray-fg">Queued</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-5">Type:</dt>
+                            <dd class="col-7" title="{{ task.key }}">{{ task.display_name }}</dd>
+
+                            <dt class="col-5">Created:</dt>
+                            <dd class="col-7">{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] }}</dd>
+
+                            <dt class="col-5">Started:</dt>
+                            <dd class="col-7">
+                                {% if task.started_at %}
+                                {{ task.started_at.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] }}
+                                {% else %}
+                                <span class="text-muted">Not started</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-5">Completed:</dt>
+                            <dd class="col-7">
+                                {% if task.completed_at %}
+                                {{ task.completed_at.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-5">Progress:</dt>
+                            <dd class="col-7">
+                                <div class="progress position-relative bg-secondary" style="height: 1.5rem;">
+                                    <div class="progress-bar {% if task.status.value == 'failed' %}bg-red{% elif task.status.value == 'completed' %}bg-green{% else %}bg-blue{% endif %}"
+                                         style="width: {{ task.progress }}%;"></div>
+                                    <span class="position-absolute w-100 text-center text-white" style="font-size: 0.875rem; line-height: 1.5rem; left: 0;">
+                                        {{ task.progress }}%
+                                    </span>
+                                </div>
+                            </dd>
+
+                            <dt class="col-5">Duration:</dt>
+                            <dd class="col-7">
+                                {% if task.started_at %}
+                                {% if task.completed_at %}
+                                {% set total = (task.completed_at - task.started_at).total_seconds() | int %}
+                                {% else %}
+                                {% set total = (now - task.started_at).total_seconds() | int %}
+                                {% endif %}
+                                {% if total < 60 %}
+                                {{ total }}s
+                                {% elif total < 3600 %}
+                                {{ total // 60 }}m {{ total % 60 }}s
+                                {% else %}
+                                {{ total // 3600 }}h {{ (total % 3600) // 60 }}m {{ total % 60 }}s
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </dd>
+
+                            {% if task.error_message %}
+                            <dt class="col-5">Error:</dt>
+                            <dd class="col-7">
+                                <span class="text-danger">{{ task.error_type }}: {{ task.error_message }}</span>
+                            </dd>
+                            {% endif %}
+
+                            {% if task.is_cancelled %}
+                            <dt class="col-5">Cancelled:</dt>
+                            <dd class="col-7">
+                                <span class="badge bg-warning text-warning-fg">Yes</span>
+                            </dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if task.error_traceback %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Error Traceback</h3>
+            </div>
+            <div class="card-body">
+                <pre
+                    class="bg-red text-white p-3 small"
+                    style="max-height: 300px; overflow-y: auto;"><code>{{ task.error_traceback }}</code>
+                </pre>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Task Logs Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Task Logs</h3>
+                <div class="card-actions">
+                    <span class="badge bg-blue text-blue-fg">{{ logs|length }} entries</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if logs|length == 0 %}
+                <p class="text-muted">No logs yet.</p>
+                {% else %}
+                <pre id="task-logs" class="bg-dark text-white p-3 small" style="max-height: 500px; overflow-y: auto;"><code>{% for log in logs %}{{ log }}
+{% endfor %}</code></pre>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END PAGE BODY -->
+
+<!-- Auto-refresh for running tasks -->
+<script>
+    // Scroll to the bottom of the logs (tail)
+    function scrollLogsToBottom() {
+        const logElement = document.getElementById("task-logs");
+        if (logElement) {
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        scrollLogsToBottom();
+        // second pass after images/fonts may shift layout
+        requestAnimationFrame(function() {
+            requestAnimationFrame(scrollLogsToBottom);
+        });
+    });
+
+    // Reload page every 3 seconds if task is running
+    {% if task.status.value == 'running' %}
+    setTimeout(function() {
+        window.location.reload();
+    }, 3000);
+    {% endif %}
+</script>
+
+{% endblock %}

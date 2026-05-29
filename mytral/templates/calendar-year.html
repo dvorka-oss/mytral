@@ -1,0 +1,220 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">Calendar for {{ year }}</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+            {% if not is_mobile %}
+            <div class="btn-group">
+                <a href="{{ url_for('calendar_year', year=year) }}?view=full" class="btn btn-outline-info">Full View</a>
+                <a href="{{ url_for('calendar_year', year=year) }}?view=compact" class="btn btn-outline-info">Compact View</a>
+            </div>
+            {% endif %}
+            <div class="btn-group">
+                <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 5l0 14"></path>
+                        <path d="M5 12l14 0"></path>
+                    </svg>
+                    Add Activity
+                </a>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Calendar view for <strong>{{ year }}</strong> shows the activities for each week of the year along with week specific statistics.
+                {% if age_at_year and year != current_year %}
+                You were <strong>{{ age_at_year }}</strong> years old in {{ year }}.
+                {% endif %}
+            </p>
+
+            {% if years %}
+            <div class="mb-3">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
+                            <path d="M16 3v4"></path>
+                            <path d="M8 3v4"></path>
+                            <path d="M4 11h16"></path>
+                        </svg>
+                        Year: {{ year }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for y in years %}
+                        <li>
+                            {% if y == year %}
+                            <span class="dropdown-item active">{{ y }}</span>
+                            {% else %}
+                            <a class="dropdown-item" href="{{ url_for('calendar_year', year=y) }}">{{ y }}</a>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if view == "compact" or is_mobile %}
+    {%   set compact_view = True %}
+    {% else %}
+    {%   set compact_view = False %}
+    {% endif %}
+
+    {% for year in data.heatmap %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-vcenter cards-table small">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Week<br/>Date</th>
+                            {% if compact_view %}
+                                <th class="text-center">Mon</th>
+                                <th class="text-center">Tue</th>
+                                <th class="text-center">Wed</th>
+                                <th class="text-center">Thu</th>
+                                <th class="text-center">Fri</th>
+                                <th class="text-center">Sat</th>
+                                <th class="text-center">Sun</th>
+                            {% else %}
+                                <th class="text-center">Monday</th>
+                                <th class="text-center">Tuesday</th>
+                                <th class="text-center">Wednesday</th>
+                                <th class="text-center">Thursday</th>
+                                <th class="text-center">Friday</th>
+                                <th class="text-center">Saturday</th>
+                                <th class="text-center">Sunday</th>
+                                <th class="text-center">meters<br/>hours<br/>kg</th>
+                                <th class="text-center">Weight<br/>Y2Y</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week_number in data.heatmap[year] %}
+                        <tr data-week="{{ week_number }}" data-week-index="{{ loop.index0 }}" {% if year == current_year and week_number == current_week-1 %}id="current-week"{% endif %}>
+                            {% if compact_view %}
+                            <td class="text-center">
+                                <a name="week-{{ week_number }}"></a>
+                                <strong>{{ data.week_stats.get(year,{}).get(week_number,{}).get("week_date","...") }}</strong>
+                                {% if data.week_stats.get(year,{}).get(week_number,{}).get("meters",0) > 0 or data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0) > 0 %}
+                                    <div class="text-muted">
+                                        {{ "{:0,}".format(data.week_stats.get(year,{}).get(week_number,{}).get("meters",0)) }}m
+                                        <br/>
+                                        {{ data.week_stats.get(year,{}).get(week_number,{}).get("time",0) }}
+                                        {% if data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0) > 0 %}
+                                            <br/>
+                                            {{ data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0)|int }}kg
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted">...</div>
+                                {% endif %}
+                            </td>
+                            {% else %}
+                            <td class="text-center">
+                                <a name="week-{{ week_number }}">{{ week_number }}</a><br/>
+                                <strong>{{ data.week_stats.get(year,{}).get(week_number,{}).get("week_date","...") }}</strong>
+                            </td>
+                            {% endif %}
+
+                            {% for week_day in range(7) %}
+                                {% if week_day in data.heatmap[year][week_number] %}
+                                    <td class="{% if not compact_view %}heat_n{% endif %}" title="{{ data.heatmap[year][week_number][week_day].title }}">
+                                        {% if data.heatmap[year][week_number][week_day].count %}
+                                            <a href="/activities/date/{{ data.heatmap[year][week_number][week_day].slash_date }}" class="text-decoration-none">
+                                            {% for a in data.heatmap[year][week_number][week_day].activities %}
+                                                {% if compact_view %}
+                                                    <span class="{{ activity_types.color(a.activity_type_key) }}">
+                                                        &nbsp;{{ activity_types.emoji(a.activity_type_key) }}&nbsp;
+                                                    </span>
+                                                {% else %}
+                                                    <div class="mytral-no-wrap-div mytral-{{ activity_types.color(a.activity_type_key) }}-bg mytral-{{ activity_types.color(a.activity_type_key) }}-bg-text"
+                                                    {% if a.description %}
+                                                    title="{{ [a.name, '\n', a.description]|join }}">
+                                                    {% else %}
+                                                    title="{{ activity_types.name(a.activity_type_key) }}: {{ a.name }}">
+                                                    {% endif %}
+                                                    {% if a.activity_type_key in ["sick","injured"] %}
+                                                        {% if a.sickness_symptoms|length > 0 %}
+                                                            {% for s in a.sickness_symptoms %}
+                                                                {% set s_title = [s.health, "% ", s.body_part, " ", symptoms.name(s.symptom)]|join %}
+                                                                &nbsp;{{ s_title }}&nbsp;<br/>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            &nbsp;{{ a.activity_type_key }}
+                                                        {% endif %}
+                                                    {% elif a.activity_type_key in ["exercise"] %}
+                                                        &nbsp;{{ a.exercises|length }}&nbsp;drill{% if a.exercises|length > 1 %}s{% endif %}·{{ "{:,}".format(a.exercise_kgs|int) }}kg·{{ activity_types.name(a.activity_type_key) }}
+                                                    {% elif a.activity_type_key in ["physio"] %}
+                                                        &nbsp;{{ a.exercises|length }}&nbsp;drill{% if a.exercises|length > 1 %}s{% endif %}·{{ activity_types.name(a.activity_type_key) }}
+                                                    {% elif a.activity_type_key in ["comment","plan"] %}
+                                                        &nbsp;{{ a.name }}&nbsp;
+                                                    {% elif a.activity_type_key in ["sauna", "steam", "meditation"] %}
+                                                        {% set s_title = [a.formula, " ", a.activity_type_key, " ", a.description]|join %}
+                                                        &nbsp;{{ s_title }}&nbsp;
+                                                    {% else %}
+                                                        &nbsp;{% if a.distance %}{{ (a.distance/1000)|round(1) }}km·{% endif %}{{ activity_types.name(a.activity_type_key) }}
+                                                    {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            </a>
+                                        {% else %}
+                                            <a href="/app/activities/create/date/{{ data.heatmap[year][week_number][week_day].slash_date }}" class="text-decoration-none">
+                                                <div style="width: 100%; height: 100%;">&nbsp;</div>
+                                            </a>
+                                        {% endif %}
+                                        {% if compact_view %}<br/><br/>{% endif %}
+                                    </td>
+                                {% else %}
+                                    <td><div class="heat_na"></div></td>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if not compact_view %}
+                            <td class="text-center">
+                                {% if data.week_stats.get(year,{}).get(week_number,{}).get("meters",0) > 0 or data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0) > 0 %}
+                                    <div class="text-muted">
+                                        {{ "{:0,}".format(data.week_stats.get(year,{}).get(week_number,{}).get("meters",0)) }}m
+                                        <br/>
+                                        {{ data.week_stats.get(year,{}).get(week_number,{}).get("time",0) }}
+                                        {% if data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0) > 0 %}
+                                            <br/>
+                                            {{ data.week_stats.get(year,{}).get(week_number,{}).get("kgs",0)|int }}kg
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted">...</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if data.week_stats.get(year,{}).get(week_number,{}).get("weight",0) > 0 %}
+                                    {{ data.week_stats.get(year,{}).get(week_number,{}).get("weight",0)|round(1) }}kg
+                                {% else %}
+                                    <div class="text-muted">...</div>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

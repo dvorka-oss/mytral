@@ -1,0 +1,35 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile / Gear / {{ gear.name }}</div>
+                    <h2 class="page-title">Delete Component: {{ component.name }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-deck row-cards">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <p>Are you sure you want to delete component "{{ component.name }}"?</p>
+                        <p class="text-muted">This action cannot be undone. All service history will be deleted.</p>
+                        
+                        <div class="mt-3">
+                            <a href="{{ url_for('settings_gear_update', key=gear.key) }}" class="btn btn-secondary me-2">
+                                Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-danger") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% import "macros/activity-fields.html" as field_macros %}
+
+{%extends "layout.html"%}
+{% block content %}
+<form method="POST" action="" id="activity-form">
+    {# send CSRF token #}
+    {{ form.hidden_tag() }}
+
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">New Activity</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('list_activities_year',year=0) }}" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M18 6l-12 12"></path>
+                            <path d="M6 6l12 12"></path>
+                        </svg>
+                        Cancel
+                    </a>
+                    <input type="submit" name="action" class="btn btn-outline-primary" value="Add Exercise">
+                    <input type="submit" name="action" class="btn btn-outline-primary" value="Add Symptom">
+                    <input type="submit" name="action" class="btn btn-outline-primary" value="Add Lap">
+                    <input type="submit" name="action" class="btn btn-outline-primary" value="Add Photo">
+                    <input type="submit" name="action" class="btn btn-outline-primary" value="Add GPX">
+                    <button type="submit" form="activity-form" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                            <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M14 4l0 4l-6 0l0 -4"></path>
+                        </svg>
+                        Add Activity
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                {% endif %}
+
+                {% include "includes/field-filter.html" %}
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Activity Details</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.name) }}
+                                    {{ field_macros.add_field(form.description) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">What</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.activity_type_key) }}
+                                    {{ field_macros.add_field(form.gears) }}
+                                    {{ field_macros.add_field(form.outfit) }}
+                                    {{ field_macros.add_inline_field(form.cost) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">When</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                {{ field_macros.add_inline_field(form.when_year) }}
+                                            </td>
+                                            <td>
+                                                {{ field_macros.add_inline_field(form.when_month) }}
+                                            </td>
+                                            <td>
+                                                {{ field_macros.add_inline_field(form.when_day) }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                {{ field_macros.add_inline_field(form.when_hour) }}
+                                            </td>
+                                            <td>
+                                                {{ field_macros.add_inline_field(form.when_minute) }}
+                                            </td>
+                                            <td>
+                                            {{ field_macros.add_inline_field(form.when_second) }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# listing of exercises and symptoms ONLY on the update page - ADD (top right) on the create page #}
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Track</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_inline_field(form.distance) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Duration</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.hours) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.minutes) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.seconds) }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Elevation</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.elevation_gain) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.elevation_min) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.elevation_max) }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Activity Flags</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-check form-switch filterable-field" data-label="Commute">
+                                        {{ form.commute(class="form-check-input") }}
+                                        <label class="form-check-label">Commute</label>
+                                    </div>
+                                    <div class="form-check form-switch filterable-field" data-label="Ranked">
+                                        {{ form.ranked(class="form-check-input") }}
+                                        <label class="form-check-label">Ranked</label>
+                                    </div>
+                                    <div class="form-check form-switch filterable-field" data-label="Race">
+                                        {{ form.race(class="form-check-input") }}
+                                        <label class="form-check-label">Race</label>
+                                    </div>
+                                    <div class="form-check form-switch filterable-field" data-label="Warm-up">
+                                        {{ form.warm_up(class="form-check-input") }}
+                                        <label class="form-check-label">Warm-up</label>
+                                    </div>
+                                    <div class="form-check form-switch filterable-field" data-label="Cool-down">
+                                        {{ form.cool_down(class="form-check-input") }}
+                                        <label class="form-check-label">Cool-down</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Athlete</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr>
+                                            <td>{{ field_macros.add_field(form.weight) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.min_hr) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.avg_hr) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.max_hr) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.fitness_score) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.suffer_score) }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Power</h3>
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.avg_watts) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.max_watts) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ field_macros.add_inline_field(form.avg_cadence) }}</td>
+                                            <td>{{ field_macros.add_inline_field(form.max_cadence) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ field_macros.add_field(form.intensity) }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Weather</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.weather) }}
+                                    <div class="input-group">
+                                        {{ field_macros.add_inline_field(form.temperature) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Workout</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_field(form.formula) }}
+                                    {{ field_macros.add_field(form.where) }}
+                                    {{ field_macros.add_inline_field(form.workout_sort_code) }}
+                                    {{ field_macros.add_inline_field(form.sort_code) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header card-header-light">
+                                    <h3 class="card-title">Activity Source</h3>
+                                </div>
+                                <div class="card-body">
+                                    {{ field_macros.add_inline_field(form.src) }}
+                                    {{ field_macros.add_inline_field(form.src_descriptor) }}
+                                    {{ field_macros.add_inline_field(form.src_key) }}
+                                    {{ field_macros.add_inline_field(form.src_url) }}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{% include "includes/field-filter-script.html" %}
+
+{% endblock %}

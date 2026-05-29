@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Add Component Template</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ url_for('settings_component_templates_list') }}" class="btn btn-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M18 6l-12 12"></path>
+                                <path d="M6 6l12 12"></path>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-device-floppy" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2"></path>
+                                <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                <path d="M14 4l0 4l-6 0l0 -4"></path>
+                            </svg>
+                            Add Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Template Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">Name</label>
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.name(class="form-control", placeholder="e.g. Chain, Running Shoes") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label required">Category</label>
+                            {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.category.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.category(class="form-control", placeholder="e.g. cycling, running, swimming") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Service Interval (km)</label>
+                            {% if form.default_service_km.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.default_service_km.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.default_service_km(class="form-control", placeholder="Leave empty if not used") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Service Interval (hours)</label>
+                            {% if form.default_service_hours.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.default_service_hours.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.default_service_hours(class="form-control", placeholder="Leave empty if not used") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Service Interval (months)</label>
+                            {% if form.default_service_months.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.default_service_months.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.default_service_months(class="form-control", placeholder="Leave empty if not used") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.notes.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+                            {{ form.notes(class="form-control", rows=3, placeholder="Optional notes about this template") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

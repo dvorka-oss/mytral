@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">{{ year }} Charts</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if stats.ukm %}
+                <div class="btn-group">
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=km" class="btn btn-outline-info">km</a>
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=hour" class="btn btn-outline-info">hour</a>
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=kg" class="btn btn-outline-info">kg</a>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=sum_km" class="btn btn-outline-info">∑km</a>
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=sum_hour" class="btn btn-outline-info">∑hour</a>
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=sum_kg" class="btn btn-outline-info">∑kg</a>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ url_for('charts_year', year=year) }}?chart=weight" class="btn btn-outline-info">weight</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if years %}
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p class="text-muted">
+                Charts show the activities for each year along with year specific statistics - kilometers, hours, kilograms exercised, and weight.
+            </p>
+
+            <div class="accordion" id="accordion-default">
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1-default" aria-expanded="false">
+                            Filter &amp; sort
+                            <div class="accordion-button-toggle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                                    <path d="M6 9l6 6l6 -6"></path>
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+                    <div id="collapse-1-default" class="accordion-collapse collapse" data-bs-parent="#accordion-default">
+                        <div class="accordion-body">
+                            <div class="row g-3">
+                                <div class="col-md-2">
+                                    <div class="dropdown mb-3">
+                                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Years
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% for y in years %}
+                                            <li>
+                                                {% if y == year %}
+                                                <span class="dropdown-item active">{{ y }}</span>
+                                                {% else %}
+                                                <a class="dropdown-item" href="{{ url_for('charts_year', year=y) }}">{{ y }}</a>
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if stats.ukm %}
+    <div class="card">
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

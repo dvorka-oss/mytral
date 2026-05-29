@@ -1,0 +1,49 @@
+{% macro mytral_crud_delete_page(entity_name, key, form, cancel_url, label=None) %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <form method="POST" action="">
+            {# send CSRF token #}
+            {{ form.hidden_tag() }}
+
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">Profile</div>
+                    <h2 class="page-title">Delete {{ entity_name }}</h2>
+                </div>
+                <div class="col-auto ms-auto d-print-none">
+                    <div class="btn-list">
+                        <a href="{{ cancel_url }}" class="btn btn-outline-primary">Cancel</a>
+                        <button type="submit" class="btn btn-danger" data-bs-dismiss="modal">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 7l16 0"></path>
+                                <path d="M10 11l0 6"></path>
+                                <path d="M14 11l0 6"></path>
+                                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                            </svg>
+                            Delete {{ entity_name }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header card-header-light">
+                    <h3 class="card-title">Confirm Deletion</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p>Do you really want to delete this {{ entity_name|lower }}:</p>
+                        {% if label %}
+                        <p class="mb-0 fw-bold">{{ label }}</p>
+                        {% else %}
+                        <p class="mb-0"><code>{{ key }}</code></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endmacro %}
