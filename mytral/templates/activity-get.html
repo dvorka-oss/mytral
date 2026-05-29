@@ -613,27 +613,6 @@
                         <h3 class="card-title">Activity Source</h3>
                     </div>
                     <div class="card-body">
-                        {#
-                        {% if activity_entity.src == "strava" %}
-                        <div class="row g-3">
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="subheader">Source</div>
-                                {% if activity_entity.src_url %}
-                                <a href="{{ activity_entity.src_url }}"
-                                       target="_blank"
-                                       rel="noopener"
-                                       class="strava-view-link">
-                                {% endif %}
-                                <div class="h3">
-                                    <img src="{{ url_for('static', filename='images/strava-logo-20x20.png') }}" width="16" height="16" alt="Strava" class="me-1">Strava
-                                </div>
-                                {% if activity_entity.src_url %}
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% else %}
-                        #}
                         <div class="row g-3">
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">Source</div>
@@ -651,14 +630,17 @@
                                 <div class="h3">{{ activity_entity.src_key }}</div>
                             </div>
                             {% endif %}
-                            {% if activity_entity.src_descriptor %}
+                            {% if activity_entity.src_url %}
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">URL</div>
+                                {% if activity_entity.src_url | length > 35 %}
+                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank" title="{{ activity_entity.src_url }}">{{ activity_entity.src_url[:17] }}...{{ activity_entity.src_url[-17:] }}</a>
+                                {% else %}
                                 <a href="{{ activity_entity.src_url }}" class="h3" target="_blank">{{ activity_entity.src_url }}</a>
+                                {% endif %}
                             </div>
                             {% endif %}
                         </div>
-                        {# endif #}
                     </div>
                 </div>
                 {% endif %}
