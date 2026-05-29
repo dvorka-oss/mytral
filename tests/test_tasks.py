@@ -26,6 +26,7 @@ import pytest
 
 from mytral import tasks
 from mytral.tasks import executors
+from mytral.tasks.do.hello_world import HelloWorldTask
 
 
 class MockDataset:
@@ -411,8 +412,6 @@ class TestHelloWorldTask:
         logger = loggers.MytralPrintLogger()
 
         # WHEN
-        from mytral.tasks.do.hello_world import HelloWorldTask
-
         task = HelloWorldTask(
             task_entity=task_entity,
             logger=logger,
@@ -449,8 +448,6 @@ class TestHelloWorldTask:
         logger = loggers.MytralPrintLogger()
 
         # WHEN
-        from mytral.tasks.do.hello_world import HelloWorldTask
-
         task = HelloWorldTask(
             task_entity=task_entity,
             logger=logger,
@@ -528,3 +525,48 @@ class TestThreadTaskExecutor:
         logs = executor.get_logs(task_id, "test_user")
         assert len(logs) > 0
         print(f"✓ Task logs retrieved: {len(logs)} entries")
+
+
+@pytest.mark.mytral
+def test_all_task_types_registered():
+    """Verify that all known task types resolve to classes in the registry.
+
+    Ensures the auto-discovery mechanism in mytral.tasks.do imports
+    and registers every task module.
+    """
+    # GIVEN — task registry with auto-discovery
+    registry = tasks.tasks_registry
+
+    expected_task_types = [
+        "strava_sync_new_to_current",
+        "strava_resync_all",
+        "strava_sync_gear",
+        "hello_world",
+        "fit_import",
+        "gpx_import",
+        "gpx_directory_import",
+        "polar_hrm_import",
+        "polar_hrm2parquet_import",
+        "recording_reprocess",
+        "tabpfn_download",
+    ]
+
+    # WHEN — resolving each task type
+    resolved = {}
+    missing = []
+    for task_type in expected_task_types:
+        try:
+            task_cls = registry.get_task(task_type)
+            resolved[task_type] = task_cls
+            print(f"  DONE {task_type} → {task_cls.__name__}")
+        except KeyError:
+            missing.append(task_type)
+            print(f"  FAIL {task_type} → NOT REGISTERED")
+
+    # THEN — all task types must resolve
+    assert len(missing) == 0, (
+        f"Unregistered task types: {missing}. "
+        "Check that mytral/tasks/do/__init__.py auto-discovers all task modules."
+    )
+    assert len(resolved) == len(expected_task_types)
+    print(f"  DONE All {len(resolved)} task types registered")

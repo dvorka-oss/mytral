@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 """Async task: convert an already-imported Polar HRM activity set to Parquet.
 
 This task post-processes existing Polar HRM import results by converting

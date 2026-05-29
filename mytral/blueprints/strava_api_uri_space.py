@@ -27,10 +27,10 @@ from mytral import forms
 from mytral import persistences
 from mytral import plugins
 from mytral import security
+from mytral import tasks
 from mytral.integrations import strava
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
-from mytral.tasks import _entities as task_entities
 
 
 def _build_strava_task_params(
@@ -359,11 +359,11 @@ def strava_sync_new_to_current():
     if task_params is None:
         return flask.redirect(flask.url_for("strava_auth_start"))
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_sync_new_to_current",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -412,11 +412,11 @@ def strava_sync_gear():
         "strava_url": user_profile.strava_url or "",
     }
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_sync_gear",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -464,11 +464,11 @@ def strava_sync_all():
 
     task_params["purge_confirmed"] = True
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_resync_all",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,

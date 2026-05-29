@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import os
+import traceback
 import uuid
 
 import flask
@@ -829,9 +830,9 @@ def tool_import_polar_hrm():
 
     # desktop-only guard
     if _app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
-        flask.flash(
-            "Polar HRM import is only available in the desktop version.", "warning"
-        )
+        err_msg = "Polar HRM import is only available in the desktop version."
+        app_logger.error(err_msg)
+        flask.flash(err_msg, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
     form = forms.ImportPolarHrmForm()
@@ -855,7 +856,7 @@ def tool_import_polar_hrm():
 
     task_entity = task_entities.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type=polar_hrm.POLAR_HRM_TASK_TYPE,
         status=task_entities.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
@@ -884,7 +885,11 @@ def tool_import_polar_hrm():
         )
         return flask.redirect(flask.url_for("task_detail", task_id=task_id))
     except Exception as exc:
-        app_logger.exception("Failed to submit Polar HRM import task", error=str(exc))
+        app_logger.exception(
+            "Failed to submit Polar HRM import task",
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
         flask.flash(f"Failed to start Polar HRM import: {exc}", "error")
         return flask.redirect(flask.url_for("tool_import"))
 
@@ -930,7 +935,7 @@ def tool_import_fit():
         config=_app_config,
     )
     meta = blob_svc.upload_recording(
-        user_id=user_id,
+        user_id=str(user_id),
         activity_key=activity.key,
         uploaded_file=fit_file.stream,
         original_filename=fit_file.filename or "import.fit",
@@ -939,7 +944,7 @@ def tool_import_fit():
 
     task_entity = task_entities.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type=fit_import.FitImportTask.TASK_TYPE,
         status=task_entities.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
