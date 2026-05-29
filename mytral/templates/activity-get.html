@@ -834,6 +834,25 @@
         width: 100%;
     }
 
+    .mytral-map-card.map-fullscreen {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 1055;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    .mytral-map-card.map-fullscreen .mytral-map-detail {
+        height: calc(100vh - 56px) !important;
+    }
+
+    .mytral-map-card.map-fullscreen .mytral-elevation-profile {
+        display: none;
+    }
+
     .mytral-elevation-profile {
         height: 194px;
         width: 100%;
@@ -1155,6 +1174,32 @@
             }
         }
         mapElement.dataset.mapReady = "1";
+
+        // fullscreen map toggle
+        const fullscreenBtn = document.querySelector(".mytral-map-fullscreen-btn");
+        const mapCard = document.querySelector(".mytral-map-card");
+        if (fullscreenBtn && mapCard) {
+            const maximizeSvg = fullscreenBtn.querySelector("svg").outerHTML;
+            const minimizeSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrows-minimize" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 9l4 0l0 -4" /><path d="M3 3l6 6" /><path d="M5 15l4 0l0 4" /><path d="M3 21l6 -6" /><path d="M19 9l-4 0l0 -4" /><path d="M15 9l6 -6" /><path d="M19 15l-4 0l0 4" /><path d="M15 15l6 6" /></svg>`;
+
+            fullscreenBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                mapCard.classList.toggle("map-fullscreen");
+                const isFullscreen = mapCard.classList.contains("map-fullscreen");
+                fullscreenBtn.innerHTML = isFullscreen ? minimizeSvg : maximizeSvg;
+                fullscreenBtn.title = isFullscreen ? "Exit fullscreen" : "Fullscreen";
+                setTimeout(() => map.invalidateSize(), 100);
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && mapCard.classList.contains("map-fullscreen")) {
+                    mapCard.classList.remove("map-fullscreen");
+                    fullscreenBtn.innerHTML = maximizeSvg;
+                    fullscreenBtn.title = "Fullscreen";
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}
