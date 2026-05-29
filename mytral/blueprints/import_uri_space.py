@@ -31,6 +31,7 @@ from mytral import config as _config_mod
 from mytral import forms
 from mytral import persistences
 from mytral import plugins
+from mytral import tasks
 from mytral.backends import entities as be_entities
 from mytral.blobstore import activity_service as _blob_svc_module
 from mytral.integrations import concept2
@@ -38,7 +39,6 @@ from mytral.integrations import google_sheets
 from mytral.integrations import imytral
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
-from mytral.tasks import _entities as task_entities
 from mytral.tasks.do import fit_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
@@ -458,6 +458,8 @@ def tool_import():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     return flask.render_template(
         "tools-import.html",
@@ -480,6 +482,8 @@ def tool_import_concept2_workouts_csv():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     user_profile = ds.profile(user_id)
 
@@ -548,6 +552,8 @@ def tool_import_gsheets_all_years_csv():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     user_profile = ds.profile(user_id)
 
@@ -613,6 +619,8 @@ def tool_import_gsheets_year_csv():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     user_profile = ds.profile(user_id)
 
@@ -680,6 +688,8 @@ def tool_import_gsheets_races_csv():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     user_profile = ds.profile(user_id)
 
@@ -748,6 +758,8 @@ def tool_import_mytral_json():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     user_profile = ds.profile(user_id)
 
@@ -828,6 +840,8 @@ def tool_import_polar_hrm():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     # desktop-only guard
     if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
@@ -855,11 +869,11 @@ def tool_import_polar_hrm():
 
     correlation_id = str(uuid.uuid4())
 
-    task_entity = task_entities.TaskEntity(
+    task_entity = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=str(user_id),
+        user_id=user_id,
         task_type=polar_hrm_import.PolarHrmImportTask.TASK_TYPE,
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -901,8 +915,10 @@ def tool_import_fit():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
-    form = _build_fit_import_form(str(user_id))
+    form = _build_fit_import_form(user_id)
     if not form.validate_on_submit():
         for field_errors in form.errors.values():
             for error in field_errors:
@@ -936,18 +952,18 @@ def tool_import_fit():
         config=app_config,
     )
     meta = blob_svc.upload_recording(
-        user_id=str(user_id),
+        user_id=user_id,
         activity_key=activity.key,
         uploaded_file=fit_file.stream,
         original_filename=fit_file.filename or "import.fit",
         content_type=fit_file.content_type or "application/octet-stream",
     )
 
-    task_entity = task_entities.TaskEntity(
+    task_entity = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=str(user_id),
+        user_id=user_id,
         task_type=fit_import.FitImportTask.TASK_TYPE,
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -980,6 +996,8 @@ def tool_import_gpx():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     form = _build_gpx_import_form(user_id)
     if not form.validate_on_submit():
@@ -1022,11 +1040,11 @@ def tool_import_gpx():
         content_type=gpx_file.content_type or "application/gpx+xml",
     )
 
-    task_entity = task_entities.TaskEntity(
+    task_entity = tasks.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=user_id,
         task_type=gpx_import.GpxImportTask.TASK_TYPE,
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -1062,6 +1080,8 @@ def tool_import_gpx_directory():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
 
     # desktop-only guard
     if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
@@ -1106,11 +1126,11 @@ def tool_import_gpx_directory():
 
     correlation_id = str(uuid.uuid4())
 
-    task_entity = task_entities.TaskEntity(
+    task_entity = tasks.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=user_id,
         task_type=gpx_directory_import.GpxDirectoryImportTask.TASK_TYPE,
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
