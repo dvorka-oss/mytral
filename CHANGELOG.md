@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.50.0](https://github.com/dvorka/my-training-log/compare/v1.50.0...HEAD)
+
+This MyTraL release is very **special** to me. After years of coding and hacking together
+various versions of MyTraL I am moving to a brand-new Git repository on my 50th birthday.
+
+Sports have been my main hobby for 40 years, and I have 30 years of training data
+scattered across everything from paper logs to MyTraL. Today, I’m starting a fresh
+chapter - free from hacks, sensitive data and the "sins of my youth."
+
+Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!
+
+
+
 ## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0)
 
 This MyTraL **minor** release brings:
