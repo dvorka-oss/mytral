@@ -10,6 +10,51 @@
     {% endif %}
 {% endmacro %}
 
+
+{% macro map_tiles(activity_map, activity_key, is_photo_split=False) %}
+    {% if activity_map and activity_map.summary_polyline %}
+        {% set polyline_json = activity_map.summary_polyline | tojson %}
+        {% set bbox_json = activity_map.summary_bbox | tojson %}
+        {% set profile_json = activity_map.profile_points | tojson %}
+        {% set has_elevation = activity_map.profile_points and activity_map.profile_points | length > 1 %}
+        {% set base_id = "activity-map-" ~ activity_key %}
+        {% if is_photo_split %}
+        {# Photo + single tile (Leaflet mini-map) #}
+        <div class="mytral-map-tile mytral-leaflet-mini"
+             id="{{ base_id }}-leaflet"
+             data-polyline='{{ polyline_json }}'
+             data-bbox='{{ bbox_json }}'
+             aria-label="GPS route on map"></div>
+        {% else %}
+        {# Three tiles: Leaflet | Gradient polyline | Elevation sparkline #}
+        <div class="row g-2 activity-map-tiles">
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-leaflet-mini"
+                     id="{{ base_id }}-leaflet"
+                     data-polyline='{{ polyline_json }}'
+                     data-bbox='{{ bbox_json }}'
+                     aria-label="GPS route on map"></div>
+            </div>
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-gradient-polyline"
+                     id="{{ base_id }}-gradient"
+                     data-polyline='{{ polyline_json }}'
+                     data-bbox='{{ bbox_json }}'
+                     aria-label="Route gradient preview"></div>
+            </div>
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-elevation-sparkline"
+                     id="{{ base_id }}-sparkline"
+                     {% if has_elevation %}
+                     data-profile='{{ profile_json }}'
+                     {% endif %}
+                     aria-label="Elevation profile"></div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
 {% macro map_detail(activity_map, map_id) %}
     {% if activity_map and activity_map.detail_points %}
         <div class="page-body mt-0 pt-0">

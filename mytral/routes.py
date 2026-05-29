@@ -194,10 +194,10 @@ def _activity_map_data(
             "full_polyline": meta.full_polyline,
             "summary_bbox": bbox,
             "track_point_count": meta.track_point_count,
+            "profile_points": profile_points,
         }
         if include_detail:
             payload["detail_points"] = detail_points or []
-            payload["profile_points"] = profile_points
         return payload
 
     return None
