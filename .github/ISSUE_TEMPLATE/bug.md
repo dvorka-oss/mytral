@@ -17,8 +17,8 @@ assignees: dvorka
 
 **Environment:**
 
-* MyTraL version: x.y.z
-* Operating system: .
+* MyTraL version: 1.*.0
+* Operating system: Ubuntu
 
 ```
 uname -a ; lsb_release -a
@@ -32,7 +32,7 @@ uname -a ; lsb_release -a
 
 **Resources:**
 
-* ...
+* N/A
 
 **Error message / log:**
 
