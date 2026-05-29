@@ -33,6 +33,8 @@ class PolarHrmImportTask(tasks.TaskBase):
     TASK_TYPE = "polar_hrm_import"
     TASK_DISPLAY_NAME = "Polar Precision Performance Import"
 
+    DATA_DIR_KEY = polar_hrm.POLAR_HRM_DATA_DIR_KEY
+
     def __init__(
         self,
         task_entity: tasks.TaskEntity,
@@ -65,7 +67,7 @@ class PolarHrmImportTask(tasks.TaskBase):
         params = self.task_entity.parameters
         user_id: str = params["user_id"]
         dataset_name: str = params["dataset_name"]
-        data_dir_str: str = params[polar_hrm.POLAR_HRM_DATA_DIR_KEY]
+        data_dir_str: str = params[PolarHrmImportTask.DATA_DIR_KEY]
         on_conflict: str = params.get("on_conflict", "skip")
 
         self.log(

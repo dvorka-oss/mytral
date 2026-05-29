@@ -22,8 +22,9 @@ import uuid
 import flask
 
 import mytral
-from mytral import app_config as _app_config
+from mytral import app_config
 from mytral import app_logger
+from mytral import app_task_manager
 from mytral import app_user_ds as ds
 from mytral import commons
 from mytral import config as _config_mod
@@ -35,13 +36,13 @@ from mytral.blobstore import activity_service as _blob_svc_module
 from mytral.integrations import concept2
 from mytral.integrations import google_sheets
 from mytral.integrations import imytral
-from mytral.integrations import polar_hrm
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 from mytral.tasks import _entities as task_entities
 from mytral.tasks.do import fit_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
+from mytral.tasks.do import polar_hrm_import
 
 #
 # helpers
@@ -470,7 +471,7 @@ def tool_import():
         import_fit_form=_build_fit_import_form(user_id),
         import_gpx_form=_build_gpx_import_form(user_id),
         import_gpx_directory_form=_build_gpx_directory_import_form(user_id),
-        is_desktop=_app_config.incarnation == _config_mod.MytralIncarnation.DESKTOP,
+        is_desktop=app_config.incarnation == _config_mod.MytralIncarnation.DESKTOP,
     )
 
 
@@ -829,7 +830,7 @@ def tool_import_polar_hrm():
         return flask.redirect(flask.url_for("login"))
 
     # desktop-only guard
-    if _app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
         err_msg = "Polar HRM import is only available in the desktop version."
         app_logger.error(err_msg)
         flask.flash(err_msg, "warning")
@@ -857,7 +858,7 @@ def tool_import_polar_hrm():
     task_entity = task_entities.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=str(user_id),
-        task_type=polar_hrm.POLAR_HRM_TASK_TYPE,
+        task_type=polar_hrm_import.PolarHrmImportTask.TASK_TYPE,
         status=task_entities.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
@@ -869,7 +870,7 @@ def tool_import_polar_hrm():
         parameters={
             "user_id": user_id,
             "dataset_name": ds.profile(user_id).dataset_name,
-            polar_hrm.POLAR_HRM_DATA_DIR_KEY: data_dir,
+            polar_hrm_import.PolarHrmImportTask.DATA_DIR_KEY: data_dir,
             "on_conflict": form.on_conflict.data,
             "correlation_id": correlation_id,
         },
@@ -877,7 +878,7 @@ def tool_import_polar_hrm():
     )
 
     try:
-        task_id = flask_app.task_manager.executor.submit(task_entity)
+        task_id = app_task_manager.executor.submit(task_entity)
         flask.flash(
             f"Polar HRM import started (task {task_id}). "
             "Check the Tasks page for progress.",
@@ -932,7 +933,7 @@ def tool_import_fit():
     blob_svc = _blob_svc_module.ActivityBlobService(
         store=mytral.app_blobstore,
         dataset=ds,
-        config=_app_config,
+        config=app_config,
     )
     meta = blob_svc.upload_recording(
         user_id=str(user_id),
@@ -966,7 +967,7 @@ def tool_import_fit():
         result_route="get_activity",
         result_route_kwargs={"key": activity.key},
     )
-    task_id = flask_app.task_manager.executor.submit(task_entity)
+    task_id = app_task_manager.executor.submit(task_entity)
     flask.flash(
         f"FIT import queued (task {task_id}) for activity {activity.key}", "success"
     )
@@ -1011,7 +1012,7 @@ def tool_import_gpx():
     blob_svc = _blob_svc_module.ActivityBlobService(
         store=mytral.app_blobstore,
         dataset=ds,
-        config=_app_config,
+        config=app_config,
     )
     meta = blob_svc.upload_recording(
         user_id=user_id,
@@ -1045,7 +1046,7 @@ def tool_import_gpx():
         result_route="get_activity",
         result_route_kwargs={"key": activity.key},
     )
-    task_id = flask_app.task_manager.executor.submit(task_entity)
+    task_id = app_task_manager.executor.submit(task_entity)
     flask.flash(
         f"GPX import queued (task {task_id}) for activity {activity.key}", "success"
     )
@@ -1063,7 +1064,7 @@ def tool_import_gpx_directory():
         return flask.redirect(flask.url_for("login"))
 
     # desktop-only guard
-    if _app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
         flask.flash(
             "GPX directory import is only available in the desktop version.",
             "warning",
@@ -1129,7 +1130,7 @@ def tool_import_gpx_directory():
     )
 
     try:
-        task_id = flask_app.task_manager.executor.submit(task_entity)
+        task_id = app_task_manager.executor.submit(task_entity)
         flask.flash(
             f"GPX directory import started (task {task_id}). "
             "Check the Tasks page for progress.",

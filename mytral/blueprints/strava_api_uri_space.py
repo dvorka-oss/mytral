@@ -21,6 +21,7 @@ import flask
 
 from mytral import app_config
 from mytral import app_logger
+from mytral import app_task_manager
 from mytral import app_user_ds as ds
 from mytral import ff
 from mytral import forms
@@ -375,7 +376,7 @@ def strava_sync_new_to_current():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Strava sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start sync: {exc}", "danger")
@@ -428,7 +429,7 @@ def strava_sync_gear():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Gear sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start gear sync: {exc}", "danger")
@@ -480,7 +481,7 @@ def strava_sync_all():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Full re-sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start re-sync: {exc}", "danger")

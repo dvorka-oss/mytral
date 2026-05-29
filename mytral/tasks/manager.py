@@ -55,7 +55,7 @@ class TaskManager:
         self._task_timeout_s = 3600
         self._watchdog_period = 60
         self._watchdog_started = False
-        self._logger = loggers.MytralStructLogger("task_manager")
+        self._logger = loggers.MytralStructLogger("app_task_manager")
 
         if dataset:
             # initialize immediately if dataset is provided
@@ -132,7 +132,7 @@ class TaskManager:
         self._task_timeout_s = task_timeout_s
         self._start_timeout_watchdog()
 
-        # register on Flask app
+        # IMPORTANT: self-register on Flask app as task manager (could be any attribute)
         app.task_manager = self
 
     def _start_timeout_watchdog(self):

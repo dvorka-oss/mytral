@@ -357,9 +357,9 @@ def inject_version():
 def inject_task_info():
     """Inject running task count into all templates."""
     user_id = flask.session.get(COOKIE_USER)
-    if user_id and hasattr(flask_app, "task_manager"):
+    if user_id:
         # get running tasks from executor (in-memory) not storage (files)
-        all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+        all_tasks = app_task_manager.executor.get_all_tasks(user_id)
         running_tasks = [
             t for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
         ]
@@ -1004,7 +1004,7 @@ def tasks_list():
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+    all_tasks = app_task_manager.executor.get_all_tasks(user_id)
     running_tasks_count = sum(
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
@@ -1026,8 +1026,8 @@ def task_detail(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    task = flask_app.task_manager.executor.get_status(task_id, user_id)
-    logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=1000)
+    task = app_task_manager.executor.get_status(task_id, user_id)
+    logs = app_task_manager.executor.get_logs(task_id, user_id, tail=1000)
 
     return flask.render_template(
         "tasks-detail.html",
@@ -1053,7 +1053,7 @@ def task_delete(task_id):
 
     try:
         # verify task is finished before deletion
-        task = flask_app.task_manager.executor.get_status(task_id, user_id)
+        task = app_task_manager.executor.get_status(task_id, user_id)
         if task.status not in [
             task_entities.TaskStatus.COMPLETED,
             task_entities.TaskStatus.FAILED,
@@ -1061,7 +1061,7 @@ def task_delete(task_id):
             flask.flash("Cannot delete a task that is still running or queued", "error")
             return flask.redirect(flask.url_for("task_detail", task_id=task_id))
 
-        flask_app.task_manager.storage.delete_task(user_id, task_id)
+        app_task_manager.storage.delete_task(user_id, task_id)
         flask.flash("Task deleted successfully", "success")
     except Exception as e:
         flask.flash(f"Failed to delete task: {str(e)}", "error")
@@ -1076,7 +1076,7 @@ def task_download_log(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=10000)
+    logs = app_task_manager.executor.get_logs(task_id, user_id, tail=10000)
     content = "\n".join(logs)
     return flask.Response(
         content,
@@ -1092,7 +1092,7 @@ def api_tasks_status():
     if not user_id:
         return flask.jsonify({"error": "Not authenticated"}), 401
 
-    all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+    all_tasks = app_task_manager.executor.get_all_tasks(user_id)
     running_tasks = [
         t for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     ]
@@ -1113,7 +1113,7 @@ def api_task_status(task_id):
         return flask.jsonify({"error": "Not authenticated"}), 401
 
     try:
-        task = flask_app.task_manager.executor.get_status(task_id, user_id)
+        task = app_task_manager.executor.get_status(task_id, user_id)
         return flask.jsonify(task.to_dict())
     except Exception as e:
         return flask.jsonify({"error": str(e)}), 404
@@ -1129,7 +1129,7 @@ def api_task_logs(task_id):
     tail = flask.request.args.get("tail", default=100, type=int)
 
     try:
-        logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=tail)
+        logs = app_task_manager.executor.get_logs(task_id, user_id, tail=tail)
         return flask.jsonify({"logs": logs})
     except Exception as e:
         return flask.jsonify({"error": str(e)}), 404
@@ -1146,7 +1146,7 @@ def task_cancel(task_id):
     if not form.validate_on_submit():
         flask.abort(403)
 
-    success = flask_app.task_manager.executor.cancel(task_id, user_id)
+    success = app_task_manager.executor.cancel(task_id, user_id)
     if success:
         flask.flash("Task cancellation requested", "info")
     else:
@@ -1187,7 +1187,7 @@ def task_submit_hello_world():
 
     # submit task
     try:
-        task_id = flask_app.task_manager.executor.submit(task_entity)
+        task_id = app_task_manager.executor.submit(task_entity)
         flask.flash(f"Hello World task submitted: {task_id}", "success")
         return flask.redirect(flask.url_for("task_detail", task_id=task_id))
     except Exception as e:
@@ -1212,7 +1212,7 @@ def tasks_cleanup():
         flask.abort(403)
 
     try:
-        deleted_count = flask_app.task_manager.storage.cleanup_finished_tasks(user_id)
+        deleted_count = app_task_manager.storage.cleanup_finished_tasks(user_id)
         flask.flash(f"Deleted {deleted_count} finished task(s)", "success")
     except Exception as e:
         flask.flash(f"Failed to cleanup tasks: {str(e)}", "error")
@@ -4756,7 +4756,7 @@ def upload_activity_recording(activity_key: str):
                         result_route="get_activity",
                         result_route_kwargs={"key": activity_key},
                     )
-                    task_id = flask_app.task_manager.executor.submit(task_entity)
+                    task_id = app_task_manager.executor.submit(task_entity)
                     flask.flash(
                         message=(
                             f"Recording uploaded and processing queued (task {task_id})"
@@ -4893,7 +4893,7 @@ def reprocess_activity_recording(activity_key: str, blob_uuid: str):
         },
         is_cancelled=False,
     )
-    task_id = flask_app.task_manager.executor.submit(task)
+    task_id = app_task_manager.executor.submit(task)
     flask.flash(
         message=f"Recording re-processing queued (task {task_id})",
         category="success",

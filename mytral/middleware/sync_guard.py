@@ -19,7 +19,10 @@
 import flask
 
 import mytral
+from mytral import app_task_manager
 from mytral import forms
+from mytral import routes
+from mytral import tasks as tasks_module
 
 # HTTP methods that modify data
 _WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -79,9 +82,7 @@ def is_user_syncing(app, user_id: str) -> bool:
     bool
         True if a task is running (account is in read-only mode).
     """
-    if not hasattr(app, "task_manager"):
-        return False
-    return app.task_manager.lock_manager.is_locked(user_id)
+    return app_task_manager.lock_manager.is_locked(user_id)
 
 
 def register_sync_guard(app) -> None:
@@ -99,9 +100,7 @@ def register_sync_guard(app) -> None:
         if flask.request.method not in _WRITE_METHODS:
             return None
 
-        from mytral import routes as routes_module
-
-        user_id = flask.session.get(routes_module.COOKIE_USER)
+        user_id = flask.session.get(routes.COOKIE_USER)
         if not user_id:
             return None
 
@@ -109,20 +108,15 @@ def register_sync_guard(app) -> None:
         if not resource_template:
             return None
 
-        if not hasattr(app, "task_manager"):
-            return None
-
-        if app.task_manager.lock_manager.is_locked(user_id):
+        if app_task_manager.lock_manager.is_locked(user_id):
             # find the active task and the user profile for the template
             active_task_id = None
             user_profile = None
             cancel_form = None
             try:
-                from mytral.tasks import _entities as task_entities
-
                 tasks = app.task_manager.executor.get_all_tasks(user_id)
                 for t in tasks:
-                    if t.status == task_entities.TaskStatus.RUNNING:
+                    if t.status == tasks_module.TaskStatus.RUNNING:
                         active_task_id = t.key
                         break
             except Exception:
