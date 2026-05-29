@@ -121,6 +121,9 @@ class PolarHrmImportTask(tasks.TaskBase):
         hrm_path_by_name = self._discover_hrm_paths(data_dir=data_dir)
 
         # sequential persist — dataset writes and blob updates are not thread-safe
+        self.log(
+            "BEGIN: Persisting activities & parquet normalization & HRM blob upload..."
+        )
         for i, activity in enumerate(activities):
             self.check_cancellation()
 
@@ -189,7 +192,7 @@ class PolarHrmImportTask(tasks.TaskBase):
                 f"Progress: {i + 1}/{total} processed "
                 f"(imported={imported}, skipped={skipped}, failed={failed})"
             )
-
+        self.log("DONE: activities persisted & parquets create & HRM blobs uploaded")
         self.log(
             f"Polar HRM import complete: {imported} imported, "
             f"{skipped} skipped, {failed} failed"
@@ -273,6 +276,10 @@ class PolarHrmImportTask(tasks.TaskBase):
         hrm_path : pathlib.Path or None
             Path to the original ``.hrm`` file.
         """
+        self.log(
+            f"Attaching HRM recording for activity {activity.key} "
+            f"(src_key={activity.src_key})"
+        )
         if hrm_path is None or not hrm_path.is_file():
             self.log(
                 "WARNING: HRM file not found for activity "

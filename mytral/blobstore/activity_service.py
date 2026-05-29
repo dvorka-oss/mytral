@@ -569,7 +569,7 @@ class ActivityBlobService:
             activity.recorded_blob_keys.append(entry)
             self._save_activity(user_id, activity)
             app_logger.info(
-                f"FIT upload: activity {activity_key} cache refreshed after "
+                f"Recording upload: activity {activity_key} cache refreshed after "
                 f"recording add"
             )
         except Exception as exc:
@@ -584,7 +584,7 @@ class ActivityBlobService:
                 )
                 pass
             app_logger.error(
-                f"FIT upload failed to persist recording reference for "
+                f"Recording upload failed to persist recording reference for "
                 f"activity {activity_key}: {exc}",
                 traceback=traceback.format_exc(),
             )
