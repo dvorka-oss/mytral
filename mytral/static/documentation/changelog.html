@@ -252,9 +252,33 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="190-2026-"><a href="https://github.com/dvorka/my-training-log/compare/v1.8.0...HEAD">1.9.0</a> - 2026-??-??</h2>
-<p>This MyTraL <strong>minor</strong> release brings:</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="1500"><a href="https://github.com/dvorka/my-training-log/compare/v1.50.0...HEAD">1.50.0</a></h2>
+<p>This MyTraL release is very <strong>special</strong> to me. After years of coding and hacking together
+various versions of MyTraL I am moving to a brand-new Git repository on my 50th birthday.</p>
+<p>Sports have been my main hobby for 40 years, and I have 30 years of training data
+scattered across everything from paper logs to MyTraL. Today, I’m starting a fresh
+chapter - free from hacks, sensitive data and the "sins of my youth."</p>
+<p>Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!</p>
 <h3 id="added">Added</h3>
+<ul>
+<li>Added polyline with map backround to the activity feed.</li>
+<li>Added rainbow polyline w/ running dot to the activity feed.</li>
+<li>Added evevation chart to the activity feed.</li>
+<li>Added "maximize map" action to the activity view page.</li>
+<li>Added description field to symptoms so that user can specify how to cure such injury or illness.</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
+  converged to MyTraL's task manager, typed tasks are used from now on.</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li>Fixed blobstore logging message which no longer specifies wrong blob type.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="190"><a href="https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0">1.9.0</a></h2>
+<p>This MyTraL <strong>minor</strong> release brings:</p>
+<h3 id="added_1">Added</h3>
 <ul>
 <li>Added import from FIT.</li>
 <li>Added import from GPX - file or directory.</li>
@@ -262,7 +286,6 @@
 <li>Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based loading/saving.</li>
 <li>Added power zones.</li>
 <li>Added HR zones.</li>
-<li>Added the taxonomy of activity types which covers all sports defined by Strava API and FIT files.</li>
 <li>Added 2D maps rendering for GPX recordings.</li>
 <li>Added athlete performance metrics w/ FTP, aerobic/anaerobic thresholds, ... estimates.</li>
 <li>Added recorded data analytics - ridge/bar/line charts of various metrics.</li>
@@ -276,8 +299,12 @@
 <li>Added preview of TabPFN ML-powered predictions feature with dedicated settings and predictions pages (behind feature flag).</li>
 <li>Added sponsor link to the application layout.</li>
 <li>Added Windows binary build.</li>
+<li>Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_* constants,
+  Strava/FIT mappings, Concept2 uses AT_ROW_ERG).</li>
+<li>Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
+  descriptions/default weights, symptom body-part targeting) with new pytest coverage.</li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="changed">Changed</h2>
+<h3 id="changed_1">Changed</h3>
 <ul>
 <li>Core data model changes:</li>
 <li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks backward compatibility.</li>
@@ -285,10 +312,19 @@
 <li>Added <code>ActivityEntity.meta_activity_type</code> - consider <code>ski</code> aggregating DP/F roller ski, DP/F nordic ski, ...</li>
 <li>Added <code>ActivityEntity.tags</code>.</li>
 <li>Added <code>ActivityEntity.is_plan</code>.</li>
+<li>Reworked photo UI flows (entity photo galleries, activity/exercise photo metadata
+  editor pages, markdown image support) and updated documentation site pages.</li>
+<li>Data migration framework:</li>
+<li>Migration step: rename sport to activity type in activities and gears.</li>
+<li>Migration step: merge new activity types, exercises and symptoms.</li>
+<li>Expert UI tool: migration of activities from one activity type to another.</li>
+<li>Python tool: re-sync Strava activities to re-new lost source attributes.</li>
 </ul>
-<h3 id="fixed">Fixed</h3>
+<h3 id="fixed_1">Fixed</h3>
 <ul>
+<li>Activity update no longer purges source attributes (ID, descriptor and URL).</li>
 <li>Blobstore exception handling in activity view/update routes now only silently ignores expected <code>BlobStoreError</code>; unexpected errors are logged and re-raised for easier debugging.</li>
+<li>GPX import rewritten to be non-blocking (except upload) and to make intensive work in the asynchronous task.</li>
 </ul>
 <h3 id="performance">Performance</h3>
 <ul>
@@ -306,7 +342,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="180"><a href="https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0">1.8.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_1">Added</h3>
+<h3 id="added_2">Added</h3>
 <ul>
 <li>ACoaches - AI coaching feature powered by LLM providers:</li>
 <li>Configure LLM providers: local Ollama, Anthropic Claude,
@@ -329,7 +365,7 @@
 <li>Import of entities from MyTraL JSON files.</li>
 <li>Rewritten Strava API (developer) integration (deprecated due to legal term changes).</li>
 </ul>
-<h3 id="fixed_1">Fixed</h3>
+<h3 id="fixed_2">Fixed</h3>
 <ul>
 <li>Completely rewritten MyTraL configuration, ability to configure MyTraL using environment
   variables and default values.</li>
@@ -344,7 +380,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="170"><a href="https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0">1.7.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_2">Added</h3>
+<h3 id="added_3">Added</h3>
 <ul>
 <li>Ability to specify muscle groups for exercises and activity types - shown in
   the activity detail and day pages.</li>
@@ -359,13 +395,13 @@
 <li>Deployments and build configuration upgraded from Python 3.10 to Python 3.11.</li>
 <li>Source code migrated to 3.11 constructions like <code>match</code> or <code>Self</code>.</li>
 </ul>
-<h3 id="fixed_2">Fixed</h3>
+<h3 id="fixed_3">Fixed</h3>
 <ul>
 <li>Progress/PRs grouping based on time e.g. 30' laps.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="160"><a href="https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0">1.6.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_3">Added</h3>
+<h3 id="added_4">Added</h3>
 <ul>
 <li>Filtering of fields in create / update activity HTML pages.</li>
 <li>Filtering of exercise types by tag.</li>
@@ -407,7 +443,7 @@
 <li>Added unit tests for <code>hash_password</code> and <code>verify_password</code> covering <code>bcrypt</code>, legacy
   <code>SHA-256</code>, wrong passwords, and empty inputs.</li>
 </ul>
-<h3 id="fixed_3">Fixed</h3>
+<h3 id="fixed_4">Fixed</h3>
 <ul>
 <li>Fixed <code>enable_cache=False</code> (passthrough) mode: activities were still served from stale
   in-memory data on subsequent requests because <code>dataset_name()</code> and <code>set_dataset_name()</code>
@@ -428,7 +464,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="150"><a href="https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0">1.5.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_4">Added</h3>
+<h3 id="added_5">Added</h3>
 <ul>
 <li>Eisenhower matrix HTML page for goals.</li>
 <li>Ability to tag exercises to filter them and to create routines/sets.</li>
@@ -441,7 +477,7 @@
 <li><code>pip</code> based <code>Makefile</code> as well as <code>requirements*.txt</code> files removed as switch to <code>uv</code>
   is definitive and there is no need to keep these files with gradually obsolete content.</li>
 </ul>
-<h3 id="fixed_4">Fixed</h3>
+<h3 id="fixed_5">Fixed</h3>
 <ul>
 <li>Fixed unexplainable set of minutes and seconds when creating / updating an activity.</li>
 <li>Units format and hints in charts y-axis legends as well as charts hover-over tooltips.</li>
@@ -465,21 +501,21 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="140"><a href="https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0">1.4.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_5">Added</h3>
+<h3 id="added_6">Added</h3>
 <ul>
 <li>Pass through cache allowing to operate on system where caching would cause data inconsistency
   (data modified &amp; uploaded to cache on 1 node and then overwritten on another node).</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="132">[1.3.2]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_6">Added</h3>
+<h3 id="added_7">Added</h3>
 <ul>
 <li>Weight graph shows the Monday's date instead of the week number.</li>
 <li>Goals listing page shows activity type display name instead of the ID.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="130">[1.3.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_7">Added</h3>
+<h3 id="added_8">Added</h3>
 <ul>
 <li>Onboarding logic:</li>
 <li>checklist feature with progress tracking</li>
@@ -488,13 +524,13 @@
 <li>Completion percentage calculation</li>
 <li>Dismiss and reset functionality for onboarding</li>
 </ul>
-<h3 id="fixed_5">Fixed</h3>
+<h3 id="fixed_6">Fixed</h3>
 <ul>
 <li>Fixed strava.com import failing due to printing non-ASCII characters to console.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="120">[1.2.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_8">Added</h3>
+<h3 id="added_9">Added</h3>
 <ul>
 <li>Gear Components Feature: Track individual components of gear items</li>
 <li>Add, edit, delete components for any gear (e.g., bike chain, running shoe insoles)</li>
@@ -510,7 +546,7 @@
 <li>Settings:</li>
 <li>Added 4 metrics for goals, exercises, symptoms, laps and outfits.</li>
 </ul>
-<h3 id="changed_1">Changed</h3>
+<h3 id="changed_2">Changed</h3>
 <ul>
 <li>Changed activities and settings (gear, exercises, symptoms, ...) JSON persistence from dicts to lists.</li>
 <li>Enhanced Gear class to support components and component history.</li>
@@ -526,14 +562,14 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="110">[1.1.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_9">Added</h3>
+<h3 id="added_10">Added</h3>
 <ul>
 <li>Lap type data model entity, forms, routes and HTML pages.</li>
 <li>Day view.</li>
 <li>Activity feed view.</li>
 <li>Body diagram with interactive injuries and sicknesses filtering.</li>
 </ul>
-<h3 id="changed_2">Changed</h3>
+<h3 id="changed_3">Changed</h3>
 <ul>
 <li>Removed <code>activity_key</code> field in the <code>activity/exercises[]</code> items.</li>
 <li>Renamed <code>activity/exercises[]/name</code> to <code>activity/exercises[]/name</code>.</li>
@@ -555,7 +591,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="100">[1.0.0]</h2>
 <p>This MyTraL <strong>major</strong> release brings:</p>
-<h3 id="added_10">Added</h3>
+<h3 id="added_11">Added</h3>
 <ul>
 <li>Initial release of MyTraL training log application.</li>
 <li>User authentication and session management.</li>
@@ -599,7 +635,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="001">[0.0.1]</h2>
 <p>This MyTraL <strong>patch</strong> release brings:</p>
-<h3 id="added_11">Added</h3>
+<h3 id="added_12">Added</h3>
 <ul>
 <li>Initial YAML data format with applications.</li>
 <li>Manually written pure HTML pages no-JavaScript/no-CSS (bar) charts.</li>
@@ -658,7 +694,10 @@ Find conventions details and template at the bottom of this document.</p>
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#added" class="nav-link ms-3">Added</a>
-<a href="#changed" class="nav-link">Changed</a>
+<a href="#changed" class="nav-link ms-3">Changed</a>
+<a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#added" class="nav-link ms-3">Added</a>
+<a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
 <a href="#performance" class="nav-link ms-3">Performance</a>
 <a href="#documentation" class="nav-link ms-3">Documentation</a>

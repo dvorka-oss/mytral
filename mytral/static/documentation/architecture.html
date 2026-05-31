@@ -255,40 +255,40 @@
                         <div id="overview" class="card mb-3"><div class="card-body"><p>This page describes the actual runtime architecture of MyTraL based on the current Python modules and wiring.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="uml-component-diagram-nested-ascii">UML Component Diagram (Nested ASCII)</h2>
 <div class="codehilite"><pre><span></span><code>+-------------------+                     +----------------------------------------+
-|       User        |                     |                Browser                  |
+|       User        |                     |                Browser                 |
 | &lt;&lt;actor&gt;&gt; Athlete |--------------------&gt;| &lt;&lt;component&gt;&gt; Tabler UI + JS + Bokeh   |
-+-------------------+      HTTPS          | + Leaflet + forms in HTML templates    |
++-------------------+                     | + Leaflet + forms in HTML templates    |
                                           +-------------------+--------------------+
                                                               |
                                                               | HTTP request/response
                                                               v
-  +----------------------------------------------------------------------------------+
-  |                           MyTraL Server (Python process)                         |
-  |                                &lt;&lt;component&gt;&gt;                                     |
-  |                                                                                  |
-  |   +-------------------------------------------------------------------------+    |
-  |   | Flask Web Layer                                                         |    |
-  |   | &lt;&lt;component&gt;&gt; routes.py + blueprints/* + middleware/sync_guard.py      |    |
-  |   +-----------------------------+---------------------------+---------------+    |
-  |                                 |                           |                    |
-  |                    +------------v-----------+     +---------v----------------+   |
-  |                    | Jinja Template Layer   |     | Async Task Subsystem     |   |
-  |                    | &lt;&lt;component&gt;&gt;          |     | &lt;&lt;component&gt;&gt;             |   |
-  |                    | templates/*.html       |     | TaskManager               |   |
-  |                    +------------------------+     | ThreadTaskExecutor        |   |
-  |                                                   | TaskStorage + tasks/do/*  |   |
-  |                                                   +---------------+-----------+   |
-  |                                                                   |               |
-  |   +-------------------------------+                                |               |
-  |   | Domain &amp; Analytics Layer      |                                |               |
-  |   | &lt;&lt;component&gt;&gt;                 |                                |               |
-  |   | stats.py athlete_metrics.py   |                                |               |
-  |   | charts.py insights.py plugins |                                |               |
-  |   +---------------+---------------+                                |               |
-  |                   |                                                |               |
-  |   +---------------v------------------------------------------------v------------+  |
-  |   | Dataset Facade: MyTraLDataset / UserDataset interface                       |  |
-  |   | &lt;&lt;component&gt;&gt; backends/dataset.py                                           |  |
+  +-------------------------------------------------------------------------------------+
+  |                           MyTraL Server (Python process)                            |
+  |                                &lt;&lt;component&gt;&gt;                                        |
+  |                                                                                     |
+  |   +-------------------------------------------------------------------------+       |
+  |   | Flask Web Layer                                                         |       |
+  |   | &lt;&lt;component&gt;&gt; routes.py + blueprints/* + middleware/sync_guard.py       |       |
+  |   +-----------------------------+---------------------------+---------------+       |
+  |                                 |                           |                       |
+  |                    +------------v-----------+     +---------v----------------+      |
+  |                    | Jinja Template Layer   |     | Async Task Subsystem     |      |
+  |                    | &lt;&lt;component&gt;&gt;          |     | &lt;&lt;component&gt;&gt;            |      |
+  |                    | templates/*.html       |     | TaskManager              |      |
+  |                    +------------------------+     | ThreadTaskExecutor       |      |
+  |                                                   | TaskStorage + tasks/do/* |      |
+  |                                                   +---------------+----------+      |
+  |                                                                   |                 |
+  |   +-------------------------------+                               |                 |
+  |   | Domain &amp; Analytics Layer      |                               |                 |
+  |   | &lt;&lt;component&gt;&gt;                 |                               |                 |
+  |   | stats.py athlete_metrics.py   |                               |                 |
+  |   | charts.py insights.py plugins |                               |                 |
+  |   +---------------+---------------+                               |                 |
+  |                   |                                               |                 |
+  |   +---------------v-----------------------------------------------v--------------+  |
+  |   | Dataset Facade: MyTraLDataset / UserDataset interface                        |  |
+  |   | &lt;&lt;component&gt;&gt; backends/dataset.py                                            |  |
   |   +--------------------------+------------------------------+--------------------+  |
   |                              |                              |                       |
   |      +-----------------------v----------------+   +---------v------------------+    |
@@ -297,20 +297,20 @@
   |      | JsonUsersDataset + JSONUserActivities  |   | Activity/Avatar/Entity svc |    |
   |      | InMemory/Passthrough cache             |   | validation + image process |    |
   |      +-----------------------+----------------+   +-------------+--------------+    |
-  +------------------------------|-----------------------------------|-------------------+
-                                 |                                   |
-                                 v                                   v
-              +------------------+-------------------+   +-----------+------------------+
+  +------------------------------|----------------------------------|-------------------+
+                                 |                                  |
+                                 v                                  v
+              +------------------+-------------------+   +----------+-------------------+
               | Filesystem Structured Store          |   | Blob Store Backend           |
               | &lt;&lt;component&gt;&gt; data/&lt;user&gt;/           |   | &lt;&lt;component&gt;&gt; filesystem     |
-              | activities-*.json, user-*.json,      |   | (default), optional MinIO/S3|
+              | activities-*.json, user-*.json,      |   | (default), optional MinIO/S3 |
               | tasks/task-*.json + task-*.log       |   +------------------------------+
               +------------------+-------------------+
                                  |
                                  v
-              +------------------+-------------------+
+              +------------------+--------------------+
               | External Integrations                 |
-              | &lt;&lt;component&gt;&gt; Strava / Google / Polar|
+              | &lt;&lt;component&gt;&gt; Strava / Google / Polar |
               | via plugins and integrations modules  |
               +---------------------------------------+
 </code></pre></div>
