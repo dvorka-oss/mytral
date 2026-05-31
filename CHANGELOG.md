@@ -11,6 +11,20 @@ chapter - free from hacks, sensitive data and the "sins of my youth."
 
 Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!
 
+### Added
+- Added polyline with map backround to the activity feed.
+- Added rainbow polyline w/ running dot to the activity feed.
+- Added evevation chart to the activity feed.
+- Added "maximize map" action to the activity view page.
+- Added description field to symptoms so that user can specify how to cure such injury or illness.
+
+### Changed
+- Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
+  converged to MyTraL's task manager, typed tasks are used from now on.
+
+### Fixed
+- Fixed blobstore logging message which no longer specifies wrong blob type.
+
 
 
 ## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0)
@@ -42,7 +56,7 @@ This MyTraL **minor** release brings:
 - Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
   descriptions/default weights, symptom body-part targeting) with new pytest coverage.
 
-## Changed
+### Changed
 - Core data model changes:
   - `ActivityEntity.sport` renamed to `ActivityEntity.activity_type_key` - breaks backward compatibility.
   - Added `ActivityEntity.avg_cadence` and `ActivityEntity.max_cadence` - consider rides, rowing, swimming, and other activities.

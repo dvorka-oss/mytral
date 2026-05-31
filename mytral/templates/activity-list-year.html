@@ -552,7 +552,7 @@
                                             </div>
                                             <div class="col-12 col-lg-4">
                                                 <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none h-100 d-block activity-map-link">
-                                                    {{ maps_macros.map_preview(activity_map_preview, "activity-map-preview-" ~ activity.key) }}
+                                                    {{ maps_macros.map_tiles(activity_map_preview, activity.key, is_photo_split=True) }}
                                                 </a>
                                             </div>
                                         </div>
@@ -567,12 +567,10 @@
                                             </a>
                                         </div>
                                         {% elif has_route_preview %}
-                                        <div class="row mb-3 justify-content-center">
-                                            <div class="col-12 col-lg-4">
-                                                <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none d-block">
-                                                    {{ maps_macros.map_preview(activity_map_preview, "activity-map-preview-" ~ activity.key) }}
-                                                </a>
-                                            </div>
+                                        <div class="mb-3">
+                                            <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none d-block">
+                                                {{ maps_macros.map_tiles(activity_map_preview, activity.key, is_photo_split=False) }}
+                                            </a>
                                         </div>
                                         {% endif %}
 
@@ -836,52 +834,74 @@
     </div>
 </div>
 <style>
-    .mytral-map-preview {
-        height: 220px;
+    .mytral-map-tile {
+        height: 180px;
         width: 100%;
         background-color: #f9fafb;
         border-radius: var(--tblr-border-radius);
         position: relative;
         overflow: hidden;
-        background-image:
-            linear-gradient(to right, color-mix(in srgb, var(--tblr-body-color) 5%, transparent) 1px, transparent 1px),
-            linear-gradient(to bottom, color-mix(in srgb, var(--tblr-body-color) 5%, transparent) 1px, transparent 1px);
-        background-size: 20px 20px;
     }
 
-    .activity-media-split .activity-highlight-photo {
-        min-height: 220px;
-        max-height: 320px;
-        object-fit: cover;
+    /* Leaflet mini-map tile */
+    .mytral-leaflet-mini {
+        background-color: #e9ecef;
+    }
+    .mytral-leaflet-mini .leaflet-container {
+        background: #e9ecef;
+    }
+    .mytral-leaflet-mini .leaflet-control-attribution {
+        display: none;
+    }
+    .mytral-leaflet-mini .leaflet-control-zoom {
+        display: none;
     }
 
-    .activity-media-split .activity-map-link .mytral-map-preview {
-        height: 100%;
-        min-height: 220px;
+    /* Gradient polyline tile */
+    .mytral-gradient-polyline {
+        background-color: #f9fafb;
     }
-
-    .mytral-map-preview svg {
+    .mytral-gradient-polyline svg {
         position: relative;
     }
 
-    .mytral-map-preview .mytral-route-start {
-        filter: drop-shadow(0 0 3px rgba(47, 179, 68, 0.6));
+    /* Elevation sparkline tile */
+    .mytral-elevation-sparkline {
+        background-color: #f9fafb;
+    }
+    .mytral-elevation-sparkline .mytral-sparkline-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--tblr-muted);
+        font-size: 0.8rem;
     }
 
-    .mytral-map-preview .mytral-route-end {
+    /* Photo + tile split layout */
+    .activity-media-split .activity-highlight-photo {
+        min-height: 180px;
+        max-height: 320px;
+        object-fit: cover;
+    }
+    .activity-media-split .activity-map-link .mytral-map-tile {
+        height: 100%;
+        min-height: 180px;
+    }
+
+    /* Start/end markers shared */
+    .mytral-map-tile .mytral-route-start {
+        filter: drop-shadow(0 0 3px rgba(47, 179, 68, 0.6));
+    }
+    .mytral-map-tile .mytral-route-end {
         filter: drop-shadow(0 0 3px rgba(214, 57, 57, 0.6));
     }
 </style>
 <script>
     (() => {
         const svgNs = "http://www.w3.org/2000/svg";
-        const previewElements = document.querySelectorAll(".mytral-map-preview");
-        if (!previewElements.length) {
-            return;
-        }
 
-        ensureSharedDefs();
-
+        // ---- Shared polyline decoding ----
         function decodePolyline(encoded, precision = 5) {
             if (!encoded) {
                 return [];
@@ -936,17 +956,6 @@
             });
         }
 
-        function buildPathData(mapped) {
-            if (!mapped.length) {
-                return "";
-            }
-            let d = `M ${mapped[0][0]} ${mapped[0][1]}`;
-            for (let i = 1; i < mapped.length; i += 1) {
-                d += ` L ${mapped[i][0]} ${mapped[i][1]}`;
-            }
-            return d;
-        }
-
         function ensureSharedDefs() {
             if (document.getElementById("mytral-map-defs")) {
                 return;
@@ -961,7 +970,7 @@
 
             const defs = document.createElementNS(svgNs, "defs");
 
-            // glow filter: blur + merge with original
+            // glow filter
             const filter = document.createElementNS(svgNs, "filter");
             filter.setAttribute("id", "mytral-route-glow");
             filter.setAttribute("x", "-50%");
@@ -972,89 +981,127 @@
             blur.setAttribute("stdDeviation", "2.5");
             blur.setAttribute("result", "blur");
             filter.appendChild(blur);
-            const merge = document.createElementNS(svgNs, "feMerge");
+            const mergeNode = document.createElementNS(svgNs, "feMerge");
             const mn1 = document.createElementNS(svgNs, "feMergeNode");
             mn1.setAttribute("in", "blur");
             const mn2 = document.createElementNS(svgNs, "feMergeNode");
             mn2.setAttribute("in", "SourceGraphic");
-            merge.appendChild(mn1);
-            merge.appendChild(mn2);
-            filter.appendChild(merge);
+            mergeNode.appendChild(mn1);
+            mergeNode.appendChild(mn2);
+            filter.appendChild(mergeNode);
             defs.appendChild(filter);
 
-            // diagonal gradient from Tabler blue to cyan
+            // gradient for polyline tile (blue -> cyan -> green -> orange -> red)
             const grad = document.createElementNS(svgNs, "linearGradient");
             grad.setAttribute("id", "mytral-route-gradient");
             grad.setAttribute("x1", "0%");
             grad.setAttribute("y1", "0%");
             grad.setAttribute("x2", "100%");
             grad.setAttribute("y2", "100%");
-            const s1 = document.createElementNS(svgNs, "stop");
-            s1.setAttribute("offset", "0%");
-            s1.setAttribute("stop-color", "#206bc4");
-            const s2 = document.createElementNS(svgNs, "stop");
-            s2.setAttribute("offset", "100%");
-            s2.setAttribute("stop-color", "#4facfe");
-            grad.appendChild(s1);
-            grad.appendChild(s2);
+            const stops = [
+                { offset: "0%", color: "#206bc4" },
+                { offset: "25%", color: "#4facfe" },
+                { offset: "50%", color: "#2fb344" },
+                { offset: "75%", color: "#f59f00" },
+                { offset: "100%", color: "#d63939" },
+            ];
+            stops.forEach((s) => {
+                const stop = document.createElementNS(svgNs, "stop");
+                stop.setAttribute("offset", s.offset);
+                stop.setAttribute("stop-color", s.color);
+                grad.appendChild(stop);
+            });
             defs.appendChild(grad);
+
+            // elevation gradient
+            const elevGrad = document.createElementNS(svgNs, "linearGradient");
+            elevGrad.setAttribute("id", "mytral-elevation-gradient");
+            elevGrad.setAttribute("x1", "0");
+            elevGrad.setAttribute("y1", "0");
+            elevGrad.setAttribute("x2", "0");
+            elevGrad.setAttribute("y2", "1");
+            const sTop = document.createElementNS(svgNs, "stop");
+            sTop.setAttribute("offset", "0%");
+            sTop.setAttribute("stop-color", "#74c0fc");
+            sTop.setAttribute("stop-opacity", "0.75");
+            const sBot = document.createElementNS(svgNs, "stop");
+            sBot.setAttribute("offset", "100%");
+            sBot.setAttribute("stop-color", "#206bc4");
+            sBot.setAttribute("stop-opacity", "0.20");
+            elevGrad.appendChild(sTop);
+            elevGrad.appendChild(sBot);
+            defs.appendChild(elevGrad);
 
             defsSvg.appendChild(defs);
             document.body.prepend(defsSvg);
         }
 
-        function attachHoverAnimation(container, mapped, svg) {
-            if (mapped.length < 2) {
+        ensureSharedDefs();
+
+        // ---- Tile 1: Leaflet mini-map ----
+        function initLeafletMini(element) {
+            if (element.dataset.mapReady === "1") {
                 return;
             }
-            let animFrame = null;
-            let dot = null;
+            if (typeof L === "undefined") {
+                return;
+            }
+            const encoded = JSON.parse(element.dataset.polyline || "\"\"");
+            if (!encoded) {
+                return;
+            }
+            const points = decodePolyline(encoded);
+            if (points.length < 2) {
+                return;
+            }
 
-            container.addEventListener("mouseenter", () => {
-                dot = document.createElementNS(svgNs, "circle");
-                dot.setAttribute("r", "4.5");
-                dot.setAttribute("fill", "#ffffff");
-                dot.setAttribute("stroke", "#d63939");
-                dot.setAttribute("stroke-width", "2");
-                dot.setAttribute("filter", "url(#mytral-route-glow)");
-                dot.style.opacity = "0";
-                svg.appendChild(dot);
+            // set explicit height so Leaflet calculates size correctly
+            const h = element.clientHeight || 180;
+            element.style.height = h + "px";
 
-                // fade in
-                requestAnimationFrame(() => {
-                    dot.style.transition = "opacity 0.15s ease";
-                    dot.style.opacity = "1";
-                });
-
-                let idx = 0;
-                const lastIdx = mapped.length - 1;
-                const step = Math.max(1, Math.floor(mapped.length / 120));
-
-                function animate() {
-                    const pos = Math.min(idx, lastIdx);
-                    dot.setAttribute("cx", mapped[pos][0]);
-                    dot.setAttribute("cy", mapped[pos][1]);
-                    if (idx < lastIdx) {
-                        idx = Math.min(idx + step, lastIdx);
-                        animFrame = requestAnimationFrame(animate);
-                    }
-                }
-                animFrame = requestAnimationFrame(animate);
+            const map = L.map(element, {
+                zoomControl: false,
+                attributionControl: false,
+                scrollWheelZoom: false,
+                dragging: false,
+                doubleClickZoom: false,
+                touchZoom: false,
+                boxZoom: false,
+                keyboard: false,
             });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+            }).addTo(map);
 
-            container.addEventListener("mouseleave", () => {
-                if (animFrame) {
-                    cancelAnimationFrame(animFrame);
-                    animFrame = null;
-                }
-                if (dot) {
-                    dot.remove();
-                    dot = null;
-                }
-            });
+            const latLngs = points.map((p) => [p[0], p[1]]);
+            const route = L.polyline(latLngs, {
+                color: "#206bc4",
+                weight: 3,
+                opacity: 0.85,
+            }).addTo(map);
+            map.fitBounds(route.getBounds(), { padding: [8, 8] });
+
+            // start/end markers
+            L.circleMarker(latLngs[0], {
+                radius: 4,
+                color: "#2fb344",
+                fillColor: "#2fb344",
+                fillOpacity: 1,
+                weight: 1.5,
+            }).addTo(map);
+            L.circleMarker(latLngs[latLngs.length - 1], {
+                radius: 4,
+                color: "#d63939",
+                fillColor: "#d63939",
+                fillOpacity: 1,
+                weight: 1.5,
+            }).addTo(map);
+
+            element.dataset.mapReady = "1";
         }
 
-        function initPreviewMap(element) {
+        // ---- Tile 2: Gradient polyline ----
+        function initGradientPolyline(element) {
             if (element.dataset.mapReady === "1") {
                 return;
             }
@@ -1078,8 +1125,8 @@
                 ];
             }
 
-            const width = element.clientWidth || 600;
-            const height = element.clientHeight || 220;
+            const width = element.clientWidth || 300;
+            const height = element.clientHeight || 180;
             const padding = 10;
             const mapped = mapPointsToSvg(points, bbox, width, height, padding);
             if (!mapped.length) {
@@ -1092,9 +1139,13 @@
             svg.setAttribute("height", "100%");
             svg.setAttribute("preserveAspectRatio", "none");
 
-            // route path with gradient + glow
+            // route path with 5-color gradient
             const path = document.createElementNS(svgNs, "path");
-            path.setAttribute("d", buildPathData(mapped));
+            let d = `M ${mapped[0][0]} ${mapped[0][1]}`;
+            for (let i = 1; i < mapped.length; i += 1) {
+                d += ` L ${mapped[i][0]} ${mapped[i][1]}`;
+            }
+            path.setAttribute("d", d);
             path.setAttribute("fill", "none");
             path.setAttribute("stroke", "url(#mytral-route-gradient)");
             path.setAttribute("stroke-width", "2.5");
@@ -1129,7 +1180,173 @@
             element.replaceChildren(svg);
             element.dataset.mapReady = "1";
 
-            attachHoverAnimation(element, mapped, svg);
+            // hover animation
+            attachHoverAnimation(element, mapped);
+        }
+
+        function attachHoverAnimation(container, mapped) {
+            if (mapped.length < 2) {
+                return;
+            }
+            let animFrame = null;
+            let dot = null;
+
+            container.addEventListener("mouseenter", () => {
+                const svg = container.querySelector("svg");
+                if (!svg) {
+                    return;
+                }
+                dot = document.createElementNS(svgNs, "circle");
+                dot.setAttribute("r", "4.5");
+                dot.setAttribute("fill", "#ffffff");
+                dot.setAttribute("stroke", "#d63939");
+                dot.setAttribute("stroke-width", "2");
+                dot.setAttribute("filter", "url(#mytral-route-glow)");
+                dot.style.opacity = "0";
+                svg.appendChild(dot);
+
+                requestAnimationFrame(() => {
+                    dot.style.transition = "opacity 0.15s ease";
+                    dot.style.opacity = "1";
+                });
+
+                let idx = 0;
+                const lastIdx = mapped.length - 1;
+                const step = Math.max(1, Math.floor(mapped.length / 120));
+
+                function animate() {
+                    const pos = Math.min(idx, lastIdx);
+                    dot.setAttribute("cx", mapped[pos][0]);
+                    dot.setAttribute("cy", mapped[pos][1]);
+                    if (idx < lastIdx) {
+                        idx = Math.min(idx + step, lastIdx);
+                        animFrame = requestAnimationFrame(animate);
+                    }
+                }
+                animFrame = requestAnimationFrame(animate);
+            });
+
+            container.addEventListener("mouseleave", () => {
+                if (animFrame) {
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+                if (dot) {
+                    dot.remove();
+                    dot = null;
+                }
+            });
+        }
+
+        // ---- Tile 3: Elevation sparkline ----
+        function initElevationSparkline(element) {
+            if (element.dataset.mapReady === "1") {
+                return;
+            }
+            const profileRaw = element.dataset.profile;
+            if (!profileRaw) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
+                return;
+            }
+            let profile;
+            try {
+                profile = JSON.parse(profileRaw);
+            } catch (e) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
+                return;
+            }
+            if (!profile || profile.length < 2) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
+                return;
+            }
+
+            const width = element.clientWidth || 300;
+            const height = element.clientHeight || 180;
+            const padL = 6;
+            const padR = 6;
+            const padT = 8;
+            const padB = 8;
+            const drawW = width - padL - padR;
+            const drawH = height - padT - padB;
+
+            const maxDist = Math.max(...profile.map((p) => p[0]), 1);
+            const minEle = Math.min(...profile.map((p) => p[1]));
+            const maxEle = Math.max(...profile.map((p) => p[1]));
+            const eleRange = Math.max(maxEle - minEle, 1);
+
+            const toX = (d) => padL + (d / maxDist) * drawW;
+            const toY = (e) => padT + (1 - (e - minEle) / eleRange) * drawH;
+
+            const svg = document.createElementNS(svgNs, "svg");
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            svg.setAttribute("preserveAspectRatio", "none");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+
+            const coords = profile.map((p) => [toX(p[0]), toY(p[1])]);
+
+            // filled area
+            let areaD = `M ${coords[0][0]} ${height - padB} L ${coords[0][0]} ${coords[0][1]}`;
+            for (let i = 1; i < coords.length; i += 1) {
+                areaD += ` L ${coords[i][0]} ${coords[i][1]}`;
+            }
+            areaD += ` L ${coords[coords.length - 1][0]} ${height - padB} Z`;
+            const area = document.createElementNS(svgNs, "path");
+            area.setAttribute("d", areaD);
+            area.setAttribute("fill", "url(#mytral-elevation-gradient)");
+            svg.appendChild(area);
+
+            // top line
+            let lineD = `M ${coords[0][0]} ${coords[0][1]}`;
+            for (let i = 1; i < coords.length; i += 1) {
+                lineD += ` L ${coords[i][0]} ${coords[i][1]}`;
+            }
+            const line = document.createElementNS(svgNs, "path");
+            line.setAttribute("d", lineD);
+            line.setAttribute("fill", "none");
+            line.setAttribute("stroke", "#206bc4");
+            line.setAttribute("stroke-width", "1.5");
+            line.setAttribute("stroke-linecap", "round");
+            line.setAttribute("stroke-linejoin", "round");
+            svg.appendChild(line);
+
+            // min/max elevation labels
+            const labelStyle = "font-size:9px;font-family:Inter,sans-serif;fill:var(--tblr-muted);";
+            const minLabel = document.createElementNS(svgNs, "text");
+            minLabel.setAttribute("x", padL + 2);
+            minLabel.setAttribute("y", height - 2);
+            minLabel.setAttribute("style", labelStyle);
+            minLabel.textContent = Math.round(minEle) + " m";
+            svg.appendChild(minLabel);
+
+            const maxLabel = document.createElementNS(svgNs, "text");
+            maxLabel.setAttribute("x", padL + 2);
+            maxLabel.setAttribute("y", padT + 10);
+            maxLabel.setAttribute("style", labelStyle);
+            maxLabel.textContent = Math.round(maxEle) + " m";
+            svg.appendChild(maxLabel);
+
+            element.replaceChildren(svg);
+            element.dataset.mapReady = "1";
+        }
+
+        // ---- Lazy initialization via IntersectionObserver ----
+        function initTile(element) {
+            if (element.classList.contains("mytral-leaflet-mini")) {
+                initLeafletMini(element);
+            } else if (element.classList.contains("mytral-gradient-polyline")) {
+                initGradientPolyline(element);
+            } else if (element.classList.contains("mytral-elevation-sparkline")) {
+                initElevationSparkline(element);
+            }
+        }
+
+        const tiles = document.querySelectorAll(".mytral-map-tile");
+        if (!tiles.length) {
+            return;
         }
 
         if ("IntersectionObserver" in window) {
@@ -1137,16 +1354,16 @@
                 (entries) => {
                     entries.forEach((entry) => {
                         if (entry.isIntersecting) {
-                            initPreviewMap(entry.target);
+                            initTile(entry.target);
                             observer.unobserve(entry.target);
                         }
                     });
                 },
-                { rootMargin: "50px" },
+                { rootMargin: "80px" },
             );
-            previewElements.forEach((el) => observer.observe(el));
+            tiles.forEach((el) => observer.observe(el));
         } else {
-            previewElements.forEach((el) => initPreviewMap(el));
+            tiles.forEach((el) => initTile(el));
         }
     })();
 </script>

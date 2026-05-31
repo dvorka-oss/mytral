@@ -26,6 +26,7 @@ import pytest
 
 from mytral import tasks
 from mytral.tasks import executors
+from mytral.tasks.do.hello_world import HelloWorldTask
 
 
 class MockDataset:
@@ -411,8 +412,6 @@ class TestHelloWorldTask:
         logger = loggers.MytralPrintLogger()
 
         # WHEN
-        from mytral.tasks.do.hello_world import HelloWorldTask
-
         task = HelloWorldTask(
             task_entity=task_entity,
             logger=logger,
@@ -449,8 +448,6 @@ class TestHelloWorldTask:
         logger = loggers.MytralPrintLogger()
 
         # WHEN
-        from mytral.tasks.do.hello_world import HelloWorldTask
-
         task = HelloWorldTask(
             task_entity=task_entity,
             logger=logger,

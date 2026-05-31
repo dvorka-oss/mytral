@@ -30,6 +30,7 @@ import uuid
 import flask
 import structlog
 
+from mytral import app_task_manager
 from mytral import app_user_ds as ds
 from mytral.ml.icl import manager as icl_manager
 from mytral.ml.icl import settings as icl_settings
@@ -159,7 +160,7 @@ def settings_tabpfn_download():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash(
             "TabPFN weight download started — follow progress in Tasks.",
             "success",

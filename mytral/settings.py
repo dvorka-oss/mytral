@@ -2301,22 +2301,26 @@ class Symptom:
     KEY_COUNT = "count"
     KEY_KEY = "key"
     KEY_BODY_PARTS = "body_parts"
+    KEY_DESCRIPTION = "description"
 
     def __init__(
         self,
         name: str,
         key: str = "",
         body_parts: list[str] | None = None,
+        description: str = "",
     ) -> None:
         self.name = name
         self.key = key or str(uuid.uuid4())
         self.body_parts: list[str] = body_parts or []
+        self.description = description
 
     def to_dict(self) -> dict:
         return {
             Symptom.KEY_NAME: self.name,
             Symptom.KEY_KEY: self.key,
             Symptom.KEY_BODY_PARTS: self.body_parts,
+            Symptom.KEY_DESCRIPTION: self.description,
         }
 
     @staticmethod
@@ -2325,6 +2329,7 @@ class Symptom:
             name=symptom_dict[Symptom.KEY_NAME],
             key=symptom_dict.get(Symptom.KEY_KEY, ""),
             body_parts=symptom_dict.get(Symptom.KEY_BODY_PARTS, []),
+            description=symptom_dict.get(Symptom.KEY_DESCRIPTION, ""),
         )
 
 

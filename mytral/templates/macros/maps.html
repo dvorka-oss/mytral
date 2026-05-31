@@ -10,16 +10,79 @@
     {% endif %}
 {% endmacro %}
 
+
+{% macro map_tiles(activity_map, activity_key, is_photo_split=False) %}
+    {% if activity_map and activity_map.summary_polyline %}
+        {% set polyline_json = activity_map.summary_polyline | tojson %}
+        {% set bbox_json = activity_map.summary_bbox | tojson %}
+        {% set profile_json = activity_map.profile_points | tojson %}
+        {% set has_elevation = activity_map.profile_points and activity_map.profile_points | length > 1 %}
+        {% set base_id = "activity-map-" ~ activity_key %}
+        {% if is_photo_split %}
+        {# Photo + single tile (Leaflet mini-map) #}
+        <div class="mytral-map-tile mytral-leaflet-mini"
+             id="{{ base_id }}-leaflet"
+             data-polyline='{{ polyline_json }}'
+             data-bbox='{{ bbox_json }}'
+             aria-label="GPS route on map"></div>
+        {% else %}
+        {# Three tiles: Leaflet | Gradient polyline | Elevation sparkline #}
+        <div class="row g-2 activity-map-tiles">
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-leaflet-mini"
+                     id="{{ base_id }}-leaflet"
+                     data-polyline='{{ polyline_json }}'
+                     data-bbox='{{ bbox_json }}'
+                     aria-label="GPS route on map"></div>
+            </div>
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-gradient-polyline"
+                     id="{{ base_id }}-gradient"
+                     data-polyline='{{ polyline_json }}'
+                     data-bbox='{{ bbox_json }}'
+                     aria-label="Route gradient preview"></div>
+            </div>
+            <div class="col-4">
+                <div class="mytral-map-tile mytral-elevation-sparkline"
+                     id="{{ base_id }}-sparkline"
+                     {% if has_elevation %}
+                     data-profile='{{ profile_json }}'
+                     {% endif %}
+                     aria-label="Elevation profile"></div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
 {% macro map_detail(activity_map, map_id) %}
     {% if activity_map and activity_map.detail_points %}
         <div class="page-body mt-0 pt-0">
             <div class="container-xl">
-                <div class="card mb-3">
+                <div class="card mb-3 mytral-map-card">
                     <div class="card-header">
                         <h3 class="card-title">GPS Track</h3>
                         <span class="badge bg-azure text-azure-fg ms-2">
                             {{ activity_map.track_point_count }} points
                         </span>
+                        <div class="card-actions">
+                            <a href="#"
+                               class="btn btn-icon mytral-map-fullscreen-btn btn-outline-primary"
+                               title="Enter fullscreen map view"
+                               aria-label="Toggle fullscreen map">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-arrows-maximize">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M16 4l4 0l0 4" />
+                                <path d="M14 10l6 -6" />
+                                <path d="M8 20l-4 0l0 -4" />
+                                <path d="M4 20l6 -6" />
+                                <path d="M16 20l4 0l0 -4" />
+                                <path d="M14 14l6 6" />
+                                <path d="M8 4l-4 0l0 4" />
+                                <path d="M4 4l6 6" />
+                            </svg>
+                      </a>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div

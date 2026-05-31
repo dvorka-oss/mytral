@@ -21,16 +21,17 @@ import flask
 
 from mytral import app_config
 from mytral import app_logger
+from mytral import app_task_manager
 from mytral import app_user_ds as ds
 from mytral import ff
 from mytral import forms
 from mytral import persistences
 from mytral import plugins
 from mytral import security
+from mytral import tasks
 from mytral.integrations import strava
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
-from mytral.tasks import _entities as task_entities
 
 
 def _build_strava_task_params(
@@ -359,11 +360,11 @@ def strava_sync_new_to_current():
     if task_params is None:
         return flask.redirect(flask.url_for("strava_auth_start"))
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_sync_new_to_current",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -375,7 +376,7 @@ def strava_sync_new_to_current():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Strava sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start sync: {exc}", "danger")
@@ -412,11 +413,11 @@ def strava_sync_gear():
         "strava_url": user_profile.strava_url or "",
     }
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_sync_gear",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -428,7 +429,7 @@ def strava_sync_gear():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Gear sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start gear sync: {exc}", "danger")
@@ -464,11 +465,11 @@ def strava_sync_all():
 
     task_params["purge_confirmed"] = True
 
-    task = task_entities.TaskEntity(
+    task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
-        user_id=user_id,
+        user_id=str(user_id),
         task_type="strava_resync_all",
-        status=task_entities.TaskStatus.QUEUED,
+        status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
         completed_at=None,
@@ -480,7 +481,7 @@ def strava_sync_all():
     )
 
     try:
-        flask_app.task_manager.executor.submit(task)
+        app_task_manager.executor.submit(task)
         flask.flash("Full re-sync started - check Tasks for progress.", "success")
     except Exception as exc:
         flask.flash(f"Could not start re-sync: {exc}", "danger")

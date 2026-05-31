@@ -1249,9 +1249,12 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     #
 
     def _create_activity_types(self, user_id: str):
+        activity_types = settings.UserActivityTypes(
+            activity_types=settings.UserActivityTypes.bootstrap()
+        )
         persistences.save_json(
             file_path=self.user_activity_types_path(user_id),
-            data_dict=settings.UserActivityTypes(activity_types=[]).to_dict(),
+            data_dict=activity_types.to_dict_dict(),
         )
 
     def _load_activity_types(
@@ -1675,9 +1678,10 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     #
 
     def _create_exercises(self, user_id: str):
+        exercises = settings.UserExercises(exercises=settings.UserExercises.bootstrap())
         persistences.save_json(
             file_path=self.user_exercises_path(user_id),
-            data_dict=settings.UserExercises(exercises=[]).to_dict(),
+            data_dict=exercises.to_dict_dict(),
         )
 
     def _load_exercises(
@@ -1807,9 +1811,10 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     #
 
     def _create_symptoms(self, user_id: str):
+        symptoms = settings.UserSymptoms(symptoms=settings.UserSymptoms.bootstrap())
         persistences.save_json(
             file_path=self.user_symptoms_path(user_id),
-            data_dict=settings.UserSymptoms(symptoms=[]).to_dict(),
+            data_dict=symptoms.to_dict_dict(),
         )
 
     def _load_symptoms(

@@ -527,7 +527,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
     Supports data exported from Polar S720i (monitor model 12) and compatible
     Polar heart-rate monitors.  Reads the directory tree produced by Polar
     Precision Performance software: one YYYYMMDD.pdd per day under annual
-    sub-directories, one YYMMDDNN.hrm per exercise.
+    subdirectories, one YYMMDDNN.hrm per exercise.
 
     Parsed HRM time-series data (HR, speed, cadence, altitude) is cached in
     ``_hrm_data_cache`` (keyed by ``src_key`` = HRM filename).  The caller

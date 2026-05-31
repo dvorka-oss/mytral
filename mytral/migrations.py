@@ -35,7 +35,10 @@ class FsPersistenceMigrations:
         self.ds = ds
         self.user_ds = ds.user()
         # map: detected data spec version > migrations to perform
-        self._migrations = {"1.8.0": [self._migrate_1_8_0_to_1_9_0]}
+        self._migrations = {
+            "1.8.0": [self._migrate_1_8_0_to_1_9_0],
+            "1.9.0": [self._migrate_1_9_0_to_1_50_0],
+        }
 
     def _180_to_190_sport_to_activity_type_key(self):
         """Migration step - for every user account:
@@ -206,6 +209,14 @@ class FsPersistenceMigrations:
         self._180_to_190_inject_missing_symptoms()
 
         self.logger.info(f"{self.log_name} DONE migration from 1.8.0 to 1.9.0 spec")
+
+    def _migrate_1_9_0_to_1_50_0(self):
+        """Migrate dataset from 1.9.0 to 1.50.0 specification."""
+        self.logger.info(f"{self.log_name} Migrating 1.9.0 to 1.50.0 specification...")
+
+        # no actual migration steps needed - just bumping the version
+
+        self.logger.info(f"{self.log_name} DONE migration from 1.9.0 to 1.50.0 spec")
 
     def migrate(self) -> str:
         """Check whether migration is needed and perform it if so.

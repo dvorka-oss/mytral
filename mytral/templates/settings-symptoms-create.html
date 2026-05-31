@@ -1,4 +1,5 @@
-{%extends "layout.html"%}
+{% import "macros/activity-fields.html" as field_macros %}
+{% extends "layout.html"%}
 {% from "macros/mannequin.html" import render_mannequin %}
 {% block content %}
 <div class="container-xl">
@@ -55,6 +56,7 @@
                     <div class="form-hint">{{ form.name.description }}</div>
                     {% endif %}
                 </div>
+                {{ field_macros.add_field(form.description) }}
             </div>
         </div>
 

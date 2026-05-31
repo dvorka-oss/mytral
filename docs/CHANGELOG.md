@@ -1,8 +1,33 @@
 # Changelog
 
+## [1.50.0](https://github.com/dvorka/my-training-log/compare/v1.50.0...HEAD)
+
+This MyTraL release is very **special** to me. After years of coding and hacking together
+various versions of MyTraL I am moving to a brand-new Git repository on my 50th birthday.
+
+Sports have been my main hobby for 40 years, and I have 30 years of training data
+scattered across everything from paper logs to MyTraL. Today, I’m starting a fresh
+chapter - free from hacks, sensitive data and the "sins of my youth."
+
+Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!
+
+### Added
+- Added polyline with map backround to the activity feed.
+- Added rainbow polyline w/ running dot to the activity feed.
+- Added evevation chart to the activity feed.
+- Added "maximize map" action to the activity view page.
+- Added description field to symptoms so that user can specify how to cure such injury or illness.
+
+### Changed
+- Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
+  converged to MyTraL's task manager, typed tasks are used from now on.
+
+### Fixed
+- Fixed blobstore logging message which no longer specifies wrong blob type.
 
 
-## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...HEAD) - 2026-??-??
+
+## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0)
 
 This MyTraL **minor** release brings:
 
@@ -13,7 +38,6 @@ This MyTraL **minor** release brings:
 - Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based loading/saving.
 - Added power zones.
 - Added HR zones.
-- Added the taxonomy of activity types which covers all sports defined by Strava API and FIT files.
 - Added 2D maps rendering for GPX recordings.
 - Added athlete performance metrics w/ FTP, aerobic/anaerobic thresholds, ... estimates.
 - Added recorded data analytics - ridge/bar/line charts of various metrics.
@@ -27,17 +51,30 @@ This MyTraL **minor** release brings:
 - Added preview of TabPFN ML-powered predictions feature with dedicated settings and predictions pages (behind feature flag).
 - Added sponsor link to the application layout.
 - Added Windows binary build.
+- Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_* constants,
+  Strava/FIT mappings, Concept2 uses AT_ROW_ERG).
+- Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
+  descriptions/default weights, symptom body-part targeting) with new pytest coverage.
 
-## Changed
+### Changed
 - Core data model changes:
   - `ActivityEntity.sport` renamed to `ActivityEntity.activity_type_key` - breaks backward compatibility.
   - Added `ActivityEntity.avg_cadence` and `ActivityEntity.max_cadence` - consider rides, rowing, swimming, and other activities.
   - Added `ActivityEntity.meta_activity_type` - consider `ski` aggregating DP/F roller ski, DP/F nordic ski, ...
   - Added `ActivityEntity.tags`.
   - Added `ActivityEntity.is_plan`.
+- Reworked photo UI flows (entity photo galleries, activity/exercise photo metadata
+  editor pages, markdown image support) and updated documentation site pages.
+- Data migration framework:
+  - Migration step: rename sport to activity type in activities and gears.
+  - Migration step: merge new activity types, exercises and symptoms.
+  - Expert UI tool: migration of activities from one activity type to another.
+  - Python tool: re-sync Strava activities to re-new lost source attributes.
 
 ### Fixed
+- Activity update no longer purges source attributes (ID, descriptor and URL).
 - Blobstore exception handling in activity view/update routes now only silently ignores expected `BlobStoreError`; unexpected errors are logged and re-raised for easier debugging.
+- GPX import rewritten to be non-blocking (except upload) and to make intensive work in the asynchronous task.
 
 ### Performance
 - Per-request total size limit is now enforced when uploading multiple photos in a single request, preventing excessive memory use.

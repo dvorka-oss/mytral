@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Athlete Metrics - MyTraL Documentation</title>
+    <title>Feature: [feature] - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -137,7 +137,7 @@
                             <div class="dropdown-menu-column">
                               <a class="dropdown-item" href="index.html">Manifesto</a>
 <div class="dropdown-divider"></div>
-<a class="dropdown-item active" href="metrics.html">Athlete Metrics</a>
+<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="about.html">About</a>
                             </div>
@@ -240,8 +240,8 @@
             <div class="container-xl">
                 <div class="row g-2 align-items-center">
                     <div class="col">
-                        <div class="page-pretitle">User Documentation</div>
-                        <h2 class="page-title">Athlete Metrics</h2>
+                        <div class="page-pretitle">MyTraL Documentation</div>
+                        <h2 class="page-title">Feature: [feature]</h2>
                     </div>
                 </div>
             </div>
@@ -252,235 +252,92 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><p>MyTraL tracks a set of athlete-level performance metrics that serve as personal benchmarks for zone calculations, analytics, and progress tracking. Each metric can either be <strong>set</strong> (measured by you) or <strong>estimated</strong> automatically from your age, weight, and activity data.</p>
-<p>Access your metrics at <strong>Progress -&gt; Athlete Metrics</strong> or edit them via <strong>Progress -&gt; Athlete Metrics -&gt; Edit</strong>.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="set-vs-estimated-metrics">Set vs. Estimated Metrics</h2>
-<p>Every metric falls into one of three categories:</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Reviewers</th>
+<th>Last updated</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DONE</td>
+<td>@reviewer</td>
+<td>YYYY-MM-DD</td>
+<td>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table of contents</strong></p>
 <ul>
-<li>Measured -- Value you entered after a proper field or lab test. Used as-is for all calculations.</li>
-<li>Estimated -- Automatically computed from your age, weight, or activity data when no measured value is available.</li>
-<li>Derived -- Always computed at runtime and never stored (e.g., Power-to-Weight).</li>
+<li><a href="#analysis">Analysis</a><ul>
+<li><a href="#why">Why</a></li>
+<li><a href="#functional-requirements">Functional Requirements</a></li>
+<li><a href="#functional-non-requirements">Functional Non-requirements</a></li>
+<li><a href="#technical-requirements">Technical Requirements</a></li>
+<li><a href="#technical-non-requirements">Technical Non-requirements</a></li>
 </ul>
-<p>To override an estimate, enter your measured value in the edit form. Set any field to 0 (or leave blank) to revert to the automatic estimate.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="automatic-estimation-flow">Automatic Estimation Flow</h2>
-<p>When you save the edit form without specifying any metric values, MyTraL persists <code>0</code>
-for all athlete-set fields and resolves all effective <code>e_*</code> metrics at runtime.</p>
-<div class="codehilite"><pre><span></span><code>┌───────────────────────────────────────────────────────────┐
-│ Edit Athlete Metrics form                                 │
-│ - user leaves all fields blank (or enters 0)              │
-└───────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌───────────────────────────────────────────────────────────┐
-│ On Save (/athlete/metrics/update, POST)                   │
-│ - all persisted metric fields become 0                    │
-└───────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌───────────────────────────────────────────────────────────┐
-│ On View (/athlete/metrics, GET)                           │
-│ - load user profile + all activities                      │
-│ - resolve latest weight from activities (if available)    │
-└───────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌───────────────────────────────────────────────────────────┐
-│ athlete_metrics.resolve(...) computes effective values    │
-│                                                           │
-│ age = user_profile.age or default age                     │
-│ e_max_hr                  = round(208 - 0.7 * age)        │
-│ e_anaerobic_threshold_hr  = round(e_max_hr * 0.85)        │
-│ e_aerobic_threshold_hr    = max(180 - age, LTHR - 25)     │
-│ e_ftp                     = from power activities         │
-│                             (10..240 min, max candidate)  │
-│ e_vo2max                  = 15.3 * (e_max_hr / 60)        │
-│ e_hrv_rmssd               = max(0, 80 - 0.9 * age)        │
-│ e_fat_max                 = weight_kg * 0.45 (or 0)       │
-│ e_power_to_weight         = e_ftp / weight_kg (or 0)      │
-└───────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌───────────────────────────────────────────────────────────┐
-│ Zone resolution                                           │
-│ - HR zones: if any Z1..Z4 boundary missing, estimate      │
-│   all HR zones from LTHR percentages                      │
-│ - Power zones: if boundaries missing, estimate from FTP   │
-│   (when e_ftp &gt; 0)                                        │
-└───────────────────────────────────────────────────────────┘
-</code></pre></div>
-
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="performance-thresholds">Performance Thresholds</h2>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="max-heart-rate-max-hr">Max Heart Rate (Max HR)</h2>
-<p>The highest heart rate you can achieve during maximum effort exercise, measured in BPM. Measured via a maximum-effort field test or treadmill stress test. <strong>Estimation:</strong> Tanaka formula -- <code>208 - (0.7 × age)</code>.</p>
-<h3 id="anaerobic-threshold-hr-lthr">Anaerobic Threshold HR (LTHR)</h3>
-<p>The heart rate at your lactate threshold (second lactate threshold / LT2), also called LTHR (Lactate Threshold Heart Rate). This is the highest sustainable intensity for prolonged efforts and is the primary anchor for HR zone calculations. Measured as the average heart rate during the final 20 minutes of a 30-minute all-out time trial. <strong>Estimation:</strong> <code>round(Max HR × 0.85)</code>.</p>
-<h3 id="aerobic-threshold-hr-lt1">Aerobic Threshold HR (LT1)</h3>
-<p>The heart rate at the first lactate threshold (LT1) -- the upper boundary of easy, fat-burning aerobic work. Training below LT1 builds aerobic base without accumulating fatigue. Measured in a lab via lactate testing, or approximated via a MAF test. <strong>Estimation:</strong> <code>max(180 - age, LTHR - 25)</code>.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="heart-rate-zones">Heart Rate Zones</h2>
-<p>MyTraL uses a 5-zone HR model anchored to LTHR. You can either let MyTraL calculate zones automatically or enter your own zone boundaries. To use custom zones, all four boundary values (Z1-Z4 upper bounds) must be set; any single missing value reverts all zones to the estimated model.</p>
-<table class="table table-bordered field-table">
-<thead>
-<tr>
-<th>Zone</th>
-<th>Name</th>
-<th>Intensity</th>
-<th>Estimated boundary (LTHR-based)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Z1</td>
-<td>Recovery</td>
-<td>Very easy</td>
-<td>&lt; LTHR × 0.85</td>
-</tr>
-<tr>
-<td>Z2</td>
-<td>Aerobic</td>
-<td>Easy-moderate</td>
-<td>LTHR × 0.85 - 0.90</td>
-</tr>
-<tr>
-<td>Z3</td>
-<td>Tempo</td>
-<td>Moderate</td>
-<td>LTHR × 0.90 - 0.95</td>
-</tr>
-<tr>
-<td>Z4</td>
-<td>Threshold</td>
-<td>Hard</td>
-<td>LTHR × 0.95 - 1.06</td>
-</tr>
-<tr>
-<td>Z5</td>
-<td>Anaerobic</td>
-<td>Maximum</td>
-<td>≥ LTHR × 1.06</td>
-</tr>
-</tbody>
-</table>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="ftp-power">FTP &amp; Power</h2>
-<h3 id="functional-threshold-power-ftp">Functional Threshold Power (FTP)</h3>
-<p>The highest average power you can sustain for one hour, measured in Watts. Measured as 95% of your average power in a 20-minute all-out effort, or directly from a 60-minute field test. <strong>Estimation:</strong> Derived from activity power data using a duration-scaled model (see FTP Model below).</p>
-<h3 id="power-zones">Power Zones</h3>
-<p>MyTraL uses the Coggan 7-zone model for power, anchored to your FTP.</p>
-<table class="table table-bordered field-table">
-<thead>
-<tr>
-<th>Zone</th>
-<th>Name</th>
-<th>Intensity</th>
-<th>Estimated boundary (FTP-based)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>PZ1</td>
-<td>Recovery</td>
-<td>Active recovery</td>
-<td>&lt; FTP × 0.61</td>
-</tr>
-<tr>
-<td>PZ2</td>
-<td>Endurance</td>
-<td>Aerobic base</td>
-<td>FTP × 0.61 - 0.83</td>
-</tr>
-<tr>
-<td>PZ3</td>
-<td>Tempo</td>
-<td>Intensive aerobic</td>
-<td>FTP × 0.83 - 1.00</td>
-</tr>
-<tr>
-<td>PZ4</td>
-<td>Threshold</td>
-<td>Lactate threshold</td>
-<td>FTP × 1.00 - 1.17</td>
-</tr>
-<tr>
-<td>PZ5</td>
-<td>VO2Max</td>
-<td>Aerobic capacity</td>
-<td>FTP × 1.17 - 1.33</td>
-</tr>
-<tr>
-<td>PZ6</td>
-<td>Anaerobic</td>
-<td>Anaerobic capacity</td>
-<td>FTP × 1.33 - 1.67</td>
-</tr>
-<tr>
-<td>PZ7</td>
-<td>Neuromuscular</td>
-<td>Sprints / Maximum</td>
-<td>≥ FTP × 1.67</td>
-</tr>
-</tbody>
-</table>
-<h3 id="power-to-weight-ratio-wkg">Power-to-Weight Ratio (W/kg)</h3>
-<p>Always derived: <code>eFTP / body weight (kg)</code>. Never stored; always recalculated from your current FTP and body weight.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="ftp-estimation-model">FTP Estimation Model</h2>
-<p>When no FTP is set, MyTraL estimates it from activities with recorded power (avg_watts &gt; 0) and duration between 10 and 240 minutes. For each qualifying activity the algorithm computes:
-[code]
-    ftp_candidate = avg_watts / power_fraction(duration_minutes)
-[/code]</p>
-<p>The <em>power fraction</em> is interpolated from the following anchors (fraction = proportion of FTP an athlete can hold for that duration):</p>
-<table class="table table-bordered field-table">
-<thead>
-<tr>
-<th>Duration (min)</th>
-<th>Fraction of FTP</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>10</td>
-<td>1.150</td>
-</tr>
-<tr>
-<td>20</td>
-<td>1.053</td>
-</tr>
-<tr>
-<td>60</td>
-<td>1.000</td>
-</tr>
-<tr>
-<td>90</td>
-<td>0.900</td>
-</tr>
-<tr>
-<td>120</td>
-<td>0.850</td>
-</tr>
-<tr>
-<td>150</td>
-<td>0.785</td>
-</tr>
-<tr>
-<td>240</td>
-<td>0.720</td>
-</tr>
-</tbody>
-</table>
-<p>The highest FTP candidate across all qualifying activities is used. Activities shorter than 10 min or longer than 240 min are excluded.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="advanced-metrics">Advanced Metrics</h2>
-<h3 id="vo2-max">VO2 Max</h3>
-<p>Maximal oxygen uptake in mL/kg/min -- the gold standard for aerobic fitness. Measured in a laboratory via a graded exercise test with gas analysis. <strong>Estimation:</strong> Uth-Sørensen formula: <code>15.3 × (Max HR / Rest HR)</code> (rest HR defaults to 60 BPM if not available from activities).</p>
-<h3 id="hrv-rmssd">HRV RMSSD</h3>
-<p>Heart Rate Variability -- Root Mean Square of Successive Differences, in ms. Higher values generally indicate better recovery and parasympathetic activity. Measured each morning before rising using an HRV app and a chest strap or compatible wrist sensor. <strong>Estimation:</strong> Population average baseline: <code>80 - (0.9 × age)</code>.</p>
-<h3 id="fatmax">FatMax</h3>
-<p>Maximum fat oxidation rate in g/hr -- the highest rate at which your body burns fat for fuel. Measured via metabolic cart testing (indirect calorimetry). <strong>Estimation:</strong> Body weight × 0.45 g/hr. Requires body weight data from at least one activity.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="how-to-set-your-metrics">How to Set Your Metrics</h2>
-<ol>
-<li>Go to <strong>Profile -&gt; Athlete Metrics</strong>.</li>
-<li>Click <strong>Edit</strong>.</li>
-<li>Enter only the values you have measured. Leave unused fields blank or at 0 to let MyTraL estimate them automatically.</li>
-<li>Click <strong>Save Metrics</strong>.</li>
-</ol>
-<p>Metrics are re-resolved every time you view the Athlete Metrics page, so estimates update automatically as you log more activities.</p>
+</li>
+<li><a href="#design">Design</a><ul>
+<li><a href="#implementation">Implementation</a></li>
+<li><a href="#tests">Tests</a></li>
+<li><a href="#benchmarks">Benchmarks</a></li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
+<li><a href="#appendices">Appendices</a></li>
+</ul>
+<h1 id="analysis">Analysis</h1>
+<p><em>[... abstract ...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why</h2>
+<p><em>[... motivation and value proposition...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-requirements">Functional Requirements</h2>
+<p><em>[... functional requirements (feature scope) and user stories...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-non-requirements">Functional Non-requirements</h2>
+<p><em>[... functional non-requirements within the scope of this feature - what we will not deliver...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-requirements">Technical Requirements</h2>
+<p><em>[... technical requirements (including security and performance) and user stories (feature scope)...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-non-requirements">Technical Non-requirements</h2>
+<p><em>[... technical non-requirements within the scope of this feature - what will not be implemented...]</em></p>
+<h1 id="design">Design</h1>
+<p><em>[... a design introduction / abstract / high-level highlights]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="implementation">Implementation</h2>
+<p><em>[... a brief implementation description and/or diagrams...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tests">Tests</h2>
+<p><em>[... a brief description of unit, integration, load, longevity, regression, manual and smoke tests...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="benchmarks">Benchmarks</h2>
+<p><em>[... benchmark(s) and their result...]</em></p>
+<h1 id="references">References</h1>
+<p><em>[... relevant resources...]</em></p>
+<ul>
+<li><a href="http://link.io">resource</a></li>
+</ul>
+<h1 id="appendices">Appendices</h1>
+<p><em>[... appendice sections...]</em></p>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -490,23 +347,14 @@ for all athlete-set fields and resolves all effective <code>e_*</code> metrics a
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#set-vs-estimated-metrics" class="nav-link">Set vs. Estimated Metrics</a>
-<a href="#automatic-estimation-flow" class="nav-link">Automatic Estimation Flow</a>
-<a href="#performance-thresholds" class="nav-link">Performance Thresholds</a>
-<a href="#max-heart-rate-max-hr" class="nav-link">Max Heart Rate (Max HR)</a>
-<a href="#anaerobic-threshold-hr-lthr" class="nav-link ms-3">Anaerobic Threshold HR (LTHR)</a>
-<a href="#aerobic-threshold-hr-lt1" class="nav-link ms-3">Aerobic Threshold HR (LT1)</a>
-<a href="#heart-rate-zones" class="nav-link">Heart Rate Zones</a>
-<a href="#ftp-amp-power" class="nav-link">FTP &amp; Power</a>
-<a href="#functional-threshold-power-ftp" class="nav-link ms-3">Functional Threshold Power (FTP)</a>
-<a href="#power-zones" class="nav-link ms-3">Power Zones</a>
-<a href="#power-to-weight-ratio-wkg" class="nav-link ms-3">Power-to-Weight Ratio (W/kg)</a>
-<a href="#ftp-estimation-model" class="nav-link">FTP Estimation Model</a>
-<a href="#advanced-metrics" class="nav-link">Advanced Metrics</a>
-<a href="#vo2-max" class="nav-link ms-3">VO2 Max</a>
-<a href="#hrv-rmssd" class="nav-link ms-3">HRV RMSSD</a>
-<a href="#fatmax" class="nav-link ms-3">FatMax</a>
-<a href="#how-to-set-your-metrics" class="nav-link">How to Set Your Metrics</a>
+        <a href="#why" class="nav-link">Why</a>
+<a href="#functional-requirements" class="nav-link">Functional Requirements</a>
+<a href="#functional-non-requirements" class="nav-link">Functional Non-requirements</a>
+<a href="#technical-requirements" class="nav-link">Technical Requirements</a>
+<a href="#technical-non-requirements" class="nav-link">Technical Non-requirements</a>
+<a href="#implementation" class="nav-link">Implementation</a>
+<a href="#tests" class="nav-link">Tests</a>
+<a href="#benchmarks" class="nav-link">Benchmarks</a>
     </div>
 </div>
                     </div>
@@ -524,8 +372,8 @@ for all athlete-set fields and resolves all effective <code>e_*</code> metrics a
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/METRICS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/METRICS.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/.FEATURE_TEMPLATE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/.FEATURE_TEMPLATE.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
