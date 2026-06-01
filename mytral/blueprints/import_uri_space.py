@@ -1263,7 +1263,7 @@ def tool_import_tcx():
     flask.flash(
         f"TCX import queued (task {task_id}) for activity {activity.key}", "success"
     )
-    return flask.redirect(flask.url_for("get_activity", key=activity.key))
+    return flask.redirect(flask.url_for("task_detail", task_id=task_id))
 
 
 @flask_app.route("/app/tools/import/gpx/directory", methods=["POST"])

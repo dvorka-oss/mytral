@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """Async task: import multiple TCX files from a directory."""
 
+import gzip
 import io
 import pathlib
 import uuid
@@ -155,6 +156,8 @@ class TcxDirectoryImportTask(tasks.TaskBase):
             )
 
         tcx_data = tcx_path.read_bytes()
+        if tcx_path.suffix.lower() == ".gz":
+            tcx_data = gzip.decompress(tcx_data)
         summary = tcx_extractor.extract_tcx_summary(tcx_data)
 
         if summary.name_hint:

@@ -251,7 +251,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             a = entities.ActivityEntity()
             a.key = app_user_ds.create_key()
             a.src = strava.SRC_STRAVA
-            a.src_key = row.iloc[0]
+            a.src_key = str(row.iloc[0])
             a.src_url = f"{strava.SRC_STRAVA_BASE_URL}{a.src_key}"
             a.src_descriptor = f"archive:{correlation_id}"
 

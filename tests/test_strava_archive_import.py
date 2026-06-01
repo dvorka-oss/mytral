@@ -78,6 +78,11 @@ class FakeDataset:
         self.activities[entity.key] = entity
         return entity
 
+    def list_activities(
+        self, user_id: str, dataset_name: str
+    ) -> list[entities.ActivityEntity]:
+        return list(self.activities.values())
+
 
 class FakeBlobService:
     """Minimal blob service used by helper tests."""
@@ -125,6 +130,10 @@ class FakeTaskBlobService:
         self.store = store
         self.dataset = dataset
         self.config = config
+        self.deleted_activity_blobs: list[str] = []
+
+    def delete_all_activity_blobs(self, user_id: str, activity_key: str) -> None:
+        self.deleted_activity_blobs.append(activity_key)
 
 
 def _make_task_entity(
@@ -457,3 +466,65 @@ def test_strava_archive_task_applies_toggles_and_date_filter(monkeypatch, tmp_pa
     assert [activity.key for activity in dataset.created_activities] == ["a-in-range"]
     assert task_entity.progress == 100
     print("DONE: Strava archive task applies toggles and date range filtering")
+
+
+@pytest.mark.mytral
+def test_strava_archive_task_on_conflict_skip_filters_existing(monkeypatch, tmp_path):
+    # GIVEN
+    archive_dir = tmp_path / "archive"
+    archive_dir.mkdir(parents=True)
+    (archive_dir / "activities.csv").write_text("placeholder", encoding="utf-8")
+
+    incoming = entities.ActivityEntity()
+    incoming.key = "new-key"
+    incoming.name = "Incoming duplicate"
+    incoming.src = "strava"
+    incoming.src_key = "12345"
+    incoming._photo_paths = []
+    incoming._recording_path = ""
+
+    class FakePlugin:
+        def import_activities(self, datasets, user_profile, correlation_id):
+            return [incoming]
+
+    monkeypatch.setattr(
+        strava_archive_import.plugins.registry,
+        "get_plugin",
+        lambda name: FakePlugin(),
+    )
+    monkeypatch.setattr(
+        strava_archive_import.blob_svc_module,
+        "ActivityBlobService",
+        FakeTaskBlobService,
+    )
+
+    dataset = FakeDataset(dataset_name="dataset")
+    existing = entities.ActivityEntity()
+    existing.key = "existing-key"
+    existing.name = "Existing"
+    existing.src = "strava"
+    existing.src_key = "12345"
+    dataset.activities[existing.key] = existing
+
+    task_entity = _make_task_entity(
+        archive_dir,
+        {
+            "on_conflict": "skip",
+        },
+    )
+    task = strava_archive_import.StravaArchiveImportTask(
+        task_entity=task_entity,
+        logger=FakeLogger(),
+        log_callback=None,
+        config=SimpleNamespace(),
+        dataset=dataset,
+        blobstore=object(),
+    )
+
+    # WHEN
+    task.execute()
+
+    # THEN
+    assert dataset.created_activities == []
+    assert task_entity.progress == 100
+    print("DONE: Strava archive on_conflict skip filters duplicates")

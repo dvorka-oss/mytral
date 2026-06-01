@@ -75,6 +75,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
         user_id: str = params["user_id"]
         dataset_name: str = params["dataset_name"]
         data_dir_str: str = params[StravaArchiveImportTask.DATA_DIR_KEY]
+        on_conflict: str = str(params.get("on_conflict", "skip") or "skip")
         import_photos = _to_bool(
             params.get(StravaArchiveImportTask.IMPORT_PHOTOS_KEY, True)
         )
@@ -131,11 +132,28 @@ class StravaArchiveImportTask(tasks.TaskBase):
             import_from_date=import_from_date,
             import_to_date=import_to_date,
         )
+        activities, conflict_stats = self._apply_on_conflict(
+            activities=activities,
+            user_id=user_id,
+            dataset_name=dataset_name,
+            on_conflict=on_conflict,
+        )
+        overridden_keys = conflict_stats["overridden_keys"]
         total = len(activities)
         if parsed_total != total:
             self.log(
                 f"Date range filter kept {total} of {parsed_total} activities "
                 f"(from={import_from_date}, to={import_to_date})"
+            )
+        if conflict_stats["skipped"] > 0:
+            self.log(
+                f"Conflict resolution skipped {conflict_stats['skipped']} "
+                f"activities (on_conflict={on_conflict})"
+            )
+        if conflict_stats["overridden"] > 0:
+            self.log(
+                f"Conflict resolution overriding {conflict_stats['overridden']} "
+                f"activities (on_conflict={on_conflict})"
             )
         self.update_progress(10)
 
@@ -160,6 +178,17 @@ class StravaArchiveImportTask(tasks.TaskBase):
             dataset=self._dataset,
             config=self._config,
         )
+        for overridden_key in sorted(overridden_keys):
+            try:
+                blob_svc.delete_all_activity_blobs(
+                    user_id=user_id,
+                    activity_key=overridden_key,
+                )
+            except Exception as exc:
+                self.log(
+                    "  WARNING: failed to clear existing blobs for overridden "
+                    f"activity {overridden_key}: {exc}"
+                )
         photos_uploaded = 0
         photos_failed = 0
         recordings_imported = 0
@@ -260,7 +289,9 @@ class StravaArchiveImportTask(tasks.TaskBase):
     ) -> str:
         """Import a Strava archive recording for one activity."""
         suffixes = [suffix.lower() for suffix in recording_path.suffixes]
-        if suffixes[-1:] not in ([".gpx"], [".tcx"], [".gz"]):
+        is_plain = suffixes[-1:] in ([".gpx"], [".tcx"])
+        is_gz = suffixes[-2:] in ([".gpx", ".gz"], [".tcx", ".gz"])
+        if not (is_plain or is_gz):
             self.log(
                 f"  WARNING: skipping unsupported recording format: {recording_path}"
             )
@@ -273,7 +304,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
 
         try:
             payload = full_path.read_bytes()
-            if suffixes[-1:] == [".gz"]:
+            if is_gz:
                 payload = gzip.decompress(payload)
             normalized_filename = _normalized_recording_filename(full_path)
         except Exception as exc:
@@ -326,6 +357,55 @@ class StravaArchiveImportTask(tasks.TaskBase):
         except Exception as exc:
             self.log(f"  WARNING: recording import failed for {full_path}: {exc}")
             return "failed"
+
+    def _apply_on_conflict(
+        self,
+        activities: list,
+        user_id: str,
+        dataset_name: str,
+        on_conflict: str,
+    ) -> tuple[list, dict]:
+        """Apply import on_conflict strategy by (src, src_key)."""
+        mode = on_conflict.lower().strip()
+        if mode not in ("skip", "override", "new_key"):
+            mode = "new_key"
+        if mode == "new_key":
+            return activities, {"skipped": 0, "overridden": 0, "overridden_keys": set()}
+
+        existing = {}
+        for current in self._dataset.list_activities(
+            user_id=user_id,
+            dataset_name=dataset_name,
+        ):
+            src = str(getattr(current, "src", "") or "")
+            src_key = str(getattr(current, "src_key", "") or "")
+            if src and src_key:
+                existing[(src, src_key)] = current.key
+
+        skipped = 0
+        overridden = 0
+        overridden_keys: set[str] = set()
+        resolved = []
+        for activity in activities:
+            src = str(getattr(activity, "src", "") or "")
+            src_key = str(getattr(activity, "src_key", "") or "")
+            current_key = existing.get((src, src_key))
+            if current_key is None:
+                resolved.append(activity)
+                continue
+            if mode == "skip":
+                skipped += 1
+                continue
+            activity.key = current_key
+            overridden += 1
+            overridden_keys.add(current_key)
+            resolved.append(activity)
+
+        return resolved, {
+            "skipped": skipped,
+            "overridden": overridden,
+            "overridden_keys": overridden_keys,
+        }
 
 
 def _normalized_recording_filename(recording_path: pathlib.Path) -> str:
