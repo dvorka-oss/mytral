@@ -1732,3 +1732,29 @@ class ImportPolarHrmForm(flask_wtf.FlaskForm):
         default="skip",
     )
     submit = wtforms.SubmitField("Import Polar HRM")
+
+
+class ImportStravaArchiveForm(flask_wtf.FlaskForm):
+    """Form for importing activities from a Strava user archive
+    data directory.
+
+    """
+
+    data_dir = wtforms.StringField(
+        label="Data directory",
+        description=(
+            "Absolute path to the directory with extracted Strava user "
+            "ZIP archive contents (e.g. /path/to/extracted/strava_archive/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import Strava Archive")

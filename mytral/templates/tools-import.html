@@ -464,23 +464,39 @@
                             <h2 class="mb-4">Strava</h2>
                             <p class="card-subtitle mb-3">Import your training data from <a href="https://www.strava.com/" class="link-primary" target="_blank">Strava</a>.</p>
 
-                            {% if ff.can("STRAVA_ZIP_IMPORT") %}
                             <h3 class="card-title mt-4">Strava User ZIP Archive</h3>
-                            <p class="card-subtitle">Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from a Strava ZIP export.</p>
-                            <div class="mt-2">
-                                <a href="{{ url_for('tool_export_profile_zip') }}" class="btn btn-primary disabled">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-zip" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                        <path d="M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1"></path>
-                                        <path d="M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2z"></path>
-                                        <path d="M11 5l-1 0"></path><path d="M13 7l-1 0"></path>
-                                        <path d="M11 9l-1 0"></path><path d="M13 11l-1 0"></path>
-                                        <path d="M11 13l-1 0"></path><path d="M13 15l-1 0"></path>
-                                    </svg>
-                                    Import ZIP
-                                </a>
+                            <p class="card-subtitle mb-3">Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from a Strava user ZIP bulk export.</p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <p class="card-subtitle mb-3">
+                                        Extract the Strava ZIP archive and point to the resulting directory
+                                        that contains <code>activities.csv</code> and other data files.
+                                    </p>
+                                    <form method="POST" action="{{ url_for('tool_import_strava_archive') }}">
+                                        {{ import_strava_archive_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_strava_archive_form.data_dir.label(class="form-label") }}
+                                            {{ import_strava_archive_form.data_dir(class="form-control", placeholder="/path/to/extracted/strava_archive/") }}
+                                            {% if import_strava_archive_form.data_dir.description %}
+                                                <div class="form-text">{{ import_strava_archive_form.data_dir.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_strava_archive_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_strava_archive_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_strava_archive_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
                             </div>
-                            {% endif %}
 
                             {% if ff.can("STRAVA_API_IMPORT") %}
                             <div class="card card-md">

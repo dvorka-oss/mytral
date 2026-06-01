@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+"""Strava API import plugin."""
+
 import enum
 import json
 import pathlib
@@ -41,6 +44,7 @@ URL_ACTIVITIES = "https://www.strava.com/api/v3/activities"
 URL_GEARS = "https://www.strava.com/api/v3/gear"
 # entity sources
 SRC_STRAVA = "strava"
+SRC_STRAVA_BASE_URL = "https://www.strava.com/activities/"
 
 #
 # PLUGIN: Strava JSON data import from raw to MyTraL format
@@ -48,7 +52,7 @@ SRC_STRAVA = "strava"
 
 
 class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
-    NAME = "Strava activity import"
+    NAME = "Strava API activity import"
     DESCRIPTION = (
         "Imports activity from the proprietary strava.com JSON format. "
         "See: https://developers.strava.com/"
@@ -234,9 +238,8 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         # src ~ import
         entity.src = SRC_STRAVA
         entity.src_key = str(dataset_item.get("id", ""))
-        entity.src_descriptor = correlation_id
-        entity.src_url = f"https://www.strava.com/activities/{entity.src_key}"
-        # TODO to be added: entity.src_map = "summary_google_polyline_available=1"
+        entity.src_descriptor = f"api:{correlation_id}"
+        entity.src_url = f"{SRC_STRAVA_BASE_URL}{entity.src_key}"
 
         # entity creation & validation
         imported_entity = entities.evaluate_activity(entity)
@@ -252,7 +255,7 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
 
 
 class StravaActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
-    NAME = "Strava activities import"
+    NAME = "Strava API activities import"
     DESCRIPTION = (
         "Imports activities from the proprietary strava.com JSON format."
         "See: https://developers.strava.com/"

@@ -30,12 +30,13 @@ from mytral import plugins
 from mytral.backends import entities
 from mytral.integrations import icommons
 from mytral.integrations import strava
+from mytral.integrations import strava_user_archive
 from tests import _given
 
 
 @pytest.mark.skip("MyTraL tool - not a test: download activities from strava.com")
 @pytest.mark.tool
-def test_export_json_from_strava_service(tmp_path: pathlib.Path):
+def test_strava_api_export_json(tmp_path: pathlib.Path):
     """Export all activities as JSON using Strava API."""
     json_export_file = persistences.create_ts_filename(
         prefix="strava-export", ext=persistences.EXT_JSON
@@ -180,7 +181,7 @@ def test_export_json_from_strava_service(tmp_path: pathlib.Path):
 
 @pytest.mark.skip("MyTraL tool - not a test: import activities from strava.com")
 @pytest.mark.mytral
-def test_import_strava_json_to_mytral_json(tmp_path: pathlib.Path):
+def test_import_strava_api_json_to_mytral_json(tmp_path: pathlib.Path):
     """Convert previously export Strava data in ? format to MyTraL activities dataset
     JSON format.
 
@@ -228,7 +229,7 @@ def test_import_strava_json_to_mytral_json(tmp_path: pathlib.Path):
 
 
 @pytest.mark.mytral
-def test_convert_strava_json_with_unicode_characters():
+def test_convert_strava_api_json_with_unicode_characters():
     """Test that Strava activities with Unicode characters are handled correctly.
 
     This test reproduces the UnicodeEncodeError that occurs when Strava activity
@@ -289,7 +290,7 @@ def test_convert_strava_json_with_unicode_characters():
         )
     ],
 )
-def test_migrate_strava_gear_id_prefix(account_data_dir: str):
+def test_migrate_strava_api_gear_id_prefix(account_data_dir: str):
     """Add 'strava-gear-id:' prefix to raw Strava gear IDs stored in activities.
 
     Raw Strava gear IDs look like 'b941128' or 'g790751' (one letter followed
@@ -377,7 +378,7 @@ def test_migrate_strava_gear_id_prefix(account_data_dir: str):
     ],
 )
 @pytest.mark.tool
-def test_restore_strava_src_fields(
+def test_restore_strava_api_src_fields(
     mytral_data_dir: str,
     user_id: str,
 ):
@@ -534,3 +535,36 @@ def test_restore_strava_src_fields(
             "activities-{year}.json file contains activities for "
             f"{current_year}."
         )
+
+
+@pytest.mark.tool
+def test_import_strava_user_archive(tmp_path: pathlib.Path):
+    #
+    # GIVEN
+    #
+    _, _, user_profile = _given.given_test(
+        config.MytralConfig(persistence_data_dir=tmp_path),
+        user_id="test_concept2_user",
+    )
+
+    t_plugin = strava_user_archive.StravaUserArchiveActivitiesImportPlugin
+
+    #
+    # WHEN
+    #
+    plugin = t_plugin()
+    activities = plugin.import_activities(
+        datasets={
+            t_plugin.USE_TYPE_STRAVA_USR_BULK_EXPORT_DIR: (
+                _given.TEST_DS_STRAVA_USER_ARCHIVE
+            )
+        },
+        user_profile=user_profile,
+        output_path=tmp_path,
+    )
+
+    #
+    # THEN
+    #
+
+    print(f"Imported {len(activities)} activities")
