@@ -266,9 +266,16 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <li>Added evevation chart to the activity feed.</li>
 <li>Added "maximize map" action to the activity view page.</li>
 <li>Added description field to symptoms so that user can specify how to cure such injury or illness.</li>
+<li>Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).</li>
+<li>Added TCX import (individual files and directory of recordings/archives).</li>
+</ul>
+<h3 id="added_1">Added</h3>
+<ul>
+<li>Improved polyline calculation to be ~4000x faster (legacy method kept).</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
+<li>Strava API import is not hidden behing feature flag (just inverse condition on FE).</li>
 <li>Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
   converged to MyTraL's task manager, typed tasks are used from now on.</li>
 </ul>
@@ -278,7 +285,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="190"><a href="https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0">1.9.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_1">Added</h3>
+<h3 id="added_2">Added</h3>
 <ul>
 <li>Added import from FIT.</li>
 <li>Added import from GPX - file or directory.</li>
@@ -342,7 +349,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="180"><a href="https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0">1.8.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_2">Added</h3>
+<h3 id="added_3">Added</h3>
 <ul>
 <li>ACoaches - AI coaching feature powered by LLM providers:</li>
 <li>Configure LLM providers: local Ollama, Anthropic Claude,
@@ -380,7 +387,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="170"><a href="https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0">1.7.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_3">Added</h3>
+<h3 id="added_4">Added</h3>
 <ul>
 <li>Ability to specify muscle groups for exercises and activity types - shown in
   the activity detail and day pages.</li>
@@ -401,7 +408,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="160"><a href="https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0">1.6.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_4">Added</h3>
+<h3 id="added_5">Added</h3>
 <ul>
 <li>Filtering of fields in create / update activity HTML pages.</li>
 <li>Filtering of exercise types by tag.</li>
@@ -464,7 +471,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="150"><a href="https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0">1.5.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_5">Added</h3>
+<h3 id="added_6">Added</h3>
 <ul>
 <li>Eisenhower matrix HTML page for goals.</li>
 <li>Ability to tag exercises to filter them and to create routines/sets.</li>
@@ -501,21 +508,21 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="140"><a href="https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0">1.4.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_6">Added</h3>
+<h3 id="added_7">Added</h3>
 <ul>
 <li>Pass through cache allowing to operate on system where caching would cause data inconsistency
   (data modified &amp; uploaded to cache on 1 node and then overwritten on another node).</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="132">[1.3.2]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_7">Added</h3>
+<h3 id="added_8">Added</h3>
 <ul>
 <li>Weight graph shows the Monday's date instead of the week number.</li>
 <li>Goals listing page shows activity type display name instead of the ID.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="130">[1.3.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_8">Added</h3>
+<h3 id="added_9">Added</h3>
 <ul>
 <li>Onboarding logic:</li>
 <li>checklist feature with progress tracking</li>
@@ -530,7 +537,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="120">[1.2.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_9">Added</h3>
+<h3 id="added_10">Added</h3>
 <ul>
 <li>Gear Components Feature: Track individual components of gear items</li>
 <li>Add, edit, delete components for any gear (e.g., bike chain, running shoe insoles)</li>
@@ -562,7 +569,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="110">[1.1.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_10">Added</h3>
+<h3 id="added_11">Added</h3>
 <ul>
 <li>Lap type data model entity, forms, routes and HTML pages.</li>
 <li>Day view.</li>
@@ -591,7 +598,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="100">[1.0.0]</h2>
 <p>This MyTraL <strong>major</strong> release brings:</p>
-<h3 id="added_11">Added</h3>
+<h3 id="added_12">Added</h3>
 <ul>
 <li>Initial release of MyTraL training log application.</li>
 <li>User authentication and session management.</li>
@@ -635,7 +642,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="001">[0.0.1]</h2>
 <p>This MyTraL <strong>patch</strong> release brings:</p>
-<h3 id="added_12">Added</h3>
+<h3 id="added_13">Added</h3>
 <ul>
 <li>Initial YAML data format with applications.</li>
 <li>Manually written pure HTML pages no-JavaScript/no-CSS (bar) charts.</li>
@@ -694,6 +701,7 @@ Find conventions details and template at the bottom of this document.</p>
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#added" class="nav-link ms-3">Added</a>
+<a href="#added" class="nav-link ms-3">Added</a>
 <a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
 <a href="#added" class="nav-link ms-3">Added</a>
