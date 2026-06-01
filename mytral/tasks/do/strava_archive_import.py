@@ -19,8 +19,10 @@
 
 import pathlib
 
+from mytral import app_logger
 from mytral import plugins
 from mytral import tasks
+from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import strava_user_archive
 
 
@@ -97,22 +99,96 @@ class StravaArchiveImportTask(tasks.TaskBase):
 
         total = len(activities)
         self.log(f"Parsed {total} activities from {data_dir_str}")
-        self.update_progress(50)
+        self.update_progress(10)
 
-        # bulk save of activities
+        if total == 0:
+            self.log("No activities found — import complete")
+            self.update_progress(100)
+            return
+
+        # ---- phase 1: create activities in dataset ----
         self._dataset.create_activities(
             user_id=user_id,
             dataset_name=dataset_name,
             entity_list=activities,
         )
+        self.log(f"Created {total} activities in dataset '{dataset_name}'")
+        self.update_progress(25)
+        self.check_cancellation()
+
+        # ---- phase 2: upload photos ----
+        blob_svc = blob_svc_module.ActivityBlobService(
+            store=self._blobstore,
+            dataset=self._dataset,
+            config=self._config,
+        )
+        photos_uploaded = 0
+        photos_failed = 0
+        for i, activity in enumerate(activities):
+            self.check_cancellation()
+
+            photo_paths = getattr(activity, "_photo_paths", [])
+            if not photo_paths:
+                continue
+
+            self.log(
+                f"Uploading {len(photo_paths)} photo(s) for activity "
+                f"'{activity.name}' ({activity.key})"
+            )
+
+            uploaded_files = []
+            for rel_path in photo_paths:
+                # rel_path from CSV already includes the media/ prefix,
+                # e.g. "media/abc.jpg"
+                photo_path = data_dir / rel_path
+                if not photo_path.is_file():
+                    self.log(f"  WARNING: photo file not found: {photo_path}")
+                    photos_failed += 1
+                    continue
+
+                try:
+                    uploaded_files.append((open(photo_path, "rb"), photo_path.name))
+                except OSError as exc:
+                    self.log(f"  WARNING: cannot open photo '{photo_path}': {exc}")
+                    photos_failed += 1
+
+            if not uploaded_files:
+                continue
+
+            try:
+                blob_svc.upload_photos(
+                    user_id=user_id,
+                    activity_key=activity.key,
+                    uploaded_files=uploaded_files,
+                    name="",
+                    description="",
+                    keywords="strava,archive,import",
+                )
+                photos_uploaded += len(uploaded_files)
+            except Exception as exc:
+                app_logger.warning(
+                    "StravaArchiveImportTask: photo upload failed",
+                    activity_key=activity.key,
+                    error=str(exc),
+                )
+                photos_failed += len(uploaded_files)
+            finally:
+                # close file handles
+                for file_stream, _ in uploaded_files:
+                    try:
+                        file_stream.close()
+                    except Exception:
+                        pass
+
+            progress = 25 + int(70 * (i + 1) / total)
+            self.update_progress(progress)
 
         self.update_progress(100)
 
-        if total == 0:
-            self.log("No activities found - import DONE")
-            return
-
-        self.log(f"DONE Strava archive import: {total} activities parsed and imported")
+        self.log(
+            f"Strava archive import complete: {total} activities imported, "
+            f"{photos_uploaded} photos uploaded, {photos_failed} photos failed"
+        )
 
 
 tasks.tasks_registry.register_task(StravaArchiveImportTask)

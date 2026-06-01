@@ -281,10 +281,10 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
 
             p = this._COL_A_CSV_MEDIA
             data_str = row[col2idx[p]] if p not in missing else ""
-            photo_paths = []
+            a._photo_paths = []  # relative paths to media files in the archive
             if data_str and not pandas.isna(data_str):
-                photo_paths = data_str.split("|")
-            self.logger.info(f"Photo paths of activity '{a.name}': {photo_paths}")
+                a._photo_paths = [p.strip() for p in data_str.split("|") if p.strip()]
+            self.logger.info(f"Photo paths of activity '{a.name}': {a._photo_paths}")
 
             # TODO
             # TODO photos
