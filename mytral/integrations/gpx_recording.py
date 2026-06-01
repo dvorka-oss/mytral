@@ -93,6 +93,11 @@ class GpxImportPlugin(plugins.ActivitiesImportPlugin):
             blob_svc=blob_svc,
             extract_summary=extract_summary,
             summary_handler=_persist_summary if extract_summary else None,
+            polyline_method=getattr(
+                self._config,
+                "gpx_polyline_method",
+                gpx_extractor.GPX_POLYLINE_METHOD,
+            ),
             log=logger,
         )
 
@@ -106,6 +111,7 @@ def import_gpx_recording_bytes(
     *,
     extract_summary: bool = False,
     summary_handler: typing.Callable[[RecordingSummary], None] | None = None,
+    polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
     log=logger,
 ) -> str:
     """Store a GPX recording and optionally enrich the owning activity.
@@ -167,6 +173,7 @@ def import_gpx_recording_bytes(
             user_id=user_id,
             activity_key=activity_key,
             blob_key=blob_key,
+            polyline_method=polyline_method,
         )
     except Exception as exc:
         log.warning(f"GPX map generation failed for {blob_key}: {exc}")

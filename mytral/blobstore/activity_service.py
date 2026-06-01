@@ -678,6 +678,7 @@ class ActivityBlobService:
         blob_key: str,
         *,
         refresh_legacy: bool = False,
+        polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
     ) -> BlobMetadata:
         """Ensure GPX map metadata exists for the selected recording blob.
 
@@ -742,7 +743,10 @@ class ActivityBlobService:
             track_count, track_point_count = parse_gpx(data=gpx_data)
             gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
             summary_polyline, summary_bbox, full_polyline = (
-                gpx_extractor.encode_gps_polylines(points=gps_points)
+                gpx_extractor.encode_gps_polylines(
+                    points=gps_points,
+                    polyline_method=polyline_method,
+                )
             )
             elevation_profile = gpx_extractor.simplify_elevation_profile(
                 gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)

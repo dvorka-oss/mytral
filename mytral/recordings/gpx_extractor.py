@@ -29,6 +29,9 @@ _NS_GPX = "http://www.topografix.com/GPX/1/1"
 _SUMMARY_POINT_LIMIT = 150
 _FULL_POLYLINE_POINT_LIMIT = 30000
 _PROFILE_POINT_LIMIT = 600
+GPX_POLYLINE_METHOD_FAST = "sample"
+GPX_POLYLINE_METHOD_LEGACY = "current"
+GPX_POLYLINE_METHOD = GPX_POLYLINE_METHOD_FAST
 
 try:
     import polyline as polyline_module
@@ -208,7 +211,14 @@ def simplify_elevation_profile(
     return _sample_points(points=profile_points, max_points=max_points)
 
 
-def _simplify_points(
+def _simplify_points_sample(
+    points: list[tuple[float, float]], max_points: int
+) -> list[tuple[float, float]]:
+    """Simplify points with deterministic endpoint-preserving sampling."""
+    return _sample_points(points=points, max_points=max_points)
+
+
+def _simplify_points_current(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
     """Simplify points for preview rendering."""
@@ -233,6 +243,20 @@ def _simplify_points(
     return _sample_points(points, max_points=max_points)
 
 
+def _simplify_points(
+    points: list[tuple[float, float]],
+    max_points: int,
+    *,
+    method: str = GPX_POLYLINE_METHOD,
+) -> list[tuple[float, float]]:
+    """Simplify points for preview rendering with a selectable method."""
+    if method == GPX_POLYLINE_METHOD_FAST:
+        return _simplify_points_sample(points=points, max_points=max_points)
+    if method == GPX_POLYLINE_METHOD_LEGACY:
+        return _simplify_points_current(points=points, max_points=max_points)
+    raise ValueError(f"Unsupported GPX polyline method: {method}")
+
+
 def _compute_bbox(
     points: list[tuple[float, float]],
 ) -> tuple[float, float, float, float]:
@@ -249,6 +273,8 @@ def _compute_bbox(
 
 def encode_gps_polylines(
     points: list[tuple[float, float]],
+    *,
+    polyline_method: str = GPX_POLYLINE_METHOD,
 ) -> tuple[str, tuple[float, float, float, float], str | None]:
     """Encode summary/full GPX polylines and compute bounding box.
 
@@ -265,7 +291,11 @@ def encode_gps_polylines(
     if polyline_module is None:
         raise RuntimeError("polyline dependency is missing.")
 
-    summary_points = _simplify_points(points, max_points=_SUMMARY_POINT_LIMIT)
+    summary_points = _simplify_points(
+        points,
+        max_points=_SUMMARY_POINT_LIMIT,
+        method=polyline_method,
+    )
     summary_polyline = polyline_module.encode(summary_points, precision=5)
     summary_bbox = _compute_bbox(points=points)
     full_polyline = None
