@@ -1828,4 +1828,64 @@ class ImportStravaArchiveForm(flask_wtf.FlaskForm):
         ],
         default="skip",
     )
+    import_photos = wtforms.BooleanField(
+        label="Import photos",
+        default=True,
+    )
+    import_recordings = wtforms.BooleanField(
+        label="Import recordings (GPX/TCX)",
+        default=True,
+    )
+    import_from_date = wtforms.StringField(
+        label="Import from",
+        validators=[validators.Optional(), validators.Length(min=10, max=10)],
+        default="",
+        render_kw={"type": "date"},
+    )
+    import_to_date = wtforms.StringField(
+        label="Import to",
+        validators=[validators.Optional(), validators.Length(min=10, max=10)],
+        default="",
+        render_kw={"type": "date"},
+    )
     submit = wtforms.SubmitField("Import Strava Archive")
+
+    def _parse_iso_date_or_raise(self, field, label: str) -> None:
+        """Parse optional ISO date and raise a field-specific validation error."""
+        value = (field.data or "").strip()
+        if not value:
+            field.data = ""
+            return
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+        except ValueError as exc:
+            raise validators.ValidationError(
+                f"{label} must be in YYYY-MM-DD format."
+            ) from exc
+        field.data = value
+
+    def validate_import_from_date(self, field):
+        """Validate import_from_date when provided."""
+        self._parse_iso_date_or_raise(field, "Import from date")
+
+    def validate_import_to_date(self, field):
+        """Validate import_to_date when provided."""
+        self._parse_iso_date_or_raise(field, "Import to date")
+
+    def validate(self, extra_validators=None):
+        """Validate full form and enforce import date range order."""
+        is_valid = super().validate(extra_validators=extra_validators)
+        if not is_valid:
+            return False
+
+        from_date = self.import_from_date.data or ""
+        to_date = self.import_to_date.data or ""
+        if from_date and to_date:
+            if datetime.strptime(from_date, "%Y-%m-%d") > datetime.strptime(
+                to_date, "%Y-%m-%d"
+            ):
+                self.import_to_date.errors.append(
+                    "Import to date must be on or after import from date."
+                )
+                return False
+        return True

@@ -614,6 +614,31 @@
                                                 {% endfor %}
                                             </div>
                                         </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Options</label>
+                                            <label class="form-check mb-2">
+                                                {{ import_strava_archive_form.import_photos(class="form-check-input") }}
+                                                <span class="form-check-label">{{ import_strava_archive_form.import_photos.label.text }}</span>
+                                            </label>
+                                            <label class="form-check">
+                                                {{ import_strava_archive_form.import_recordings(class="form-check-input") }}
+                                                <span class="form-check-label">{{ import_strava_archive_form.import_recordings.label.text }}</span>
+                                            </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Date range</label>
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    {{ import_strava_archive_form.import_from_date.label(class="form-label") }}
+                                                    {{ import_strava_archive_form.import_from_date(class="form-control") }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {{ import_strava_archive_form.import_to_date.label(class="form-label") }}
+                                                    {{ import_strava_archive_form.import_to_date(class="form-control") }}
+                                                </div>
+                                            </div>
+                                            <div class="form-text">Leave both dates empty to import all activities.</div>
+                                        </div>
                                         {{ import_strava_archive_form.submit(class="btn btn-primary") }}
                                     </form>
                                 </div>

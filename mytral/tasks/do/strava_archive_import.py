@@ -17,6 +17,7 @@
 
 """Async task: import Strava user ZIP archive data."""
 
+import datetime
 import gzip
 import pathlib
 
@@ -36,6 +37,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
     TASK_DISPLAY_NAME = "Strava Archive Import"
 
     DATA_DIR_KEY = strava_user_archive.STRAVA_ARCHIVE_DATA_DIR_KEY
+    IMPORT_PHOTOS_KEY = "import_photos"
+    IMPORT_RECORDINGS_KEY = "import_recordings"
+    IMPORT_FROM_DATE_KEY = "import_from_date"
+    IMPORT_TO_DATE_KEY = "import_to_date"
 
     def __init__(
         self,
@@ -70,6 +75,25 @@ class StravaArchiveImportTask(tasks.TaskBase):
         user_id: str = params["user_id"]
         dataset_name: str = params["dataset_name"]
         data_dir_str: str = params[StravaArchiveImportTask.DATA_DIR_KEY]
+        import_photos = _to_bool(
+            params.get(StravaArchiveImportTask.IMPORT_PHOTOS_KEY, True)
+        )
+        import_recordings = _to_bool(
+            params.get(StravaArchiveImportTask.IMPORT_RECORDINGS_KEY, True)
+        )
+        import_from_date = _parse_iso_date_param(
+            params.get(StravaArchiveImportTask.IMPORT_FROM_DATE_KEY, ""),
+            StravaArchiveImportTask.IMPORT_FROM_DATE_KEY,
+        )
+        import_to_date = _parse_iso_date_param(
+            params.get(StravaArchiveImportTask.IMPORT_TO_DATE_KEY, ""),
+            StravaArchiveImportTask.IMPORT_TO_DATE_KEY,
+        )
+        if import_from_date and import_to_date and import_from_date > import_to_date:
+            raise RuntimeError(
+                f"Invalid date range: {import_from_date.isoformat()} > "
+                f"{import_to_date.isoformat()}"
+            )
 
         self.log(f"Strava archive import started (dir={data_dir_str})")
         self.update_progress(2)
@@ -100,8 +124,19 @@ class StravaArchiveImportTask(tasks.TaskBase):
         except Exception as exc:
             raise RuntimeError(f"Failed to parse Strava archive data: {exc}") from exc
 
+        parsed_total = len(activities)
+        self.log(f"Parsed {parsed_total} activities from {data_dir_str}")
+        activities = _filter_activities_by_date_range(
+            activities=activities,
+            import_from_date=import_from_date,
+            import_to_date=import_to_date,
+        )
         total = len(activities)
-        self.log(f"Parsed {total} activities from {data_dir_str}")
+        if parsed_total != total:
+            self.log(
+                f"Date range filter kept {total} of {parsed_total} activities "
+                f"(from={import_from_date}, to={import_to_date})"
+            )
         self.update_progress(10)
 
         if total == 0:
@@ -134,7 +169,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
             self.check_cancellation()
 
             photo_paths = getattr(activity, "_photo_paths", [])
-            if photo_paths:
+            if import_photos and photo_paths:
                 self.log(
                     f"Uploading {len(photo_paths)} photo(s) for activity "
                     f"'{activity.name}' ({activity.key})"
@@ -183,7 +218,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
                                 pass
 
             recording_path = getattr(activity, "_recording_path", "")
-            if recording_path:
+            if recording_path and import_recordings:
                 recording_status = self._import_recording(
                     blob_svc=blob_svc,
                     data_dir=data_dir,
@@ -198,6 +233,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     recordings_skipped += 1
                 elif recording_status == "failed":
                     recordings_failed += 1
+            elif recording_path and not import_recordings:
+                recordings_skipped += 1
 
             progress = 25 + int(70 * (i + 1) / total)
             self.update_progress(progress)
@@ -297,6 +334,63 @@ def _normalized_recording_filename(recording_path: pathlib.Path) -> str:
     if suffixes[-2:] in ([".gpx", ".gz"], [".tcx", ".gz"]):
         return recording_path.with_suffix("").name
     return recording_path.name
+
+
+def _to_bool(value) -> bool:
+    """Convert form/task parameter value to bool."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() not in ("", "0", "false", "no", "off")
+    return bool(value)
+
+
+def _parse_iso_date_param(value, param_name: str) -> datetime.date | None:
+    """Parse optional YYYY-MM-DD date task parameter."""
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return datetime.datetime.strptime(text, "%Y-%m-%d").date()
+    except ValueError as exc:
+        raise RuntimeError(
+            f"Invalid {param_name} value '{text}'. Expected YYYY-MM-DD."
+        ) from exc
+
+
+def _activity_date(activity) -> datetime.date | None:
+    """Extract activity date for range filtering."""
+    year = int(getattr(activity, "when_year", 0) or 0)
+    month = int(getattr(activity, "when_month", 0) or 0)
+    day = int(getattr(activity, "when_day", 0) or 0)
+    if year <= 0 or month <= 0 or day <= 0:
+        return None
+    try:
+        return datetime.date(year=year, month=month, day=day)
+    except ValueError:
+        return None
+
+
+def _filter_activities_by_date_range(
+    activities: list,
+    import_from_date: datetime.date | None,
+    import_to_date: datetime.date | None,
+) -> list:
+    """Return activities filtered by optional inclusive date bounds."""
+    if import_from_date is None and import_to_date is None:
+        return activities
+    filtered: list = []
+    for activity in activities:
+        activity_date = _activity_date(activity)
+        if activity_date is None:
+            filtered.append(activity)
+            continue
+        if import_from_date and activity_date < import_from_date:
+            continue
+        if import_to_date and activity_date > import_to_date:
+            continue
+        filtered.append(activity)
+    return filtered
 
 
 tasks.tasks_registry.register_task(StravaArchiveImportTask)

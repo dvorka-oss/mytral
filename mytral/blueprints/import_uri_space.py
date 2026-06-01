@@ -968,6 +968,8 @@ def tool_import_strava_archive():
         )
 
     correlation_id = str(uuid.uuid4())
+    import_from_date = (form.import_from_date.data or "").strip()
+    import_to_date = (form.import_to_date.data or "").strip()
 
     task_entity = tasks.TaskEntity(
         key=str(uuid.uuid4()),
@@ -986,6 +988,18 @@ def tool_import_strava_archive():
             "dataset_name": ds.profile(user_id).dataset_name,
             strava_archive_import.StravaArchiveImportTask.DATA_DIR_KEY: data_dir,
             "on_conflict": form.on_conflict.data,
+            strava_archive_import.StravaArchiveImportTask.IMPORT_PHOTOS_KEY: (
+                form.import_photos.data
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_RECORDINGS_KEY: (
+                form.import_recordings.data
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_FROM_DATE_KEY: (
+                import_from_date
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_TO_DATE_KEY: (
+                import_to_date
+            ),
             "correlation_id": correlation_id,
         },
         is_cancelled=False,

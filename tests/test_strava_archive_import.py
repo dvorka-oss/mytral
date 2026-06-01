@@ -127,7 +127,17 @@ class FakeTaskBlobService:
         self.config = config
 
 
-def _make_task_entity(data_dir: pathlib.Path) -> tasks.TaskEntity:
+def _make_task_entity(
+    data_dir: pathlib.Path, extra_parameters: dict | None = None
+) -> tasks.TaskEntity:
+    parameters = {
+        "user_id": "test_user",
+        "dataset_name": "dataset",
+        strava_archive_import.StravaArchiveImportTask.DATA_DIR_KEY: str(data_dir),
+        "correlation_id": "corr-1",
+    }
+    if extra_parameters:
+        parameters.update(extra_parameters)
     return tasks.TaskEntity(
         key="task-1",
         user_id="test_user",
@@ -140,12 +150,7 @@ def _make_task_entity(data_dir: pathlib.Path) -> tasks.TaskEntity:
         error_type=None,
         error_traceback=None,
         progress=0,
-        parameters={
-            "user_id": "test_user",
-            "dataset_name": "dataset",
-            strava_archive_import.StravaArchiveImportTask.DATA_DIR_KEY: str(data_dir),
-            "correlation_id": "corr-1",
-        },
+        parameters=parameters,
         is_cancelled=False,
     )
 
@@ -361,3 +366,94 @@ def test_strava_archive_task_imports_gpx_gz_and_tcx_gz(monkeypatch, tmp_path):
     ]
     assert task_entity.progress == 100
     print("DONE: Strava archive task imported GPX and TCX")
+
+
+@pytest.mark.mytral
+def test_strava_archive_task_applies_toggles_and_date_filter(monkeypatch, tmp_path):
+    # GIVEN
+    archive_dir = tmp_path / "archive"
+    archive_dir.mkdir(parents=True)
+    (archive_dir / "activities.csv").write_text("placeholder", encoding="utf-8")
+
+    def _new_activity(
+        key: str, when: tuple[int, int, int], recording: str, photo: str
+    ) -> entities.ActivityEntity:
+        activity = entities.ActivityEntity()
+        activity.key = key
+        activity.name = key
+        activity.when_year = when[0]
+        activity.when_month = when[1]
+        activity.when_day = when[2]
+        activity._recording_path = recording
+        activity._photo_paths = [photo]
+        return activity
+
+    early_activity = _new_activity(
+        "a-early", (2024, 1, 2), "activities/a.gpx.gz", "x.jpg"
+    )
+    in_range_activity = _new_activity(
+        "a-in-range",
+        (2024, 1, 15),
+        "activities/b.gpx.gz",
+        "y.jpg",
+    )
+    late_activity = _new_activity(
+        "a-late", (2024, 2, 4), "activities/c.gpx.gz", "z.jpg"
+    )
+
+    class FakePlugin:
+        def import_activities(self, datasets, user_profile, correlation_id):
+            return [early_activity, in_range_activity, late_activity]
+
+    class StrictBlobService(FakeTaskBlobService):
+        def upload_photos(self, *args, **kwargs):
+            raise AssertionError("photos should not be uploaded when disabled")
+
+    monkeypatch.setattr(
+        strava_archive_import.plugins.registry,
+        "get_plugin",
+        lambda name: FakePlugin(),
+    )
+    monkeypatch.setattr(
+        strava_archive_import.blob_svc_module,
+        "ActivityBlobService",
+        StrictBlobService,
+    )
+
+    dataset = FakeDataset(dataset_name="dataset")
+    task_entity = _make_task_entity(
+        archive_dir,
+        {
+            strava_archive_import.StravaArchiveImportTask.IMPORT_PHOTOS_KEY: False,
+            strava_archive_import.StravaArchiveImportTask.IMPORT_RECORDINGS_KEY: False,
+            strava_archive_import.StravaArchiveImportTask.IMPORT_FROM_DATE_KEY: (
+                "2024-01-10"
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_TO_DATE_KEY: (
+                "2024-01-31"
+            ),
+        },
+    )
+    task = strava_archive_import.StravaArchiveImportTask(
+        task_entity=task_entity,
+        logger=FakeLogger(),
+        log_callback=None,
+        config=SimpleNamespace(),
+        dataset=dataset,
+        blobstore=object(),
+    )
+    monkeypatch.setattr(
+        task,
+        "_import_recording",
+        lambda **kwargs: (_ for _ in ()).throw(
+            AssertionError("recordings should not be imported when disabled")
+        ),
+    )
+
+    # WHEN
+    task.execute()
+
+    # THEN
+    assert [activity.key for activity in dataset.created_activities] == ["a-in-range"]
+    assert task_entity.progress == 100
+    print("DONE: Strava archive task applies toggles and date range filtering")
