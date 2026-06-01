@@ -33,6 +33,7 @@ def _load_largest_gpx_files(
     )
     return gpx_files[:limit]
 
+
 @pytest.mark.skip(reason="This is a polyline benchmark test, not a functional test.")
 @pytest.mark.mytral
 @pytest.mark.benchmark

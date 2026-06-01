@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-"""Upload validation for GPX files and activity photos."""
+"""Upload validation for GPX / TCX files and activity photos."""
 
 import io
 import typing
@@ -374,7 +374,9 @@ def validate_photo(
 # Recording validation
 #
 
-RECORDING_ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".fit", ".gpx", ".hrm"})
+RECORDING_ALLOWED_EXTENSIONS: frozenset[str] = frozenset(
+    {".fit", ".gpx", ".hrm", ".tcx"}
+)
 RECORDING_MAX_BYTES: int = 64 * 1024 * 1024  # 64 MiB
 
 
@@ -383,7 +385,7 @@ def validate_recording(
     data: bytes,
     max_bytes: int = RECORDING_MAX_BYTES,
 ) -> str:
-    """Validate a recording upload (FIT / GPX / HRM).
+    """Validate a recording upload (FIT / GPX / TCX / HRM).
 
     Parameters
     ----------
@@ -433,6 +435,15 @@ def validate_recording(
         if not (payload.startswith(b"<?xml") or payload.startswith(b"<gpx")):
             raise BlobValidationError(
                 "File does not appear to be a valid GPX file (missing XML header)."
+            )
+    elif ext == ".tcx":
+        payload = data.lstrip(b"\xef\xbb\xbf").lstrip()
+        if not (
+            payload.startswith(b"<?xml")
+            or payload.startswith(b"<TrainingCenterDatabase")
+        ):
+            raise BlobValidationError(
+                "File does not appear to be a valid TCX file (missing XML header)."
             )
     elif ext == ".hrm":
         if b"[Params]" not in data:
