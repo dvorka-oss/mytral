@@ -20,12 +20,11 @@
                         <h4 class="subheader">Sources</h4>
                         <div class="list-group list-group-transparent" id="import-nav">
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center active" data-section="section-concept2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-code me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                    <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                                    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
-                                    <path d="M10 13l-1 2l1 2"></path>
-                                    <path d="M14 13l1 2l-1 2"></path>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-ripple me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M3 7c3 -2 6 -2 9 0s6 2 9 0" />
+                                    <path d="M3 17c3 -2 6 -2 9 0s6 2 9 0" />
+                                    <path d="M3 12c3 -2 6 -2 9 0s6 2 9 0" />
                                 </svg>
                                 Concept2
                             </a>
@@ -36,6 +35,13 @@
                             </a>
                             {% endif %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-mytral">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-droplets me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M4.072 20.3a2.999 2.999 0 0 0 3.856 0a3.002 3.002 0 0 0 .67 -3.798l-2.095 -3.227a.6 .6 0 0 0 -1.005 0l-2.098 3.227a3.003 3.003 0 0 0 .671 3.798" />
+                                    <path d="M16.072 20.3a2.999 2.999 0 0 0 3.856 0a3.002 3.002 0 0 0 .67 -3.798l-2.095 -3.227a.6 .6 0 0 0 -1.005 0l-2.098 3.227a3.003 3.003 0 0 0 .671 3.798" />
+                                    <path d="M10.072 10.3a2.999 2.999 0 0 0 3.856 0a3.002 3.002 0 0 0 .67 -3.798l-2.095 -3.227a.6 .6 0 0 0 -1.005 0l-2.098 3.227a3.003 3.003 0 0 0 .671 3.798l.001 0" />
+                                </svg>
+                                {#
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-file-code me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                                     <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
@@ -43,6 +49,7 @@
                                     <path d="M10 13l-1 2l1 2"></path>
                                     <path d="M14 13l1 2l-1 2"></path>
                                 </svg>
+                                #}
                                 MyTraL
                             </a>
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-fit">
@@ -62,6 +69,17 @@
                                 </svg>
                                 GPX
                             </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-tcx">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-route me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
+                                    <path d="M9 12v.01" />
+                                    <path d="M6 13v.01" />
+                                    <path d="M17 15l-4 -4" />
+                                    <path d="M13 15l4 -4" />
+                                </svg>
+                                TCX
+                            </a>
                             {% if is_desktop %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-polar">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heartbeat me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -73,11 +91,24 @@
                             </a>
                             {% endif %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-strava">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-zip me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M6 20.735a2 2 0 0 1 -1 -1.735v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-1" />
+                                    <path d="M11 17a2 2 0 0 1 2 2v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-2a2 2 0 0 1 2 -2" />
+                                    <path d="M11 5l-1 0" />
+                                    <path d="M13 7l-1 0" />
+                                    <path d="M11 9l-1 0" />
+                                    <path d="M13 11l-1 0" />
+                                    <path d="M11 13l-1 0" />
+                                    <path d="M13 15l-1 0" />
+                                </svg>
+                                {#
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-strava me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                                     <path d="M15 13l-5 -10l-5 10"></path>
                                     <path d="M10 13l3 6l3 -6"></path>
                                 </svg>
+                                #}
                                 Strava
                             </a>
                         </div>
@@ -332,7 +363,7 @@
                         {# ## FIT ####################################################### #}
                         <div id="section-fit" class="import-section d-none">
                             <h2 class="mb-4">FIT</h2>
-                            <p class="card-subtitle mb-3">Import a FIT activity recording and process it asynchronously.</p>
+                            <p class="card-subtitle mb-3">Import a <a href="https://developer.garmin.com/fit/file-types/activity/" target="_blank" class="link-primary">FIT</a> activity recording.</p>
                             <div class="card card-md">
                                 <div class="card-body">
                                     <div class="h3">FIT Recording</div>
@@ -356,7 +387,7 @@
                         {# ## GPX ####################################################### #}
                         <div id="section-gpx" class="import-section d-none">
                             <h2 class="mb-4">GPX</h2>
-                            <p class="card-subtitle mb-3">Import a GPX activity recording and process it asynchronously.</p>
+                            <p class="card-subtitle mb-3">Import a GPX activity recording.</p>
                             <div class="card card-md">
                                 <div class="card-body">
                                     <div class="h3">GPX Recording</div>
@@ -407,6 +438,66 @@
                                             </div>
                                         </div>
                                         {{ import_gpx_directory_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {# ## TCX ####################################################### #}
+                        <div id="section-tcx" class="import-section d-none">
+                            <h2 class="mb-4">TCX</h2>
+                            <p class="card-subtitle mb-3">Import a TCX activity recording.</p>
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">TCX Recording</div>
+                                    <form method="POST" action="{{ url_for('tool_import_tcx') }}" enctype="multipart/form-data">
+                                        {{ import_tcx_form.hidden_tag() }}
+                                        <div class="mb-2">
+                                            {{ import_tcx_form.recording_file(class="form-control", accept=".tcx") }}
+                                        </div>
+                                        <div class="mb-2">
+                                            {{ import_tcx_form.activity_name(class="form-control", placeholder="Name (optional)") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_tcx_form.activity_type(class="form-select") }}
+                                        </div>
+                                        {{ import_tcx_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                            {% if is_desktop %}
+                            <div class="card card-md mt-2">
+                                <div class="card-body">
+                                    <div class="h3">TCX Directory</div>
+                                    <p class="card-subtitle mb-3">
+                                        Import all TCX files from a directory. Each file will create a new activity.
+                                    </p>
+                                    <form method="POST" action="{{ url_for('tool_import_tcx_directory') }}">
+                                        {{ import_tcx_directory_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_tcx_directory_form.data_dir.label(class="form-label") }}
+                                            {{ import_tcx_directory_form.data_dir(class="form-control", placeholder="/path/to/tcx/files/") }}
+                                            {% if import_tcx_directory_form.data_dir.description %}
+                                                <div class="form-text">{{ import_tcx_directory_form.data_dir.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_tcx_directory_form.sport_type.label(class="form-label") }}
+                                            {{ import_tcx_directory_form.sport_type(class="form-select") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_tcx_directory_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_tcx_directory_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_tcx_directory_form.submit(class="btn btn-primary") }}
                                     </form>
                                 </div>
                             </div>
@@ -464,12 +555,42 @@
                             <h2 class="mb-4">Strava</h2>
                             <p class="card-subtitle mb-3">Import your training data from <a href="https://www.strava.com/" class="link-primary" target="_blank">Strava</a>.</p>
 
-                            <h3 class="card-title mt-4">Strava User ZIP Archive</h3>
-                            <p class="card-subtitle mb-3">Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from a Strava user ZIP bulk export.</p>
-
+                            {% if not ff.can("STRAVA_API_IMPORT") %}
                             <div class="card card-md">
                                 <div class="card-body">
+                                    <div class="h3">Strava API (Developer Personal Access)</div>
+
+                                    <p class="card-subtitle">
+                                        Connect to your personal account using the
+                                        <a href="https://developers.strava.com/" class="link-primary" target="_blank">Strava API</a>.
+                                        MyTraL is configured for private
+                                        developer use and does <b>not</b> gather, process, or
+                                        display data from other Strava users. You are
+                                        accessing <b>your own data exclusively</b>, fully
+                                        complying with Strava's rules.
+                                    </p>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('strava_api_developer') }}" class="btn btn-primary">
+                                            {#
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-strava" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M15 13l-5 -10l-5 10"></path>
+                                                <path d="M10 13l3 6l3 -6"></path>
+                                            </svg>
+                                            #}
+                                            Strava API (developer)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="card card-md mt-3">
+                                <div class="card-body">
+                                    <div class="h3">Strava User ZIP Archive</div>
                                     <p class="card-subtitle mb-3">
+                                        Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from
+                                        a <a href="https://www.youtube.com/watch?v=IbWMFikIGLo&t=280s" class="link-primary" target="_blank">Strava user ZIP bulk export</a>.
                                         Extract the Strava ZIP archive and point to the resulting directory
                                         that contains <code>activities.csv</code> and other data files.
                                     </p>
@@ -493,32 +614,36 @@
                                                 {% endfor %}
                                             </div>
                                         </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Options</label>
+                                            <label class="form-check mb-2">
+                                                {{ import_strava_archive_form.import_photos(class="form-check-input") }}
+                                                <span class="form-check-label">{{ import_strava_archive_form.import_photos.label.text }}</span>
+                                            </label>
+                                            <label class="form-check">
+                                                {{ import_strava_archive_form.import_recordings(class="form-check-input") }}
+                                                <span class="form-check-label">{{ import_strava_archive_form.import_recordings.label.text }}</span>
+                                            </label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Date range</label>
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    {{ import_strava_archive_form.import_from_date.label(class="form-label") }}
+                                                    {{ import_strava_archive_form.import_from_date(class="form-control") }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {{ import_strava_archive_form.import_to_date.label(class="form-label") }}
+                                                    {{ import_strava_archive_form.import_to_date(class="form-control") }}
+                                                </div>
+                                            </div>
+                                            <div class="form-text">Leave both dates empty to import all activities.</div>
+                                        </div>
                                         {{ import_strava_archive_form.submit(class="btn btn-primary") }}
                                     </form>
                                 </div>
                             </div>
 
-                            {% if ff.can("STRAVA_API_IMPORT") %}
-                            <div class="card card-md">
-                                <div class="card-body">
-                                    <div class="h3">Strava API (developer)</div>
-
-                                    <p class="card-subtitle">
-                                        Import activities using the <a href="https://developers.strava.com/" class="link-primary" target="_blank">Strava API</a>.
-                                    </p>
-                                    <div class="mt-2">
-                                        <a href="{{ url_for('strava_api_developer') }}" class="btn btn-primary">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-strava" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                                <path d="M15 13l-5 -10l-5 10"></path>
-                                                <path d="M10 13l3 6l3 -6"></path>
-                                            </svg>
-                                            Strava API (developer)
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
                         </div>
 
                     </div>

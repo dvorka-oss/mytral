@@ -39,14 +39,15 @@ Acknowledgements to reviewers, testers and supporters:
 *
 -->
 
-Acknowledgements to athletes who provided their data:
+Acknowledgements to athletes and project who/which provided their data:
 
-* Roman "Marco" Vetešník (10+ years of Polar Precision Performance data, literature, expertise)
+* Roman "Marco" Vetešník - 10+ years of Polar Precision Performance data, literature, expertise.
+* GoldenCheetah - really nice collection of GC's activity recordings is used to test MyTraL.
 
 MyTral project is/was supported by:
 
 * [GitHub](https://github.com) - GitHub Copilot CLI - free Copilot PRO FLOSS tier - AI assisted coding.
-* [Augment Code](https://www.augmentcode.com/) - FLOSS developers support program - high quality PR reviews.
+* [Augment Code](https://www.augmentcode.com/) - FLOSS developers support program (2025/12 - 2026/3) - high quality PR reviews.
 
 Special thanks to:
 

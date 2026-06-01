@@ -53,7 +53,7 @@ class RecordingData:
     has_power : bool
         Whether power channel has any non-null values.
     source_format : str
-        Recording source format: "fit" | "gpx" | "hrm".
+        Recording source format: "fit" | "gpx" | "hrm" | "tcx".
     """
 
     timestamps: list[datetime.datetime]
@@ -141,3 +141,4 @@ class RecordingFmt(enum.Enum):
     FIT = ".fit"
     GPX = ".gpx"
     HRM = ".hrm"
+    TCX = ".tcx"

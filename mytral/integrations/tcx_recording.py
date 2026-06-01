@@ -6,6 +6,7 @@
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -13,7 +14,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-"""GPX recording import plugin."""
+"""TCX recording import plugin."""
 
 import io
 import typing
@@ -27,21 +28,18 @@ from mytral.blobstore.activity_service import ActivityBlobService
 from mytral.config import MytralConfig
 from mytral.recordings import gpx_extractor
 from mytral.recordings import parquet_converter
+from mytral.recordings import tcx_extractor
 from mytral.recordings.models import RecordingSummary
 
-GPX_IMPORT_SRC = "gpx-import"
-GPX_TASK_TYPE = "gpx_import"
+TCX_IMPORT_SRC = "tcx-import"
+TCX_TASK_TYPE = "tcx_import"
 
 
-class GpxImportPlugin(plugins.ActivitiesImportPlugin):
-    """Import a GPX recording file and attach it to an existing activity.
+class TcxImportPlugin(plugins.ActivitiesImportPlugin):
+    """Import a TCX recording file and attach it to an existing activity."""
 
-    The plugin uploads the GPX blob, converts it to Parquet, and optionally
-    extracts summary fields into the activity entity.
-    """
-
-    name = "GPX Recording Import"
-    src = GPX_IMPORT_SRC
+    name = "TCX Recording Import"
+    src = TCX_IMPORT_SRC
 
     def __init__(self, config: MytralConfig) -> None:
         self._config = config
@@ -50,45 +48,24 @@ class GpxImportPlugin(plugins.ActivitiesImportPlugin):
         self,
         user_id: str,
         activity_key: str,
-        gpx_data: bytes,
+        tcx_data: bytes,
         original_filename: str,
         blob_svc: ActivityBlobService,
         *,
         extract_summary: bool = False,
     ) -> str:
-        """Upload a GPX file, convert to Parquet, and optionally update summary.
+        """Upload a TCX file, convert to Parquet, and optionally update summary."""
 
-        Parameters
-        ----------
-        user_id : str
-            Owning user identifier.
-        activity_key : str
-            Target activity key.
-        gpx_data : bytes
-            Raw GPX file bytes.
-        original_filename : str
-            Original filename for metadata.
-        blob_svc : ActivityBlobService
-            Blob service instance to use.
-        extract_summary : bool
-            When True, extract fields and update the activity entity.
-
-        Returns
-        -------
-        str
-            Blob UUID of the newly stored GPX recording.
-        """
-
-        def _persist_summary(summary: gpx_extractor.RecordingSummary) -> None:
+        def _persist_summary(summary: RecordingSummary) -> None:
             ds: dataset.UserDataset = app_user_ds.get_user_ds(user_id)
             activity: entities.ActivityEntity = ds.activities.by_key[activity_key]
-            apply_gpx_summary(activity, summary)
+            apply_tcx_summary(activity, summary)
             ds.save_activity(activity)
 
-        return import_gpx_recording_bytes(
+        return import_tcx_recording_bytes(
             user_id=user_id,
             activity_key=activity_key,
-            gpx_data=gpx_data,
+            tcx_data=tcx_data,
             original_filename=original_filename,
             blob_svc=blob_svc,
             extract_summary=extract_summary,
@@ -102,10 +79,10 @@ class GpxImportPlugin(plugins.ActivitiesImportPlugin):
         )
 
 
-def import_gpx_recording_bytes(
+def import_tcx_recording_bytes(
     user_id: str,
     activity_key: str,
-    gpx_data: bytes,
+    tcx_data: bytes,
     original_filename: str,
     blob_svc: ActivityBlobService,
     *,
@@ -114,43 +91,18 @@ def import_gpx_recording_bytes(
     polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
     log=logger,
 ) -> str:
-    """Store a GPX recording and optionally enrich the owning activity.
-
-    Parameters
-    ----------
-    user_id : str
-        Owning user identifier.
-    activity_key : str
-        Target activity key.
-    gpx_data : bytes
-        Raw GPX payload.
-    original_filename : str
-        Original filename for metadata and validation.
-    blob_svc : ActivityBlobService
-        Blob service instance used for persistence.
-    extract_summary : bool
-        When True, extract a summary and pass it to *summary_handler*.
-    summary_handler : Callable[[RecordingSummary], None] | None
-        Callback used to persist GPX summary fields.
-    log :
-        Logger used for warnings.
-
-    Returns
-    -------
-    str
-        Blob UUID of the stored GPX recording.
-    """
+    """Store a TCX recording and optionally enrich the owning activity."""
     meta = blob_svc.upload_recording(
         user_id=user_id,
         activity_key=activity_key,
-        uploaded_file=io.BytesIO(gpx_data),
+        uploaded_file=io.BytesIO(tcx_data),
         original_filename=original_filename,
-        content_type="application/gpx+xml",
+        content_type="application/xml",
     )
     blob_key = meta.blob_key
 
     try:
-        parquet_bytes = parquet_converter.gpx_to_parquet(gpx_data)
+        parquet_bytes = parquet_converter.tcx_to_parquet(tcx_data)
         blob_svc.save_parquet(
             user_id=user_id,
             activity_key=activity_key,
@@ -158,15 +110,15 @@ def import_gpx_recording_bytes(
             parquet_data=parquet_bytes,
         )
     except Exception as exc:
-        log.warning(f"GPX→Parquet conversion failed for {blob_key}: {exc}")
+        log.warning(f"TCX→Parquet conversion failed for {blob_key}: {exc}")
 
     if extract_summary:
         try:
-            summary = gpx_extractor.extract_gpx_summary(gpx_data)
+            summary = tcx_extractor.extract_tcx_summary(tcx_data)
             if summary is not None and summary_handler is not None:
                 summary_handler(summary)
         except Exception as exc:
-            log.warning(f"GPX summary extraction failed for {blob_key}: {exc}")
+            log.warning(f"TCX summary extraction failed for {blob_key}: {exc}")
 
     try:
         blob_svc.ensure_gpx_map_data(
@@ -176,24 +128,16 @@ def import_gpx_recording_bytes(
             polyline_method=polyline_method,
         )
     except Exception as exc:
-        log.warning(f"GPX map generation failed for {blob_key}: {exc}")
+        log.warning(f"TCX map generation failed for {blob_key}: {exc}")
 
     return blob_key
 
 
-def apply_gpx_summary(
+def apply_tcx_summary(
     activity: entities.ActivityEntity,
     summary: RecordingSummary,
 ) -> None:
-    """Write non-None fields from *summary* into *activity* (in-place).
-
-    Parameters
-    ----------
-    activity : entities.ActivityEntity
-        Activity to update.
-    summary : RecordingSummary
-        Extracted summary values.
-    """
+    """Write non-None fields from *summary* into *activity* (in-place)."""
     if not isinstance(summary, RecordingSummary):
         return
     if summary.activity_type_key and not activity.activity_type_key:
@@ -213,10 +157,20 @@ def apply_gpx_summary(
         activity.seconds = summary.seconds
     if summary.distance and activity.distance == 0:
         activity.distance = summary.distance
+    if summary.kcal and activity.kcal == 0:
+        activity.kcal = summary.kcal
     if summary.avg_hr and activity.avg_hr == 0:
         activity.avg_hr = summary.avg_hr
     if summary.max_hr and activity.max_hr == 0:
         activity.max_hr = summary.max_hr
+    if summary.avg_cadence and activity.avg_cadence == 0:
+        activity.avg_cadence = summary.avg_cadence
+    if summary.max_cadence and activity.max_cadence == 0:
+        activity.max_cadence = summary.max_cadence
+    if summary.avg_speed and activity.avg_speed == 0.0:
+        activity.avg_speed = summary.avg_speed
+    if summary.max_speed and activity.max_speed == 0.0:
+        activity.max_speed = summary.max_speed
     if summary.elevation_gain and activity.elevation_gain == 0:
         activity.elevation_gain = summary.elevation_gain
     if summary.name_hint and not activity.name:
@@ -228,20 +182,6 @@ def get_plugin(
     config: MytralConfig,
     *,
     params: typing.Any = None,
-) -> GpxImportPlugin:
-    """Construct a GpxImportPlugin.
-
-    Parameters
-    ----------
-    user_id : str
-        User identifier (unused, retained for plugin interface compatibility).
-    config : MytralConfig
-        Application configuration.
-    params : typing.Any
-        Optional extra parameters (unused).
-
-    Returns
-    -------
-    GpxImportPlugin
-    """
-    return GpxImportPlugin(config)
+) -> TcxImportPlugin:
+    """Construct a TcxImportPlugin."""
+    return TcxImportPlugin(config)

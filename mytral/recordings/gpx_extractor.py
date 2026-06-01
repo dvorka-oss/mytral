@@ -29,6 +29,9 @@ _NS_GPX = "http://www.topografix.com/GPX/1/1"
 _SUMMARY_POINT_LIMIT = 150
 _FULL_POLYLINE_POINT_LIMIT = 30000
 _PROFILE_POINT_LIMIT = 600
+GPX_POLYLINE_METHOD_FAST = "sample"
+GPX_POLYLINE_METHOD_LEGACY = "current"
+GPX_POLYLINE_METHOD = GPX_POLYLINE_METHOD_FAST
 
 try:
     import polyline as polyline_module
@@ -200,6 +203,62 @@ def _sample_points(
     return sampled
 
 
+def _sample_points_by_distance(
+    points: list[tuple[float, float]], max_points: int
+) -> list[tuple[float, float]]:
+    """Downsample points using equal arc-length spacing."""
+    if len(points) <= max_points:
+        return list(points)
+    if max_points <= 2:
+        return [points[0], points[-1]]
+
+    cumulative_distances: list[float] = [0.0]
+    for index in range(1, len(points)):
+        prev = points[index - 1]
+        current = points[index]
+        cumulative_distances.append(
+            cumulative_distances[-1]
+            + _haversine_m(prev[0], prev[1], current[0], current[1])
+        )
+
+    total_distance = cumulative_distances[-1]
+    if total_distance <= 0:
+        return _sample_points(points=points, max_points=max_points)
+
+    sampled: list[tuple[float, float]] = [points[0]]
+    cursor = 1
+    for i in range(1, max_points - 1):
+        target_distance = (total_distance * i) / (max_points - 1)
+        while (
+            cursor < len(cumulative_distances) - 1
+            and cumulative_distances[cursor] < target_distance
+        ):
+            cursor += 1
+
+        prev_index = max(0, cursor - 1)
+        if abs(cumulative_distances[cursor] - target_distance) < abs(
+            cumulative_distances[prev_index] - target_distance
+        ):
+            sampled.append(points[cursor])
+        else:
+            sampled.append(points[prev_index])
+
+    sampled.append(points[-1])
+    return sampled
+
+
+def _polyline_length_meters(points: list[tuple[float, float]]) -> float:
+    """Return cumulative great-circle length in meters for ordered points."""
+    if len(points) < 2:
+        return 0.0
+    length = 0.0
+    for index in range(1, len(points)):
+        prev = points[index - 1]
+        current = points[index]
+        length += _haversine_m(prev[0], prev[1], current[0], current[1])
+    return length
+
+
 def simplify_elevation_profile(
     profile_points: list[tuple[float, float]],
     max_points: int = _PROFILE_POINT_LIMIT,
@@ -208,7 +267,23 @@ def simplify_elevation_profile(
     return _sample_points(points=profile_points, max_points=max_points)
 
 
-def _simplify_points(
+def _simplify_points_sample(
+    points: list[tuple[float, float]], max_points: int
+) -> list[tuple[float, float]]:
+    """Simplify points with deterministic endpoint-preserving sampling."""
+    sampled = _sample_points_by_distance(points=points, max_points=max_points)
+    original_length_m = _polyline_length_meters(points)
+    sampled_length_m = _polyline_length_meters(sampled)
+    if (
+        original_length_m > 0.0
+        and sampled_length_m / original_length_m < 0.88
+        and len(points) > max_points
+    ):
+        return _simplify_points_current(points=points, max_points=max_points)
+    return sampled
+
+
+def _simplify_points_current(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
     """Simplify points for preview rendering."""
@@ -233,6 +308,20 @@ def _simplify_points(
     return _sample_points(points, max_points=max_points)
 
 
+def _simplify_points(
+    points: list[tuple[float, float]],
+    max_points: int,
+    *,
+    method: str = GPX_POLYLINE_METHOD,
+) -> list[tuple[float, float]]:
+    """Simplify points for preview rendering with a selectable method."""
+    if method == GPX_POLYLINE_METHOD_FAST:
+        return _simplify_points_sample(points=points, max_points=max_points)
+    if method == GPX_POLYLINE_METHOD_LEGACY:
+        return _simplify_points_current(points=points, max_points=max_points)
+    raise ValueError(f"Unsupported GPX polyline method: {method}")
+
+
 def _compute_bbox(
     points: list[tuple[float, float]],
 ) -> tuple[float, float, float, float]:
@@ -249,6 +338,8 @@ def _compute_bbox(
 
 def encode_gps_polylines(
     points: list[tuple[float, float]],
+    *,
+    polyline_method: str = GPX_POLYLINE_METHOD,
 ) -> tuple[str, tuple[float, float, float, float], str | None]:
     """Encode summary/full GPX polylines and compute bounding box.
 
@@ -265,7 +356,11 @@ def encode_gps_polylines(
     if polyline_module is None:
         raise RuntimeError("polyline dependency is missing.")
 
-    summary_points = _simplify_points(points, max_points=_SUMMARY_POINT_LIMIT)
+    summary_points = _simplify_points(
+        points,
+        max_points=_SUMMARY_POINT_LIMIT,
+        method=polyline_method,
+    )
     summary_polyline = polyline_module.encode(summary_points, precision=5)
     summary_bbox = _compute_bbox(points=points)
     full_polyline = None

@@ -33,6 +33,8 @@ from mytral.integrations import strava
 from mytral.integrations import strava_user_archive
 from tests import _given
 
+_STRAVA_ARCHIVE_DATA_AVAILABLE = _given.TEST_DS_STRAVA_USER_ARCHIVE.exists()
+
 
 @pytest.mark.skip("MyTraL tool - not a test: download activities from strava.com")
 @pytest.mark.tool
@@ -538,6 +540,9 @@ def test_restore_strava_api_src_fields(
 
 
 @pytest.mark.tool
+@pytest.mark.skipif(
+    not _STRAVA_ARCHIVE_DATA_AVAILABLE, reason="Strava archive test data not available"
+)
 def test_import_strava_user_archive(tmp_path: pathlib.Path):
     #
     # GIVEN

@@ -72,7 +72,7 @@ def test_validate_recording_hrm_ok():
 def test_validate_recording_unsupported_extension():
     """Test validate_recording rejects an unsupported extension."""
     # GIVEN
-    filename = "workout.tcx"
+    filename = "workout.foo"
     data = b"<xml/>" * 20
 
     # WHEN / THEN
@@ -128,5 +128,20 @@ def test_recording_allowed_extensions_set():
     assert ".fit" in RECORDING_ALLOWED_EXTENSIONS
     assert ".gpx" in RECORDING_ALLOWED_EXTENSIONS
     assert ".hrm" in RECORDING_ALLOWED_EXTENSIONS
-    assert ".tcx" not in RECORDING_ALLOWED_EXTENSIONS
+    assert ".tcx" in RECORDING_ALLOWED_EXTENSIONS
     print("RECORDING_ALLOWED_EXTENSIONS content: DONE")
+
+
+@pytest.mark.mytral
+def test_validate_recording_tcx_ok():
+    """Test validate_recording accepts a valid TCX file."""
+    # GIVEN
+    filename = "workout.tcx"
+    data = b'<?xml version="1.0"?><TrainingCenterDatabase></TrainingCenterDatabase>'
+
+    # WHEN
+    ext = validate_recording(filename=filename, data=data)
+
+    # THEN
+    assert ext == ".tcx"
+    print("validate_recording TCX ok: DONE")
