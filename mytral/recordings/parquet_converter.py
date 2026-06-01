@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Parquet conversion layer for FIT, GPX and Polar HRM recording files.
+"""Parquet conversion layer for FIT, GPX, TCX and Polar HRM recording files.
 
 All recording formats are converted to a canonical Parquet schema that is
 format-agnostic and loaded at analysis time by the chart rendering code.
@@ -34,7 +34,7 @@ has_cadence : Boolean
 has_altitude : Boolean
 has_gps    : Boolean
 has_power  : Boolean
-source_format : Utf8 — "fit" / "gpx" / "hrm"
+source_format : Utf8 — "fit" / "gpx" / "tcx" / "hrm"
 """
 
 import datetime
@@ -43,6 +43,7 @@ import io
 import defusedxml.ElementTree
 import polars
 
+from mytral.recordings import tcx_extractor
 from mytral.recordings.models import RecordingData
 
 
@@ -267,6 +268,140 @@ def gpx_to_parquet(gpx_data: bytes) -> bytes:
             "has_gps": polars.Series([has_gps] * n, dtype=polars.Boolean),
             "has_power": polars.Series([False] * n, dtype=polars.Boolean),
             "source_format": polars.Series(["gpx"] * n, dtype=polars.Utf8),
+        }
+    )
+
+    buf = io.BytesIO()
+    df.write_parquet(buf)
+    return buf.getvalue()
+
+
+def tcx_to_parquet(tcx_data: bytes) -> bytes:
+    """Parse TCX bytes and return canonical Parquet bytes."""
+    ts_unix_ms_list: list[int] = []
+    hr_list: list[int | None] = []
+    speed_list: list[float | None] = []
+    cadence_list: list[int | None] = []
+    altitude_list: list[float | None] = []
+    lat_list: list[float | None] = []
+    lon_list: list[float | None] = []
+    power_list: list[float | None] = []
+    has_cadence = False
+    has_altitude = False
+    has_gps = False
+    has_speed = False
+    has_power = False
+
+    try:
+        cleaned = tcx_data.lstrip(b"\xef\xbb\xbf")
+        root = defusedxml.ElementTree.fromstring(cleaned)
+    except Exception:
+        root = None
+
+    if root is not None:
+        tag = root.tag
+        ns = ""
+        if "}" in tag:
+            ns = tag.split("}")[0] + "}"
+
+        for trackpoint in root.iter(f"{ns}Trackpoint"):
+            time_el = trackpoint.find(f"{ns}Time")
+            if time_el is None or not time_el.text:
+                continue
+            try:
+                dt = datetime.datetime.fromisoformat(
+                    time_el.text.replace("Z", "+00:00")
+                )
+            except ValueError:
+                continue
+
+            ts_unix_ms_list.append(int(dt.timestamp() * 1000))
+
+            hr_el = trackpoint.find(f"{ns}HeartRateBpm/{ns}Value")
+            if hr_el is not None and hr_el.text:
+                try:
+                    hr_list.append(int(hr_el.text))
+                except ValueError:
+                    hr_list.append(None)
+            else:
+                hr_list.append(None)
+
+            cadence_el = trackpoint.find(f"{ns}Cadence")
+            if cadence_el is not None and cadence_el.text:
+                try:
+                    cadence_list.append(int(float(cadence_el.text)))
+                    has_cadence = True
+                except ValueError:
+                    cadence_list.append(None)
+            else:
+                cadence_list.append(None)
+
+            altitude_el = trackpoint.find(f"{ns}AltitudeMeters")
+            if altitude_el is not None and altitude_el.text:
+                try:
+                    altitude_list.append(float(altitude_el.text))
+                    has_altitude = True
+                except ValueError:
+                    altitude_list.append(None)
+            else:
+                altitude_list.append(None)
+
+            pos_lat_el = trackpoint.find(f"{ns}Position/{ns}LatitudeDegrees")
+            pos_lon_el = trackpoint.find(f"{ns}Position/{ns}LongitudeDegrees")
+            if (
+                pos_lat_el is not None
+                and pos_lon_el is not None
+                and pos_lat_el.text
+                and pos_lon_el.text
+            ):
+                try:
+                    lat_list.append(float(pos_lat_el.text))
+                    lon_list.append(float(pos_lon_el.text))
+                    has_gps = True
+                except ValueError:
+                    lat_list.append(None)
+                    lon_list.append(None)
+            else:
+                lat_list.append(None)
+                lon_list.append(None)
+
+            speed_el = trackpoint.find(f".//{{{tcx_extractor._NS_TPX}}}Speed")
+            if speed_el is not None and speed_el.text:
+                try:
+                    speed_list.append(round(float(speed_el.text) * 3.6, 2))
+                    has_speed = True
+                except ValueError:
+                    speed_list.append(None)
+            else:
+                speed_list.append(None)
+
+            power_el = trackpoint.find(f".//{{{tcx_extractor._NS_TPX}}}Watts")
+            if power_el is not None and power_el.text:
+                try:
+                    power_list.append(float(power_el.text))
+                    has_power = True
+                except ValueError:
+                    power_list.append(None)
+            else:
+                power_list.append(None)
+
+    n = len(ts_unix_ms_list)
+    df = polars.DataFrame(
+        {
+            "ts_unix_ms": polars.Series(ts_unix_ms_list, dtype=polars.Int64),
+            "hr": polars.Series(hr_list, dtype=polars.Int32),
+            "speed": polars.Series(speed_list, dtype=polars.Float64),
+            "cadence": polars.Series(cadence_list, dtype=polars.Int32),
+            "altitude": polars.Series(altitude_list, dtype=polars.Float64),
+            "lat": polars.Series(lat_list, dtype=polars.Float64),
+            "lon": polars.Series(lon_list, dtype=polars.Float64),
+            "power": polars.Series(power_list, dtype=polars.Float64),
+            "has_speed": polars.Series([has_speed] * n, dtype=polars.Boolean),
+            "has_cadence": polars.Series([has_cadence] * n, dtype=polars.Boolean),
+            "has_altitude": polars.Series([has_altitude] * n, dtype=polars.Boolean),
+            "has_gps": polars.Series([has_gps] * n, dtype=polars.Boolean),
+            "has_power": polars.Series([has_power] * n, dtype=polars.Boolean),
+            "source_format": polars.Series(["tcx"] * n, dtype=polars.Utf8),
         }
     )
 

@@ -26,6 +26,7 @@ from mytral import tasks
 from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import gpx_recording
 from mytral.integrations import strava_user_archive
+from mytral.integrations import tcx_recording
 
 
 class StravaArchiveImportTask(tasks.TaskBase):
@@ -222,11 +223,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
     ) -> str:
         """Import a Strava archive recording for one activity."""
         suffixes = [suffix.lower() for suffix in recording_path.suffixes]
-        if suffixes[-2:] == [".tcx", ".gz"]:
-            self.log(f"  WARNING: skipping unsupported TCX recording: {recording_path}")
-            return "skipped"
-
-        if suffixes[-1:] not in ([".gpx"], [".gz"]):
+        if suffixes[-1:] not in ([".gpx"], [".tcx"], [".gz"]):
             self.log(
                 f"  WARNING: skipping unsupported recording format: {recording_path}"
             )
@@ -254,7 +251,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
             )
             if activity_to_save is None:
                 raise RuntimeError(f"Activity {activity.key} not found")
-            gpx_recording.apply_gpx_summary(activity_to_save, summary)
+            if normalized_filename.lower().endswith(".tcx"):
+                tcx_recording.apply_tcx_summary(activity_to_save, summary)
+            else:
+                gpx_recording.apply_gpx_summary(activity_to_save, summary)
             self._dataset.update_activity(
                 user_id=user_id,
                 dataset_name=dataset_name,
@@ -262,16 +262,28 @@ class StravaArchiveImportTask(tasks.TaskBase):
             )
 
         try:
-            gpx_recording.import_gpx_recording_bytes(
-                user_id=user_id,
-                activity_key=activity.key,
-                gpx_data=payload,
-                original_filename=normalized_filename,
-                blob_svc=blob_svc,
-                extract_summary=True,
-                summary_handler=_persist_summary,
-                log=self.logger,
-            )
+            if normalized_filename.lower().endswith(".tcx"):
+                tcx_recording.import_tcx_recording_bytes(
+                    user_id=user_id,
+                    activity_key=activity.key,
+                    tcx_data=payload,
+                    original_filename=normalized_filename,
+                    blob_svc=blob_svc,
+                    extract_summary=True,
+                    summary_handler=_persist_summary,
+                    log=self.logger,
+                )
+            else:
+                gpx_recording.import_gpx_recording_bytes(
+                    user_id=user_id,
+                    activity_key=activity.key,
+                    gpx_data=payload,
+                    original_filename=normalized_filename,
+                    blob_svc=blob_svc,
+                    extract_summary=True,
+                    summary_handler=_persist_summary,
+                    log=self.logger,
+                )
             self.log(f"Imported recording for activity '{activity.name}'")
             return "imported"
         except Exception as exc:
@@ -282,7 +294,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
 def _normalized_recording_filename(recording_path: pathlib.Path) -> str:
     """Return a filename acceptable to the recording validator."""
     suffixes = [suffix.lower() for suffix in recording_path.suffixes]
-    if suffixes[-2:] == [".gpx", ".gz"]:
+    if suffixes[-2:] in ([".gpx", ".gz"], [".tcx", ".gz"]):
         return recording_path.with_suffix("").name
     return recording_path.name
 

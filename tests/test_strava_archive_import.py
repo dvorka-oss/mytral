@@ -262,7 +262,7 @@ def test_import_gpx_recording_bytes_generates_parquet_and_summary(monkeypatch):
 
 
 @pytest.mark.mytral
-def test_strava_archive_task_imports_gpx_gz_and_skips_tcx_gz(monkeypatch, tmp_path):
+def test_strava_archive_task_imports_gpx_gz_and_tcx_gz(monkeypatch, tmp_path):
     # GIVEN
     archive_dir = tmp_path / "archive"
     recordings_dir = archive_dir / "activities"
@@ -305,6 +305,20 @@ def test_strava_archive_task_imports_gpx_gz_and_skips_tcx_gz(monkeypatch, tmp_pa
         captured.append((user_id, activity_key, gpx_data, original_filename))
         return "blob-123"
 
+    def _fake_import_tcx_recording_bytes(
+        *,
+        user_id: str,
+        activity_key: str,
+        tcx_data: bytes,
+        original_filename: str,
+        blob_svc,
+        extract_summary: bool = False,
+        summary_handler=None,
+        log=None,
+    ) -> str:
+        captured.append((user_id, activity_key, tcx_data, original_filename))
+        return "blob-456"
+
     monkeypatch.setattr(
         strava_archive_import.plugins.registry,
         "get_plugin",
@@ -319,6 +333,11 @@ def test_strava_archive_task_imports_gpx_gz_and_skips_tcx_gz(monkeypatch, tmp_pa
         strava_archive_import.gpx_recording,
         "import_gpx_recording_bytes",
         _fake_import_gpx_recording_bytes,
+    )
+    monkeypatch.setattr(
+        strava_archive_import.tcx_recording,
+        "import_tcx_recording_bytes",
+        _fake_import_tcx_recording_bytes,
     )
 
     dataset = FakeDataset(dataset_name="dataset")
@@ -338,6 +357,7 @@ def test_strava_archive_task_imports_gpx_gz_and_skips_tcx_gz(monkeypatch, tmp_pa
     # THEN
     assert captured == [
         ("test_user", "activity-gpx", raw_gpx, "track.gpx"),
+        ("test_user", "activity-tcx", b"<tcx/>", "ignored.tcx"),
     ]
     assert task_entity.progress == 100
-    print("DONE: Strava archive task imported GPX and skipped TCX")
+    print("DONE: Strava archive task imported GPX and TCX")

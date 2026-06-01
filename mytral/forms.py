@@ -1111,6 +1111,30 @@ class ImportGpxForm(flask_wtf.FlaskForm):
     submit = wtforms.SubmitField("Import GPX")
 
 
+class ImportTcxForm(flask_wtf.FlaskForm):
+    """Form for importing a TCX recording as a new activity."""
+
+    recording_file = flask_wtf.file.FileField(
+        label="TCX file",
+        validators=[flask_wtf.file.FileRequired()],
+        description="Supported format: .tcx — max 64 MiB.",
+    )
+    activity_name = wtforms.StringField(
+        label="Name",
+        validators=[validators.Optional(), validators.Length(max=120)],
+        description="Optional activity name override.",
+    )
+    activity_type = wtforms.SelectField(
+        label="Activity type",
+        choices=[],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional activity_type_key override.",
+    )
+    submit = wtforms.SubmitField("Import TCX")
+
+
 class ImportGpxDirectoryForm(flask_wtf.FlaskForm):
     """Form for importing multiple GPX files from a directory.
 
@@ -1156,6 +1180,53 @@ class ImportGpxDirectoryForm(flask_wtf.FlaskForm):
                 "GPX directory path must be an absolute path (e.g. /home/user/gpx)."
             )
         # update field data with stripped value
+        field.data = value
+
+
+class ImportTcxDirectoryForm(flask_wtf.FlaskForm):
+    """Form for importing multiple TCX files from a directory.
+
+    Desktop-only: requires a local filesystem path.
+    """
+
+    data_dir = wtforms.StringField(
+        label="TCX directory",
+        description=(
+            "Absolute path to the directory containing .tcx files "
+            "(e.g. /path/to/tcx/files/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    sport_type = wtforms.SelectField(
+        label="Sport",
+        choices=[("", "Auto / unspecified")],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional sport override for all imported activities.",
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import TCX Directory")
+
+    def validate_data_dir(self, field):
+        """Validate data_dir is not empty after stripping and is absolute."""
+        value = field.data.strip() if field.data else ""
+        if not value:
+            raise validators.ValidationError(
+                "TCX directory path cannot be empty or whitespace-only."
+            )
+        if not os.path.isabs(value):
+            raise validators.ValidationError(
+                "TCX directory path must be an absolute path (e.g. /home/user/tcx)."
+            )
         field.data = value
 
 
