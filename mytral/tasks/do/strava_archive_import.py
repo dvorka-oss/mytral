@@ -17,12 +17,14 @@
 
 """Async task: import Strava user ZIP archive data."""
 
+import gzip
 import pathlib
 
 from mytral import app_logger
 from mytral import plugins
 from mytral import tasks
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.integrations import gpx_recording
 from mytral.integrations import strava_user_archive
 
 
@@ -124,61 +126,77 @@ class StravaArchiveImportTask(tasks.TaskBase):
         )
         photos_uploaded = 0
         photos_failed = 0
+        recordings_imported = 0
+        recordings_skipped = 0
+        recordings_failed = 0
         for i, activity in enumerate(activities):
             self.check_cancellation()
 
             photo_paths = getattr(activity, "_photo_paths", [])
-            if not photo_paths:
-                continue
-
-            self.log(
-                f"Uploading {len(photo_paths)} photo(s) for activity "
-                f"'{activity.name}' ({activity.key})"
-            )
-
-            uploaded_files = []
-            for rel_path in photo_paths:
-                # rel_path from CSV already includes the media/ prefix,
-                # e.g. "media/abc.jpg"
-                photo_path = data_dir / rel_path
-                if not photo_path.is_file():
-                    self.log(f"  WARNING: photo file not found: {photo_path}")
-                    photos_failed += 1
-                    continue
-
-                try:
-                    uploaded_files.append((open(photo_path, "rb"), photo_path.name))
-                except OSError as exc:
-                    self.log(f"  WARNING: cannot open photo '{photo_path}': {exc}")
-                    photos_failed += 1
-
-            if not uploaded_files:
-                continue
-
-            try:
-                blob_svc.upload_photos(
-                    user_id=user_id,
-                    activity_key=activity.key,
-                    uploaded_files=uploaded_files,
-                    name="",
-                    description="",
-                    keywords="strava,archive,import",
+            if photo_paths:
+                self.log(
+                    f"Uploading {len(photo_paths)} photo(s) for activity "
+                    f"'{activity.name}' ({activity.key})"
                 )
-                photos_uploaded += len(uploaded_files)
-            except Exception as exc:
-                app_logger.warning(
-                    "StravaArchiveImportTask: photo upload failed",
-                    activity_key=activity.key,
-                    error=str(exc),
-                )
-                photos_failed += len(uploaded_files)
-            finally:
-                # close file handles
-                for file_stream, _ in uploaded_files:
+
+                uploaded_files = []
+                for rel_path in photo_paths:
+                    # rel_path from CSV already includes the media/ prefix,
+                    # e.g. "media/abc.jpg"
+                    photo_path = data_dir / rel_path
+                    if not photo_path.is_file():
+                        self.log(f"  WARNING: photo file not found: {photo_path}")
+                        photos_failed += 1
+                        continue
+
                     try:
-                        file_stream.close()
-                    except Exception:
-                        pass
+                        uploaded_files.append((open(photo_path, "rb"), photo_path.name))
+                    except OSError as exc:
+                        self.log(f"  WARNING: cannot open photo '{photo_path}': {exc}")
+                        photos_failed += 1
+
+                if uploaded_files:
+                    try:
+                        blob_svc.upload_photos(
+                            user_id=user_id,
+                            activity_key=activity.key,
+                            uploaded_files=uploaded_files,
+                            name="",
+                            description="",
+                            keywords="strava,archive,import",
+                        )
+                        photos_uploaded += len(uploaded_files)
+                    except Exception as exc:
+                        app_logger.warning(
+                            "StravaArchiveImportTask: photo upload failed",
+                            activity_key=activity.key,
+                            error=str(exc),
+                        )
+                        photos_failed += len(uploaded_files)
+                    finally:
+                        # close file handles
+                        for file_stream, _ in uploaded_files:
+                            try:
+                                file_stream.close()
+                            except Exception:
+                                pass
+
+            recording_path = getattr(activity, "_recording_path", "")
+            if recording_path:
+                recording_status = self._import_recording(
+                    blob_svc=blob_svc,
+                    data_dir=data_dir,
+                    activity=activity,
+                    recording_path=pathlib.Path(recording_path),
+                    user_id=user_id,
+                    dataset_name=dataset_name,
+                )
+                if recording_status == "imported":
+                    recordings_imported += 1
+                elif recording_status == "skipped":
+                    recordings_skipped += 1
+                elif recording_status == "failed":
+                    recordings_failed += 1
 
             progress = 25 + int(70 * (i + 1) / total)
             self.update_progress(progress)
@@ -187,8 +205,86 @@ class StravaArchiveImportTask(tasks.TaskBase):
 
         self.log(
             f"Strava archive import complete: {total} activities imported, "
-            f"{photos_uploaded} photos uploaded, {photos_failed} photos failed"
+            f"{photos_uploaded} photos uploaded, {photos_failed} photos failed, "
+            f"{recordings_imported} recordings imported, "
+            f"{recordings_skipped} recordings skipped, "
+            f"{recordings_failed} recordings failed"
         )
+
+    def _import_recording(
+        self,
+        blob_svc: blob_svc_module.ActivityBlobService,
+        data_dir: pathlib.Path,
+        activity,
+        recording_path: pathlib.Path,
+        user_id: str,
+        dataset_name: str,
+    ) -> str:
+        """Import a Strava archive recording for one activity."""
+        suffixes = [suffix.lower() for suffix in recording_path.suffixes]
+        if suffixes[-2:] == [".tcx", ".gz"]:
+            self.log(f"  WARNING: skipping unsupported TCX recording: {recording_path}")
+            return "skipped"
+
+        if suffixes[-1:] not in ([".gpx"], [".gz"]):
+            self.log(
+                f"  WARNING: skipping unsupported recording format: {recording_path}"
+            )
+            return "skipped"
+
+        full_path = data_dir / recording_path
+        if not full_path.is_file():
+            self.log(f"  WARNING: recording file not found: {full_path}")
+            return "failed"
+
+        try:
+            payload = full_path.read_bytes()
+            if suffixes[-1:] == [".gz"]:
+                payload = gzip.decompress(payload)
+            normalized_filename = _normalized_recording_filename(full_path)
+        except Exception as exc:
+            self.log(f"  WARNING: cannot read recording '{full_path}': {exc}")
+            return "failed"
+
+        def _persist_summary(summary) -> None:
+            activity_to_save = self._dataset.get_activity(
+                user_id,
+                dataset_name,
+                activity.key,
+            )
+            if activity_to_save is None:
+                raise RuntimeError(f"Activity {activity.key} not found")
+            gpx_recording.apply_gpx_summary(activity_to_save, summary)
+            self._dataset.update_activity(
+                user_id=user_id,
+                dataset_name=dataset_name,
+                entity=activity_to_save,
+            )
+
+        try:
+            gpx_recording.import_gpx_recording_bytes(
+                user_id=user_id,
+                activity_key=activity.key,
+                gpx_data=payload,
+                original_filename=normalized_filename,
+                blob_svc=blob_svc,
+                extract_summary=True,
+                summary_handler=_persist_summary,
+                log=self.logger,
+            )
+            self.log(f"Imported recording for activity '{activity.name}'")
+            return "imported"
+        except Exception as exc:
+            self.log(f"  WARNING: recording import failed for {full_path}: {exc}")
+            return "failed"
+
+
+def _normalized_recording_filename(recording_path: pathlib.Path) -> str:
+    """Return a filename acceptable to the recording validator."""
+    suffixes = [suffix.lower() for suffix in recording_path.suffixes]
+    if suffixes[-2:] == [".gpx", ".gz"]:
+        return recording_path.with_suffix("").name
+    return recording_path.name
 
 
 tasks.tasks_registry.register_task(StravaArchiveImportTask)

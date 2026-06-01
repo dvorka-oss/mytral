@@ -93,7 +93,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     _COL_A_CSV_COMMUTE = "Commute"  # 10: bool
     _COL_A_CSV_PRIVATE_NOTE = "Activity Private Note"  # 10: bool
     _COL_A_CSV_GEAR = "Activity Gear"  # 11: display name :-Z
-    _COL_A_CSV_GPX = "Filename"  # 12: activities/*.gpx
+    _COL_A_CSV_FILENAME = "Filename"  # 12: activities/*.gpx|*.gpx.gz|*.tcx.gz
     _COL_A_CSV_WEIGHT = "Athlete Weight"  # 13: kg / int
     _COL_A_CSV_BIKE_WEIGHT = "Bike Weight"  # 13: kg / int
     # _COL_A_CSV_ELAPSED_TIME = "Elapsed Time" # ?: m > DUPLICATED - really? :-Z
@@ -136,7 +136,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         _COL_A_CSV_COMMUTE,
         _COL_A_CSV_PRIVATE_NOTE,
         _COL_A_CSV_GEAR,
-        _COL_A_CSV_GPX,
+        _COL_A_CSV_FILENAME,
         _COL_A_CSV_WEIGHT,
         _COL_A_CSV_BIKE_WEIGHT,
         _COL_A_CSV_MOVING_TIME,
@@ -239,7 +239,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         for col2import_name in this._COLS_A_CSV:
             idx = df_col2idx.get(col2import_name, None)
             if idx is None:
-                missing.append(this._COL_A_CSV_NAME)
+                missing.append(col2import_name)
                 app_logger.error(
                     f"{self.log_name} unable to find activities dataset column "
                     f"'{this._COL_A_CSV_NAME}'"
@@ -251,20 +251,22 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             a = entities.ActivityEntity()
             a.key = app_user_ds.create_key()
             a.src = strava.SRC_STRAVA
-            a.src_key = row[0]
+            a.src_key = row.iloc[0]
             a.src_url = f"{strava.SRC_STRAVA_BASE_URL}{a.src_key}"
             a.src_descriptor = f"archive:{correlation_id}"
 
             p = this._COL_A_CSV_NAME
-            a.name = (row[col2idx[p]] or "Activity") if p not in missing else "Activity"
+            a.name = (
+                (row.iloc[col2idx[p]] or "Activity") if p not in missing else "Activity"
+            )
 
             p = this._COL_A_CSV_DESCRIPTION
-            value = row[col2idx[p]] if p not in missing else ""
+            value = row.iloc[col2idx[p]] if p not in missing else ""
             a.description = value if isinstance(value, str) else ""
 
             # Aug 31, 2013, 4:55:18 AM
             p = this._COL_A_CSV_DATE
-            data_str = row[col2idx[p]] if p not in missing else ""
+            data_str = row.iloc[col2idx[p]] if p not in missing else ""
             if data_str:
                 (
                     a.when_year,
@@ -280,15 +282,20 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
                 )
 
             p = this._COL_A_CSV_MEDIA
-            data_str = row[col2idx[p]] if p not in missing else ""
+            data_str = row.iloc[col2idx[p]] if p not in missing else ""
             a._photo_paths = []  # relative paths to media files in the archive
             if data_str and not pandas.isna(data_str):
                 a._photo_paths = [p.strip() for p in data_str.split("|") if p.strip()]
             self.logger.info(f"Photo paths of activity '{a.name}': {a._photo_paths}")
 
-            # TODO
-            # TODO photos
-            # TODO
+            p = this._COL_A_CSV_FILENAME
+            data_str = row.iloc[col2idx[p]] if p not in missing else ""
+            a._recording_path = ""
+            if data_str and not pandas.isna(data_str):
+                a._recording_path = str(data_str).strip()
+            self.logger.info(
+                f"Recording path of activity '{a.name}': {a._recording_path}"
+            )
 
             entities.evaluate_activity(entity=a, user_profile=user_profile)
 

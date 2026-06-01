@@ -18,11 +18,10 @@
 import io
 import typing
 
-from backends import dataset
-
 from mytral import app_logger as logger
 from mytral import app_user_ds
 from mytral import plugins
+from mytral.backends import dataset
 from mytral.backends import entities
 from mytral.blobstore.activity_service import ActivityBlobService
 from mytral.config import MytralConfig
