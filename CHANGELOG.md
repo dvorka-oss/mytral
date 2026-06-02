@@ -17,10 +17,16 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Added evevation chart to the activity feed.
 - Added "maximize map" action to the activity view page.
 - Added description field to symptoms so that user can specify how to cure such injury or illness.
+- Added `gender` field to the athlete profile in order to calculate metrics like TRIMP more accurately.
+- Added TRIMP calculation and chart to the `Progress` menu.
 
 ### Changed
 - Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
   converged to MyTraL's task manager, typed tasks are used from now on.
+
+### Removed**
+- Removed `Suffer Score` from the ActivityEntity and related forms and HTML code.
+
 
 ### Fixed
 - Fixed blobstore logging message which no longer specifies wrong blob type.

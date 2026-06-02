@@ -6,7 +6,7 @@
             <div class="col">
                 <span class="page-pretitle">Progress</span>
                 <h2 class="page-title">
-                    TRIMP
+                    TRIMP: TRaining IMPulse
                 </h2>
             </div>
         </div>
@@ -14,10 +14,18 @@
 
     <div class="card mt-3 mb-3">
         <div class="card-body">
-            <p class="text-muted mb-0">
-                TRIMP (Training Impulse) quantifies internal training load from session duration and heart-rate reserve.
-                Dots show daily TRIMP, while ATRIMP (7-day EMA), CTRIMP (42-day EMA) and BTRIMP/TRIMPB (CTRIMP - ATRIMP)
-                show short-term load, long-term load and balance.
+            <p>
+                Training Impulse (TRIMP) quantifies internal training load from session duration and heart-rate reserve.
+            </p>
+            <p>
+                Dots show daily TRIMP -
+                <span class="badge bg-green text-green-fg">&lt; 50 recovery/easy</span>
+                <span class="badge bg-orange text-orange-fg">50 - 120 moderate</span>
+                <span class="badge bg-red text-red-fg">&gt; 120 hard</span> -
+                while ATRIMP (Acute TRIMP, 7-day exponential moving average),
+                CTRIMP (Chronic TRIMP, 42-day exponential moving average) and
+                TRIMPB (TRIMP balance CTRIMP - ATRIMP)
+                shows balance between short-term load, long-term load i.e. delta between fitness and fatigue.
             </p>
         </div>
     </div>
@@ -72,7 +80,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="subheader">
-                        BTRIMP (TRIMPB)
+                        TRIMPB
                         <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="TRIMPB is the clean delta between your fitness and your fatigue.">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -92,15 +100,10 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">
-                Daily TRIMP with ATRIMP, CTRIMP and BTRIMP
+                Daily TRIMP with ATRIMP, CTRIMP and TRIMPB
             </h3>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <span class="badge bg-green text-green-fg">&lt; 50 recovery/easy</span>
-                <span class="badge bg-orange text-orange-fg">50 - 120 moderate</span>
-                <span class="badge bg-red text-red-fg">&gt; 120 hard</span>
-            </div>
             <div class="bokeh d-flex justify-content-center">
                 {{ div|safe }}
             </div>

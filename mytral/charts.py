@@ -3290,7 +3290,7 @@ def trimp_composite(
     daily_rows: list[dict],
     is_mobile_view: bool = False,
 ) -> tuple[str, Any]:
-    """Render TRIMP composite chart (TRIMP + ATRIMP + CTRIMP + BTRIMP)."""
+    """Render TRIMP composite chart (TRIMP + ATRIMP + CTRIMP + TRIMPB)."""
     if not daily_rows:
         return "", "<div><p>Not enough heart-rate data to compute TRIMP.</p></div>"
 
@@ -3370,7 +3370,7 @@ def trimp_composite(
         line_width=2,
         color="#d63939",
         line_dash="dashed",
-        legend_label="BTRIMP (CTRIMP - ATRIMP)",
+        legend_label="TRIMPB (CTRIMP - ATRIMP)",
     )
     hover_renderer = fig.scatter(
         x="date",
