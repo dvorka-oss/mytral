@@ -75,7 +75,6 @@ Field | Type | Default | Description
 `avg_hr` | int | 0 | Average heart rate in bpm
 `max_hr` | int | 0 | Maximum heart rate in bpm
 `min_hr` | int | 0 | Minimum heart rate in bpm
-`suffer_score` | float | 0.0 | Strava's suffer score metric
 `fitness_score` | float | 0.0 | Fitness/form score
 
 ## Body Metrics & Environment

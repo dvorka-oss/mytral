@@ -2526,7 +2526,6 @@ def _update_activity(key: str, template: str):
         form.cost.data = db_entity.cost
         form.weather.data = db_entity.weather
         form.temperature.data = db_entity.temperature
-        form.suffer_score.data = db_entity.suffer_score
         form.fitness_score.data = db_entity.fitness_score
         form.src.data = db_entity.src
         form.src_descriptor.data = db_entity.src_descriptor

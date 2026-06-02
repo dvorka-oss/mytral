@@ -177,7 +177,6 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         else:
             entity.activity_type_key = strava_sport
 
-        # TODO suffer score to easy/medium/hard
         entity.intensity = commons.INTENSITY_EASY
         strava_gear_id = dataset_item.get("gear_id", "")
         if strava_gear_id:
@@ -228,7 +227,6 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         entity.weather = ""
         entity.temperature = 0
 
-        entity.suffer_score = float(dataset_item.get("suffer_score", 0.0))
         entity.fitness_score = 0.0
 
         # src ~ import

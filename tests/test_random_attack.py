@@ -683,7 +683,6 @@ def test_generate_mytral_dataset(
                     cost=random.uniform(0.0, 100.0),
                     weather=random.choice(commons.WEATHERS)[0],
                     temperature=random.randint(-20, 50),
-                    suffer_score=random.uniform(0.0, 100.0),
                     fitness_score=random.uniform(0.0, 100.0),
                     src=config.MytralConfig.gen_takenoko(syllables=8),
                     src_descriptor=config.MytralConfig.gen_takenoko(syllables=4),

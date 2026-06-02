@@ -181,7 +181,6 @@ def test_activity_entity_cadence_backward_compat_no_cadence_key():
         "cost": 0.0,
         "weather": "",
         "temperature": 18,
-        "suffer_score": 0.0,
         "fitness_score": 0.0,
         "src": "manual",
         "src_descriptor": "",
