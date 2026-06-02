@@ -753,12 +753,15 @@ class ActivityBlobService:
                 elevation_profile = gpx_extractor.simplify_elevation_profile(
                     gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
                 )
-            summary_polyline, summary_bbox, full_polyline = (
-                gpx_extractor.encode_gps_polylines(
-                    points=gps_points,
-                    polyline_method=polyline_method,
+            if gps_points:
+                summary_polyline, summary_bbox, full_polyline = (
+                    gpx_extractor.encode_gps_polylines(
+                        points=gps_points,
+                        polyline_method=polyline_method,
+                    )
                 )
-            )
+            else:
+                summary_polyline, summary_bbox, full_polyline = "", None, ""
         except Exception as exc:
             raise BlobValidationError(
                 f"Failed to generate GPX map data for recording '{blob_key}': {exc}"

@@ -133,12 +133,12 @@ def _apply_summary(
         activity.activity_type_key = summary.activity_type_key
     if summary.when and not activity.when:
         activity.when = summary.when.strftime("%Y-%m-%d %H:%M")
-    if summary.hours is not None and activity.h == 0:
-        activity.h = summary.hours
-    if summary.minutes is not None and activity.m == 0:
-        activity.m = summary.minutes
-    if summary.seconds is not None and activity.s == 0:
-        activity.s = summary.seconds
+    if summary.hours is not None and activity.hours == 0:
+        activity.hours = summary.hours
+    if summary.minutes is not None and activity.minutes == 0:
+        activity.minutes = summary.minutes
+    if summary.seconds is not None and activity.seconds == 0:
+        activity.seconds = summary.seconds
     if summary.distance and activity.distance == 0:
         activity.distance = summary.distance
     if summary.kcal and activity.kcal == 0:

@@ -131,7 +131,8 @@ def _activity_map_data(
         return None
 
     for entry in activity.recorded_blob_keys:
-        if entities_mod.recording_ext(entry) != ".gpx":
+        ext = entities_mod.recording_ext(entry)
+        if ext not in (".gpx", ".tcx"):
             continue
 
         blob_uuid = entities_mod.recording_blob_uuid(entry)

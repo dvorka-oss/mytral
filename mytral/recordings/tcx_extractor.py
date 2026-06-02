@@ -33,6 +33,9 @@ def _parse_tcx_root(tcx_data: bytes):
     """Parse TCX bytes and return XML root element."""
     try:
         cleaned = tcx_data.lstrip(b"\xef\xbb\xbf")
+        # XML declaration must be at byte 0 for Python's XML parser;
+        # strip leading ASCII whitespace that some exporters emit.
+        cleaned = cleaned.lstrip()
         return defusedxml.ElementTree.fromstring(cleaned)
     except Exception as exc:
         raise ValueError(f"Invalid TCX XML payload: {exc}") from exc
@@ -119,8 +122,6 @@ def parse_tcx(tcx_data: bytes) -> tuple[int, int]:
             if lat is not None and lon is not None:
                 track_point_count += 1
 
-    if track_count == 0:
-        raise ValueError("TCX file contains no tracks.")
     return track_count, track_point_count
 
 
@@ -140,8 +141,6 @@ def extract_gps_points(tcx_data: bytes) -> list[tuple[float, float]]:
         except ValueError as exc:
             raise ValueError("TCX trackpoint has invalid latitude/longitude.") from exc
 
-    if not points:
-        raise ValueError("TCX file contains no valid trackpoints.")
     return points
 
 
@@ -334,5 +333,11 @@ def extract_tcx_summary(tcx_data: bytes) -> RecordingSummary:
             summary.avg_speed = round(summary.distance / total_seconds * 3.6, 2)
     elif total_distance_m > 0 and total_time_s > 0:
         summary.avg_speed = round(total_distance_m / total_time_s * 3.6, 2)
+
+    # fallback: guess activity type from pace when Sport is missing/unrecognized
+    if summary.activity_type_key == commons.AT_WORKOUT and summary.avg_speed:
+        summary.activity_type_key = commons.guess_activity_type_from_pace(
+            summary.avg_speed
+        )
 
     return summary

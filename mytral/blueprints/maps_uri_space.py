@@ -43,7 +43,8 @@ def api_activity_track_data(activity_key: str):
 
     gpx_entry = None
     for entry in activity.recorded_blob_keys:
-        if entities_mod.recording_ext(entry) == ".gpx":
+        ext = entities_mod.recording_ext(entry)
+        if ext in (".gpx", ".tcx"):
             gpx_entry = entry
             break
 

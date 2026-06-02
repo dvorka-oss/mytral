@@ -273,7 +273,7 @@ class ActivityEntity(DbEntity):
 
     # duration
     hours: int = 0
-    minutes: int = 30
+    minutes: int = 0
     seconds: int = 0
 
     distance: int = 0  # meters

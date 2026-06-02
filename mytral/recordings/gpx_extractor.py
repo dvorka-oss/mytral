@@ -478,7 +478,6 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
         summary.elevation_gain = int(elevation_gain_m)
     if total_distance_m > 0:
         summary.distance = int(total_distance_m)
-    summary.activity_type_key = commons.AT_RUN
 
     if not timestamps:
         # estimate duration from distance using 7 km/h pace when timestamps are missing
@@ -489,6 +488,20 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
             summary.hours = estimated_seconds // 3600
             summary.minutes = (estimated_seconds % 3600) // 60
             summary.seconds = estimated_seconds % 60
+        # guess activity type from pace; fall back to run
+        if total_distance_m > 0 and (
+            summary.hours or summary.minutes or summary.seconds
+        ):
+            total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
+            if total_s > 0:
+                summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
+                summary.activity_type_key = commons.guess_activity_type_from_pace(
+                    summary.avg_speed
+                )
+            else:
+                summary.activity_type_key = commons.AT_RUN
+        else:
+            summary.activity_type_key = commons.AT_RUN
         return summary
 
     # when
@@ -501,5 +514,18 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
         summary.hours = total_s // 3600
         summary.minutes = (total_s % 3600) // 60
         summary.seconds = total_s % 60
+
+    # guess activity type from pace when there are enough data; fall back to run
+    if total_distance_m > 0 and (summary.hours or summary.minutes or summary.seconds):
+        total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
+        if total_s > 0:
+            summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
+            summary.activity_type_key = commons.guess_activity_type_from_pace(
+                summary.avg_speed
+            )
+        else:
+            summary.activity_type_key = commons.AT_RUN
+    else:
+        summary.activity_type_key = commons.AT_RUN
 
     return summary

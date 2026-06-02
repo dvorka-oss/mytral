@@ -217,6 +217,28 @@ AT_PLAN = "plan"  # TODO deprecated
 # META ACTIVITY TYPES
 #
 
+
+def guess_activity_type_from_pace(avg_speed_kmh: float) -> str:
+    """Guess activity type from average speed in km/h.
+
+    Parameters
+    ----------
+    avg_speed_kmh : float
+        Average speed in km/h.
+
+    Returns
+    -------
+    str
+        Guessed activity type key (one of ``AT_WALK``, ``AT_RUN``, ``AT_RIDE``,
+        or ``AT_WORKOUT``).
+    """
+    if avg_speed_kmh < 7.0:
+        return AT_WALK
+    if avg_speed_kmh < 15.0:
+        return AT_RUN
+    return AT_RIDE
+
+
 M_AT_ALPINE_SKI = "alpine_ski"
 M_AT_CANOEING = "canoeing"  # kayak, canoe, paddleboard
 M_AT_GAMES = "games"

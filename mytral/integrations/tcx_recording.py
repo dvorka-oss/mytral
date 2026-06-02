@@ -21,6 +21,7 @@ import typing
 
 from mytral import app_logger as logger
 from mytral import app_user_ds
+from mytral import commons
 from mytral import plugins
 from mytral.backends import dataset
 from mytral.backends import entities
@@ -140,7 +141,10 @@ def apply_tcx_summary(
     """Write non-None fields from *summary* into *activity* (in-place)."""
     if not isinstance(summary, RecordingSummary):
         return
-    if summary.activity_type_key and not activity.activity_type_key:
+    if summary.activity_type_key and (
+        not activity.activity_type_key
+        or activity.activity_type_key == commons.AT_WORKOUT
+    ):
         activity.activity_type_key = summary.activity_type_key
     if summary.when:
         activity.when_year = summary.when.year

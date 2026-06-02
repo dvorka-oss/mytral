@@ -63,8 +63,10 @@ class TcxImportTask(tasks.TaskBase):
         extract_summary: bool = bool(params.get("extract_summary", False))
 
         self.log(
-            "TCX import: "
-            f"user={user_id}, activity={activity_key}, blob={source_blob_uuid}"
+            f"TCX import of its blob {source_blob_uuid} ...",
+            user=user_id,
+            activity=activity_key,
+            blob=source_blob_uuid,
         )
         self.update_progress(5)
         self.check_cancellation()

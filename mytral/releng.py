@@ -23,7 +23,6 @@ class FeatureFlags:
     # particular features
     GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"
     STRAVA_API_IMPORT = "STRAVA_API_IMPORT"
-    STRAVA_ZIP_IMPORT = "STRAVA_ZIP_IMPORT"
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
     ACOACHES = "ACOACHES"
 
@@ -31,7 +30,6 @@ class FeatureFlags:
     ENV_FF_PREFIX = "MYTRAL_FF"
     ENV_GSHEETS_DVORKA_IMPORT = f"{ENV_FF_PREFIX}_{GSHEETS_DVORKA_IMPORT}"
     ENV_STRAVA_API_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_API_IMPORT}"
-    ENV_STRAVA_ZIP_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_ZIP_IMPORT}"
     ENV_TASKS_DEV = f"{ENV_FF_PREFIX}_{TASKS_DEV}"
     ENV_ACOACHES = f"{ENV_FF_PREFIX}_{ACOACHES}"
 
@@ -46,10 +44,7 @@ class FeatureFlags:
                 FeatureFlags.ENV_GSHEETS_DVORKA_IMPORT
             ),
             FeatureFlags.STRAVA_API_IMPORT: utils.getenv_bool(
-                FeatureFlags.ENV_STRAVA_API_IMPORT
-            ),
-            FeatureFlags.STRAVA_ZIP_IMPORT: utils.getenv_bool(
-                FeatureFlags.ENV_STRAVA_ZIP_IMPORT
+                name=FeatureFlags.ENV_STRAVA_API_IMPORT, default=True
             ),
             FeatureFlags.TASKS_DEV: utils.getenv_bool(FeatureFlags.ENV_TASKS_DEV),
             FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),

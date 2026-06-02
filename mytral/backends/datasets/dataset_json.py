@@ -752,18 +752,14 @@ class JSONUserActivitiesDataset:
             old_year_ds = self._cache.user(user_id=user_id).activities_year(
                 old_target_dataset_name
             )
-            if entity.key not in old_year_ds:
-                raise ValueError(
-                    f"Unable to find the activity to update - {entity.key} not found "
-                    f"in OLD activities dataset '{old_target_dataset_name}'"
+            if entity.key in old_year_ds:
+                del old_year_ds[entity.key]
+                # write old YEAR dataset to filesystem || CUSTOM dataset file
+                self._save(
+                    ds=self._dict_2_ddict(activities=old_year_ds),
+                    user_id=user_id,
+                    dataset_name=old_target_dataset_name,
                 )
-            del old_year_ds[entity.key]
-            # write old YEAR dataset to filesystem || CUSTOM dataset file
-            self._save(
-                ds=self._dict_2_ddict(activities=old_year_ds),
-                user_id=user_id,
-                dataset_name=old_target_dataset_name,
-            )
 
         # set entity to YEAR dataset
         year_ds[entity.key] = entity

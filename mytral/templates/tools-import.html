@@ -34,6 +34,23 @@
                                 Google Sheets
                             </a>
                             {% endif %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-fit">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12h4l3 8l4 -16l3 8h4"></path>
+                                </svg>
+                                FIT
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-gpx">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-route me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                                    <path d="M17 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                                    <path d="M14 6h-4a3 3 0 0 0 -3 3v7"></path>
+                                    <path d="M14 6c0 2.667 1.333 5 4 7"></path>
+                                </svg>
+                                GPX
+                            </a>
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-mytral">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-droplets me-2">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -52,34 +69,6 @@
                                 #}
                                 MyTraL
                             </a>
-                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-fit">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                    <path d="M3 12h4l3 8l4 -16l3 8h4"></path>
-                                </svg>
-                                FIT
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-gpx">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-route me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                                    <path d="M17 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                                    <path d="M14 6h-4a3 3 0 0 0 -3 3v7"></path>
-                                    <path d="M14 6c0 2.667 1.333 5 4 7"></path>
-                                </svg>
-                                GPX
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-tcx">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-route me-2">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                    <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
-                                    <path d="M9 12v.01" />
-                                    <path d="M6 13v.01" />
-                                    <path d="M17 15l-4 -4" />
-                                    <path d="M13 15l4 -4" />
-                                </svg>
-                                TCX
-                            </a>
                             {% if is_desktop %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-polar">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heartbeat me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -89,7 +78,6 @@
                                 </svg>
                                 Polar
                             </a>
-                            {% endif %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-strava">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-zip me-2">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -111,6 +99,18 @@
                                 #}
                                 Strava
                             </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-tcx">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-route me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
+                                    <path d="M9 12v.01" />
+                                    <path d="M6 13v.01" />
+                                    <path d="M17 15l-4 -4" />
+                                    <path d="M13 15l4 -4" />
+                                </svg>
+                                TCX
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -387,7 +387,7 @@
                         {# ## GPX ####################################################### #}
                         <div id="section-gpx" class="import-section d-none">
                             <h2 class="mb-4">GPX</h2>
-                            <p class="card-subtitle mb-3">Import a GPX activity recording.</p>
+                            <p class="card-subtitle mb-3">Import a <a href="https://en.wikipedia.org/wiki/GPS_Exchange_Format" target="_blank" class="link-primary">GPX</a> activity recording.</p>
                             <div class="card card-md">
                                 <div class="card-body">
                                     <div class="h3">GPX Recording</div>
@@ -447,7 +447,7 @@
                         {# ## TCX ####################################################### #}
                         <div id="section-tcx" class="import-section d-none">
                             <h2 class="mb-4">TCX</h2>
-                            <p class="card-subtitle mb-3">Import a TCX activity recording.</p>
+                            <p class="card-subtitle mb-3">Import a <a href="https://en.wikipedia.org/wiki/Training_Center_XML" target="_blank" class="link-primary">TCX</a> activity recording.</p>
                             <div class="card card-md">
                                 <div class="card-body">
                                     <div class="h3">TCX Recording</div>
@@ -555,7 +555,7 @@
                             <h2 class="mb-4">Strava</h2>
                             <p class="card-subtitle mb-3">Import your training data from <a href="https://www.strava.com/" class="link-primary" target="_blank">Strava</a>.</p>
 
-                            {% if not ff.can("STRAVA_API_IMPORT") %}
+                            {% if ff.can("STRAVA_API_IMPORT") %}
                             <div class="card card-md">
                                 <div class="card-body">
                                     <div class="h3">Strava API (Developer Personal Access)</div>
@@ -565,7 +565,7 @@
                                         <a href="https://developers.strava.com/" class="link-primary" target="_blank">Strava API</a>.
                                         MyTraL is configured for private
                                         developer use and does <b>not</b> gather, process, or
-                                        display data from other Strava users. You are
+                                        display data of other Strava users. You are
                                         accessing <b>your own data exclusively</b>, fully
                                         complying with Strava's rules.
                                     </p>
@@ -590,7 +590,8 @@
                                     <div class="h3">Strava User ZIP Archive</div>
                                     <p class="card-subtitle mb-3">
                                         Import <b>user data</b> — activities, goals, gear, symptoms, routes and user data from
-                                        a <a href="https://www.youtube.com/watch?v=IbWMFikIGLo&t=280s" class="link-primary" target="_blank">Strava user ZIP bulk export</a>.
+                                        a <a href="https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export" class="link-primary" target="_blank">Strava user ZIP bulk export</a>
+                                        (<a href="https://www.youtube.com/watch?v=IbWMFikIGLo&t=280s" class="link-primary" target="_blank">video tutorial</a>).
                                         Extract the Strava ZIP archive and point to the resulting directory
                                         that contains <code>activities.csv</code> and other data files.
                                     </p>
