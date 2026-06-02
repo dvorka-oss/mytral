@@ -22,6 +22,7 @@ from mytral import commons
 from mytral import plugins
 from mytral import tasks
 from mytral.backends.datasets import dataset_json as dataset_json_module
+from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import strava
 from mytral.tasks.do import strava_commons
 from mytral.tasks.do import strava_gear_sync
@@ -95,6 +96,11 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
         self.check_cancellation()
 
         # purge phase: delete all src=strava activities from all datasets
+        blob_svc = blob_svc_module.ActivityBlobService(
+            store=self._blobstore,
+            dataset=self._dataset,
+            config=self._config,
+        )
         total_deleted = 0
         for ds_name in all_ds_names:
             self.check_cancellation()
@@ -113,6 +119,12 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
                 for i, key in enumerate(strava_keys):
                     if i % 10 == 0:
                         self.check_cancellation()
+                    try:
+                        blob_svc.delete_all_activity_blobs(
+                            user_id=user_id, activity_key=key
+                        )
+                    except Exception as exc:
+                        self.log(f"  Warning: failed to delete blobs for {key}: {exc}")
                     self._dataset.delete_activity(
                         user_id=user_id,
                         dataset_name=ds_name,

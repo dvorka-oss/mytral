@@ -464,6 +464,8 @@ def filter_date_range_dataset(
     src_dataset_name: str,
     dst_dataset_name: str = "",
     do_extract: bool = False,
+    *,
+    blob_service=None,
 ):
     """Filter activities of the source dataset from the given date range. Source dataset
     is either kept intact or its matching activities are deleted. New filtered dataset
@@ -488,6 +490,9 @@ def filter_date_range_dataset(
         Name of the filtered dataset.
     do_extract : bool
         Whether to delete matching entities in the source dataset.
+    blob_service : ActivityBlobService or None
+        If provided, deletes all blobs for each activity before removing
+        the activity record (only when ``do_extract`` is True).
 
     """
     app_logger.info(
@@ -551,6 +556,15 @@ def filter_date_range_dataset(
     # if requested, delete matching entities in the source dataset
     if do_extract:
         for key in matching_keys:
+            if blob_service:
+                try:
+                    blob_service.delete_all_activity_blobs(
+                        user_id=user_id, activity_key=key
+                    )
+                except Exception as exc:
+                    app_logger.warning(
+                        f"  Failed to delete blobs for activity {key}: {exc}"
+                    )
             ds.delete_activity(user_id=user_id, dataset_name=src_dataset_name, key=key)
 
         app_logger.info(

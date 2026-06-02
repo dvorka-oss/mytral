@@ -1656,6 +1656,21 @@ def settings():
                     )
                     return flask.redirect(flask.url_for("settings"))
 
+                # delete all blobs for all activities in the dataset
+                blob_svc = _blob_service()
+                activities = ds.list_activities(
+                    user_id=user_id, dataset_name=ds_name_2_delete
+                )
+                for a in activities:
+                    try:
+                        blob_svc.delete_all_activity_blobs(
+                            user_id=user_id, activity_key=a.key
+                        )
+                    except Exception as exc:
+                        app_logger.warning(
+                            f"Failed to delete blobs for activity {a.key}: {exc}"
+                        )
+
                 ds.delete_activities_dataset(
                     user_id=user_id, dataset_name=ds_name_2_delete
                 )
