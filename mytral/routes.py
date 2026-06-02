@@ -265,6 +265,30 @@ def zfill_filter(value, width=2):
     return str(value).zfill(width)
 
 
+@flask_app.template_filter("ellipsis")
+def ellipsis_filter(value, threshold=35):
+    """Truncate text in the middle with ellipsis.
+
+    Parameters
+    ----------
+    value : str
+        The text to truncate.
+    threshold : int
+        Length threshold above which truncation is applied (default: 35).
+
+    Returns
+    -------
+    str
+        Original text if shorter than threshold, otherwise truncated with
+        ellipsis in the middle.
+    """
+    text = str(value)
+    if len(text) <= threshold:
+        return text
+    half_len = (threshold - 3) // 2
+    return f"{text[:half_len]}...{text[-half_len:]}"
+
+
 # logging decorators
 @flask_app.before_request
 def _bind_request_context() -> None:

@@ -81,46 +81,46 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     )
 
     # activities.csv columns
-    _COL_A_CSV_ID = "Activity ID"  # 0
-    _COL_A_CSV_DATE = "Activity Date"  # 1
-    _COL_A_CSV_NAME = "Activity Name"  # 2
-    _COL_A_CSV_TYPE = "Activity Type"  # 3
-    _COL_A_CSV_DESCRIPTION = "Activity Description"  # 4
-    _COL_A_CSV_ELAPSED_TIME = "Elapsed Time"  # 5
-    _COL_A_CSV_DISTANCE = "Distance"  # 7: km > DUPLICATED - really? :-Z
-    _COL_A_CSV_MAX_HR = "Max Heart Rate"  # 8" float
-    _COL_A_CSV_REL_EFFORT = "Relative Effort"  # 9
-    _COL_A_CSV_COMMUTE = "Commute"  # 10: bool
-    _COL_A_CSV_PRIVATE_NOTE = "Activity Private Note"  # 10: bool
-    _COL_A_CSV_GEAR = "Activity Gear"  # 11: display name :-Z
-    _COL_A_CSV_FILENAME = "Filename"  # 12: activities/*.gpx|*.gpx.gz|*.tcx.gz
-    _COL_A_CSV_WEIGHT = "Athlete Weight"  # 13: kg / int
-    _COL_A_CSV_BIKE_WEIGHT = "Bike Weight"  # 13: kg / int
-    # _COL_A_CSV_ELAPSED_TIME = "Elapsed Time" # ?: m > DUPLICATED - really? :-Z
-    _COL_A_CSV_MOVING_TIME = "Moving Time"  # ?: s / int
-    # _COL_A_CSV_DISTANCE = "Distance" # 14: m / float > DUPLICATED - really? :-Z
-    _COL_A_MAX_SPEED = "Max Speed"  # ?: km/h / float
-    _COL_A_AVG_SPEED = "Average Speed"  # ?: km/h / float
-    _COL_A_ELEVATION_GAIN = "Elevation Gain"  # ?: m / float
-    _COL_A_ELEVATION_LOSS = "Elevation Loss"  # ?: m / float
-    _COL_A_ELEVATION_LOW = "Elevation Low"  # ?: m / float
-    _COL_A_ELEVATION_HIGH = "Elevation High"  # ?: m / float
-    _COL_A_MAX_GRADE = "Max Grade"  # ?: float
-    _COL_A_AVG_GRADE = "Average Grade"  # ?: float (+/-)
-    _COL_A_AVG_POS_GRADE = "Average Positive Grade"  # ?: float (+/-) :-Z is negative
-    _COL_A_AVG_NEG_GRADE = "Average Negative Grade"  # ?: float
-    _COL_A_AVG_CADENCE = "Average Cadence"  # ?
+    _COL_A_CSV_ID = "Activity ID"
+    _COL_A_CSV_DATE = "Activity Date"
+    _COL_A_CSV_NAME = "Activity Name"
+    _COL_A_CSV_TYPE = "Activity Type"
+    _COL_A_CSV_DESCRIPTION = "Activity Description"
+    _COL_A_CSV_DISTANCE_KM = "Distance"  # km > DUPLICATED - really? :-Z
+    _COL_A_CSV_MAX_HR = "Max Heart Rate"  # float
+    _COL_A_CSV_REL_EFFORT = "Relative Effort"
+    _COL_A_CSV_COMMUTE = "Commute"  # bool
+    _COL_A_CSV_PRIVATE_NOTE = "Activity Private Note"  # bool
+    _COL_A_CSV_A_GEAR = "Activity Gear"  # display name :-Z
+    _COL_A_CSV_FILENAME = "Filename"  # activities/*.gpx|*.gpx.gz|*.tcx.gz
+    _COL_A_CSV_WEIGHT = "Athlete Weight"  # kg / int
+    _COL_A_CSV_BIKE_WEIGHT = "Bike Weight"  # kg / int
+    _COL_A_CSV_ELAPSED_TIME = "Elapsed Time"  # m > DUPLICATED - :-Z w/ same values
+    _COL_A_CSV_ELAPSED_TIME_M = "Elapsed Time.1"  # m > DUPLICATED - really? :-Z
+    _COL_A_CSV_MOVING_TIME = "Moving Time"  # s / int
+    _COL_A_CSV_DISTANCE_M = "Distance.1"  # m / float > DUPLICATED - really? :-Z
+    _COL_A_MAX_SPEED = "Max Speed"  # km/h / float
+    _COL_A_AVG_SPEED = "Average Speed"  # km/h / float
+    _COL_A_ELEVATION_GAIN = "Elevation Gain"  # m / float
+    _COL_A_ELEVATION_LOSS = "Elevation Loss"  # m / float
+    _COL_A_ELEVATION_LOW = "Elevation Low"  # m / float
+    _COL_A_ELEVATION_HIGH = "Elevation High"  # m / float
+    _COL_A_MAX_GRADE = "Max Grade"  # float
+    _COL_A_AVG_GRADE = "Average Grade"  # float (+/-)
+    _COL_A_AVG_POS_GRADE = "Average Positive Grade"  # float (+/-) :-Z is negative
+    _COL_A_AVG_NEG_GRADE = "Average Negative Grade"  # float
+    _COL_A_AVG_CADENCE = "Average Cadence"
     _COL_A_MAX_HR = "Max Heart Rate"
     _COL_A_AVG = "Average Heart Rate"
     _COL_A_MAX_WATTS = "Max Watts"
-    _COL_A_AVG_WATTS = "Average Watts"  # ?: int
-    _COL_A_CALORIES = "Calories"  # ?: int
+    _COL_A_AVG_WATTS = "Average Watts"  # int
+    _COL_A_CALORIES = "Calories"  # int
     _COL_A_MAX_TEMPERATURE = "Max Temperature"  # ? strange units
     _COL_A_AVG_TEMPERATURE = "Average Temperature"  # ? strange units
-    # TODO ...
+    # ...
     _COL_A_CSV_BIKE = "Bike"  # actual gear ID
     _COL_A_CSV_GEAR = "Gear"  # DUPLICATED col w/ actual gear ID - ONLY if ^ not spec.
-    # TODO ...
+    # ...
     _COL_A_CSV_MEDIA = "Media"  # | separated list of photo paths
 
     _COLS_A_CSV = [
@@ -130,7 +130,8 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         _COL_A_CSV_TYPE,
         _COL_A_CSV_DESCRIPTION,
         _COL_A_CSV_ELAPSED_TIME,
-        _COL_A_CSV_DISTANCE,
+        _COL_A_CSV_DISTANCE_M,
+        _COL_A_CSV_DISTANCE_KM,
         _COL_A_CSV_MAX_HR,
         _COL_A_CSV_REL_EFFORT,
         _COL_A_CSV_COMMUTE,
@@ -280,6 +281,22 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
                 raise ValueError(
                     f"{self.log_name} unable to parse activity date from'{data_str}'"
                 )
+
+            p = this._COL_A_CSV_DISTANCE_M
+            value = row.iloc[col2idx[p]] if p not in missing else 0
+            a.distance = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
+
+            p = this._COL_A_CSV_MOVING_TIME
+            value = row.iloc[col2idx[p]] if p not in missing else 0
+            a.duration_seconds = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
 
             p = this._COL_A_CSV_MEDIA
             data_str = row.iloc[col2idx[p]] if p not in missing else ""

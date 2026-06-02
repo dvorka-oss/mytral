@@ -179,7 +179,7 @@ def test_strava_archive_plugin_parses_recording_filename(monkeypatch, tmp_path):
     row[5] = "1:00:00"
     row[6] = "42.0"
     row[7] = "150"
-    row[12] = "activities/track.gpx.gz"
+    row[13] = "activities/track.gpx.gz"
     row[-1] = "media/photo.jpg"
     frame = pandas.DataFrame([row], columns=columns)
     monkeypatch.setattr(pandas, "read_csv", lambda *args, **kwargs: frame)
