@@ -349,7 +349,6 @@ def join_datasets(
                         a_dst.avg_hr = a_src.avg_hr
                         a_dst.max_hr = a_src.max_hr
                         a_dst.min_hr = a_src.min_hr
-                        a_dst.suffer_score = a_src.suffer_score
                         a_dst.fitness_score = a_src.fitness_score
                         a_dst.src_key = a_src.key
                         a_dst.src_descriptor = a_src.src_descriptor

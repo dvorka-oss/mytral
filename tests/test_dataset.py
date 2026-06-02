@@ -64,6 +64,27 @@ def _given_mytral_ds_with_user(
 
 
 @pytest.mark.mytral
+def test_json_dataset_new_user_bootstrap_gender_default(tmp_path: pathlib.Path):
+    #
+    # GIVEN
+    #
+    _, mytral_ds, user_id, _ = _given_mytral_ds_with_user(tmp_path=tmp_path)
+
+    #
+    # WHEN
+    #
+    profile = mytral_ds.user().profile(user_id=user_id)
+
+    #
+    # THEN
+    #
+    assert profile.gender is True
+    persisted_profile = profile.to_dict()
+    assert persisted_profile[settings.UserProfile.KEY_GENDER] is True
+    print("DONE: new user bootstrap profile has gender default set to man")
+
+
+@pytest.mark.mytral
 def test_json_dataset_activities(tmp_path: pathlib.Path):
     """Test activities CRUD."""
     #

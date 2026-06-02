@@ -255,6 +255,13 @@ class UpdateProfileForm(flask_wtf.FlaskForm):
         default="USD",
     )
 
+    gender = wtforms.SelectField(
+        label="Gender",
+        validators=[validators.Optional()],
+        choices=[("true", "Man"), ("false", "Woman")],
+        default="true",
+    )
+
     bio = wtforms.TextAreaField(
         label="",
         validators=[],
@@ -906,13 +913,6 @@ class CreateActivityForm(flask_wtf.FlaskForm):
 
     ###
 
-    suffer_score = wtforms.FloatField(
-        render_kw={"placeholder": "0.0"},
-        label="Suffer score",
-        description="Subjective difficulty score indicating how hard the workout felt",
-        validators=[],
-        default=0.0,
-    )
     fitness_score = wtforms.FloatField(
         render_kw={"placeholder": "0.0"},
         label="Fitness score",
@@ -1341,7 +1341,6 @@ def from_activity_form(
     entity.cost = form.cost.data or 0.0
     entity.weather = form.weather.data
     entity.temperature = form.temperature.data or 0
-    entity.suffer_score = form.suffer_score.data or 0.0
     entity.fitness_score = form.fitness_score.data or 0.0
     entity.src = form.src.data or ""
     entity.src_descriptor = form.src_descriptor.data or ""

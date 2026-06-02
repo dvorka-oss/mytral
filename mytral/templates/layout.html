@@ -574,6 +574,13 @@
                             Athlete Metrics
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
                           </a>
+                          <a class="dropdown-item"
+                            title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
+                            href="{{ url_for('insight_trimp') }}"
+                          >
+                            TRIMP
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
+                          </a>
 
                           {% if ff.can("ACOACHES") %}
                           <a class="dropdown-item"

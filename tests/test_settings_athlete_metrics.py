@@ -203,3 +203,60 @@ def test_user_profile_from_dict_backward_compat_no_athlete_metrics():
     assert profile.athlete_metrics.max_hr == 0
     assert profile.athlete_metrics.ftp == 0.0
     print("DONE: UserProfile.from_dict() backward compat without athlete_metrics")
+
+
+@pytest.mark.mytral
+def test_user_profile_gender_defaults_to_man():
+    # GIVEN — minimal profile without explicit gender
+    profile = app_settings.UserProfile(
+        user_id="test",
+        user="test_user",
+        email="test@test.com",
+        password_enc="",
+        dataset_name="test_dataset",
+        dataset_names=["test_dataset"],
+    )
+
+    # WHEN / THEN
+    assert profile.gender is None
+    assert ("Woman" if profile.gender is False else "Man") == "Man"
+    print("DONE: UserProfile undefined gender falls back to man")
+
+
+@pytest.mark.mytral
+def test_user_profile_from_dict_gender_backward_compat_defaults_to_man():
+    # GIVEN — persisted profile without gender key
+    profile_data = {
+        "user": "old_user",
+        "height": 175,
+        "dataset_name": "old_dataset",
+    }
+
+    # WHEN
+    profile = app_settings.UserProfile.from_dict(profile_data)
+
+    # THEN
+    assert profile.gender is None
+    assert ("Woman" if profile.gender is False else "Man") == "Man"
+    print("DONE: UserProfile.from_dict() keeps optional gender and falls back to man")
+
+
+@pytest.mark.mytral
+def test_user_profile_to_dict_includes_gender():
+    # GIVEN
+    profile = app_settings.UserProfile(
+        user_id="test",
+        user="test_user",
+        email="test@test.com",
+        password_enc="",
+        dataset_name="test_dataset",
+        dataset_names=["test_dataset"],
+        gender=False,
+    )
+
+    # WHEN
+    data = profile.to_dict()
+
+    # THEN
+    assert data[app_settings.UserProfile.KEY_GENDER] is False
+    print("DONE: UserProfile.to_dict() includes gender")

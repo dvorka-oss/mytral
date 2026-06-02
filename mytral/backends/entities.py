@@ -196,7 +196,6 @@ ACTIVITY_FIELD_DEFAULTS = {
     "avg_speed": 0.0,
     "bmi": 0.0,
     "burnt_fat": 0.0,
-    "suffer_score": 0.0,
     "fitness_score": 0.0,
 }
 
@@ -307,7 +306,6 @@ class ActivityEntity(DbEntity):
     weather: str = ""  # cloudy, sunny, windy, ...
     temperature: int = 18  # celsius
 
-    suffer_score: float = 0.0
     fitness_score: float = 0.0
 
     src: str = "manual"  # manual, paper-import, strava-import, concept2-import
