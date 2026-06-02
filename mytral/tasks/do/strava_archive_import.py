@@ -199,13 +199,17 @@ class StravaArchiveImportTask(tasks.TaskBase):
         for i, activity in enumerate(activities):
             self.check_cancellation()
 
-            self.log(f"Processing activity {i}/{total} '{activity.name}'")
+            self.log(
+                f"Processing activity {i}/{total} '{activity.name}' ({activity.key})",
+                activity_key=activity.key,
+            )
 
             photo_paths = getattr(activity, "_photo_paths", [])
             if import_photos and photo_paths:
                 self.log(
                     f"  Uploading {len(photo_paths)} photo(s) for activity "
-                    f"'{activity.name}' ({activity.key})"
+                    f"'{activity.name}'",
+                    activity_key=activity.key,
                 )
 
                 uploaded_files = []
@@ -256,8 +260,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
             recording_path = getattr(activity, "_recording_path", "")
             if recording_path and import_recordings:
                 self.log(
-                    f"  Importing recording(s) for '{activity.name}' "
-                    f"({activity.key})..."
+                    f"  Importing recording(s) for '{activity.name}' ",
+                    activity_key=activity.key,
                 )
 
                 recording_status = self._import_recording(
@@ -366,7 +370,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     summary_handler=_persist_summary,
                     log=self.logger,
                 )
-            self.log(f"Imported recording for activity '{activity.name}'")
+            self.log(f"  Imported recording for activity '{activity.name}'")
             return "imported"
         except Exception as exc:
             self.log(f"  WARNING: recording import failed for {full_path}: {exc}")

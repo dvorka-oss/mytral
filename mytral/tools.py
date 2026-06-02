@@ -578,6 +578,8 @@ def prune_activities(
     filter_src: str = PRUNE_FILTER_ALL,
     filter_src_key: str = PRUNE_FILTER_ALL,
     filter_src_descriptor: str = PRUNE_FILTER_ALL,
+    *,
+    blob_service=None,
 ) -> int:
     """Remove activities from the current dataset that match **all** given filter
     criteria. A filter set to ``PRUNE_FILTER_ALL`` matches any value.
@@ -598,6 +600,9 @@ def prune_activities(
         Source key to match, or ``PRUNE_FILTER_ALL`` to skip source key filtering.
     filter_src_descriptor : str
         Source descriptor to match, or ``PRUNE_FILTER_ALL`` to skip filtering.
+    blob_service : ActivityBlobService or None
+        If provided, deletes all blobs for each activity before removing
+        the activity record.
 
     Returns
     -------
@@ -632,6 +637,15 @@ def prune_activities(
         keys_to_delete.append(a.key)
 
     for key in keys_to_delete:
+        if blob_service:
+            try:
+                blob_service.delete_all_activity_blobs(
+                    user_id=user_id, activity_key=key
+                )
+            except Exception as exc:
+                app_logger.warning(
+                    f"  Failed to delete blobs for activity {key}: {exc}"
+                )
         ds.delete_activity(user_id=user_id, dataset_name=dataset_name, key=key)
 
     app_logger.info(f"  Pruned {len(keys_to_delete)} activities")
