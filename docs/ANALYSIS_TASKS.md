@@ -45,7 +45,7 @@ Overview of the current MyTraL task system:
                                       v
       +-----------------------------------------------------------+
       |               Task Implementations (e.g.                  |
-      |               GpxImportTask, FitImportTask, …)            |
+      |               GpxImportTask, FitImportTask, ...)          |
       |   - receive: task entity, logger, log_callback            |
       |   - perform: I/O, conversion, dataset.save_activity()     |
       |   - periodically call task.check_cancellation()           |
@@ -61,7 +61,7 @@ Overview of the current MyTraL task system:
       |          ^                   |  - user(user_id)          ||
       |          |                   +---------------------------+|
       |   +-------------------+                                   |
-      |   | Cache Operations  | (cache_evict, cache_update_user_…)|
+      |   | Cache Operations  | (cache_evict, cache_update_user_) |
       |   +-------------------+                                   |
       +-----------------------------------------------------------+
 ```

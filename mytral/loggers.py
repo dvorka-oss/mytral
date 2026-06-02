@@ -50,7 +50,7 @@ def configure_structlog(debug: bool) -> None:
 
     # processors applied to every log event regardless of renderer
     shared_processors: list = [
-        # merge per-request / per-task context vars (request_id, user, …)
+        # merge per-request / per-task context vars (request_id, user, ...)
         structlog.contextvars.merge_contextvars,
         # add "level" key to the event dict
         structlog.processors.add_log_level,

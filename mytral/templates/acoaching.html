@@ -160,9 +160,9 @@
                                             {% if m.status == 'pending' %}
                                             <div class="d-flex align-items-center gap-2 text-muted" id="pending-indicator">
                                                 <div class="spinner-border spinner-border-sm" role="status">
-                                                    <span class="visually-hidden">Thinking…</span>
+                                                    <span class="visually-hidden">Thinking...</span>
                                                 </div>
-                                                <span>{{ _coach_name }} is thinking…</span>
+                                                <span>{{ _coach_name }} is thinking...</span>
                                             </div>
                                             {% elif m.status == 'error' %}
                                             <div class="text-danger">
@@ -199,11 +199,11 @@
                             <input type="hidden" name="csrf_token" value="{{ message_form.csrf_token._value() }}">
                             <div class="input-group">
                                 <textarea class="form-control" name="content" rows="2"
-                                    placeholder="{% if chat_pending %}Waiting for coach response…{% else %}Ask a follow-up question…{% endif %}"
+                                    placeholder="{% if chat_pending %}Waiting for coach response...{% else %}Ask a follow-up question…{% endif %}"
                                     {% if chat_pending %}disabled{% endif %}></textarea>
                                 <button type="submit" class="btn btn-primary" {% if chat_pending %}disabled{% endif %}>
                                     {% if chat_pending %}
-                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Thinking…
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>Thinking...
                                     {% else %}Send{% endif %}
                                 </button>
                             </div>
@@ -241,7 +241,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Your message or question</label>
                                 <textarea class="form-control" name="content" id="new-chat-content" rows="4"
-                                    placeholder="Ask your coach to analyze your recent training, suggest improvements, or help you plan your next workout…"></textarea>
+                                    placeholder="Ask your coach to analyze your recent training, suggest improvements, or help you plan your next workout..."></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary" id="send-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-send me-1"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>
@@ -340,7 +340,7 @@
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML =
-                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending…';
+                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending...';
             }
         });
     }
@@ -358,7 +358,7 @@
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML =
-                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending…';
+                    '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Sending...';
             }
         });
     }

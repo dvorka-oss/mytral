@@ -103,7 +103,7 @@ class PolarHrmImportTask(tasks.TaskBase):
             polar_hrm.PolarHrmImportPlugin.NAME
         )
         user_profile = self._dataset.profile(user_id)
-        self.log("Parsing .pdd and .hrm files…")
+        self.log("Parsing .pdd and .hrm files...")
 
         try:
             activities = plugin.import_activities(

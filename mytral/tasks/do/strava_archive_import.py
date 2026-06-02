@@ -115,7 +115,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
         user_profile = self._dataset.profile(user_id)
         correlation_id: str = params.get("correlation_id", "")
 
-        self.log("Parsing activities.csv from Strava archive…")
+        self.log("Parsing activities.csv from Strava archive...")
         self.update_progress(5)
 
         try:
