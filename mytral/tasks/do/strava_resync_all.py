@@ -20,10 +20,10 @@ import pathlib
 
 from mytral import commons
 from mytral import plugins
-from mytral import security
 from mytral import tasks
 from mytral.backends.datasets import dataset_json as dataset_json_module
 from mytral.integrations import strava
+from mytral.tasks.do import strava_commons
 from mytral.tasks.do import strava_gear_sync
 
 
@@ -65,6 +65,10 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
         params = self.task_entity.parameters
         user_id = params["user_id"]
         dataset_name = params["dataset_name"]
+        import_recordings = strava_commons._to_bool(
+            params.get("import_recordings", True)
+        )
+        import_photos = strava_commons._to_bool(params.get("import_photos", True))
 
         # safety guard - must be explicitly confirmed
         if not params.get("purge_confirmed"):
@@ -75,7 +79,8 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
 
         self.log(
             "Strava re-sync started: purging all Strava-sourced activities "
-            "from all datasets"
+            f"from all datasets (recordings={import_recordings}, "
+            f"photos={import_photos})"
         )
         self.check_cancellation()
 
@@ -128,7 +133,7 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
             f"Purge complete: {total_deleted} Strava activities deleted "
             f"from {len(all_ds_names)} datasets"
         )
-        self.update_progress(30)
+        self.update_progress(10)
         self.check_cancellation()
 
         # evict cache after bulk deletes
@@ -140,22 +145,9 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
         # import phase: re-import all activities from Strava (after_ts=0 = all)
         self.log("Starting full import from Strava (all time)...")
 
-        class _StravaCredentials:
-            pass
-
-        creds = _StravaCredentials()
-        creds.strava_access_token = security.decrypt(
-            params["access_token"], self._enc_key
+        creds = strava_commons.build_strava_credentials(
+            params, self._enc_key, with_refresh=True
         )
-        creds.strava_refresh_token = security.decrypt(
-            params["refresh_token"], self._enc_key
-        )
-        creds.strava_client_id = params["client_id"]
-        creds.strava_client_secret = security.decrypt(
-            params["client_secret"], self._enc_key
-        )
-        creds.strava_url = params.get("strava_url", "https://www.strava.com/api/v3")
-        creds.strava_auth_until = int(params.get("auth_until", 0))
 
         self.check_cancellation()
 
@@ -199,13 +191,33 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
             )
             imported += 1
             if imported % 10 == 0 or imported == total:
-                progress = 30 + int(70 * imported / total)
+                progress = 10 + int(20 * imported / total)
                 self.update_progress(progress)
                 self.log(f"Imported {imported}/{total} activities")
 
         self.log(
-            f"Re-sync complete: {imported} activities imported to '{dataset_name}'"
+            f"Import phase complete: {imported} activities imported to '{dataset_name}'"
         )
+
+        # media enrichment phase: fetch detail, recordings, photos from Strava
+        if import_recordings or import_photos:
+            self.log("Starting media enrichment phase...")
+            strava_commons.enrich_strava_activities(
+                activities=new_activities,
+                creds=creds,
+                user_id=user_id,
+                dataset_name=dataset_name,
+                import_recordings=import_recordings,
+                import_photos=import_photos,
+                total=total,
+                dataset=self._dataset,
+                blobstore=self._blobstore,
+                config=self._config,
+                log_fn=self.log,
+                logger=self.logger,
+                check_cancellation=self.check_cancellation,
+                update_progress=self.update_progress,
+            )
 
         # sync gear and relink activity gear references so no separate manual
         # gear sync step is needed after the re-import

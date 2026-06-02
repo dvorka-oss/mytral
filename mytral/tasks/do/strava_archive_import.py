@@ -20,6 +20,7 @@
 import datetime
 import gzip
 import pathlib
+import traceback
 
 from mytral import app_logger
 from mytral import plugins
@@ -28,6 +29,7 @@ from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import gpx_recording
 from mytral.integrations import strava_user_archive
 from mytral.integrations import tcx_recording
+from mytral.tasks.do import strava_commons
 
 
 class StravaArchiveImportTask(tasks.TaskBase):
@@ -76,10 +78,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
         dataset_name: str = params["dataset_name"]
         data_dir_str: str = params[StravaArchiveImportTask.DATA_DIR_KEY]
         on_conflict: str = str(params.get("on_conflict", "skip") or "skip")
-        import_photos = _to_bool(
+        import_photos = strava_commons._to_bool(
             params.get(StravaArchiveImportTask.IMPORT_PHOTOS_KEY, True)
         )
-        import_recordings = _to_bool(
+        import_recordings = strava_commons._to_bool(
             params.get(StravaArchiveImportTask.IMPORT_RECORDINGS_KEY, True)
         )
         import_from_date = _parse_iso_date_param(
@@ -197,10 +199,12 @@ class StravaArchiveImportTask(tasks.TaskBase):
         for i, activity in enumerate(activities):
             self.check_cancellation()
 
+            self.log(f"Processing activity {i}/{total} '{activity.name}'")
+
             photo_paths = getattr(activity, "_photo_paths", [])
             if import_photos and photo_paths:
                 self.log(
-                    f"Uploading {len(photo_paths)} photo(s) for activity "
+                    f"  Uploading {len(photo_paths)} photo(s) for activity "
                     f"'{activity.name}' ({activity.key})"
                 )
 
@@ -210,14 +214,16 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     # e.g. "media/abc.jpg"
                     photo_path = data_dir / rel_path
                     if not photo_path.is_file():
-                        self.log(f"  WARNING: photo file not found: {photo_path}")
+                        self.log(f"    WARNING: photo file not found: {photo_path}")
                         photos_failed += 1
                         continue
 
                     try:
                         uploaded_files.append((open(photo_path, "rb"), photo_path.name))
                     except OSError as exc:
-                        self.log(f"  WARNING: cannot open photo '{photo_path}': {exc}")
+                        self.log(
+                            f"    WARNING: cannot open photo '{photo_path}': {exc}"
+                        )
                         photos_failed += 1
 
                 if uploaded_files:
@@ -233,9 +239,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
                         photos_uploaded += len(uploaded_files)
                     except Exception as exc:
                         app_logger.warning(
-                            "StravaArchiveImportTask: photo upload failed",
+                            f"StravaArchiveImportTask: photo upload failed: {exc}",
                             activity_key=activity.key,
                             error=str(exc),
+                            traceback=traceback.format_exc(),
                         )
                         photos_failed += len(uploaded_files)
                     finally:
@@ -248,6 +255,11 @@ class StravaArchiveImportTask(tasks.TaskBase):
 
             recording_path = getattr(activity, "_recording_path", "")
             if recording_path and import_recordings:
+                self.log(
+                    f"  Importing recording(s) for '{activity.name}' "
+                    f"({activity.key})..."
+                )
+
                 recording_status = self._import_recording(
                     blob_svc=blob_svc,
                     data_dir=data_dir,
@@ -264,6 +276,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     recordings_failed += 1
             elif recording_path and not import_recordings:
                 recordings_skipped += 1
+
+            self.log(f"DONE processing activity {i}/{total} '{activity.name}'")
 
             progress = 25 + int(70 * (i + 1) / total)
             self.update_progress(progress)
@@ -414,15 +428,6 @@ def _normalized_recording_filename(recording_path: pathlib.Path) -> str:
     if suffixes[-2:] in ([".gpx", ".gz"], [".tcx", ".gz"]):
         return recording_path.with_suffix("").name
     return recording_path.name
-
-
-def _to_bool(value) -> bool:
-    """Convert form/task parameter value to bool."""
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.strip().lower() not in ("", "0", "false", "no", "off")
-    return bool(value)
 
 
 def _parse_iso_date_param(value, param_name: str) -> datetime.date | None:

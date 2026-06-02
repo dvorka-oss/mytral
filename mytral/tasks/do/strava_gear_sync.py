@@ -24,11 +24,11 @@ separate manual gear sync step is required after an activity import.
 import uuid
 
 from mytral import commons
-from mytral import security
 from mytral import settings
 from mytral import tasks
 from mytral.integrations import icommons
 from mytral.integrations import strava
+from mytral.tasks.do import strava_commons
 
 
 def _normalize(s: str) -> str:
@@ -83,6 +83,27 @@ def _score_match(strava_item: dict, gear: settings.Gear) -> int:
     return score
 
 
+def _name_exact_match(strava_item: dict, gear: settings.Gear) -> bool:
+    """Check whether Strava gear display name matches a MyTraL gear name exactly.
+
+    Parameters
+    ----------
+    strava_item : dict
+        Strava gear JSON dict.
+    gear : Gear
+        MyTraL gear entry.
+
+    Returns
+    -------
+    bool
+        True when normalized names match exactly.
+    """
+    s_name = _normalize(strava_item.get("name", ""))
+    s_nick = _normalize(strava_item.get("nickname", ""))
+    g_name = _normalize(gear.name)
+    return bool(s_name or s_nick) and (s_name == g_name or s_nick == g_name)
+
+
 class StravaGearSyncTask(tasks.TaskBase):
     """Smart-merges Strava gear into the MyTraL gear registry.
 
@@ -127,18 +148,9 @@ class StravaGearSyncTask(tasks.TaskBase):
 
         self.check_cancellation()
 
-        class _StravaCredentials:
-            pass
-
-        creds = _StravaCredentials()
-        creds.strava_access_token = security.decrypt(
-            params["access_token"], self._enc_key
+        creds = strava_commons.build_strava_credentials(
+            params, self._enc_key, with_refresh=False
         )
-        creds.strava_client_id = params["client_id"]
-        creds.strava_client_secret = security.decrypt(
-            params["client_secret"], self._enc_key
-        )
-        creds.strava_url = params.get("strava_url", "https://www.strava.com/api/v3")
 
         self.check_cancellation()
 
@@ -450,6 +462,30 @@ def run_gear_sync_and_relink(
                 f"(score={candidates[0][1]}, strava_id={strava_id})"
             )
         elif len(candidates) > 1:
+            # tiebreaker: resolve by exact display-name match when possible
+            exact_matches = [
+                g for g, _ in candidates if _name_exact_match(strava_item, g)
+            ]
+            if len(exact_matches) == 1:
+                matched_gear = exact_matches[0]
+                matched_gear.set_external_id("strava", strava_id)
+                _update_gear_from_strava(matched_gear, strava_item)
+                dataset.update_gear(
+                    user_id=user_id,
+                    gear=matched_gear,
+                    dataset_name=dataset_name,
+                )
+                strava_id_to_gear[strava_id] = matched_gear
+                strava_id_to_gear[f"{icommons.STRAVA_GEAR_PREFIX_ID}{strava_id}"] = (
+                    matched_gear
+                )
+                updated += 1
+                log_fn(
+                    f"Name-resolved ambiguous match for gear "
+                    f"'{matched_gear.name}' (strava_id={strava_id})"
+                )
+                continue
+
             names = [g.name for g, _ in candidates]
             log_fn(
                 f"Ambiguous match for Strava gear '{strava_item.get('name')}' "

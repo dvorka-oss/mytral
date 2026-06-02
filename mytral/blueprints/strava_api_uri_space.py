@@ -35,7 +35,11 @@ from mytral.routes import flask_app
 
 
 def _build_strava_task_params(
-    user_id: str, dataset_name: str, after_ts: int = 0
+    user_id: str,
+    dataset_name: str,
+    after_ts: int = 0,
+    import_recordings: bool = True,
+    import_photos: bool = True,
 ) -> dict | None:
     """Build encrypted task parameters for Strava sync.
 
@@ -72,6 +76,8 @@ def _build_strava_task_params(
         "user_id": user_id,
         "dataset_name": dataset_name,
         "after_ts": after_ts,
+        "import_recordings": import_recordings,
+        "import_photos": import_photos,
         "access_token": security.encrypt(
             user_profile.strava_access_token or "", enc_key
         ),
@@ -356,7 +362,16 @@ def strava_sync_new_to_current():
     )
     after_ts = ds_stats.ts_max if ds_stats else 0
 
-    task_params = _build_strava_task_params(user_id, dataset_name, after_ts)
+    import_recordings = flask.request.form.get("import_recordings", "1") == "1"
+    import_photos = flask.request.form.get("import_photos", "1") == "1"
+
+    task_params = _build_strava_task_params(
+        user_id,
+        dataset_name,
+        after_ts,
+        import_recordings=import_recordings,
+        import_photos=import_photos,
+    )
     if task_params is None:
         return flask.redirect(flask.url_for("strava_auth_start"))
 
@@ -373,6 +388,8 @@ def strava_sync_new_to_current():
         error_traceback=None,
         progress=0,
         parameters=task_params,
+        result_route="list_activities_year",
+        result_route_kwargs={"year": 0},
     )
 
     try:
@@ -459,7 +476,13 @@ def strava_sync_all():
     user_profile = ds.profile(user_id)
     dataset_name = user_profile.dataset_name
 
-    task_params = _build_strava_task_params(user_id, dataset_name, after_ts=0)
+    task_params = _build_strava_task_params(
+        user_id,
+        dataset_name,
+        after_ts=0,
+        import_recordings=flask.request.form.get("import_recordings", "1") == "1",
+        import_photos=flask.request.form.get("import_photos", "1") == "1",
+    )
     if task_params is None:
         return flask.redirect(flask.url_for("strava_auth_start"))
 
