@@ -4028,6 +4028,7 @@ class UserProfile:
     KEY_BORN_MONTH = "month"
     KEY_BORN_DAY = "day"
     KEY_CURRENCY = "currency"
+    KEY_GENDER = "gender"
     KEY_DATASET_NAME = "dataset_name"
     KEY_DATASET_NAMES = "dataset_names"
 
@@ -4092,6 +4093,8 @@ class UserProfile:
         athlete_metrics = AthleteMetrics.from_dict(
             profile_dict.get(UserProfile.KEY_ATHLETE_METRICS, {})
         )
+        raw_gender = profile_dict.get(UserProfile.KEY_GENDER)
+        gender = raw_gender if isinstance(raw_gender, bool) else None
 
         # fail if important keys are missing
         profile = UserProfile(
@@ -4109,6 +4112,7 @@ class UserProfile:
             born_month=born_month or 1,
             born_day=born_day or 1,
             currency=profile_dict.get(UserProfile.KEY_CURRENCY, "USD"),
+            gender=gender,
             dataset_name=profile_dict[UserProfile.KEY_DATASET_NAME],
             dataset_names=dataset_names,
             strava_url=strava_url,
@@ -4144,6 +4148,7 @@ class UserProfile:
                 UserProfile.KEY_BORN_DAY: self.born_day,
             },
             UserProfile.KEY_CURRENCY: self.currency,
+            UserProfile.KEY_GENDER: self.gender,
             UserProfile.KEY_DATASET_NAME: self.dataset_name,
             UserProfile.KEY_DATASET_NAMES: self.dataset_names,
             UserProfile.KEY_STRAVA: {
@@ -4188,6 +4193,7 @@ class UserProfile:
         born_month: int = 0,
         born_day: int = 0,
         currency: str = "USD",
+        gender: bool | None = None,
         strava_url: str = "",
         strava_client_id: str = "",
         strava_client_secret: str = "",
@@ -4248,6 +4254,8 @@ class UserProfile:
         self.born_day = born_day
         self.age = age or self.refresh_age()
         self.currency = currency  # 3-letter currency code like USD, EUR, CZK
+        # optional bool: True=man, False=woman, None=undefined
+        self.gender = gender
         self.strava_url = strava_url
         self.strava_client_id = strava_client_id
         self.strava_client_secret = strava_client_secret

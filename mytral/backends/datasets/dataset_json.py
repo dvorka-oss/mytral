@@ -1011,6 +1011,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
                 born_month=commons.BOOTSTRAP_BORN_MONTH,
                 born_day=commons.BOOTSTRAP_BORN_DAY,
                 height=commons.BOOTSTRAP_HEIGHT_CM,
+                gender=True,
             )
         )
 

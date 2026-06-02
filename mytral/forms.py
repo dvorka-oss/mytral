@@ -255,6 +255,13 @@ class UpdateProfileForm(flask_wtf.FlaskForm):
         default="USD",
     )
 
+    gender = wtforms.SelectField(
+        label="Gender",
+        validators=[validators.Optional()],
+        choices=[("true", "Man"), ("false", "Woman")],
+        default="true",
+    )
+
     bio = wtforms.TextAreaField(
         label="",
         validators=[],
