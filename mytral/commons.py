@@ -64,7 +64,7 @@ URL_ARG_ASPECT = "aspect"
 # - intensities
 # - weathers
 # - activity types
-# - ... for imports w/o user customizations
+# - ... for cross sport service mapping of imports w/o user customizations
 #
 
 # IMPROVE make it dynamic - user_weather.json
@@ -132,6 +132,7 @@ AT_KAYAK = "kayak"
 AT_PADDLE = "paddleboard"
 AT_RIDE = "ride"  # road bike
 AT_RIDE_ERG = "ride_erg"
+AT_RIDE_GRAVEL = "gravel_bike"
 AT_RIDE_HAND = "handcycle"
 AT_RIDE_MOUNTAIN = "mountain_bike"
 AT_RIDE_E = "ebike"
@@ -141,7 +142,8 @@ AT_ROW_ERG = "erg_row"  # Concept 2
 AT_RS_DP = "roller_ski_dp"  # roller ski double poling ~ soupaž/classic
 AT_RS_F = "roller_ski_f"  # roller ski free style ~ skate
 AT_RUN = "run"
-AT_RUN_VIRTUAL = "virtualrun"
+AT_RUN_TRAIL = "trail_run"
+AT_RUN_VIRTUAL = "virtual_run"
 AT_SAIL = "sail"
 AT_SKATE_ICE = "skate_ice"
 AT_SKATE_INLINE = "skate_inline"
@@ -171,10 +173,12 @@ AT_GYM = "exercise"  # calisthenics, gym, fitness, , ...
 AT_HIIT = "hiit"
 AT_MOBILITY = "mobility"
 AT_PHYSIO = "physio"  # physiotherapy, rehabilitation, ...
+AT_PILATES = "pilates"
 AT_STAIR_STEPPER = "stair_stepper"
 AT_STRETCHING = "stretching"
 AT_YOGA = "yoga"
 # AT: games
+AT_BADMINTON = "badminton"
 AT_BASEBALL = "baseball"
 AT_BASKETBALL = "basketball"
 AT_CRICKET = "cricket"
@@ -183,8 +187,12 @@ AT_FOOTBAL = "american_football"
 AT_GOLF = "golf"
 AT_HOCKEY = "hockey"
 AT_LACROSSE = "lacrosse"
+AT_PICKLEBALL = "pickleball"
+AT_RACQUETBALL = "racquetball"
 AT_RUGBY = "rugby"
 AT_SOCCER = "soccer"
+AT_SQUASH = "squash"
+AT_TABLETENNIS = "tabletennis"
 AT_TENNIS = "tennis"
 AT_VOLLEYBALL = "volleyball"
 # AT: other activities: ignore
@@ -217,6 +225,28 @@ AT_PLAN = "plan"  # TODO deprecated
 # META ACTIVITY TYPES
 #
 
+
+def guess_activity_type_from_pace(avg_speed_kmh: float) -> str:
+    """Guess activity type from average speed in km/h.
+
+    Parameters
+    ----------
+    avg_speed_kmh : float
+        Average speed in km/h.
+
+    Returns
+    -------
+    str
+        Guessed activity type key (one of ``AT_WALK``, ``AT_RUN``, ``AT_RIDE``,
+        or ``AT_WORKOUT``).
+    """
+    if avg_speed_kmh < 7.0:
+        return AT_WALK
+    if avg_speed_kmh < 15.0:
+        return AT_RUN
+    return AT_RIDE
+
+
 M_AT_ALPINE_SKI = "alpine_ski"
 M_AT_CANOEING = "canoeing"  # kayak, canoe, paddleboard
 M_AT_GAMES = "games"
@@ -239,6 +269,7 @@ M_AT_RELAX = "relax"  # wellness
 AT_TAXONOMY = {
     M_AT_RUN: [
         AT_RUN,
+        AT_RUN_TRAIL,
         AT_RUN_VIRTUAL,
     ],
     M_AT_SKI: [
@@ -252,10 +283,11 @@ AT_TAXONOMY = {
         AT_RIDE,
         AT_RIDE_E,
         AT_RIDE_ERG,
+        AT_RIDE_GRAVEL,
         AT_RIDE_HAND,
         AT_RIDE_MOUNTAIN,
-        AT_VELOMOBILE,
         AT_RIDE_VIRTUAL,
+        AT_VELOMOBILE,
     ],
     M_AT_ROW: [
         AT_ROW,
@@ -276,8 +308,9 @@ AT_TAXONOMY = {
         AT_CROSSFIT,
         AT_ELLIPTICAL,
         AT_GYM,
-        AT_STAIR_STEPPER,
         AT_HIIT,
+        AT_PILATES,
+        AT_STAIR_STEPPER,
     ],
     M_AT_HIKE: [
         AT_HIKE,
@@ -304,6 +337,7 @@ AT_TAXONOMY = {
         AT_TRIATHLON,
     ],
     M_AT_GAMES: [
+        AT_BADMINTON,
         AT_BASEBALL,
         AT_BASKETBALL,
         AT_CRICKET,
@@ -312,8 +346,12 @@ AT_TAXONOMY = {
         AT_GOLF,
         AT_HOCKEY,
         AT_LACROSSE,
+        AT_PICKLEBALL,
+        AT_RACQUETBALL,
         AT_RUGBY,
         AT_SOCCER,
+        AT_SQUASH,
+        AT_TABLETENNIS,
         AT_TENNIS,
         AT_VOLLEYBALL,
     ],

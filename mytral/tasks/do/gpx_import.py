@@ -15,12 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """Async task: import a GPX recording file and attach it to an activity."""
 
-import copy
-
 from mytral import tasks
 from mytral.blobstore import activity_service as blob_svc_module
-from mytral.recordings import gpx_extractor
-from mytral.recordings import parquet_converter
+from mytral.integrations import gpx_recording
 
 
 class GpxImportTask(tasks.TaskBase):
@@ -91,8 +88,11 @@ class GpxImportTask(tasks.TaskBase):
         # read GPX bytes from blobstore
         try:
             result = blob_svc.open_recording(user_id, activity_key, source_blob_uuid)
-            stream, _meta = result
-            gpx_data = stream.read()
+            stream, meta = result
+            try:
+                gpx_data = stream.read()
+            finally:
+                stream.close()
         except Exception as exc:
             raise RuntimeError(
                 f"Failed to read GPX blob {source_blob_uuid}: {exc}"
@@ -101,99 +101,34 @@ class GpxImportTask(tasks.TaskBase):
         self.update_progress(20)
         self.check_cancellation()
 
-        # convert to parquet
-        try:
-            parquet_bytes = parquet_converter.gpx_to_parquet(gpx_data)
-            blob_svc.save_parquet(
-                user_id=user_id,
-                activity_key=activity_key,
-                source_blob_key=source_blob_uuid,
-                parquet_data=parquet_bytes,
-            )
-            self.log(f"Parquet saved for blob {source_blob_uuid}")
-        except Exception as exc:
-            self.log(f"WARNING: Parquet conversion failed: {exc}")
-
-        self.update_progress(60)
-        self.check_cancellation()
-
-        # optional summary extraction
-        if extract_summary:
-            try:
-                summary = gpx_extractor.extract_gpx_summary(gpx_data)
-                activity = self._dataset.get_activity(
-                    user_id, dataset_name, activity_key
+        def _persist_summary(summary) -> None:
+            activity = self._dataset.get_activity(user_id, dataset_name, activity_key)
+            if activity is None:
+                raise RuntimeError(
+                    f"Activity {activity_key} not found in dataset {dataset_name}"
                 )
-                if activity is not None and summary is not None:
-                    activity_to_save = copy.deepcopy(activity)
-                    _apply_gpx_summary(activity_to_save, summary)
-                    self._dataset.update_activity(
-                        user_id=user_id,
-                        dataset_name=dataset_name,
-                        entity=activity_to_save,
-                    )
-                    self.log("Summary fields updated from GPX track")
-            except Exception as exc:
-                self.log(f"WARNING: Summary extraction failed: {exc}")
-
-        self.update_progress(75)
-        self.check_cancellation()
-
-        # pre-generate map data (polylines, elevation profile) so that the
-        # first page view of the activity is fast instead of blocking the UI
-        # for tens of seconds while the GPX is re-parsed on the request thread
-        try:
-            self.log("Generating map data...")
-            blob_svc.ensure_gpx_map_data(
+            gpx_recording.apply_gpx_summary(activity, summary)
+            self._dataset.update_activity(
                 user_id=user_id,
-                activity_key=activity_key,
-                blob_key=source_blob_uuid,
+                dataset_name=dataset_name,
+                entity=activity,
             )
-            self.log("Map data generated")
-        except Exception as exc:
-            self.log(f"WARNING: Map data generation failed: {exc}")
+
+        gpx_recording.import_gpx_recording_bytes(
+            user_id=user_id,
+            activity_key=activity_key,
+            gpx_data=gpx_data,
+            original_filename=meta.original_file_name
+            or meta.file_name
+            or (f"{source_blob_uuid}.gpx"),
+            blob_svc=blob_svc,
+            extract_summary=extract_summary,
+            summary_handler=_persist_summary if extract_summary else None,
+            log=self.logger,
+        )
 
         self.update_progress(100)
         self.log("GPX import complete")
-
-
-def _apply_gpx_summary(activity, summary) -> None:
-    """Write non-None RecordingSummary fields into *activity* in-place.
-
-    Parameters
-    ----------
-    activity :
-        ActivityEntity to update.
-    summary :
-        RecordingSummary instance.
-    """
-    if summary.activity_type_key and not activity.activity_type_key:
-        activity.activity_type_key = summary.activity_type_key
-    if summary.when:
-        # always apply the GPX timestamp - it is always more accurate than the
-        # "now" placeholder set by ActivityEntity.__post_init__ at creation time
-        activity.when_year = summary.when.year
-        activity.when_month = summary.when.month
-        activity.when_day = summary.when.day
-        activity.when_hour = summary.when.hour
-        activity.when_minute = summary.when.minute
-        activity.when_second = summary.when.second
-    if summary.hours is not None:
-        activity.hours = summary.hours
-    if summary.minutes is not None:
-        activity.minutes = summary.minutes
-    if summary.seconds is not None:
-        activity.seconds = summary.seconds
-    if summary.avg_hr and activity.avg_hr == 0:
-        activity.avg_hr = summary.avg_hr
-    if summary.max_hr and activity.max_hr == 0:
-        activity.max_hr = summary.max_hr
-    if summary.elevation_gain and activity.elevation_gain == 0:
-        activity.elevation_gain = summary.elevation_gain
-    if summary.distance and activity.distance == 0:
-        activity.distance = summary.distance
-    if summary.name_hint and not activity.name:
-        activity.name = summary.name_hint
 
 
 tasks.tasks_registry.register_task(GpxImportTask)

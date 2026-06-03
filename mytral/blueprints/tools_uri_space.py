@@ -18,11 +18,14 @@ import datetime
 
 import flask
 
+from mytral import app_blobstore
+from mytral import app_config
 from mytral import app_ds
 from mytral import app_user_ds as ds
 from mytral import commons
 from mytral import forms
 from mytral import tools
+from mytral.blobstore import activity_service as blob_svc_module
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 
@@ -40,6 +43,12 @@ def tools_prune():
         if form.validate_on_submit():
             ds.cache_evict(user_id)
 
+            blob_svc = blob_svc_module.ActivityBlobService(
+                store=app_blobstore,
+                dataset=ds,
+                config=app_config,
+            )
+
             pruned_count = tools.prune_activities(
                 user_id=user_id,
                 dataset_name=user_profile.dataset_name,
@@ -49,6 +58,7 @@ def tools_prune():
                 filter_src_key=form.src_key.data or tools.PRUNE_FILTER_ALL,
                 filter_src_descriptor=form.src_descriptor.data
                 or tools.PRUNE_FILTER_ALL,
+                blob_service=blob_svc,
             )
 
             flask.flash(
@@ -248,6 +258,12 @@ def tools_filter():
             dst_ds_name = app_ds.create_dataset_name(custom_name="")
             ds.create_activities_dataset(user_id=user_id, dataset_name=dst_ds_name)
 
+            blob_svc = blob_svc_module.ActivityBlobService(
+                store=app_blobstore,
+                dataset=ds,
+                config=app_config,
+            )
+
             dst_ds_name = tools.filter_date_range_dataset(
                 user_id=user_id,
                 ds=ds,
@@ -256,6 +272,7 @@ def tools_filter():
                 src_dataset_name=src_dataset_name,
                 dst_dataset_name=dst_ds_name,
                 do_extract=bool(form.do_extract.data),
+                blob_service=blob_svc,
             )
 
             # switch to filtered dataset & force reload

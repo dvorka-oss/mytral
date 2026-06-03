@@ -44,6 +44,7 @@ from mytral.blobstore.validation import validate_photo
 from mytral.blobstore.validation import validate_recording
 from mytral.config import MytralConfig
 from mytral.recordings import gpx_extractor
+from mytral.recordings import tcx_extractor
 
 
 def _now_iso() -> str:
@@ -678,8 +679,9 @@ class ActivityBlobService:
         blob_key: str,
         *,
         refresh_legacy: bool = False,
+        polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
     ) -> BlobMetadata:
-        """Ensure GPX map metadata exists for the selected recording blob.
+        """Ensure GPX/TCX map metadata exists for the selected recording blob.
 
         Parameters
         ----------
@@ -707,7 +709,7 @@ class ActivityBlobService:
             )
 
         meta = self._store.get_blob_metadata(user_id=user_id, blob_key=blob_key)
-        if meta.extension != ".gpx":
+        if meta.extension not in {".gpx", ".tcx"}:
             return meta
 
         if meta.summary_polyline and meta.summary_bbox:
@@ -739,14 +741,27 @@ class ActivityBlobService:
         track_count = meta.track_count
         track_point_count = meta.track_point_count
         try:
-            track_count, track_point_count = parse_gpx(data=gpx_data)
-            gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-            summary_polyline, summary_bbox, full_polyline = (
-                gpx_extractor.encode_gps_polylines(points=gps_points)
-            )
-            elevation_profile = gpx_extractor.simplify_elevation_profile(
-                gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
-            )
+            if meta.extension == ".tcx":
+                track_count, track_point_count = tcx_extractor.parse_tcx(gpx_data)
+                gps_points = tcx_extractor.extract_gps_points(gpx_data)
+                elevation_profile = gpx_extractor.simplify_elevation_profile(
+                    tcx_extractor.extract_elevation_profile(gpx_data)
+                )
+            else:
+                track_count, track_point_count = parse_gpx(data=gpx_data)
+                gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
+                elevation_profile = gpx_extractor.simplify_elevation_profile(
+                    gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
+                )
+            if gps_points:
+                summary_polyline, summary_bbox, full_polyline = (
+                    gpx_extractor.encode_gps_polylines(
+                        points=gps_points,
+                        polyline_method=polyline_method,
+                    )
+                )
+            else:
+                summary_polyline, summary_bbox, full_polyline = "", None, ""
         except Exception as exc:
             raise BlobValidationError(
                 f"Failed to generate GPX map data for recording '{blob_key}': {exc}"
@@ -857,6 +872,8 @@ class ActivityBlobService:
 
                     hrm_dict = polar_hrm.parse_hrm(data.decode("utf-8", "ignore"))
                     parquet_bytes = parquet_converter.hrm_to_parquet(hrm_dict)
+                elif ext == ".tcx":
+                    parquet_bytes = parquet_converter.tcx_to_parquet(data)
                 else:
                     # unknown format, skip parquet generation
                     app_logger.warning(

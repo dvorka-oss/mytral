@@ -240,11 +240,17 @@
                                 <td{% if g.retired %} class="text-muted"{% endif %}>
                                     <b{% if g.retired %} style="text-decoration: line-through;"{% endif %}>
                                         <a href="{{ url_for('settings_gear_get', key=g.key) }}">{{ g.name }}</a>
+                                        {% if g.has_external_id("strava") %}
+                                        <span title="Strava ID: {{ g.get_external_id('strava') }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circles-relation">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                <path d="M9.183 6.117a6 6 0 1 0 4.511 3.986" />
+                                                <path d="M14.813 17.883a6 6 0 1 0 -4.496 -3.954" />
+                                            </svg>
+                                        </span>
+                                        {% endif %}
                                     </b>
 
-                                    {% if g.has_external_id("strava") %}
-                                    <img src="{{ url_for('static', filename='images/strava-logo-20x20.png') }}" width="15" height="15" title="{{ g.get_external_id('strava') }}">
-                                    {% endif %}
 
                                     {% set active_components = g.get_components() %}
                                     {% if active_components %}

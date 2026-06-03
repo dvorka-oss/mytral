@@ -43,6 +43,9 @@ from mytral.tasks.do import fit_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
 from mytral.tasks.do import polar_hrm_import
+from mytral.tasks.do import strava_archive_import
+from mytral.tasks.do import tcx_directory_import
+from mytral.tasks.do import tcx_import
 
 #
 # helpers
@@ -73,9 +76,23 @@ def _build_gpx_import_form(user_id: str) -> forms.ImportGpxForm:
     return form
 
 
+def _build_tcx_import_form(user_id: str) -> forms.ImportTcxForm:
+    """Instantiate TCX import form with dynamic activity type choices."""
+    form = forms.ImportTcxForm()
+    form.activity_type.choices = _recording_import_activity_type_choices(user_id)
+    return form
+
+
 def _build_gpx_directory_import_form(user_id: str) -> forms.ImportGpxDirectoryForm:
     """Instantiate GPX directory import form with dynamic activity type choices."""
     form = forms.ImportGpxDirectoryForm()
+    form.sport_type.choices = _recording_import_activity_type_choices(user_id)
+    return form
+
+
+def _build_tcx_directory_import_form(user_id: str) -> forms.ImportTcxDirectoryForm:
+    """Instantiate TCX directory import form with dynamic activity type choices."""
+    form = forms.ImportTcxDirectoryForm()
     form.sport_type.choices = _recording_import_activity_type_choices(user_id)
     return form
 
@@ -470,9 +487,12 @@ def tool_import():
         import_gsheets_all_years_csv_form=forms.ImportGsheetsAllYearsCsvForm(),
         import_mytral_json_form=forms.ImportMytralJsonForm(),
         import_polar_hrm_form=forms.ImportPolarHrmForm(),
+        import_strava_archive_form=forms.ImportStravaArchiveForm(),
         import_fit_form=_build_fit_import_form(user_id),
         import_gpx_form=_build_gpx_import_form(user_id),
+        import_tcx_form=_build_tcx_import_form(user_id),
         import_gpx_directory_form=_build_gpx_directory_import_form(user_id),
+        import_tcx_directory_form=_build_tcx_directory_import_form(user_id),
         is_desktop=app_config.incarnation == _config_mod.MytralIncarnation.DESKTOP,
     )
 
@@ -909,6 +929,100 @@ def tool_import_polar_hrm():
         return flask.redirect(flask.url_for("tool_import"))
 
 
+@flask_app.route("/app/tools/import/strava/archive", methods=["POST"])
+def tool_import_strava_archive():
+    """Submit an async Strava archive import task.
+
+    Desktop-only: requires a local filesystem path.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    # desktop-only guard
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+        err_msg = "Strava archive import is only available in the desktop version."
+        app_logger.error(err_msg)
+        flask.flash(err_msg, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    form = forms.ImportStravaArchiveForm()
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    data_dir = form.data_dir.data.strip()
+    if not os.path.isdir(data_dir):
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message=(
+                f"The specified Strava archive directory does not exist: {data_dir}"
+            ),
+            back_endpoint="tool_import",
+        )
+
+    correlation_id = str(uuid.uuid4())
+    import_from_date = (form.import_from_date.data or "").strip()
+    import_to_date = (form.import_to_date.data or "").strip()
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=strava_archive_import.StravaArchiveImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": ds.profile(user_id).dataset_name,
+            strava_archive_import.StravaArchiveImportTask.DATA_DIR_KEY: data_dir,
+            "on_conflict": form.on_conflict.data,
+            strava_archive_import.StravaArchiveImportTask.IMPORT_PHOTOS_KEY: (
+                form.import_photos.data
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_RECORDINGS_KEY: (
+                form.import_recordings.data
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_FROM_DATE_KEY: (
+                import_from_date
+            ),
+            strava_archive_import.StravaArchiveImportTask.IMPORT_TO_DATE_KEY: (
+                import_to_date
+            ),
+            "correlation_id": correlation_id,
+        },
+        is_cancelled=False,
+    )
+
+    try:
+        task_id = app_task_manager.executor.submit(task_entity)
+        flask.flash(
+            f"Strava archive import started (task {task_id}). "
+            "Check the Tasks page for progress.",
+            "success",
+        )
+        return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+    except Exception as exc:
+        app_logger.exception(
+            "Failed to submit Strava archive import task",
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
+        flask.flash(f"Failed to start Strava archive import: {exc}", "error")
+        return flask.redirect(flask.url_for("tool_import"))
+
+
 @flask_app.route("/app/tools/import/fit", methods=["POST"])
 def tool_import_fit():
     """Create an activity from an uploaded FIT file and queue processing task."""
@@ -1071,6 +1185,87 @@ def tool_import_gpx():
     return flask.redirect(flask.url_for("task_detail", task_id=task_id))
 
 
+@flask_app.route("/app/tools/import/tcx", methods=["POST"])
+def tool_import_tcx():
+    """Create an activity from an uploaded TCX file and queue processing task."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    form = _build_tcx_import_form(user_id)
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    user_profile = ds.profile(user_id)
+    tcx_file = form.recording_file.data
+    tcx_file.stream.seek(0)
+    activity = be_entities.ActivityEntity()
+    activity.key = ds.create_key()
+    activity.name = (
+        form.activity_name.data.strip()
+        if form.activity_name.data and form.activity_name.data.strip()
+        else os.path.splitext(tcx_file.filename or "TCX import")[0]
+    )
+    activity.activity_type_key = commons.AT_WORKOUT
+    if form.activity_type.data:
+        activity.activity_type_key = form.activity_type.data
+    activity.src = "tcx-import"
+    activity.src_descriptor = "tools-import"
+    ds.create_activity(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        entity=activity,
+    )
+
+    blob_svc = _blob_svc_module.ActivityBlobService(
+        store=mytral.app_blobstore,
+        dataset=ds,
+        config=app_config,
+    )
+    meta = blob_svc.upload_recording(
+        user_id=user_id,
+        activity_key=activity.key,
+        uploaded_file=tcx_file.stream,
+        original_filename=tcx_file.filename or "import.tcx",
+        content_type=tcx_file.content_type or "application/octet-stream",
+    )
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=tcx_import.TcxImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": user_profile.dataset_name,
+            "activity_key": activity.key,
+            "source_blob_uuid": meta.blob_key,
+            "blob_key": meta.blob_key,
+            "extract_summary": True,
+        },
+        is_cancelled=False,
+        result_route="get_activity",
+        result_route_kwargs={"key": activity.key},
+    )
+    task_id = app_task_manager.executor.submit(task_entity)
+    flask.flash(
+        f"TCX import queued (task {task_id}) for activity {activity.key}", "success"
+    )
+    return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+
+
 @flask_app.route("/app/tools/import/gpx/directory", methods=["POST"])
 def tool_import_gpx_directory():
     """Submit an async GPX directory import task.
@@ -1162,4 +1357,94 @@ def tool_import_gpx_directory():
             "Failed to submit GPX directory import task", error=str(exc)
         )
         flask.flash(f"Failed to start GPX directory import: {exc}", "error")
+        return flask.redirect(flask.url_for("tool_import"))
+
+
+@flask_app.route("/app/tools/import/tcx/directory", methods=["POST"])
+def tool_import_tcx_directory():
+    """Submit an async TCX directory import task."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+        flask.flash(
+            "TCX directory import is only available in the desktop version.",
+            "warning",
+        )
+        return flask.redirect(flask.url_for("tool_import"))
+
+    form = _build_tcx_directory_import_form(user_id)
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    data_dir = form.data_dir.data.strip()
+    if not data_dir:
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message="TCX directory path cannot be empty or whitespace-only.",
+            back_endpoint="tool_import",
+        )
+    if not os.path.isabs(data_dir):
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message="TCX directory path must be absolute (e.g. /home/user/tcx).",
+            back_endpoint="tool_import",
+        )
+    if not os.path.isdir(data_dir):
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message=f"The specified TCX directory does not exist: {data_dir}",
+            back_endpoint="tool_import",
+        )
+
+    correlation_id = str(uuid.uuid4())
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=tcx_directory_import.TcxDirectoryImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": ds.profile(user_id).dataset_name,
+            "data_dir": data_dir,
+            "sport_type": form.sport_type.data,
+            "on_conflict": form.on_conflict.data,
+            "correlation_id": correlation_id,
+        },
+        is_cancelled=False,
+    )
+
+    try:
+        task_id = app_task_manager.executor.submit(task_entity)
+        flask.flash(
+            f"TCX directory import started (task {task_id}). "
+            "Check the Tasks page for progress.",
+            "success",
+        )
+        return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+    except Exception as exc:
+        app_logger.exception(
+            "Failed to submit TCX directory import task", error=str(exc)
+        )
+        flask.flash(f"Failed to start TCX directory import: {exc}", "error")
         return flask.redirect(flask.url_for("tool_import"))

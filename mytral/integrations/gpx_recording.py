@@ -18,16 +18,16 @@
 import io
 import typing
 
-from backends import dataset
-
 from mytral import app_logger as logger
 from mytral import app_user_ds
 from mytral import plugins
+from mytral.backends import dataset
 from mytral.backends import entities
 from mytral.blobstore.activity_service import ActivityBlobService
 from mytral.config import MytralConfig
 from mytral.recordings import gpx_extractor
 from mytral.recordings import parquet_converter
+from mytral.recordings.models import RecordingSummary
 
 GPX_IMPORT_SRC = "gpx-import"
 GPX_TASK_TYPE = "gpx_import"
@@ -78,42 +78,112 @@ class GpxImportPlugin(plugins.ActivitiesImportPlugin):
         str
             Blob UUID of the newly stored GPX recording.
         """
-        meta = blob_svc.upload_recording(
+
+        def _persist_summary(summary: gpx_extractor.RecordingSummary) -> None:
+            ds: dataset.UserDataset = app_user_ds.get_user_ds(user_id)
+            activity: entities.ActivityEntity = ds.activities.by_key[activity_key]
+            apply_gpx_summary(activity, summary)
+            ds.save_activity(activity)
+
+        return import_gpx_recording_bytes(
             user_id=user_id,
             activity_key=activity_key,
-            uploaded_file=io.BytesIO(gpx_data),
+            gpx_data=gpx_data,
             original_filename=original_filename,
-            content_type="application/gpx+xml",
+            blob_svc=blob_svc,
+            extract_summary=extract_summary,
+            summary_handler=_persist_summary if extract_summary else None,
+            polyline_method=getattr(
+                self._config,
+                "gpx_polyline_method",
+                gpx_extractor.GPX_POLYLINE_METHOD,
+            ),
+            log=logger,
         )
-        blob_key = meta.blob_key
 
+
+def import_gpx_recording_bytes(
+    user_id: str,
+    activity_key: str,
+    gpx_data: bytes,
+    original_filename: str,
+    blob_svc: ActivityBlobService,
+    *,
+    extract_summary: bool = False,
+    summary_handler: typing.Callable[[RecordingSummary], None] | None = None,
+    polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
+    log=logger,
+) -> str:
+    """Store a GPX recording and optionally enrich the owning activity.
+
+    Parameters
+    ----------
+    user_id : str
+        Owning user identifier.
+    activity_key : str
+        Target activity key.
+    gpx_data : bytes
+        Raw GPX payload.
+    original_filename : str
+        Original filename for metadata and validation.
+    blob_svc : ActivityBlobService
+        Blob service instance used for persistence.
+    extract_summary : bool
+        When True, extract a summary and pass it to *summary_handler*.
+    summary_handler : Callable[[RecordingSummary], None] | None
+        Callback used to persist GPX summary fields.
+    log :
+        Logger used for warnings.
+
+    Returns
+    -------
+    str
+        Blob UUID of the stored GPX recording.
+    """
+    meta = blob_svc.upload_recording(
+        user_id=user_id,
+        activity_key=activity_key,
+        uploaded_file=io.BytesIO(gpx_data),
+        original_filename=original_filename,
+        content_type="application/gpx+xml",
+    )
+    blob_key = meta.blob_key
+
+    try:
+        parquet_bytes = parquet_converter.gpx_to_parquet(gpx_data)
+        blob_svc.save_parquet(
+            user_id=user_id,
+            activity_key=activity_key,
+            source_blob_key=blob_key,
+            parquet_data=parquet_bytes,
+        )
+    except Exception as exc:
+        log.warning(f"GPX→Parquet conversion failed for {blob_key}: {exc}")
+
+    if extract_summary:
         try:
-            parquet_bytes = parquet_converter.gpx_to_parquet(gpx_data)
-            blob_svc.save_parquet(
-                user_id=user_id,
-                activity_key=activity_key,
-                source_blob_key=blob_key,
-                parquet_data=parquet_bytes,
-            )
+            summary = gpx_extractor.extract_gpx_summary(gpx_data)
+            if summary is not None and summary_handler is not None:
+                summary_handler(summary)
         except Exception as exc:
-            logger.warning(f"GPX→Parquet conversion failed for {blob_key}: {exc}")
+            log.warning(f"GPX summary extraction failed for {blob_key}: {exc}")
 
-        if extract_summary:
-            try:
-                summary = gpx_extractor.extract_gpx_summary(gpx_data)
-                ds: dataset.UserDataset = app_user_ds.get_user_ds(user_id)
-                activity: entities.ActivityEntity = ds.activities.by_key[activity_key]
-                _apply_summary(activity, summary)
-                ds.save_activity(activity)
-            except Exception as exc:
-                logger.warning(f"GPX summary extraction failed for {blob_key}: {exc}")
+    try:
+        blob_svc.ensure_gpx_map_data(
+            user_id=user_id,
+            activity_key=activity_key,
+            blob_key=blob_key,
+            polyline_method=polyline_method,
+        )
+    except Exception as exc:
+        log.warning(f"GPX map generation failed for {blob_key}: {exc}")
 
-        return blob_key
+    return blob_key
 
 
-def _apply_summary(
+def apply_gpx_summary(
     activity: entities.ActivityEntity,
-    summary: "gpx_extractor.RecordingSummary",
+    summary: RecordingSummary,
 ) -> None:
     """Write non-None fields from *summary* into *activity* (in-place).
 
@@ -124,20 +194,25 @@ def _apply_summary(
     summary : RecordingSummary
         Extracted summary values.
     """
-    from mytral.recordings.models import RecordingSummary
-
     if not isinstance(summary, RecordingSummary):
         return
     if summary.activity_type_key and not activity.activity_type_key:
         activity.activity_type_key = summary.activity_type_key
-    if summary.when and not activity.when:
-        activity.when = summary.when.strftime("%Y-%m-%d %H:%M")
-    if summary.hours is not None and activity.h == 0:
-        activity.h = summary.hours
-    if summary.minutes is not None and activity.m == 0:
-        activity.m = summary.minutes
-    if summary.seconds is not None and activity.s == 0:
-        activity.s = summary.seconds
+    if summary.when:
+        activity.when_year = summary.when.year
+        activity.when_month = summary.when.month
+        activity.when_day = summary.when.day
+        activity.when_hour = summary.when.hour
+        activity.when_minute = summary.when.minute
+        activity.when_second = summary.when.second
+    if summary.hours is not None and activity.hours == 0:
+        activity.hours = summary.hours
+    if summary.minutes is not None and activity.minutes == 0:
+        activity.minutes = summary.minutes
+    if summary.seconds is not None and activity.seconds == 0:
+        activity.seconds = summary.seconds
+    if summary.distance and activity.distance == 0:
+        activity.distance = summary.distance
     if summary.avg_hr and activity.avg_hr == 0:
         activity.avg_hr = summary.avg_hr
     if summary.max_hr and activity.max_hr == 0:

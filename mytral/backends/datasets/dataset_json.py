@@ -640,6 +640,88 @@ class JSONUserActivitiesDataset:
 
         return entity
 
+    def create_activities(
+        self,
+        user_id: str,
+        dataset_name: str,
+        entity_list: list[entities.ActivityEntity],
+    ) -> list[entities.ActivityEntity]:
+        """Bulk creation of activities:
+
+        - activities are clustered by year
+        - activities w/ the same year are routed to their target dataset files for year
+
+        """
+        result: list[entities.ActivityEntity] = []
+
+        today = datetime.datetime.now()
+
+        # STEP: cluster activities by year
+        a2year: dict[int, list[entities.ActivityEntity]] = {}
+        for e in entity_list:
+            when_year = e.when_year if isinstance(e.when_year, int) else today.year
+            upper_year_limit = datetime.date.today().year + 50
+            if not (1900 < when_year < upper_year_limit):
+                raise RuntimeError(
+                    f"Activity's year is out of range: '{when_year}', most "
+                    f"probably an error and therefore the activity cannot be saved, "
+                    f"because such dataset file does NOT exist and will not be created."
+                )
+
+            if when_year not in a2year:
+                a2year[when_year] = []
+            a2year[when_year].append(e)
+
+        # STEP: get datasets for years > save clusters
+        for y in a2year:
+            pivot_a = a2year[y][0]
+            target_dataset_name = self._ds_name_for_activity(
+                dataset_name=dataset_name,
+                entity=pivot_a,
+            )
+            # load YEAR datasets from filesystem to cache, refresh LIFELONG/CUSTOM
+            self._load(user_id=user_id, dataset_name=dataset_name)
+            # get YEAR dataset from cache
+            year_ds = self._cache.user(user_id=user_id).activities_year(
+                target_dataset_name
+            )
+
+            # STEP: add ALL activities of the year to the YEAR dataset
+            for a in a2year[y]:
+                year_ds[a.key] = a
+                result.append(a)
+
+            # STEP: exactly 1 write per YEAR dataset to filesystem || CUSTOM ds file
+            self._save(
+                ds=self._dict_2_ddict(activities=year_ds),
+                user_id=user_id,
+                dataset_name=target_dataset_name,
+            )
+            # LIFELONG (in-memory only)
+            lifelong_ds = self._cache.user(user_id=user_id).activities(
+                dataset_name=dataset_name
+            )
+            for a in a2year[y]:
+                lifelong_ds[a.key] = a  # add/set, do not re-merge all YEARS - faster
+
+                # STEP: update gear / component usage
+                # - IMPROVE: consider checking whether activities even has a gear
+                if a.gears:
+                    for gear_key in a.gears:
+                        self._update_gear_component_usage(
+                            user_id=user_id,
+                            dataset_name=dataset_name,
+                            gear_key=gear_key,
+                            activity_distance_meters=a.distance or 0,
+                            activity_time_seconds=a.duration_seconds or 0,
+                            activity_timestamp=a.when or "",
+                        )
+
+            # STEP: on behalf of ALL years - update YEAR caches -> evict indices
+            self._cache.user(user_id).evict_on_activity_cud()
+
+        return result
+
     def update_activity(
         self,
         user_id: str,
@@ -670,18 +752,14 @@ class JSONUserActivitiesDataset:
             old_year_ds = self._cache.user(user_id=user_id).activities_year(
                 old_target_dataset_name
             )
-            if entity.key not in old_year_ds:
-                raise ValueError(
-                    f"Unable to find the activity to update - {entity.key} not found "
-                    f"in OLD activities dataset '{old_target_dataset_name}'"
+            if entity.key in old_year_ds:
+                del old_year_ds[entity.key]
+                # write old YEAR dataset to filesystem || CUSTOM dataset file
+                self._save(
+                    ds=self._dict_2_ddict(activities=old_year_ds),
+                    user_id=user_id,
+                    dataset_name=old_target_dataset_name,
                 )
-            del old_year_ds[entity.key]
-            # write old YEAR dataset to filesystem || CUSTOM dataset file
-            self._save(
-                ds=self._dict_2_ddict(activities=old_year_ds),
-                user_id=user_id,
-                dataset_name=old_target_dataset_name,
-            )
 
         # set entity to YEAR dataset
         year_ds[entity.key] = entity
@@ -1206,6 +1284,18 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
             user_id=user_id,
             dataset_name=dataset_name,
             entity=entity,
+        )
+
+    def create_activities(
+        self,
+        user_id: str,
+        dataset_name: str,
+        entity_list: list[entities.ActivityEntity],
+    ) -> list[entities.ActivityEntity]:
+        return self._activities_dataset.create_activities(
+            user_id=user_id,
+            dataset_name=dataset_name,
+            entity_list=entity_list,
         )
 
     def update_activity(

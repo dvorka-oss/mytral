@@ -512,6 +512,26 @@ class UserActivityTypes:
                 color="indigo",
                 key=commons.AT_SWIM,
             ),
+            ActivityType(
+                name="Trail run",
+                is_distance=True,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏃",
+                color="brown",
+                key=commons.AT_RUN_TRAIL,
+            ),
+            ActivityType(
+                name="Gravel bike",
+                is_distance=True,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🚴",
+                color="green",
+                key=commons.AT_RIDE_GRAVEL,
+            ),
             #
             # activity_type_key: exercise
             #
@@ -1037,6 +1057,16 @@ class UserActivityTypes:
                 key=commons.AT_YOGA,
             ),
             ActivityType(
+                name="Pilates",
+                is_distance=False,
+                is_exercise=True,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🤸",
+                color="purple",
+                key=commons.AT_PILATES,
+            ),
+            ActivityType(
                 name="Baseball",
                 is_distance=False,
                 is_exercise=False,
@@ -1155,6 +1185,56 @@ class UserActivityTypes:
                 emoji="🏐",
                 color="yellow",
                 key=commons.AT_VOLLEYBALL,
+            ),
+            ActivityType(
+                name="Badminton",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏸",
+                color="green",
+                key=commons.AT_BADMINTON,
+            ),
+            ActivityType(
+                name="Pickleball",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="yellow",
+                key=commons.AT_PICKLEBALL,
+            ),
+            ActivityType(
+                name="Racquetball",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="blue",
+                key=commons.AT_RACQUETBALL,
+            ),
+            ActivityType(
+                name="Squash",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="green",
+                key=commons.AT_SQUASH,
+            ),
+            ActivityType(
+                name="Table tennis",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏓",
+                color="red",
+                key=commons.AT_TABLETENNIS,
             ),
             ActivityType(
                 name="Rock climb",
@@ -1768,7 +1848,11 @@ class UserGear:
     """Custom gear defined by the user is aggregated from multiple sources:
 
     - user profile: gear defined by the user in MyTraL
-    - strava: gear imported from Strava
+
+    3rd party gear import and mapping cross services like Strava/Garmin/*:
+
+    - external_ids map: service > gear ID in that service
+    - Strava: gear imported from Strava
 
     Gear is merged as follows:
 
@@ -1785,6 +1869,11 @@ class UserGear:
     - a gear which is used by 1 or more activities in ``lifelong`` cannot be deleted
 
     """
+
+    SERVICE_STRAVA = "strava"
+    SERVICE_GARMIN_CONNECT = "garmin_connect"
+    SERVICE_POLAR_FLOW = "polar_flow"
+    SERVICE_POLAR_PPP = "polar_ppp"
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":

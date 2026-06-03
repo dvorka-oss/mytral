@@ -22,9 +22,9 @@ import flask
 import pytest
 
 from mytral import charts
-from mytral import routes
 from mytral import settings
 from mytral.backends import entities
+from mytral.blueprints import trimp_uri_space
 
 
 def _activity(
@@ -69,19 +69,19 @@ def test_calc_activity_trimp_gender_and_none_fallback():
     )
 
     # WHEN
-    trimp_man = routes._calc_activity_trimp(
+    trimp_man = trimp_uri_space._calc_activity_trimp(
         activity=activity,
         hr_rest=60.0,
         hr_max=190.0,
         is_man=True,
     )
-    trimp_woman = routes._calc_activity_trimp(
+    trimp_woman = trimp_uri_space._calc_activity_trimp(
         activity=activity,
         hr_rest=60.0,
         hr_max=190.0,
         is_man=False,
     )
-    rows_none_gender = routes._calc_daily_trimp_rows(
+    rows_none_gender = trimp_uri_space._calc_daily_trimp_rows(
         activities=[activity],
         user_profile=profile,
         resting_hr_fallback=60.0,
@@ -103,7 +103,7 @@ def test_calc_activity_trimp_uses_fractional_minutes():
     expected = 1.5 * hrr * (0.65 * math.exp(1.92 * hrr))
 
     # WHEN
-    trimp = routes._calc_activity_trimp(
+    trimp = trimp_uri_space._calc_activity_trimp(
         activity=activity,
         hr_rest=60.0,
         hr_max=180.0,
@@ -144,7 +144,7 @@ def test_daily_trimp_rows_aggregate_gaps_and_ema():
     ]
 
     # WHEN
-    rows = routes._calc_daily_trimp_rows(
+    rows = trimp_uri_space._calc_daily_trimp_rows(
         activities=activities,
         user_profile=profile,
         resting_hr_fallback=60.0,
@@ -185,7 +185,7 @@ def test_daily_trimp_rows_fallbacks_and_skips():
     ]
 
     # WHEN
-    rows = routes._calc_daily_trimp_rows(
+    rows = trimp_uri_space._calc_daily_trimp_rows(
         activities=activities,
         user_profile=profile,
         resting_hr_fallback=60.0,
@@ -220,13 +220,13 @@ def test_daily_trimp_rows_are_order_invariant():
     activities_desc = list(reversed(activities_asc))
 
     # WHEN
-    rows_asc = routes._calc_daily_trimp_rows(
+    rows_asc = trimp_uri_space._calc_daily_trimp_rows(
         activities=activities_asc,
         user_profile=profile,
         resting_hr_fallback=60.0,
         profile_max_hr_fallback=190.0,
     )
-    rows_desc = routes._calc_daily_trimp_rows(
+    rows_desc = trimp_uri_space._calc_daily_trimp_rows(
         activities=activities_desc,
         user_profile=profile,
         resting_hr_fallback=60.0,
@@ -288,15 +288,17 @@ def test_insight_trimp_route_renders(monkeypatch):
         captured["context"] = context
         return "ok"
 
-    monkeypatch.setattr(routes.ds, "profile", lambda user_id: profile)
-    monkeypatch.setattr(routes.ds, "list_activities", lambda **kwargs: activities)
+    monkeypatch.setattr(trimp_uri_space.ds, "profile", lambda user_id: profile)
     monkeypatch.setattr(
-        routes.stats.UserProfileStats,
+        trimp_uri_space.ds, "list_activities", lambda **kwargs: activities
+    )
+    monkeypatch.setattr(
+        trimp_uri_space.stats.UserProfileStats,
         "from_entity",
         lambda user_profile, activities, logger: SimpleNamespace(resting_hr=56),
     )
     monkeypatch.setattr(
-        routes.charts,
+        trimp_uri_space.charts,
         "trimp_composite",
         lambda daily_rows, is_mobile_view: (
             "<script>Bokeh</script>",
@@ -305,11 +307,11 @@ def test_insight_trimp_route_renders(monkeypatch):
     )
     monkeypatch.setattr(flask, "render_template", fake_render_template)
 
-    with routes.flask_app.test_request_context("/insight/trimp", method="GET"):
-        flask.session[routes.COOKIE_USER] = "user-1"
+    with trimp_uri_space.flask_app.test_request_context("/insight/trimp", method="GET"):
+        flask.session[trimp_uri_space.COOKIE_USER] = "user-1"
 
         # WHEN
-        response = routes.insight_trimp()
+        response = trimp_uri_space.insight_trimp()
 
     # THEN
     assert response == "ok"

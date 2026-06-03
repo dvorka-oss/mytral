@@ -386,9 +386,9 @@ vibe-agy:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md AGENTS.md
 	agy --dangerously-skip-permissions
 
-# Vibe coding - run a DEFAULT vibe coding copilot
+# Vibe coding - run a DEFAULT vibe coding CLI
 .PHONY: vibe
-vibe: vibe-copilot
+vibe: vibe-o-copilot
 	@echo "DONE"
 
 #

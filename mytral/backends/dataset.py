@@ -223,6 +223,15 @@ class UserDataset(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def create_activities(
+        self,
+        user_id: str,
+        dataset_name: str,
+        entity_list: list[entities.ActivityEntity],
+    ) -> list[entities.ActivityEntity]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def update_activity(
         self, user_id: str, dataset_name: str, entity: entities.ActivityEntity
     ) -> entities.ActivityEntity:

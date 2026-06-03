@@ -242,12 +242,48 @@ class FsPersistenceMigrations:
                     f"{self.log_name}     dataset '{dataset_name}' migrated"
                 )
 
+    def _190_to_1500_del_meta_activity_type(self):
+        """Migration step - for every user account:
+
+        - remove meta_activity_type key from all activities
+
+        """
+        for user_id in self.ds.user_ids():
+            self.logger.info(f"{self.log_name}   user: {user_id}")
+            profile = self.user_ds.profile(user_id)
+
+            # activities: remove meta activity type
+            for dataset_name in profile.dataset_names:
+                activities_path = self.user_ds.user_activities_path(
+                    user_id, dataset_name
+                )
+                if not activities_path.exists():
+                    continue
+
+                activities_list = persistences.load_json(activities_path)
+                if not activities_list:
+                    continue
+
+                for a in activities_list:
+                    a.pop("meta_activity_type", None)
+
+                persistences.save_json(
+                    file_path=activities_path, data_dict=activities_list
+                )
+                self.logger.info(
+                    f"{self.log_name}     dataset '{dataset_name}' migrated"
+                )
+
     def _migrate_1_9_0_to_1_50_0(self):
         """Migrate dataset from 1.9.0 to 1.50.0 specification."""
         self.logger.info(f"{self.log_name} Migrating 1.9.0 to 1.50.0 specification...")
 
-        # no actual migration steps needed - just bumping the version
+        # remove suffer score
         self._190_to_1500_del_suffer_score()
+        # new ATs added - can reuse existing migration
+        self._180_to_190_inject_missing_activity_types()
+        # remove meta_activity_type from all activities
+        self._190_to_1500_del_meta_activity_type()
 
         self.logger.info(f"{self.log_name} DONE migration from 1.9.0 to 1.50.0 spec")
 

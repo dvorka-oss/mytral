@@ -35,12 +35,14 @@ TEST_USER_HOME = pathlib.Path.home()
 TEST_DATA_DIR = pathlib.Path(__file__).parent / "data"
 TEST_DATA_FIT_DIR = TEST_DATA_DIR / "import" / "fit"
 TEST_DATA_PARQUET_DIR = TEST_DATA_DIR / "import" / "parquet-for-fit"
+TEST_DATA_STRAVA_ARCHIVE = TEST_DATA_DIR / "import" / "strava-archive"
 
 TEST_DS_ROOT = pathlib.Path(__file__).parent.parent.parent.parent / "datasets-test"
 TEST_DS_AVATARS = TEST_DS_ROOT / "avatars"
 TEST_DS_FITNESS = TEST_DS_ROOT / "fit"
 TEST_DS_GPX = TEST_DS_ROOT / "gpx"
 TEST_DS_PHOTOS = TEST_DS_ROOT / "photos"
+TEST_DS_STRAVA_USER_ARCHIVE = TEST_DS_ROOT / "strava" / "user-archive"
 
 EXT_TEST_DATA_ROOT = (
     TEST_USER_HOME / "p" / "mytral" / "git" / "my-training-log-data-dev"

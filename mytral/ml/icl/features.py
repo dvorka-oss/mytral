@@ -224,7 +224,7 @@ def extract_sick_features(
     pd.DataFrame
         DataFrame with columns: ``date``, ``sick`` (label, 0/1),
         ``km_7d``, ``km_14d``, ``sessions_7d``, ``hr_max_7d``,
-        ``sick_lag_1`` … ``sick_lag_7``, ``year_day``, ``month``.
+        ``sick_lag_1`` ... ``sick_lag_7``, ``year_day``, ``month``.
     """
     today = date.today()
     start = today - timedelta(days=lookback_days)

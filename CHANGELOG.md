@@ -17,16 +17,19 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Added evevation chart to the activity feed.
 - Added "maximize map" action to the activity view page.
 - Added description field to symptoms so that user can specify how to cure such injury or illness.
+- Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).
+- Added TCX import (individual files and directory of recordings/archives).
 - Added `gender` field to the athlete profile in order to calculate metrics like TRIMP more accurately.
 - Added TRIMP calculation and chart to the `Progress` menu.
+- Improved polyline calculation to be ~4000x faster (legacy method kept).
 
 ### Changed
+- Strava API import is not hidden behing feature flag (just inverse condition on FE).
 - Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
   converged to MyTraL's task manager, typed tasks are used from now on.
 
 ### Removed**
 - Removed `Suffer Score` from the ActivityEntity and related forms and HTML code.
-
 
 ### Fixed
 - Fixed blobstore logging message which no longer specifies wrong blob type.

@@ -545,7 +545,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
-                                    <div class="subheader">Energy</div>
+                                    <div class="subheader">Energy (kcal)</div>
                                 </div>
                                 <div class="h1 mb-3">{{ activity_entity.kcal }}</div>
                             </div>
@@ -609,7 +609,7 @@
                             {% if activity_entity.src_descriptor %}
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">Descriptor</div>
-                                <div class="h3">{{ activity_entity.src_descriptor }}</div>
+                                <div class="h3" title="{{ activity_entity.src_descriptor }}">{{ activity_entity.src_descriptor | ellipsis }}</div>
                             </div>
                             {% endif %}
                             {% if activity_entity.src_key %}
@@ -621,11 +621,7 @@
                             {% if activity_entity.src_url %}
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">URL</div>
-                                {% if activity_entity.src_url | length > 35 %}
-                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank" title="{{ activity_entity.src_url }}">{{ activity_entity.src_url[:17] }}...{{ activity_entity.src_url[-17:] }}</a>
-                                {% else %}
-                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank">{{ activity_entity.src_url }}</a>
-                                {% endif %}
+                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank" title="{{ activity_entity.src_url }}">{{ activity_entity.src_url | ellipsis }}</a>
                             </div>
                             {% endif %}
                         </div>
