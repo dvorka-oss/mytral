@@ -39,7 +39,7 @@ Acknowledgements to reviewers, testers and supporters:
 *
 -->
 
-Acknowledgements to athletes and project who/which provided their data:
+Acknowledgements to athletes and projects who/which provided their data:
 
 * Roman "Marco" Vetešník - 10+ years of Polar Precision Performance data, literature, expertise.
 * GoldenCheetah - really nice collection of GC's activity recordings is used to test MyTraL.
