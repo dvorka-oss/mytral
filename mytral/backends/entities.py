@@ -244,8 +244,6 @@ class ActivityEntity(DbEntity):
 
     """
 
-    meta_activity_type: str = ""  # meta activity type: commons::AT_TAXONOMY
-
     sort_code: int = 1  # order of this activity within the workout
     workout_sort_code: int = 1  # key of the workout where this activity belongs
 
