@@ -4216,6 +4216,7 @@ def activity_paces_by_distance(
             text_color="gray",
             text_align="center",
         )
+        script, div = bokeh_embed.components(fig)
     else:
         fig.add_tools(
             bokeh_models.HoverTool(
@@ -4234,10 +4235,52 @@ def activity_paces_by_distance(
         if not is_mobile_view:
             fig.legend.location = "top_left"
             fig.legend.click_policy = "hide"
+
+            # add range tool selection figure
+            select = bokeh_plt.figure(
+                title="Drag to change the range above",
+                height=130,
+                x_axis_type="datetime",
+                y_axis_type=None,
+                tools="",
+                toolbar_location=None,
+                background_fill_color="#efefef",
+            )
+            select.sizing_mode = "scale_width"
+
+            range_tool = bokeh_models.RangeTool(x_range=fig.x_range)
+            range_tool.overlay.fill_color = "navy"
+            range_tool.overlay.fill_alpha = 0.2
+
+            # draw all bin lines on the selection figure
+            for (min_dist, max_dist, bin_label), color in zip(bins, colors):
+                data_points = bin_activities[bin_label]
+                if not data_points:
+                    continue
+                data_points.sort(key=lambda x: x["date"])
+                x_data = [p["date"] for p in data_points]
+                y_data = [p["pace"] for p in data_points]
+                select.line(x_data, y_data, color=color, line_width=1, alpha=0.8)
+
+            select.ygrid.grid_line_color = None
+            select.add_tools(range_tool)
+
+            # default zoom to last 2 years
+            all_dates = []
+            for dp_list in bin_activities.values():
+                for dp in dp_list:
+                    all_dates.append(dp["date"])
+            if all_dates:
+                max_date = max(all_dates)
+                two_years_ago = max_date.replace(year=max_date.year - 2)
+                fig.x_range.start = two_years_ago
+                fig.x_range.end = max_date
+
+            layout = bokeh_layouts.column(fig, select, sizing_mode="scale_width")
+            script, div = bokeh_embed.components(layout)
         else:
             fig.legend.visible = False
-
-    script, div = bokeh_embed.components(fig)
+            script, div = bokeh_embed.components(fig)
 
     return script, div
 

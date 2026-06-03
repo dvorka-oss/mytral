@@ -315,6 +315,18 @@ run-production: .venv ## run MyTraL server w/ PRODUCTION data
 	MYTRAL_DATA_DIR=$(USER_HOME)/.local/share/mytral \
 	uv run python -m mytral.run
 
+.PHONY: run-demo
+run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
+	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_DEBUG=true \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
+	MYTRAL_SECRET_KEY=no-secret-for-demo \
+	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
+	MYTRAL_FF_STRAVA_API_IMPORT=true \
+	MYTRAL_FF_TASKS_DEV=true \
+	uv run python -m mytral.run
+
 .PHONY: run-digi
 run-digi: .venv ## run MyTraL server w/ DIGITALIZATION data
 	MYTRAL_DEBUG=true \
@@ -440,9 +452,6 @@ random-attack: py-install-test-deps ## run random attack benchmark w/ synthetic
 	MYTRAL_ENCRYPTION_KEY=foo-random-key-for-tests \
 	$(PYTHON) -m pytest -s tests/test_random_attack.py
 	cat /tmp/mytral-random-attack-data-dir.txt && MYTRAL_DATA_DIR=`cat /tmp/mytral-random-attack-data-dir.txt` make run
-
-run-demo: random-attack ## run MyTraL demo on synthetic random attack data
-	@echo "Running MyTraL with random attack data for demo purposes..."
 
 #
 # PACKAGING: wheel
