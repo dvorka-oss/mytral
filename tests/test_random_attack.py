@@ -406,6 +406,8 @@ def _pregenerate_parquets(
     return samples
 
 
+# TODO add dataset ZOO as default, w/ callback to data
+# TODO parametrize to have short, medium and huge attack
 @pytest.mark.skip(reason="This is random attack, not a test to be run on CI")
 @pytest.mark.mytral
 @pytest.mark.tool
@@ -415,9 +417,9 @@ def test_generate_mytral_dataset(
     user_display_name: str = "Random Attack",
     user_name: str = "random",
     user_password: str = "attack",
-    from_date: str = "2026-05-01",  # UNSET_DATE
+    from_date: str = "2026-05-01",  # UNSET_DATE "2026-05-01"
     to_date: str = UNSET_DATE,
-    max_activities: int = 100,
+    max_activities: int = 100,  # 100, 1_000
     max_activity_types: int = 10,
     max_exercises: int = 10,
     max_gear_components: int = 10,
@@ -740,6 +742,26 @@ def test_generate_mytral_dataset(
                             description="Auto-attached by synthetic data generator",
                             parquet_bytes=parquet_bytes,
                         )
+
+                    # pre-compute GPX map metadata so the Feed UI does not block
+                    # on first load — see NON_BLOCKING_RANDOM_ATTACK.md
+                    recording_blob_uuid = entities.recording_blob_uuid(
+                        a.recorded_blob_keys[0]
+                    )
+                    print(
+                        f"        pre-computing GPX map metadata"
+                        f" for activity '{a.key}'"
+                        f" from recording '{recording_blob_uuid}' ..."
+                    )
+                    blob_svc.ensure_gpx_map_data(
+                        user_id=user_id,
+                        activity_key=a.key,
+                        blob_key=recording_blob_uuid,
+                    )
+                    print(
+                        f"        DONE pre-computing GPX map metadata"
+                        f" for activity '{a.key}'"
+                    )
 
             # photo(s) for the activity
             if _given.TEST_DS_PHOTOS.exists():
