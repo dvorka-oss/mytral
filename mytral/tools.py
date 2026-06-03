@@ -20,6 +20,7 @@ import uuid
 
 from mytral import app_logger
 from mytral import commons
+from mytral import settings
 from mytral import utils
 from mytral.backends import dataset
 from mytral.backends import entities
@@ -191,7 +192,7 @@ def fix_gear_keys(user_id: str, dataset_name: str, ds: dataset.UserDataset):
     if activities:
         gear = ds.list_gear(user_id=user_id, dataset_name=dataset_name)
         name2gear = gear.to_dict_by_name()
-        strava2gear = gear.to_dict_by_external_id("strava")
+        strava2gear = gear.to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
 
         for a in activities:
             activity_gears = (

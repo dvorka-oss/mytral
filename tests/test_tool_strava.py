@@ -573,3 +573,27 @@ def test_import_strava_user_archive(tmp_path: pathlib.Path):
     #
 
     print(f"Imported {len(activities)} activities")
+
+
+def test_strava_at_2_mytral_mapping():
+    #
+    # GIVEN
+    #
+    strava_ats = [s.lower() for s in icommons.STRAVA_SPORT]
+    strava_2_mytral_sport_map = icommons.STRAVA_TO_MYTRAL_AT
+
+    #
+    # WHEN
+    #
+    missing = []
+    mapped_keys = list(strava_2_mytral_sport_map.keys())
+    print("NOT mapped keys:")
+    for strava_at in strava_ats:
+        if strava_at not in mapped_keys:
+            print(f'  "{strava_at}": commons.AT_,')
+            missing.append(strava_at)
+
+    #
+    # THEN
+    #
+    assert not missing

@@ -246,8 +246,10 @@ class FsPersistenceMigrations:
         """Migrate dataset from 1.9.0 to 1.50.0 specification."""
         self.logger.info(f"{self.log_name} Migrating 1.9.0 to 1.50.0 specification...")
 
-        # no actual migration steps needed - just bumping the version
+        # remove suffer score
         self._190_to_1500_del_suffer_score()
+        # new ATs added - can reuse existing migration
+        self._180_to_190_inject_missing_activity_types()
 
         self.logger.info(f"{self.log_name} DONE migration from 1.9.0 to 1.50.0 spec")
 

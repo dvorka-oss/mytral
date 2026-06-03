@@ -20,17 +20,22 @@
 import datetime
 import gzip
 import pathlib
+import uuid
 from types import SimpleNamespace
 
 import pandas
 import pytest
 
+from mytral import config
+from mytral import loggers
+from mytral import persistences
 from mytral import tasks
 from mytral.backends import entities
 from mytral.integrations import gpx_recording
 from mytral.integrations import strava_user_archive
 from mytral.recordings.models import RecordingSummary
 from mytral.tasks.do import strava_archive_import
+from tests import _given
 
 
 class FakeLogger:
@@ -528,3 +533,59 @@ def test_strava_archive_task_on_conflict_skip_filters_existing(monkeypatch, tmp_
     assert dataset.created_activities == []
     assert task_entity.progress == 100
     print("DONE: Strava archive on_conflict skip filters duplicates")
+
+
+def test_plugin(tmp_path: pathlib.Path):
+    #
+    # GIVEN
+    #
+    archive_dir = _given.TEST_DATA_STRAVA_ARCHIVE
+
+    app_config = config.MytralConfig(persistence_data_dir=tmp_path)
+    user_id: str = str(uuid.uuid4())
+    user_display_name: str = "Strava Archive"
+    user_name: str = "strava"
+    user_password: str = "archive"
+    _, u_ds, user_profile = _given.given_test(
+        test_config=app_config,
+        user_id=user_id,
+        user_name=user_name,
+        user_display_name=user_display_name,
+        user_password=user_password,
+    )
+
+    #
+    # WHEN
+    #
+    plugin = strava_user_archive.StravaUserArchiveActivitiesImportPlugin(
+        logger=loggers.MytralPrintLogger()
+    )
+    activities = plugin.import_activities(
+        datasets={strava_user_archive.STRAVA_ARCHIVE_DATA_DIR_KEY: archive_dir},
+        user_profile=user_profile,
+        output_path=tmp_path,
+        correlation_id="TEST-CORRELATION-ID",
+    )
+
+    #
+    # THEN
+    #
+    print(f"{len(activities)} activities imported")
+
+    # activities
+    assert activities
+    persistences.save_json(
+        file_path=tmp_path / "data" / user_id / "LIFELONG-activities.json",
+        data_dict=[a.to_dict() for a in activities],
+    )
+
+    # gear asserts
+    gears_by_name = u_ds.list_gear(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    ).to_dict_by_name()
+    # bike gear: spesl
+    g = gears_by_name.get("Spešl 29er")
+    assert g
+    assert g.vendor
+    assert g.model
+    assert g.external_id_map

@@ -35,6 +35,7 @@ TEST_USER_HOME = pathlib.Path.home()
 TEST_DATA_DIR = pathlib.Path(__file__).parent / "data"
 TEST_DATA_FIT_DIR = TEST_DATA_DIR / "import" / "fit"
 TEST_DATA_PARQUET_DIR = TEST_DATA_DIR / "import" / "parquet-for-fit"
+TEST_DATA_STRAVA_ARCHIVE = TEST_DATA_DIR / "import" / "strava-archive"
 
 TEST_DS_ROOT = pathlib.Path(__file__).parent.parent.parent.parent / "datasets-test"
 TEST_DS_AVATARS = TEST_DS_ROOT / "avatars"

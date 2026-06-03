@@ -415,7 +415,9 @@ def run_gear_sync_and_relink(
     log_fn(f"Fetched {len(strava_gear_data)} gear items from Strava")
 
     # build lookup by external ID for quick exact-match
-    strava_id_to_gear = user_gear.to_dict_by_external_id("strava")
+    strava_id_to_gear = user_gear.to_dict_by_external_id(
+        settings.UserGear.SERVICE_STRAVA
+    )
 
     updated = 0
     created = 0

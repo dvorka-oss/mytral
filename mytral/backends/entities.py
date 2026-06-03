@@ -292,12 +292,12 @@ class ActivityEntity(DbEntity):
     avg_watts: float = 0.0  # Watts (power)
     max_watts: float = 0.0
 
-    avg_cadence: int = 0  # revolutions/strokes per minute
-    max_cadence: int = 0
+    avg_cadence: float = 0.0  # revolutions/strokes per minute
+    max_cadence: float = 0.0
 
-    avg_hr: int = 0
-    max_hr: int = 0
-    min_hr: int = 0  # resting HR (like weight) - not related to activity, but day
+    avg_hr: float = 0.0
+    max_hr: float = 0.0
+    min_hr: float = 0.0  # resting HR (like weight) - not related to activity, but day
 
     weight: float = 0.0  # kg
 
@@ -458,11 +458,11 @@ def evaluate_activity(
         debug_msg=f"evaluate_entity('{entity.name}')",
     )
 
-    entity.duration = f"{entity.hours:02}h{entity.minutes:02}m{entity.seconds:02}s"
-
     entity.duration_seconds = (
         entity.hours * 3_600 + entity.minutes * 60 + entity.seconds
     )
+
+    entity.duration = f"{entity.hours:02}h{entity.minutes:02}m{entity.seconds:02}s"
 
     entity.exercise_kgs = evaluate_exercise_kgs(entity)
 

@@ -1768,7 +1768,11 @@ class UserGear:
     """Custom gear defined by the user is aggregated from multiple sources:
 
     - user profile: gear defined by the user in MyTraL
-    - strava: gear imported from Strava
+
+    3rd party gear import and mapping cross services like Strava/Garmin/*:
+
+    - external_ids map: service > gear ID in that service
+    - Strava: gear imported from Strava
 
     Gear is merged as follows:
 
@@ -1785,6 +1789,11 @@ class UserGear:
     - a gear which is used by 1 or more activities in ``lifelong`` cannot be deleted
 
     """
+
+    SERVICE_STRAVA = "strava"
+    SERVICE_GARMIN_CONNECT = "garmin_connect"
+    SERVICE_POLAR_FLOW = "polar_flow"
+    SERVICE_POLAR_PPP = "polar_ppp"
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":

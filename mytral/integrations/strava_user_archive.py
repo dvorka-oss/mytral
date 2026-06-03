@@ -63,11 +63,14 @@ import pandas
 
 from mytral import app_logger
 from mytral import app_user_ds
+from mytral import cals
+from mytral import commons
 from mytral import loggers
 from mytral import persistences
 from mytral import plugins
 from mytral import settings
 from mytral.backends import entities
+from mytral.integrations import icommons
 from mytral.integrations import strava
 
 STRAVA_ARCHIVE_DATA_DIR_KEY = "USE_TYPE_STRAVA_USR_BULK_EXPORT_DIR"
@@ -84,10 +87,11 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     _COL_A_CSV_ID = "Activity ID"
     _COL_A_CSV_DATE = "Activity Date"
     _COL_A_CSV_NAME = "Activity Name"
-    _COL_A_CSV_TYPE = "Activity Type"
+    _COL_A_CSV_AT = "Activity Type"
     _COL_A_CSV_DESCRIPTION = "Activity Description"
     _COL_A_CSV_DISTANCE_KM = "Distance"  # km > DUPLICATED - really? :-Z
     _COL_A_CSV_MAX_HR = "Max Heart Rate"  # float
+    _COL_A_CSV_AVG_HR = "Average Heart Rate"  # float
     _COL_A_CSV_REL_EFFORT = "Relative Effort"
     _COL_A_CSV_COMMUTE = "Commute"  # bool
     _COL_A_CSV_PRIVATE_NOTE = "Activity Private Note"  # bool
@@ -109,6 +113,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     _COL_A_AVG_GRADE = "Average Grade"  # float (+/-)
     _COL_A_AVG_POS_GRADE = "Average Positive Grade"  # float (+/-) :-Z is negative
     _COL_A_AVG_NEG_GRADE = "Average Negative Grade"  # float
+    _COL_A_MAX_CADENCE = "Max Cadence"
     _COL_A_AVG_CADENCE = "Average Cadence"
     _COL_A_MAX_HR = "Max Heart Rate"
     _COL_A_AVG = "Average Heart Rate"
@@ -117,22 +122,22 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     _COL_A_CALORIES = "Calories"  # int
     _COL_A_MAX_TEMPERATURE = "Max Temperature"  # ? strange units
     _COL_A_AVG_TEMPERATURE = "Average Temperature"  # ? strange units
-    # ...
     _COL_A_CSV_BIKE = "Bike"  # actual gear ID
     _COL_A_CSV_GEAR = "Gear"  # DUPLICATED col w/ actual gear ID - ONLY if ^ not spec.
-    # ...
     _COL_A_CSV_MEDIA = "Media"  # | separated list of photo paths
 
     _COLS_A_CSV = [
         _COL_A_CSV_ID,
         _COL_A_CSV_DATE,
         _COL_A_CSV_NAME,
-        _COL_A_CSV_TYPE,
+        _COL_A_CSV_A_GEAR,
+        _COL_A_CSV_AT,
         _COL_A_CSV_DESCRIPTION,
         _COL_A_CSV_ELAPSED_TIME,
         _COL_A_CSV_DISTANCE_M,
         _COL_A_CSV_DISTANCE_KM,
         _COL_A_CSV_MAX_HR,
+        _COL_A_CSV_AVG_HR,
         _COL_A_CSV_REL_EFFORT,
         _COL_A_CSV_COMMUTE,
         _COL_A_CSV_PRIVATE_NOTE,
@@ -152,6 +157,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         _COL_A_AVG_POS_GRADE,
         _COL_A_AVG_NEG_GRADE,
         _COL_A_AVG_CADENCE,
+        _COL_A_MAX_CADENCE,
         _COL_A_MAX_HR,
         _COL_A_AVG,
         _COL_A_MAX_WATTS,
@@ -214,6 +220,167 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             )
             return None, None, None, None, None, None
 
+    def _import_gear_csv(
+        self,
+        strava_archive_dir: pathlib.Path,
+        user_profile: settings.UserProfile,
+        activities_df: pandas.DataFrame,
+        missing: list,
+        col2idx: dict[str, int],
+    ) -> dict[str, settings.Gear]:
+        """Load bikes.csv and shows.csv to dictionary by NAME - ID not available."""
+
+        # STEP: map Strava archive gear to MyTraL gear and / or create new one
+        # - :-Z
+        #   - activity has Strava gear ID column,
+        #     BUT  bulk export does NOT contain gear definitions w/ ID!
+        # - method:
+        #   1. get gear ID for the activity and try to map it using EXISTING gear
+        #      mappings known to MyTraL
+        #   2. ELSE pull gear DISPLAY NAME from the activity and try to match it to
+        #      MyTraL gear by name
+        #      - if this matches, create Strava gear external_id mapping
+        #        (from previous step) to this MyTraL gear matched by name
+        #   3. ELSE create NEW gear + create Strava gear external_id mapping
+
+        this = StravaUserArchiveActivitiesImportPlugin
+
+        # map: strava ID > MyTraL gear
+        new_gear: dict[str, settings.Gear] = {}
+
+        # activities - the only way to get Strava display name > strava ID mapping
+        # - "Activity Gear" column: Spešl 29er
+        # - "Bike" column         : 941128 (either "Bike" or "Gear" or none set)
+        # - "Gear" column         : 790749 (either "Bike" or "Gear" or none set)
+        p_ag = this._COL_A_CSV_A_GEAR
+        p_g = this._COL_A_CSV_GEAR
+        p_b = this._COL_A_CSV_BIKE
+        # TODO IMPROVE if its bike then use "Bike Weight"
+        # map: Strava gear ID > triple
+        strava_gear_triples: dict[str, tuple] = {}
+        for _, row in activities_df.iterrows():
+            strava_gear_id_1 = row.iloc[col2idx[p_g]] if p_g not in missing else None
+            strava_gear_id_1 = (
+                str(int(strava_gear_id_1))
+                if strava_gear_id_1 and not pandas.isna(strava_gear_id_1)
+                else ""
+            )
+            strava_gear_id_2 = row.iloc[col2idx[p_b]] if p_b not in missing else None
+            strava_gear_id_2 = (
+                str(int(strava_gear_id_2))
+                if strava_gear_id_2 and not pandas.isna(strava_gear_id_2)
+                else ""
+            )
+            strava_gear_id = strava_gear_id_1 or strava_gear_id_2
+
+            strava_gear_name = row.iloc[col2idx[p_ag]] if p_ag not in missing else None
+            strava_gear_name = (
+                str(strava_gear_name)
+                if strava_gear_name and not pandas.isna(strava_gear_name)
+                else ""
+            )
+
+            if (
+                strava_gear_id
+                and strava_gear_name
+                and strava_gear_id not in strava_gear_triples
+            ):
+                strava_gear_triple = (
+                    strava_gear_id,
+                    strava_gear_name,
+                    bool(strava_gear_id_2),
+                )
+                strava_gear_triples[strava_gear_id] = strava_gear_triple
+
+        # try to lookup Strava gear in MyTraL & register to have the mapping
+        mytral_gear_list_by_strava = app_user_ds.list_gear(
+            user_id=user_profile.user_id
+        ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
+        for gt in strava_gear_triples.values():
+            if gt[0] not in mytral_gear_list_by_strava:
+                g_strava_key = gt[0]
+                g = settings.Gear(
+                    activity_type_key=commons.AT_RIDE if gt[2] else commons.AT_RUN,
+                    name=gt[1],
+                    external_id_map={
+                        settings.UserGear.SERVICE_STRAVA: g_strava_key,
+                    },
+                )
+                new_gear[g_strava_key] = g
+                # CREATE new gear
+                self.logger.info(f"Creating NEW gear: '{g.name}' (Strava: {gt[0]})")
+                app_user_ds.create_gear(
+                    user_id=user_profile.user_id,
+                    gear=g,
+                    dataset_name=user_profile.dataset_name,
+                )
+
+        # shoes - key: column "Shoe Name" + " " + "Show Model" + " " + "Shoe Name"
+        # - try to lookup the key in MyTraL gear
+        #   - MATCH: inject mapping to gear.external_ids dictionary
+        #   - MISMATCH: create a new gear
+        mytral_gear_list_by_name = app_user_ds.list_gear(
+            user_id=user_profile.user_id
+        ).to_dict_by_name()
+        raw_shoes_csv_path = strava_archive_dir / "shoes.csv"
+        if raw_shoes_csv_path.exists():
+            df = pandas.read_csv(raw_shoes_csv_path, index_col=None)
+            self.logger.info(f"Shoes CSV shape: {df.shape}")
+            self.logger.info(f"Shoes CSV columns: {list(df.columns)}")
+
+            for _, row in df.iterrows():  # row: pandas.Series
+                v = row.iloc[1]
+                brand = str(v).strip() if not pandas.isna(v) else ""
+                v = row.iloc[2]
+                model = str(v).strip() if not pandas.isna(v) else ""
+                v = row.iloc[0]
+                name = str(v).strip() if not pandas.isna(v) else ""
+
+                strava_gear_key = f"{brand} {model} {name}".strip()
+                self.logger.info(f"Strava shoe gear key: '{strava_gear_key}'")
+
+                # if found in gear, then enrich w/ vendor, ...
+                if strava_gear_key in mytral_gear_list_by_name:
+                    g = mytral_gear_list_by_name[strava_gear_key]
+                    g.vendor = brand
+                    g.model = model
+        else:
+            self.logger.error(f"Shoes CSV doesn't exist in {strava_archive_dir}. ")
+
+        # bikes - key: column "Bike Name"
+        raw_bikes_csv_path = strava_archive_dir / "bikes.csv"
+        if raw_bikes_csv_path.exists():
+            df = pandas.read_csv(raw_bikes_csv_path, index_col=None)
+            self.logger.info(f"Bikes CSV shape: {df.shape}")
+            self.logger.info(f"Bike CSV columns: {list(df.columns)}")
+
+            for _, row in df.iterrows():  # row: pandas.Series
+                v = row.iloc[0]
+                strava_gear_key = str(v).strip() if not pandas.isna(v) else ""
+                if strava_gear_key:
+                    self.logger.info(f"Strava bike gear key: '{strava_gear_key}'")
+
+                    # if found in gear, then enrich w/ vendor, ...
+                    if strava_gear_key in mytral_gear_list_by_name:
+                        v = row.iloc[1]
+                        brand = str(v).strip() if not pandas.isna(v) else ""
+                        v = row.iloc[2]
+                        model = str(v).strip() if not pandas.isna(v) else ""
+
+                        g = mytral_gear_list_by_name[strava_gear_key]
+                        g.vendor = brand
+                        g.model = model
+
+                        app_user_ds.update_gear(
+                            user_id=user_profile.user_id,
+                            gear=g,
+                            dataset_name=user_profile.dataset_name,
+                        )
+        else:
+            self.logger.error(f"Bikes CSV doesn't exist in {strava_archive_dir}. ")
+
+        return new_gear
+
     def _import_activities_csv(
         self,
         strava_archive_dir: pathlib.Path,
@@ -248,6 +415,18 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             else:
                 col2idx[col2import_name] = idx
 
+        # GEAR: load gear CSVs, reconcile with MyTraL gear and create the mapping
+        self._import_gear_csv(
+            strava_archive_dir=strava_archive_dir,
+            user_profile=user_profile,
+            activities_df=df,
+            missing=missing,
+            col2idx=col2idx,
+        )
+        mytral_gear_list_by_strava = app_user_ds.list_gear(
+            user_id=user_profile.user_id
+        ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
+
         for _, row in df.iterrows():  # row: pandas.Series
             a = entities.ActivityEntity()
             a.key = app_user_ds.create_key()
@@ -255,6 +434,12 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             a.src_key = str(row.iloc[0])
             a.src_url = f"{strava.SRC_STRAVA_BASE_URL}{a.src_key}"
             a.src_descriptor = f"archive:{correlation_id}"
+
+            p = this._COL_A_CSV_AT
+            strava_at = row.iloc[col2idx[p]] if p not in missing else "UNKNOWN"
+            a.activity_type_key = icommons.STRAVA_TO_MYTRAL_AT.get(
+                strava_at.lower().replace(" ", ""), commons.AT_WORKOUT
+            )
 
             p = this._COL_A_CSV_NAME
             a.name = (
@@ -297,6 +482,136 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
                 if not pandas.isna(value) and isinstance(value, (int, float))
                 else 0
             )
+            a.duration = cals.seconds_to_str_time(a.duration_seconds)
+            a.hours, a.minutes, a.seconds = cals.seconds_to_tuple(a.duration_seconds)
+
+            # gear
+            p_g = this._COL_A_CSV_GEAR
+            p_b = this._COL_A_CSV_BIKE
+            strava_gear_id_1 = row.iloc[col2idx[p_g]] if p_g not in missing else None
+            strava_gear_id_1 = (
+                str(int(strava_gear_id_1))
+                if strava_gear_id_1 and not pandas.isna(strava_gear_id_1)
+                else ""
+            )
+            strava_gear_id_2 = row.iloc[col2idx[p_b]] if p_b not in missing else None
+            strava_gear_id_2 = (
+                str(int(strava_gear_id_2))
+                if strava_gear_id_2 and not pandas.isna(strava_gear_id_2)
+                else ""
+            )
+            strava_gear_id = strava_gear_id_1 or strava_gear_id_2
+            if strava_gear_id:
+                g = mytral_gear_list_by_strava.get(strava_gear_id, None)
+                if g:
+                    a.gears = [g.key]
+                    self.logger.info(
+                        f"Mapped Strava gear ID '{strava_gear_id}' to MyTraL gear "
+                        f"'{g.name}' (key: {g.key}) for activity '{a.name}'"
+                    )
+                else:
+                    self.logger.warning(
+                        f"Strava gear ID '{strava_gear_id}' not found in MyTraL gear "
+                        f"for activity '{a.name}'"
+                    )
+
+            p = this._COL_A_AVG_WATTS
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.avg_watts = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+            p = this._COL_A_MAX_WATTS
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.max_watts = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+
+            p = this._COL_A_CSV_AVG_HR
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.avg_hr = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+            p = this._COL_A_MAX_HR
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.max_hr = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+
+            p = this._COL_A_MAX_SPEED
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.max_speed = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+            p = this._COL_A_AVG_SPEED
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.avg_speed = (
+                float(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+
+            p = this._COL_A_ELEVATION_GAIN
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.elevation_gain = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
+            p = this._COL_A_ELEVATION_LOW
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.elevation_min = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
+            p = this._COL_A_ELEVATION_HIGH
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.elevation_max = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
+
+            p = this._COL_A_AVG_CADENCE
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.avg_cadence = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+            p = this._COL_A_MAX_CADENCE
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.max_cadence = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0.0
+            )
+
+            p = this._COL_A_CALORIES
+            value = row.iloc[col2idx[p]] if p not in missing else 0.0
+            a.kcal = (
+                int(value)
+                if not pandas.isna(value) and isinstance(value, (int, float))
+                else 0
+            )
+
+            p = this._COL_A_CSV_COMMUTE
+            value = row.iloc[col2idx[p]] if p not in missing else False
+            a.commute = (
+                bool(value)
+                if not pandas.isna(value) and isinstance(value, (int, float, bool))
+                else False
+            )
 
             p = this._COL_A_CSV_MEDIA
             data_str = row.iloc[col2idx[p]] if p not in missing else ""
@@ -317,40 +632,6 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
             entities.evaluate_activity(entity=a, user_profile=user_profile)
 
             activities.append(a)
-
-        # # activity types: Strava -> MyTraL mapping - LIST
-        # valid_activity_type_ids = list(
-        #     app_user_ds.list_activity_types(
-        #         user_id=user_profile.user_id
-        #     ).activity_types_by_key.keys()
-        # )
-        #
-        # # gear: Strava -> MyTraL mapping - map: strava ID -> MyTraL ID
-        # strava_gear_dict = app_user_ds.list_gear(
-        #     user_id=user_profile.user_id
-        # ).to_dict_by_strava_key()
-
-        # self.logger.info(
-        #     f"{self.log_name} importing {len(raw_activities)} Strava activities..."
-        # )
-        # activities = []
-        # for e, strava_item in enumerate(raw_activities):
-        #    if year_str and not strava_item.get("start_date", "").startswith(year_str):
-        #         self.logger.info(
-        #             f"{self.log_name} SKIPPING Strava activity (year filter) #{e}"
-        #         )
-        #         continue
-        #
-        #     self.logger.info(f"{self.log_name} importing Strava activity #{e}")
-        #     activity_entity = self.activity_import_plugin.import_activity(
-        #         dataset_item=strava_item,
-        #         user_profile=user_profile,
-        #         valid_activity_type_ids=valid_activity_type_ids,
-        #         strava_gear_dict=strava_gear_dict,
-        #         correlation_id=correlation_id,
-        #     )
-        #
-        #     activities.append(activity_entity)
 
         if output_path:
             activities_json_path = pathlib.Path(output_path) / "activities.json"
@@ -410,7 +691,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         # archive PATHS
         strava_archive_dir = pathlib.Path(strava_archive_dir)
 
-        # IMPORT: activities
+        # IMPORT: activities and gear
         activities = self._import_activities_csv(
             strava_archive_dir=strava_archive_dir,
             user_profile=user_profile,
