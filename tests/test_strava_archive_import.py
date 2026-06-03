@@ -179,12 +179,13 @@ def test_strava_archive_plugin_parses_recording_filename(monkeypatch, tmp_path):
     row[0] = 123456
     row[1] = "Jan 1, 2024, 1:02:03 AM"
     row[2] = "Morning ride"
-    row[3] = "Ride"
-    row[4] = "Archive description"
-    row[5] = "1:00:00"
-    row[6] = "42.0"
-    row[7] = "150"
-    row[13] = "activities/track.gpx.gz"
+    row[3] = ""
+    row[4] = "Ride"
+    row[5] = "Archive description"
+    row[6] = "1:00:00"
+    row[7] = "42.0"
+    row[8] = "150"
+    row[15] = "activities/track.gpx.gz"
     row[-1] = "media/photo.jpg"
     frame = pandas.DataFrame([row], columns=columns)
     monkeypatch.setattr(pandas, "read_csv", lambda *args, **kwargs: frame)
@@ -194,10 +195,23 @@ def test_strava_archive_plugin_parses_recording_filename(monkeypatch, tmp_path):
     plugin = strava_user_archive.StravaUserArchiveActivitiesImportPlugin()
 
     # WHEN
+    app_config = config.MytralConfig(persistence_data_dir=tmp_path)
+    user_id: str = str(uuid.uuid4())
+    user_display_name: str = "Strava Archive"
+    user_name: str = "strava"
+    user_password: str = "archive"
+    _, u_ds, user_profile = _given.given_test(
+        test_config=app_config,
+        user_id=user_id,
+        user_name=user_name,
+        user_display_name=user_display_name,
+        user_password=user_password,
+    )
+
     activities = plugin.import_activities(
         datasets={strava_user_archive.STRAVA_ARCHIVE_DATA_DIR_KEY: archive_dir},
-        user_profile=None,
-        correlation_id="corr-1",
+        user_profile=user_profile,
+        correlation_id=str(uuid.uuid4()),
     )
 
     # THEN
