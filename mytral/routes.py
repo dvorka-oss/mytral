@@ -4168,8 +4168,8 @@ def list_activities_for_month_day(month, day):
     )
 
 
-@flask_app.route("/activities/junkyard")
-def list_activities_junkyard():
+@flask_app.route("/activities/validation")
+def list_activities_validation():
     """List all activities that have data problems (suspicious/invalid values)."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
@@ -4233,7 +4233,7 @@ def list_activities_junkyard():
     }
 
     return flask.render_template(
-        "activity-junkyard.html",
+        "activity-validation.html",
         user_profile=user_profile,
         junkyard=junkyard,
         stats={
