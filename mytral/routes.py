@@ -4168,6 +4168,89 @@ def list_activities_for_month_day(month, day):
     )
 
 
+@flask_app.route("/activities/junkyard")
+def list_activities_junkyard():
+    """List all activities that have data problems (suspicious/invalid values)."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # load all activities for the user across all years
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        skip_future=False,
+    )
+
+    # validate each activity and collect those with problems
+    junkyard: list[tuple[entities_mod.ActivityEntity, list[tuple[str, str]]]] = []
+    for a in activities:
+        problems = entities_mod.validate_activity(a)
+        if problems:
+            junkyard.append((a, problems))
+
+    # sort by number of problems descending (most problematic first)
+    junkyard.sort(key=lambda item: len(item[1]), reverse=True)
+
+    # compute stats
+    total_errors = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR
+    )
+    total_warnings = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_WARNING
+    )
+    total_problems = total_errors + total_warnings
+    affected_activities = len(junkyard)
+
+    # compute problem breakdown by category
+    # errors come from 2 categories: internal consistency and zero-value anomalies
+    internal_errors = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" in msg
+    )
+    zero_anomalies = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" not in msg
+    )
+    oor_warnings = total_warnings  # all warnings are out-of-range
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a, _ in junkyard
+    }
+
+    return flask.render_template(
+        "activity-junkyard.html",
+        user_profile=user_profile,
+        junkyard=junkyard,
+        stats={
+            "total_problems": total_problems,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "affected_activities": affected_activities,
+            "internal_errors": internal_errors,
+            "zero_anomalies": zero_anomalies,
+            "oor_warnings": oor_warnings,
+        },
+        activities_weekdays=activities_weekdays,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
+    )
+
+
 @flask_app.route("/activities/date/<year>/<month>/<day>/copy", methods=["GET", "POST"])
 def copy_day(year, month, day):
     user_id = flask.session.get(COOKIE_USER)
