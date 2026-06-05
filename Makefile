@@ -97,6 +97,8 @@ ACTIVE_VENV := $(shell echo $$VIRTUAL_ENV)
 USER_HOME := $(shell echo $$HOME)
 # platform name for test reports
 PLATFORM := $(shell uname -s)
+# DeepSeek API key (for vibe coding with DeepSeek)
+DEEPSEEK_API_KEY ?= $(shell pass show deepseek/apikey20260605)
 
 #
 # HELP
@@ -360,10 +362,26 @@ vibe-copilot:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
 # - kimi-k2.5:cloud / kimi-k2.6:cloud
 # - qwen3.5:cloud
-vibe-o-copilot:
+.PHONY: vibe-ollama-deepseek-copilot
+vibe-ollama-deepseek-copilot:
 	@mkdir -pv ./.github
 	@cp -vf ./vibe/GH-COPILOT-INSTRUCTIONS.md ./.github/copilot-instructions.md
+	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
+	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	ollama launch copilot-cli --model deepseek-v4-pro:cloud -- --allow-all-tools
+
+# DeepSeek
+# https://api-docs.deepseek.com/quick_start/agent_integrations/copilot_cli
+.PHONY: vibe-deepseek-copilot
+vibe-deepseek-copilot:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./DEEPSEEK.md
+	COPILOT_PROVIDER_TYPE=anthropic \
+ 	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
+	COPILOT_PROVIDER_API_KEY=$(DEEPSEEK_API_KEY) \
+ 	COPILOT_MODEL=deepseek-v4-pro \
+	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
+	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
+	copilot --allow-all-tools --banner
 
 # Anthrop\c Claude Code
 # - run vibe coding Anthropic Claude CODE harness w/ Ollama hosted models
@@ -400,7 +418,7 @@ vibe-agy:
 
 # Vibe coding - run a DEFAULT vibe coding CLI
 .PHONY: vibe
-vibe: vibe-o-copilot
+vibe: vibe-ollama-deepseek-copilot
 	@echo "DONE"
 
 #
@@ -548,11 +566,15 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 #
 
 .PHONY: doc
-doc: ## generate HTML documentation from Markdown sources
+doc-sync-data:
 	@echo "Preparing data..."
+	cp -vf CREDITS.md docs/CREDITS.md
 	cp -vf CHANGELOG.md docs/CHANGELOG.md
 	uv run python make/preprocess_license_to_markdown.py
 	uv run python make/preprocess_licenses_to_markdown.py
+
+.PHONY: doc
+doc: doc-sync-data ## generate HTML documentation from Markdown sources
 	@echo "Generating documentation from Markdown..."
 	uv run python make/generate_docs_from_markdown.py
 	@echo "DONE Documentation generated successfully"
@@ -576,20 +598,20 @@ doc-serve: doc ## serve documentation locally for preview
 www-live-server: ## start live server for www.mytral.fitness development
 	@cd webs/www.mytral.fitness && live-server ./
 
-.PHONY: www-docs
-www-docs: ## generate public documentation for www.mytral.fitness
+.PHONY: www-doc
+www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
 	@echo "Generating public documentation from Markdown..."
 	uv run python make/generate_public_docs.py
 	@echo "DONE Public documentation generated successfully"
 
-.PHONY: www-docs-clean
-www-docs-clean: ## clean generated public documentation
+.PHONY: www-doc-clean
+www-doc-clean: ## clean generated public documentation
 	rm -rf webs/www.mytral.fitness/docs/*.html
 	rm -rf webs/www.mytral.fitness/docs/*.png
 	@echo "Public documentation cleaned"
 
-.PHONY: www-docs-serve
-www-docs-serve: www-docs ## serve public documentation locally for preview
+.PHONY: www-doc-serve
+www-doc-serve: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 

@@ -2,6 +2,16 @@
 
 [MyTraL](https://mytral.fitness) is your **personal** training log for deeper insights and smarter progress. Your log, your data, your insights. Track, analyze, and optimize to achieve your goals.
 
+* [No Silver Bullets](#no-silver-bullets)
+* [Steel and Soul](#steel-and-soul)
+* [Data Ownership](#data-ownership)
+* [Perfect Software](#perfect-software)
+* [Freedom](#freedom)
+* [God's in the Details](#gods-in-the-details)
+* [The Rhythm of the Spiral](#the-rhythm-of-the-spiral)
+* [Open Data Formats](#open-data-formats)
+* [Training Knowledge](#training-knowledge)
+
 ## No Silver Bullets
 
 Track your activities day by day, week by week, month by month, year by year. There are [no silver bullets](https://en.wikipedia.org/wiki/Josh_Cox) and no shortcuts -- just consistent effort over time.
@@ -50,6 +60,3 @@ Stop guessing and start uncovering the "breakthrough outliers" hidden within you
 
 Set your personal [SMART](https://en.wikipedia.org/wiki/SMART_criteria) goals. Track your gear usage, service history, and costs. Maintain favourite training locations. Collect and organize your holistic training wisdom.
 
-## Table of Contents
-
-Manifesto No Silver Bullets Steel and Soul Data Ownership Perfect Software Freedom God's in the Details The Rhythm of the Spiral Open Data Formats Training Knowledge Story

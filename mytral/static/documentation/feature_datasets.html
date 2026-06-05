@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>MyTraL Feature: Sport Metrics - MyTraL Documentation</title>
+    <title>Feature: Sport Data Recordings datasets - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -241,7 +241,7 @@
                 <div class="row g-2 align-items-center">
                     <div class="col">
                         <div class="page-pretitle">MyTraL Documentation</div>
-                        <h2 class="page-title">MyTraL Feature: Sport Metrics</h2>
+                        <h2 class="page-title">Feature: Sport Data Recordings datasets</h2>
                     </div>
                 </div>
             </div>
@@ -252,89 +252,112 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="metrics">Metrics</h2>
-<p>Metrics taxonomy and attributes:</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Reviewers</th>
+<th>Last updated</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DONE</td>
+<td>@reviewer</td>
+<td>YYYY-MM-DD</td>
+<td>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table of contents</strong></p>
 <ul>
-<li>Athlete</li>
-<li>Workout</li>
+<li><a href="#analysis">Analysis</a><ul>
+<li><a href="#why">Why</a></li>
+<li><a href="#functional-requirements">Functional Requirements</a></li>
+<li><a href="#functional-non-requirements">Functional Non-requirements</a></li>
+<li><a href="#technical-requirements">Technical Requirements</a></li>
+<li><a href="#technical-non-requirements">Technical Non-requirements</a></li>
 </ul>
-<p>Table of metrics:</p>
+</li>
+<li><a href="#design">Design</a><ul>
+<li><a href="#implementation">Implementation</a></li>
+<li><a href="#tests">Tests</a></li>
+<li><a href="#benchmarks">Benchmarks</a></li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
+<li><a href="#appendices">Appendices</a></li>
+</ul>
+<h1 id="analysis">Analysis</h1>
+<p><em>[... abstract ...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why</h2>
+<p><em>[... motivation and value proposition...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-requirements">Functional Requirements</h2>
+<p><em>[... functional requirements (feature scope) and user stories...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
 <ul>
-<li>Base metabolic rate</li>
-<li>FATMAX</li>
-<li>FTP: functional threshold power</li>
-<li>HR max: Max heart rate</li>
-<li>HR zones</li>
-<li>HR: heart rate</li>
-<li>HRV RMSSD</li>
-<li>Power to weight ratio</li>
-<li>Power zones</li>
-<li>Resting HR</li>
-<li>3D IRM (CP / W′ / Pmax)</li>
-<li>TRIMP</li>
-<li>TSS</li>
-<li>VO2MAX: maximal oxygen uptake</li>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
 </ul>
-<h3 id="ftp">FTP: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Definition: (units)</p>
+</li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
 <ul>
-<li>.</li>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
 </ul>
-<p>Purpose:</p>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-non-requirements">Functional Non-requirements</h2>
+<p><em>[... functional non-requirements within the scope of this feature - what we will not deliver...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-requirements">Technical Requirements</h2>
+<p><em>[... technical requirements (including security and performance) and user stories (feature scope)...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
 <ul>
-<li>.</li>
+<li><em>[... optional acceptance criteria...]</em></li>
 </ul>
-<p>Pros:</p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
 <ul>
-<li>.</li>
+<li><em>[... optional acceptance criteria...]</em></li>
 </ul>
-<p>Cons:</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-non-requirements">Technical Non-requirements</h2>
+<p><em>[... technical non-requirements within the scope of this feature - what will not be implemented...]</em></p>
+<h1 id="design">Design</h1>
+<p><em>[... a design introduction / abstract / high-level highlights]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="goldencheetah-opendata-project">GoldenCheetah OpenData Project</h2>
+<p>From GC OSF web:</p>
+<p>From mid-2018 users of the popular sports analysis desktop application GoldenCheetah have been able to share their workout data to this repository.</p>
+<p>Each athlete’s data is shared as a single zip file that contains a summary level description (aggregates, metrics and so on) as a JSON file and additionally, all workout files are stored as CSV files.</p>
+<p>The CSV files contain second by second sample data from athlete workouts for; Heartrate, Cadence, Power, Distance and Altitude.</p>
 <ul>
-<li>.</li>
+<li>The data does not contain any PII information.</li>
+<li>The unique id is anonymous, except to the original user.</li>
+<li>The data does not contain any GPS information.</li>
+<li>The data is in the raw format provided by the user.</li>
+<li>The data is shared for anyone to use.</li>
 </ul>
-<h3 id="trimp">TRIMP: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
+<p>We are developing tools for working with these data sets, and these can be found on the GoldenCheetah OpenData Github repository.</p>
 <ul>
-<li>.</li>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
+<li><a href="https://osf.io/6hfpz/files/osfstorage">Golden Cheetak dataset files</a><ul>
+<li>Use "Download As Zip" to download all the files</li>
 </ul>
-<p>Pros:</p>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="implementation">Implementation</h2>
+<p><em>[... a brief implementation description and/or diagrams...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tests">Tests</h2>
+<p><em>[... a brief description of unit, integration, load, longevity, regression, manual and smoke tests...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="benchmarks">Benchmarks</h2>
+<p><em>[... benchmark(s) and their result...]</em></p>
+<h1 id="references">References</h1>
+<p><em>[... relevant resources...]</em></p>
 <ul>
-<li>.</li>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
 </ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
-<h3 id="tss">TSS: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
-<h3 id="vo2max">VO2Max: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
+<h1 id="appendices">Appendices</h1>
+<p><em>[... appendice sections...]</em></p>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -344,11 +367,15 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#metrics" class="nav-link">Metrics</a>
-<a href="#ftp-" class="nav-link ms-3">FTP: ...</a>
-<a href="#trimp-" class="nav-link ms-3">TRIMP: ...</a>
-<a href="#tss-" class="nav-link ms-3">TSS: ...</a>
-<a href="#vo2max-" class="nav-link ms-3">VO2Max: ...</a>
+        <a href="#why" class="nav-link">Why</a>
+<a href="#functional-requirements" class="nav-link">Functional Requirements</a>
+<a href="#functional-non-requirements" class="nav-link">Functional Non-requirements</a>
+<a href="#technical-requirements" class="nav-link">Technical Requirements</a>
+<a href="#technical-non-requirements" class="nav-link">Technical Non-requirements</a>
+<a href="#goldencheetah-opendata-project" class="nav-link">GoldenCheetah OpenData Project</a>
+<a href="#implementation" class="nav-link">Implementation</a>
+<a href="#tests" class="nav-link">Tests</a>
+<a href="#benchmarks" class="nav-link">Benchmarks</a>
     </div>
 </div>
                     </div>
@@ -366,8 +393,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

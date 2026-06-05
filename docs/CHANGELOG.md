@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.50.0](https://github.com/dvorka/my-training-log/compare/v1.50.0...HEAD)
+## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
 
 This MyTraL release is very **special** to me. After years of coding and hacking together
 various versions of MyTraL I am moving to a brand-new Git repository on my 50th birthday.
@@ -19,8 +19,8 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Added description field to symptoms so that user can specify how to cure such injury or illness.
 - Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).
 - Added TCX import (individual files and directory of recordings/archives).
-
-### Added
+- Added `gender` field to the athlete profile in order to calculate metrics like TRIMP more accurately.
+- Added TRIMP calculation and chart to the `Progress` menu.
 - Improved polyline calculation to be ~4000x faster (legacy method kept).
 
 ### Changed
@@ -28,12 +28,15 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
   converged to MyTraL's task manager, typed tasks are used from now on.
 
+### Removed
+- Removed `Suffer Score` from the ActivityEntity and related forms and HTML code.
+
 ### Fixed
 - Fixed blobstore logging message which no longer specifies wrong blob type.
 
 
 
-## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0)
+## [1.9.0](https://github.com/dvorka-oss/my-training-log/compare/v1.8.0...v1.9.0)
 
 This MyTraL **minor** release brings:
 
@@ -95,7 +98,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.8.0](https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0)
+## [1.8.0](https://github.com/dvorka-oss/my-training-log/compare/v1.7.0...v1.8.0)
 
 This MyTraL **minor** release brings:
 
@@ -135,7 +138,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.7.0](https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0)
+## [1.7.0](https://github.com/dvorka-oss/my-training-log/compare/v1.6.0...v1.7.0)
 
 This MyTraL **minor** release brings:
 
@@ -157,7 +160,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.6.0](https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0)
+## [1.6.0](https://github.com/dvorka-oss/my-training-log/compare/v1.5.0...v1.6.0)
 
 This MyTraL **minor** release brings:
 
@@ -219,7 +222,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.5.0](https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0)
+## [1.5.0](https://github.com/dvorka-oss/my-training-log/compare/v1.4.0...v1.5.0)
 
 This MyTraL **minor** release brings:
 
@@ -255,7 +258,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.4.0](https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0)
+## [1.4.0](https://github.com/dvorka-oss/my-training-log/compare/v1.3.0...v1.4.0)
 
 This MyTraL **minor** release brings:
 
@@ -453,5 +456,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka/my-training-log/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka/my-training-log/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka-oss/my-training-log/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka-oss/my-training-log/releases/tag/v0.9.0...v1.0.0

@@ -20,10 +20,16 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ## Technical Documentation
 
+### Architecture
+* [source](ARCHITECTURE.md)
+
 ### Activity Normalization
 * [source](NORMALIZATION.md)
 
 ### ---
+
+### Credits
+* [source](CREDITS.md)
 
 ### License
 * [source](LICENSE.md)
