@@ -16,6 +16,7 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Added polyline with map backround to the activity feed.
 - Added rainbow polyline w/ running dot to the activity feed.
 - Added evevation chart to the activity feed.
+- Added notification system w/ last 10 notifications per user.
 - Added "maximize map" action to the activity view page.
 - Added description field to symptoms so that user can specify how to cure such injury or illness.
 - Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).

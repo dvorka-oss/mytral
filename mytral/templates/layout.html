@@ -180,9 +180,6 @@
                 </div>
                 <div class="nav-item dropdown d-none d-md-flex">
                   {# notifications #}
-                  {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% set messages_has_error = messages | rejectattr('0', 'in', ['success', 'info', 'message']) | list | length > 0 %}
-
                   <a
                     href="#"
                     title="Notifications"
@@ -208,13 +205,9 @@
                       <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
                       <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
                     </svg>
-                    {# notification green / red dot #}
-                    {% if messages %}
-                        {% if messages_has_error %}
-                        <span class="badge bg-red"></span>
-                        {% else %}
-                        <span class="badge bg-green"></span>
-                        {% endif %}
+                    {# notification count badge #}
+                    {% if notification_count > 0 %}
+                      <span class="badge badge-dot bg-{{ notification_badge_color }} badge-notification"></span>
                     {% endif %}
                   </a>
                   <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
@@ -222,50 +215,42 @@
                       <div class="card-header d-flex">
                         <div class="btn-close ms-auto" data-bs-dismiss="dropdown"></div>
                       </div>
-                      {# list notifications #}
-                      {% if messages %}
-                          <div class="list-group list-group-flush list-group-hoverable">
-                          {% for category, message in messages %}
-                              {% if category in ['success', 'info', 'message'] %}
-
-                                <div class="list-group-item">
-                                  <div class="row align-items-center">
-                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
-                                    <div class="col text-truncate">
-                                      {# <a href="#" class="text-body d-block">Example 4</a> #}
-                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
-                                    </div>
+                      {# list persistent notifications #}
+                      {% if notifications %}
+                        <div class="list-group list-group-flush list-group-hoverable">
+                        {% for notif in notifications %}
+                            {% if notif.category in ['success', 'info', 'message'] %}
+                              <div class="list-group-item">
+                                <div class="row align-items-center">
+                                  <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
+                                  <div class="col text-truncate">
+                                    <div class="d-block text-secondary text-truncate mt-n1">{{ notif.message }}</div>
                                   </div>
                                 </div>
-                              {% else %}
-                                <div class="list-group-item">
-                                  <div class="row align-items-center">
-                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
-                                    <div class="col text-truncate">
-                                      {# <a href="#" class="text-body d-block">Example 1</a> #}
-                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
-                                    </div>
+                              </div>
+                            {% else %}
+                              <div class="list-group-item">
+                                <div class="row align-items-center">
+                                  <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
+                                  <div class="col text-truncate">
+                                    <div class="d-block text-secondary text-truncate mt-n1">{{ notif.message }}</div>
                                   </div>
                                 </div>
-                              {% endif %}
-                          {% endfor %}
+                              </div>
+                            {% endif %}
+                        {% endfor %}
                         </div>
                       {% endif %}
-                    {# ^ with messages #}
-                    {% endwith %}
-                    {# clear notifications
-                      <div class="card-body">
-                        <div class="row">
-                          <div class="col">
-                            <a href="#" class="btn btn-2 w-100"> Archive all </a>
-                          </div>
-                          <div class="col">
-                            <a href="#" class="btn btn-2 w-100"> Mark all as read </a>
-                          </div>
+                      {# clear notifications button #}
+                      {% if notifications %}
+                        <div class="card-body">
+                          <form method="POST" action="{{ url_for('notifications_clear') }}">
+                            <input type="hidden" name="csrf_token" value="{{ clear_notifications_form.csrf_token._value() }}" />
+                            <button type="submit" class="btn btn-2 w-100">Clear</button>
+                          </form>
                         </div>
-                      </div>
+                      {% endif %}
                     </div>
-                    #}
                   </div>
                 </div>
               </div>
