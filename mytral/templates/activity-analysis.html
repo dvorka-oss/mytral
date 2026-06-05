@@ -4,7 +4,12 @@
     <div class="container-xl">
         <div class="row g-2 align-items-center">
             <div class="col">
-                <a href="{{ url_for('list_activities_year', year=0) }}" class="page-pretitle">Activities</a>
+                <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="page-pretitle">
+                    Activity
+                    {% if activity_entity.name and activity_entity.name|length > 0 %}
+                        ・ {{ activity_entity.name }}
+                    {% endif %}
+                </a>
                 <h2 class="page-title">Activity Analysis</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">

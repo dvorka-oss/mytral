@@ -3728,6 +3728,290 @@ def irm3d_composite(
     return script, div
 
 
+def irm3d_workout_timeseries_chart(
+    ts_data,
+    model_params,
+    is_mobile_view: bool = False,
+) -> tuple[str, Any]:
+    """Render per-workout 3D IRM time series chart.
+
+    Four stacked panels:
+    1. Power & MPA — raw power vs. maximum power available
+    2. W′ expended — cumulative glycolytic capacity drain
+    3. kstrain — strain coefficient (Eq.11)
+    4. SS breakdown — stacked CP / W′ / Pmax strain scores
+
+    Parameters
+    ----------
+    ts_data : Irm3dTimeseries
+        Per-second 3D IRM time series for a single workout.
+    model_params : PowerModelParams
+        CP / W′ / Pmax used in the computation.
+    is_mobile_view : bool
+        Whether to render mobile-optimized layout.
+
+    Returns
+    -------
+    tuple[str, Any]
+        Bokeh ``(script, div)`` components.
+    """
+    if ts_data is None or not ts_data.timestamps:
+        return "", "<div><p>No 3D IRM time series data available.</p></div>"
+
+    source = ColumnDataSource(
+        data={
+            "timestamp": ts_data.timestamps,
+            "power_w": ts_data.power_watts,
+            "mpa_w": ts_data.mpa_watts,
+            "w_prime_j": ts_data.w_prime_expended_joules,
+            "kstrain": ts_data.kstrain,
+            "ss_cp": ts_data.ss_cp,
+            "ss_w_prime": ts_data.ss_w_prime,
+            "ss_pmax": ts_data.ss_pmax,
+            "ss_total": ts_data.ss_total,
+            # precomputed base for stacked SSCP area
+            "ss_base": [p + w for p, w in zip(ts_data.ss_pmax, ts_data.ss_w_prime)],
+        }
+    )
+
+    panel_width = VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT
+    tools = "xpan,xwheel_zoom,reset,save" if not is_mobile_view else "xpan,reset"
+
+    # --- Panel 1: Power & MPA ---
+    p1 = bokeh_plt.figure(
+        title="Power & Maximum Power Available (MPA)",
+        x_axis_type="datetime",
+        width=panel_width,
+        height=220,
+        toolbar_location="below" if not is_mobile_view else None,
+        tools=tools,
+    )
+    p1.sizing_mode = "scale_width"
+    p1.toolbar.logo = None
+    p1.yaxis.axis_label = "Watts"
+    p1.line(
+        x="timestamp",
+        y="power_w",
+        source=source,
+        line_width=1.4,
+        color="#206bc4",
+        legend_label="Power",
+    )
+    p1.line(
+        x="timestamp",
+        y="mpa_w",
+        source=source,
+        line_width=1.8,
+        color="#d63939",
+        line_dash="dashed",
+        legend_label="MPA",
+    )
+    # shade the gap between power and MPA (near-limit region)
+    p1.varea(
+        x="timestamp",
+        y1="power_w",
+        y2="mpa_w",
+        source=source,
+        fill_alpha=0.10,
+        fill_color="#d63939",
+    )
+    if not is_mobile_view:
+        p1.legend.location = "top_left"
+        p1.legend.click_policy = "hide"
+
+    # --- Panel 2: W′ expended ---
+    p2 = bokeh_plt.figure(
+        title="W′ Expended (Glycolytic capacity drain)",
+        x_axis_type="datetime",
+        x_range=p1.x_range,
+        width=panel_width,
+        height=180,
+        toolbar_location=None,
+    )
+    p2.sizing_mode = "scale_width"
+    p2.toolbar.logo = None
+    p2.yaxis.axis_label = "Joules"
+    p2.line(
+        x="timestamp",
+        y="w_prime_j",
+        source=source,
+        line_width=2.0,
+        color="#7c3aed",
+        legend_label="W′ expended",
+    )
+    # horizontal reference line at W′ capacity
+    w_prime_line = bokeh_models.Span(
+        location=model_params.w_prime_joules,
+        dimension="width",
+        line_color="#7c3aed",
+        line_dash="dotted",
+        line_width=1.0,
+    )
+    p2.add_layout(w_prime_line)
+    if not is_mobile_view:
+        p2.legend.location = "top_left"
+        p2.legend.click_policy = "hide"
+
+    # --- Panel 3: kstrain ---
+    p3 = bokeh_plt.figure(
+        title="Strain Coefficient (kstrain) — Eq.11",
+        x_axis_type="datetime",
+        x_range=p1.x_range,
+        width=panel_width,
+        height=160,
+        toolbar_location=None,
+    )
+    p3.sizing_mode = "scale_width"
+    p3.toolbar.logo = None
+    p3.yaxis.axis_label = "kstrain (unitless)"
+    p3.line(
+        x="timestamp",
+        y="kstrain",
+        source=source,
+        line_width=1.8,
+        color="#f59f00",
+    )
+    # reference line at kstrain = 1.0 (fully strained)
+    k1_line = bokeh_models.Span(
+        location=1.0,
+        dimension="width",
+        line_color="#f59f00",
+        line_dash="dotted",
+        line_width=1.0,
+    )
+    p3.add_layout(k1_line)
+
+    # --- Panel 4: SS breakdown (stacked area) ---
+    p4 = bokeh_plt.figure(
+        title="Strain Score Breakdown — SSCP / SSW′ / SSPmax",
+        x_axis_type="datetime",
+        x_range=p1.x_range,
+        width=panel_width,
+        height=200,
+        toolbar_location=None if not is_mobile_view else "below",
+        tools=tools if is_mobile_view else "",
+    )
+    p4.sizing_mode = "scale_width"
+    p4.toolbar.logo = None
+    p4.yaxis.axis_label = "SS (per second)"
+    # stacked area: SSPmax (bottom) + SSW′ + SSCP = height
+    # render from bottom up: SSPmax, then SSW′ on top, then SSCP
+    p4.varea(
+        x="timestamp",
+        y1=0,
+        y2="ss_pmax",
+        source=source,
+        fill_alpha=0.70,
+        fill_color="#f97316",
+        legend_label="SSPmax",
+    )
+    p4.varea(
+        x="timestamp",
+        y1="ss_pmax",
+        y2="ss_total",
+        source=source,
+        fill_alpha=0.70,
+        fill_color="#7c3aed",
+        legend_label="SSW′",
+    )
+    # SSCP is implicitly top layer (ss_cp + ss_w_prime + ss_pmax = ss_total)
+    # we use ss_total as the top boundary and ss_pmax + ss_w_prime as bottom
+    if not is_mobile_view:
+        p4.legend.location = "top_left"
+        p4.legend.click_policy = "hide"
+    # add SSCP contribution on top (rendered last = top layer)
+    p4.varea(
+        x="timestamp",
+        y1="ss_base",
+        y2="ss_total",
+        source=source,
+        fill_alpha=0.70,
+        fill_color="#111827",
+        legend_label="SSCP",
+    )
+    # add SS total line for clarity
+    p4.line(
+        x="timestamp",
+        y="ss_total",
+        source=source,
+        line_width=1.0,
+        color="#111827",
+        line_dash="dotted",
+    )
+
+    linked_panels = [p1, p2, p3, p4]
+    for panel in linked_panels:
+        panel.xaxis.visible = False
+    p4.xaxis.visible = True
+
+    # set initial viewport to the first 20 minutes
+    if len(ts_data.timestamps) > 1:
+        t0 = ts_data.timestamps[0]
+        t_end = t0 + datetime.timedelta(minutes=20)
+        x_range = bokeh_models.Range1d(start=t0, end=t_end)
+        for panel in linked_panels:
+            panel.x_range = x_range
+    else:
+        x_range = p1.x_range
+
+    # shared crosshair spanning all panels
+    shared_vspan = bokeh_models.Span(
+        dimension="height",
+        line_color="#868e96",
+        line_alpha=0.5,
+        line_width=1,
+    )
+
+    all_tooltips = [
+        ("Time", "@timestamp{%H:%M:%S}"),
+        ("Power", "@power_w{0.0} W"),
+        ("MPA", "@mpa_w{0.0} W"),
+        ("W\u2032 expended", "@w_prime_j{0.0} J"),
+        ("kstrain", "@kstrain{0.000}"),
+        ("SSCP", "@ss_cp{0.000}"),
+        ("SSW\u2032", "@ss_w_prime{0.000}"),
+        ("SSPmax", "@ss_pmax{0.000}"),
+    ]
+
+    for panel in linked_panels:
+        crosshair = bokeh_models.CrosshairTool(overlay=shared_vspan)
+        panel.add_tools(crosshair)
+        hover = bokeh_models.HoverTool(
+            tooltips=all_tooltips,
+            formatters={"@timestamp": "datetime"},
+            mode="vline",
+        )
+        panel.add_tools(hover)
+
+    # range-selector panel — full activity overview with drag-to-zoom
+    select = bokeh_plt.figure(
+        title="Drag the selection to zoom the chart above",
+        height=110,
+        width=panel_width,
+        x_axis_type="datetime",
+        y_axis_type=None,
+        tools="",
+        toolbar_location=None,
+        background_fill_color="#efefef",
+    )
+    select.sizing_mode = "scale_width"
+    select.line("timestamp", "power_w", source=source, color="#206bc4", line_width=1)
+    select.ygrid.grid_line_color = None
+    select.outline_line_color = None
+    select.title.text_font_size = "11px"
+    select.title.text_color = "#868e96"
+
+    range_tool = bokeh_models.RangeTool(x_range=x_range, start_gesture="pan")
+    range_tool.overlay.fill_color = "#206bc4"
+    range_tool.overlay.fill_alpha = 0.15
+    select.add_tools(range_tool)
+
+    script, div = bokeh_embed.components(
+        bokeh_layouts.column(p1, p2, p3, p4, select, sizing_mode="scale_width")
+    )
+    return script, div
+
+
 def total_km_per_year(
     ds_stats: stats.UserDatasetStats,
     activity_types: settings.UserActivityTypes = None,

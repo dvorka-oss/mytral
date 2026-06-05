@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block content %}
+{% if cache_warming %}
+    <meta http-equiv="refresh" content="3">
+{% endif %}
 <div class="container-xl">
     <div class="page-header d-print-none">
         <div class="row align-items-center">
@@ -15,9 +18,13 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p>
-                This chart models training load in three independent dimensions using strain score (SS):
+                <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D Impulse-Response Model</a> is a novel
+                approach to modeling training load and performance in endurance sports.
+                It models training load in 3 independent dimensions using strain score (SS):
+                <strong>Explosive Power</strong> (Pmax)
+
                 <strong>Aero Generator</strong> (CP), <strong>Prime Battery</strong> (W′), and
-                <strong>Explosive Power</strong> (Pmax).
+                .
             </p>
             <p class="mb-0">
                 Workouts with power recordings are converted second-by-second into SSCP / SSW′ / SSPmax,
@@ -98,6 +105,43 @@
     </div>
     {% endif %}
 
+    {% if cache_warming %}
+    <div class="card mb-3">
+        <div class="card-status-top bg-yellow"></div>
+        <div class="card-header">
+            <h3 class="card-title">
+                3D impulse-response timeline
+            </h3>
+            <div class="card-actions">
+                <span class="badge bg-yellow text-yellow-fg">warming cache</span>
+                <span class="badge bg-secondary text-secondary-fg">{{ total_activities }} total activities</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <div class="spinner-border text-yellow" role="status" style="width: 3rem; height: 3rem;"></div>
+                </div>
+                <p class="empty-title">Cold cache — computing strain scores in the background</p>
+                <p class="empty-subtitle text-secondary">
+                    The 3D IRM strain breakdown is being computed for the first time.
+                    This may take a few minutes for large datasets. This page refreshes
+                    automatically every 3 seconds.
+                </p>
+                {% if warmup_task_id %}
+                <div class="empty-action">
+                    <a href="{{ url_for('task_detail', task_id=warmup_task_id) }}" class="btn btn-yellow">
+                        View task progress
+                    </a>
+                    <a href="{{ url_for('tasks_list') }}" class="btn btn-ghost-secondary ms-2">
+                        All tasks
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
     <div class="card mb-3">
         <div class="card-header">
             <h3 class="card-title">
@@ -114,7 +158,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
+    {% if not cache_warming %}
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Friendly names mapping used in MyTraL</h3>
@@ -154,6 +200,7 @@
             </p>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 

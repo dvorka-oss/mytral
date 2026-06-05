@@ -513,6 +513,9 @@ def resolve(
     # --- FTP ---
     if athlete_metrics.ftp > 0:
         athlete_metrics.e_ftp = athlete_metrics.ftp
+    elif athlete_metrics.e_ftp > 0:
+        # already estimated in a prior request — skip expensive scan
+        pass
     else:
         athlete_metrics.e_ftp = estimate_ftp_from_activities(activities)
 
@@ -529,6 +532,9 @@ def resolve(
     )
     if athlete_metrics.p_max_watts > 0:
         athlete_metrics.e_p_max_watts = athlete_metrics.p_max_watts
+    elif athlete_metrics.e_p_max_watts > 0:
+        # already estimated — skip expensive scan
+        pass
     else:
         athlete_metrics.e_p_max_watts = estimate_pmax_from_activities(
             activities=activities,

@@ -155,6 +155,25 @@ class Irm3dStateRow:
     pmax_watts: float
 
 
+@dataclasses.dataclass
+class Irm3dTimeseries:
+    """Per-second 3D IRM time series for a single workout.
+
+    All lists have the same length (one entry per power sample).
+    Timestamps are Python datetime objects for chart axis labelling.
+    """
+
+    timestamps: list[datetime.datetime]
+    power_watts: list[float]
+    mpa_watts: list[float]
+    w_prime_expended_joules: list[float]
+    kstrain: list[float]
+    ss_total: list[float]
+    ss_cp: list[float]
+    ss_w_prime: list[float]
+    ss_pmax: list[float]
+
+
 def compute_mpa(
     model_params: PowerModelParams, w_prime_expended_joules: float
 ) -> float:
@@ -346,6 +365,110 @@ def compute_workout_strain_from_recording(
         max_power_watts=max_power,
         near_limit_seconds=near_limit_seconds,
         samples=sample_count,
+    )
+
+
+def compute_workout_irm3d_timeseries(
+    recording_data: recording_models.RecordingData,
+    model_params: PowerModelParams,
+) -> Irm3dTimeseries | None:
+    """Compute per-second 3D IRM time series for a single workout recording.
+
+    Unlike ``compute_workout_strain_from_recording`` which returns aggregated
+    totals, this function retains every sample so that time-series charts can
+    be rendered (power, MPA, W′ expended, kstrain, and the SS breakdown).
+
+    Parameters
+    ----------
+    recording_data : RecordingData
+        Parsed recording with power values and timestamps.
+    model_params : PowerModelParams
+        CP / W′ / Pmax parameters for the athlete.
+
+    Returns
+    -------
+    Irm3dTimeseries or None
+        Per-second arrays, or None if the recording has no power data.
+    """
+    model_params.validate()
+    if not recording_data.has_power or not recording_data.power_values:
+        return None
+
+    w_prime_expended = 0.0
+    sample_count = 0
+
+    # per-sample output arrays
+    timestamps: list[datetime.datetime] = []
+    power_watts: list[float] = []
+    mpa_watts_list: list[float] = []
+    w_prime_list: list[float] = []
+    kstrain_list: list[float] = []
+    ss_total_list: list[float] = []
+    ss_cp_list: list[float] = []
+    ss_w_prime_list: list[float] = []
+    ss_pmax_list: list[float] = []
+
+    previous_timestamp: datetime.datetime | None = None
+
+    for i, power_value in enumerate(recording_data.power_values):
+        if power_value is None:
+            continue
+        if not math.isfinite(power_value):
+            continue
+
+        dt_seconds, previous_timestamp = _sample_dt_seconds(
+            recording_data=recording_data,
+            sample_index=i,
+            previous_timestamp=previous_timestamp,
+        )
+        if dt_seconds <= 0:
+            continue
+
+        power = _clamp(float(power_value), 0.0, model_params.pmax_watts)
+        if power > model_params.cp_watts:
+            w_prime_expended += (power - model_params.cp_watts) * dt_seconds
+            w_prime_expended = min(w_prime_expended, model_params.w_prime_joules)
+
+        mpa = compute_mpa(
+            model_params=model_params,
+            w_prime_expended_joules=w_prime_expended,
+        )
+        second_strain = compute_second_strain(
+            power_watts=power,
+            mpa_watts=mpa,
+            model_params=model_params,
+        )
+
+        # timestamp for this sample
+        if i < len(recording_data.timestamps):
+            ts = recording_data.timestamps[i]
+        else:
+            ts = previous_timestamp or datetime.datetime.min
+        timestamps.append(ts)
+
+        power_watts.append(power)
+        mpa_watts_list.append(mpa)
+        w_prime_list.append(w_prime_expended)
+        kstrain_list.append(second_strain.kstrain)
+        ss_total_list.append(second_strain.ss_total)
+        ss_cp_list.append(second_strain.ss_cp)
+        ss_w_prime_list.append(second_strain.ss_w_prime)
+        ss_pmax_list.append(second_strain.ss_pmax)
+        sample_count += 1
+
+    if sample_count == 0:
+        return None
+
+    return Irm3dTimeseries(
+        timestamps=timestamps,
+        power_watts=power_watts,
+        mpa_watts=mpa_watts_list,
+        w_prime_expended_joules=w_prime_list,
+        kstrain=kstrain_list,
+        ss_total=ss_total_list,
+        ss_cp=ss_cp_list,
+        ss_w_prime=ss_w_prime_list,
+        ss_pmax=ss_pmax_list,
     )
 
 

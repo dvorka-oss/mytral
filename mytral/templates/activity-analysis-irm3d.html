@@ -1,0 +1,175 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="page-pretitle">
+                    Activity
+                    {% if activity_entity.name and activity_entity.name|length > 0 %}
+                        ・ {{ activity_entity.name }}
+                    {% endif %}
+                </a>
+                <h2 class="page-title">3D Impuls-Response Model Activity Analysis</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-left" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 12l14 0"/>
+                            <path d="M5 12l6 6"/>
+                            <path d="M5 12l6 -6"/>
+                        </svg>
+                        Activity Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if recordings_metadata and recordings_metadata|length > 0 %}
+    <div class="card mt-3 mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Recording source
+            </h3>
+        </div>
+        <div class="card-body">
+            <select class="form-select" onchange="if(this.value) window.location.href=this.value;">
+                {% for rec in recordings_metadata %}
+                {% set url = url_for('get_activity_irm3d_analysis', key=activity_entity.key, blob_uuid=rec.blob_uuid) %}
+                <option value="{{ url }}" {% if rec.blob_uuid == selected_blob_uuid %}selected{% endif %}>
+                    {{ rec.original_file_name or rec.name or rec.blob_uuid }} (.{{ rec.ext }})
+                    {% if not rec.has_parquet %}[no parquet]{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if irm3d_script and irm3d_div %}
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">SS CP (oxidative strain)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(ss_cp) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">SS W′ (glycolytic strain)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(ss_w_prime) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">SS Pmax (PCr strain)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(ss_pmax) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Total SS (strain score)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(ss_total) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Min MPA</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(min_mpa) }} W</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Max power</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(max_power) }} W</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Near-limit time</div>
+                    <div class="h3 mb-0">{{ "%.0f"|format(near_limit_s) }} s</div>
+                </div>
+            </div>
+        </div>
+        {% if model_params %}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Athlete CP / W′ / Pmax</div>
+                    <div class="h3 mb-0">{{ "%.0f"|format(model_params.cp_watts) }} W / {{ "%.0f"|format(model_params.w_prime_joules) }} J / {{ "%.0f"|format(model_params.pmax_watts) }} W</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                3D Impulse-Response Model — per-second breakdown
+            </h3>
+            <div class="card-actions">
+                <span class="badge bg-azure text-azure-fg">Power &amp; MPA &amp; W′ &amp; kstrain &amp; SS</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ irm3d_script|safe }}
+                {{ irm3d_div|safe }}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-3">
+        <div class="card-status-top bg-yellow"></div>
+        <div class="card-header">
+            <h3 class="card-title">
+                3D Impulse-Response Model — per-second breakdown
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-histogram" width="48" height="48" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 3v18h18"/>
+                        <path d="M7 16v-6"/>
+                        <path d="M11 16v-2"/>
+                        <path d="M15 16v2"/>
+                        <path d="M19 16v-7"/>
+                    </svg>
+                </div>
+                <p class="empty-title">No 3D IRM data available for this recording</p>
+                <p class="empty-subtitle text-secondary">
+                    {% if recordings_metadata %}
+                    This recording may not have power data, or the athlete's
+                    power-model parameters (CP / W′ / Pmax) are not configured.
+                    {% else %}
+                    No recording files are attached to this activity.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

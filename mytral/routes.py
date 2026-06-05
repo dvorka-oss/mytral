@@ -54,6 +54,7 @@ from mytral import version
 from mytral import views
 from mytral.backends import entities as entities_mod
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.metrics import irm3d as irm3d_mod
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
 from mytral.tasks import _entities as task_entities
@@ -3390,6 +3391,166 @@ def get_activity_analysis(key):
         hr_ts_div=hr_ts_div,
         speed_cadence_ts_script=speed_cadence_ts_script,
         speed_cadence_ts_div=speed_cadence_ts_div,
+    )
+
+
+@flask_app.route("/app/activities/<key>/analysis-irm3d", methods=["GET"])
+def get_activity_irm3d_analysis(key):
+    """Render per-workout 3D impulse-response model analysis.
+
+    Shows per-second power, MPA, W′ expended, kstrain, and the SS
+    breakdown (SSCP / SSW′ / SSPmax) for a single workout recording.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+    dataset_name = user_profile.dataset_name
+    a = ds.get_activity(user_id=user_id, dataset_name=dataset_name, key=key)
+
+    blob_svc = _blob_service()
+
+    # build recordings metadata for the selector
+    recordings_metadata = []
+    for entry in a.recorded_blob_keys:
+        entry_uuid = entities_mod.recording_blob_uuid(entry)
+        meta = blob_svc.get_recording(
+            user_id=user_id, activity_key=key, blob_key=entry_uuid
+        )
+        if meta:
+            recordings_metadata.append(
+                {
+                    "blob_uuid": entry_uuid,
+                    "ext": entities_mod.recording_ext(entry),
+                    "name": meta.name,
+                    "original_file_name": meta.original_file_name,
+                    "has_parquet": entry_uuid in a.recorded_parquet_keys,
+                }
+            )
+
+    selected_blob_uuid = flask.request.args.get("blob_uuid")
+    if not selected_blob_uuid and recordings_metadata:
+        selected_blob_uuid = recordings_metadata[0]["blob_uuid"]
+
+    irm3d_script, irm3d_div = None, None
+    ss_total = None
+    ss_cp = None
+    ss_w_prime = None
+    ss_pmax = None
+    min_mpa = None
+    max_power = None
+    near_limit_s = None
+    model_params = None
+
+    if selected_blob_uuid and selected_blob_uuid in a.recorded_parquet_keys:
+        try:
+            from mytral.recordings import parquet_converter as parquet_converter_mod
+
+            result_pair = blob_svc.open_parquet(
+                user_id=user_id,
+                activity_key=key,
+                source_blob_key=selected_blob_uuid,
+            )
+            if result_pair is not None:
+                parquet_stream, _ = result_pair
+                parquet_bytes = parquet_stream.read()
+                recording = parquet_converter_mod.load_parquet(parquet_bytes)
+
+                # resolve athlete metrics for FP estimation
+                all_activities = ds.list_activities(
+                    user_id=user_id,
+                    dataset_name=dataset_name,
+                    sort_by_when=False,
+                    skip_future=True,
+                )
+                weight_kg = float(a.weight or 0.0)
+                am_module.resolve(
+                    athlete_metrics=user_profile.athlete_metrics,
+                    user_profile=user_profile,
+                    activities=all_activities,
+                    weight_kg=weight_kg,
+                )
+
+                # resolve power-model parameters
+                cp_watts = float(
+                    user_profile.athlete_metrics.e_critical_power
+                    or user_profile.athlete_metrics.e_ftp
+                    or 0.0
+                )
+                if cp_watts > 0:
+                    w_prime_joules = float(
+                        user_profile.athlete_metrics.e_w_prime_joules
+                        or irm3d_mod.DEFAULT_W_PRIME_JOULES
+                    )
+                    estimated_pmax = am_module.estimate_pmax_from_activities(
+                        activities=all_activities,
+                        fallback_cp_watts=cp_watts,
+                    )
+                    pmax_watts = float(
+                        user_profile.athlete_metrics.e_p_max_watts or estimated_pmax
+                    )
+                    pmax_watts = max(
+                        pmax_watts,
+                        cp_watts * 1.1,
+                        irm3d_mod.DEFAULT_MIN_PMAX_WATTS,
+                    )
+                    model_params = irm3d_mod.PowerModelParams(
+                        cp_watts=cp_watts,
+                        w_prime_joules=w_prime_joules,
+                        pmax_watts=pmax_watts,
+                    )
+
+                    # compute per-second irm3d time series
+                    ts_data = irm3d_mod.compute_workout_irm3d_timeseries(
+                        recording_data=recording,
+                        model_params=model_params,
+                    )
+                    if ts_data is not None:
+                        # aggregated summary for stats cards
+                        ss_total = sum(ts_data.ss_total)
+                        ss_cp = sum(ts_data.ss_cp)
+                        ss_w_prime = sum(ts_data.ss_w_prime)
+                        ss_pmax = sum(ts_data.ss_pmax)
+                        min_mpa = min(ts_data.mpa_watts)
+                        max_power = max(ts_data.power_watts)
+                        # near-limit seconds: count samples where power
+                        # is within 10 % of MPA
+                        tss = ts_data.timestamps
+                        near_limit_s = sum(
+                            (tss[i + 1] - tss[i]).total_seconds()
+                            for i in range(len(tss) - 1)
+                            if ts_data.mpa_watts[i] > 0
+                            and ts_data.power_watts[i] / ts_data.mpa_watts[i] >= 0.9
+                        )
+
+                        irm3d_script, irm3d_div = charts.irm3d_workout_timeseries_chart(
+                            ts_data=ts_data,
+                            model_params=model_params,
+                            is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+                        )
+
+        except Exception:
+            app_logger.error(
+                f"IRM3D workout analysis failed for activity {key}",
+                exc_info=True,
+            )
+
+    return flask.render_template(
+        "activity-analysis-irm3d.html",
+        user_profile=user_profile,
+        activity_entity=a,
+        recordings_metadata=recordings_metadata,
+        selected_blob_uuid=selected_blob_uuid,
+        irm3d_script=irm3d_script,
+        irm3d_div=irm3d_div,
+        ss_total=ss_total,
+        ss_cp=ss_cp,
+        ss_w_prime=ss_w_prime,
+        ss_pmax=ss_pmax,
+        min_mpa=min_mpa,
+        max_power=max_power,
+        near_limit_s=near_limit_s,
+        model_params=model_params,
     )
 
 

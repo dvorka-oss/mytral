@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import pathlib
 from types import SimpleNamespace
 
 import flask
@@ -39,7 +40,7 @@ def test_insight_irm3d_redirects_without_user(monkeypatch):
 
 
 @pytest.mark.mytral
-def test_insight_irm3d_route_renders_with_data(monkeypatch):
+def test_insight_irm3d_route_renders_with_data(monkeypatch, tmp_path):
     # GIVEN
     captured = {}
     profile = SimpleNamespace(
@@ -69,12 +70,28 @@ def test_insight_irm3d_route_renders_with_data(monkeypatch):
         lambda **kwargs: [SimpleNamespace(weight=70.0, max_watts=0.0)],
     )
     monkeypatch.setattr(
+        irm3d_uri_space.ds,
+        "user_dir",
+        lambda user_id: pathlib.Path(tmp_path),
+    )
+    monkeypatch.setattr(
         irm3d_uri_space.athlete_metrics_mod, "resolve", lambda **kwargs: None
+    )
+    # mock file cache as valid to avoid triggering background task submission
+    monkeypatch.setattr(
+        irm3d_uri_space.irm3d_cache.Irm3dFileCache,
+        "load",
+        lambda self: {"model_params_hash": "fakehash"},
+    )
+    monkeypatch.setattr(
+        irm3d_uri_space.irm3d_cache,
+        "compute_model_params_hash",
+        lambda _: "fakehash",
     )
     monkeypatch.setattr(
         irm3d_uri_space,
-        "_compute_workout_rows",
-        lambda activities, user_id, model_params: [
+        "_compute_workout_rows_with_cache",
+        lambda activities, user_id, model_params, user_data_dir: [
             irm3d.WorkoutStrainBreakdown(
                 activity_key="a1",
                 date=datetime.date(2026, 6, 1),
@@ -112,4 +129,32 @@ def test_insight_irm3d_route_renders_with_data(monkeypatch):
     assert captured["context"]["script"] == "<script>Bokeh</script>"
     assert captured["context"]["latest_state"] is not None
     assert captured["context"]["latest_day"] is not None
+    assert captured["context"]["cache_warming"] is False
+    assert captured["context"]["warmup_task_id"] is None
     print("DONE: /insight/irm3d renders and passes chart context")
+
+
+@pytest.mark.mytral
+def test_recording_fingerprint_changes_with_keys():
+    # GIVEN
+    activity_a = SimpleNamespace(recorded_parquet_keys={"blob1": "pq-aaa"})
+    activity_b = SimpleNamespace(recorded_parquet_keys={"blob1": "pq-bbb"})
+    activity_c = SimpleNamespace(
+        recorded_parquet_keys={"blob1": "pq-aaa", "blob2": "pq-ccc"}
+    )
+    activity_empty = SimpleNamespace(recorded_parquet_keys={})
+
+    # WHEN
+    fp_a = irm3d_uri_space._recording_fingerprint(activity_a)
+    fp_b = irm3d_uri_space._recording_fingerprint(activity_b)
+    fp_c = irm3d_uri_space._recording_fingerprint(activity_c)
+    fp_empty = irm3d_uri_space._recording_fingerprint(activity_empty)
+
+    # THEN
+    assert fp_a != fp_b  # different parquet UUID → different fingerprint
+    assert fp_a != fp_c  # more keys → different fingerprint
+    assert fp_empty == ""  # no keys → empty fingerprint
+    assert len(fp_a) == 64  # SHA-256 length
+    # deterministic
+    assert fp_a == irm3d_uri_space._recording_fingerprint(activity_a)
+    print("DONE: recording fingerprint detects key changes")
