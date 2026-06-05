@@ -12,6 +12,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."
 Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!
 
 ### Added
+- Added new activities validation page.
 - Added polyline with map backround to the activity feed.
 - Added rainbow polyline w/ running dot to the activity feed.
 - Added evevation chart to the activity feed.
