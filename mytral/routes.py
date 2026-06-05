@@ -46,6 +46,7 @@ from mytral import ff
 from mytral import forms
 from mytral import insights
 from mytral import ninjas
+from mytral import notifications as notif_mod
 from mytral import onboarding
 from mytral import settings as user_settings
 from mytral import stats
@@ -390,6 +391,57 @@ def inject_task_info():
         ]
         return {"running_tasks_count": len(running_tasks)}
     return {"running_tasks_count": 0}
+
+
+@flask_app.context_processor
+def inject_notifications():
+    """Inject notifications into all templates.
+
+    Reads both persistent notifications from storage and flash messages
+    from the session, combining them into one list. Flash messages are
+    also persisted to storage so they survive across requests.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if user_id:
+        notif_storage = notif_mod.store
+        notif_list = notif_storage.list(user_id)
+
+        # consume flash messages and store them
+        flash_messages = flask.get_flashed_messages(with_categories=True)
+        for category, message in flash_messages:
+            notif_storage.add(
+                user_id=user_id,
+                category=category,
+                message=message,
+            )
+
+        # refresh list after storing flash messages
+        if flash_messages:
+            notif_list = notif_storage.list(user_id)
+
+        # compute badge color: green=info only, red=errors only, orange=mixed
+        error_count = sum(1 for n in notif_list if n.category in ("error",))
+        if notif_list and error_count == len(notif_list):
+            badge_color = "red"
+        elif notif_list and error_count == 0:
+            badge_color = "green"
+        elif notif_list:
+            badge_color = "orange"
+        else:
+            badge_color = "green"
+
+        return {
+            "notification_count": len(notif_list),
+            "notifications": notif_list,
+            "notification_badge_color": badge_color,
+            "clear_notifications_form": forms.ClearNotificationsForm(),
+        }
+    return {
+        "notification_count": 0,
+        "notifications": [],
+        "notification_badge_color": "green",
+        "clear_notifications_form": forms.ClearNotificationsForm(),
+    }
 
 
 @flask_app.context_processor
@@ -1243,6 +1295,27 @@ def tasks_cleanup():
         flask.flash(f"Failed to cleanup tasks: {str(e)}", "error")
 
     return flask.redirect(flask.url_for("tasks_list"))
+
+
+@flask_app.route("/notifications/clear", methods=["POST"])
+def notifications_clear():
+    """Clear all notifications for the current user."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.ClearNotificationsForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
+    notif_storage = notif_mod.store
+    notif_storage.clear_all(user_id)
+
+    # redirect back to the page the user came from
+    referrer = flask.request.referrer
+    if referrer:
+        return flask.redirect(referrer)
+    return flask.redirect(flask.url_for("home"))
 
 
 def _avatar_service() -> blob_pkg.AvatarBlobService:

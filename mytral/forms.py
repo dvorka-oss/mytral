@@ -1368,6 +1368,10 @@ class CleanupTasksForm(flask_wtf.FlaskForm):
     """CSRF-protected form for cleaning up finished tasks."""
 
 
+class ClearNotificationsForm(flask_wtf.FlaskForm):
+    """CSRF-protected form for clearing all notifications."""
+
+
 class SubmitHelloWorldForm(flask_wtf.FlaskForm):
     """CSRF-protected form for submitting a hello world test task."""
 
