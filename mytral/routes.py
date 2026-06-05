@@ -3535,6 +3535,8 @@ def get_activity_irm3d_analysis(key):
                 exc_info=True,
             )
 
+    activity_types = ds.list_activity_types(user_id=user_id)
+
     return flask.render_template(
         "activity-analysis-irm3d.html",
         user_profile=user_profile,
@@ -3551,6 +3553,7 @@ def get_activity_irm3d_analysis(key):
         max_power=max_power,
         near_limit_s=near_limit_s,
         model_params=model_params,
+        activity_types=activity_types,
     )
 
 

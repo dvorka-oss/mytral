@@ -6,9 +6,6 @@
             <div class="col">
                 <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="page-pretitle">
                     Activity
-                    {% if activity_entity.name and activity_entity.name|length > 0 %}
-                        ・ {{ activity_entity.name }}
-                    {% endif %}
                 </a>
                 <h2 class="page-title">Activity Analysis</h2>
             </div>
@@ -55,8 +52,27 @@
     </div>
 </div>
 
-<div class="page-body">
+<div class="page-body mt-2">
     <div class="container-xl">
+        <div class="card">
+            <div class="card-body">
+                <p>
+                    <strong>Classic analysis</strong> provides the standard set of
+                    performance charts for a single activity recording. All metrics
+                    are derived from the recording&rsquo;s second-by-second data (heart
+                    rate, power, speed, cadence, altitude).
+                </p>
+                <ul class="mb-0">
+                    <li><strong>Recording Charts</strong> — heart rate &amp; performance overlay and swimlane view</li>
+                    <li><strong>Heart Rate</strong> — time series and zone distribution histogram</li>
+                    <li><strong>Speed &amp; Cadence</strong> — time series and cadence distribution</li>
+                    <li><strong>Power</strong> — time series, power-duration curve, and zone histogram</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xl mt-3">
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center">
@@ -65,11 +81,6 @@
                     </div>
                     <div class="ms-3">
                         <div class="h3 mb-0">{{ activity_types.name(activity_entity.activity_type_key) }}</div>
-                        <div class="text-muted">
-                            {{ activity_entity.intensity }}
-                            {% if activity_entity.weather %} · {{ activity_entity.weather }}{% endif %}
-                            {% if activity_entity.temperature %} · {{ activity_entity.temperature }}℃{% endif %}
-                        </div>
                     </div>
                 </div>
                 <div class="card-actions">
@@ -100,9 +111,11 @@
                         Activity: {{ activity_types.name(activity_entity.activity_type_key) }}
                     {% endif %}
                 </h2>
+                {#
                 <div class="text-muted mb-4">
                     {{ activity_entity.description|markdown }}
                 </div>
+                #}
             </div>
         </div>
     </div>
