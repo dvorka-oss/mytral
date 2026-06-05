@@ -1,0 +1,244 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Activities</div>
+                <h2 class="page-title">Activity Validation ({{ stats.total_problems }})</h2>
+            </div>
+
+            <div class="card mt-3 mb-3">
+                <div class="card-body">
+                    <p class="text-muted">
+                        This page scans all your activities for data issues.
+                        <strong>Errors</strong> are impossible values like avg &gt; max.
+                        <strong>Warnings</strong> are suspicious but potentially legitimate values
+                        (e.g. elite athlete HR or speed).
+                    </p>
+                </div>
+            </div>
+
+            {# Summary stat cards #}
+            <div class="row">
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Total Issues</div>
+                            </div>
+                            <div class="h2 mb-0">{{ "{:,}".format(stats.total_problems) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Errors</div>
+                                <span class="badge bg-red text-red-fg ms-2">avg &gt; max</span>
+                            </div>
+                            <div class="h2 mb-0">{{ "{:,}".format(stats.total_errors) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Warnings</div>
+                                <span class="badge bg-yellow text-yellow-fg ms-2">out of range</span>
+                            </div>
+                            <div class="h2 mb-0">{{ "{:,}".format(stats.total_warnings) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Affected Activities</div>
+                            </div>
+                            <div class="h2 mb-0">{{ "{:,}".format(stats.affected_activities) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Problem breakdown cards #}
+            <div class="row g-1">
+                <div class="col-sm-6 col-md-4">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Internal Inconsistency</div>
+                                <span class="badge bg-red text-red-fg ms-auto">error</span>
+                            </div>
+                            <div class="h3 mb-0">{{ "{:,}".format(stats.internal_errors) }} issue{{ 's' if stats.internal_errors != 1 else '' }}</div>
+                            <div class="text-muted small">avg &gt; max, min &gt; max</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Zero-Value Anomalies</div>
+                                <span class="badge bg-red text-red-fg ms-auto">error</span>
+                            </div>
+                            <div class="h3 mb-0">{{ "{:,}".format(stats.zero_anomalies) }} issue{{ 's' if stats.zero_anomalies != 1 else '' }}</div>
+                            <div class="text-muted small">distance without time, time without distance</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <div class="card">
+                        <div class="card-body py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="subheader small">Out of Range</div>
+                                <span class="badge bg-yellow text-yellow-fg ms-auto">warning</span>
+                            </div>
+                            <div class="h3 mb-0">{{ "{:,}".format(stats.oor_warnings) }} issue{{ 's' if stats.oor_warnings != 1 else '' }}</div>
+                            <div class="text-muted small">speed, HR, cadence, distance, duration, etc.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Activity list #}
+            <div class="row row-cards mt-3 mb-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                {{ junkyard|length }} problematic
+                                {{ 'activity' if junkyard|length == 1 else 'activities' }}
+                            </h3>
+                            <div class="card-actions">
+                                <span class="text-muted small">sorted by issue count</span>
+                            </div>
+                        </div>
+
+                        {% if junkyard %}
+                        <div class="table-responsive">
+                            <table class="table table-vcenter card-table">
+                                <thead>
+                                    <tr>
+                                        <th>When</th>
+                                        <th>Name / Gear / Issues</th>
+                                        <th>Type</th>
+                                        <th>Duration</th>
+                                        <th>Distance<br/>Elevation</th>
+                                        <th>km/h<br/>Pace</th>
+                                        <th>Source</th>
+                                        <th style="width: 5%;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for activity, problems in junkyard %}
+                                    {% set error_count = problems|selectattr('1', 'equalto', 'error')|list|length %}
+                                    {% set warning_count = problems|selectattr('1', 'equalto', 'warning')|list|length %}
+                                    <tr>
+                                        <td>
+                                            <div class="ps-2 mytral-{{ activity_types.color(activity.activity_type_key) }}-border">
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}">{{ activity.when }}</a>
+                                                <br/>
+                                                <span class="text-muted">{{ activities_weekdays[activity.key] }}</span>
+                                                {% if activity.commute %}
+                                                | <span class="badge bg-green">commute</span>
+                                                {% elif activity.warm_up %}
+                                                | <span class="badge bg-yellow">warm-up</span>
+                                                {% elif activity.cool_down %}
+                                                | <span class="badge bg-blue">cool-down</span>
+                                                {% elif activity.race %}
+                                                | <span class="badge bg-red">race</span>
+                                                {% elif activity.ranked %}
+                                                | <span class="badge bg-orange">ranked</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td title="{{ activity.description }}">
+                                            {% if activity.name %}
+                                                <b>{{ activity.name }}</b>
+                                            {% else %}
+                                                <b>Activity: {{ activity_types.name(activity.activity_type_key) }}</b>
+                                            {% endif %}
+                                            <br>
+                                            {% set activity_gears = activity.gears if activity.gears is defined and activity.gears else [] %}
+                                            {% for gear_key in activity_gears %}
+                                                {% if gear_key and not gear.to_dict().get(gear_key) %}
+                                                <span class="text-danger">{{ gear_key }}</span>
+                                                {% else %}
+                                                {{ gear.to_dict().get(gear_key, {}).name }}
+                                                {% endif %}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                            <br>
+                                            <ul class="m-0 ps-3 mt-1" style="list-style: none;">
+                                            {% for problem, severity in problems %}
+                                                <li>
+                                                    {% if severity == 'error' %}
+                                                    <span class="badge badge-sm bg-red text-red-fg me-1">!</span>
+                                                    {% else %}
+                                                    <span class="badge badge-sm bg-yellow text-yellow-fg me-1">~</span>
+                                                    {% endif %}
+                                                    <small>{{ problem }}</small>
+                                                </li>
+                                            {% endfor %}
+                                            </ul>
+                                        </td>
+                                        <td>
+                                            {{ activity_types.emoji(activity.activity_type_key) }}
+                                            <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
+                                        </td>
+                                        <td>
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                                            {{ activity.duration }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                            {{ "{:0,}".format(activity.distance) }} m<br/>
+                                            {{ "{:0,}".format(activity.elevation_gain) }} m
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                                            {{ (activity.avg_speed)|round(1) }}<br/>
+                                            {{ activity.pace }}
+                                            {% endif %}
+                                        </td>
+                                        <td><span>{{ activity.src }}</span></td>
+                                        <td>
+                                            <a href="{{ url_for('update_activity', key=activity.key) }}"
+                                               class="btn btn-primary btn-icon"
+                                               title="Edit activity">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/><path d="M16 5l3 3"/></svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="card-body">
+                            <div class="empty">
+                                <div class="empty-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mood-smile"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 10l.01 0"/><path d="M15 10l.01 0"/><path d="M9.5 15a3.5 3.5 0 0 0 5 0"/></svg>
+                                </div>
+                                <p class="empty-title">No problems found</p>
+                                <p class="empty-subtitle text-muted">
+                                    All your activities passed validation checks. Everything looks clean!
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

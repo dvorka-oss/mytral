@@ -261,6 +261,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <p>Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!</p>
 <h3 id="added">Added</h3>
 <ul>
+<li>Added new activities validation page.</li>
 <li>Added polyline with map backround to the activity feed.</li>
 <li>Added rainbow polyline w/ running dot to the activity feed.</li>
 <li>Added evevation chart to the activity feed.</li>
@@ -268,9 +269,8 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <li>Added description field to symptoms so that user can specify how to cure such injury or illness.</li>
 <li>Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).</li>
 <li>Added TCX import (individual files and directory of recordings/archives).</li>
-</ul>
-<h3 id="added_1">Added</h3>
-<ul>
+<li>Added <code>gender</code> field to the athlete profile in order to calculate metrics like TRIMP more accurately.</li>
+<li>Added TRIMP calculation and chart to the <code>Progress</code> menu.</li>
 <li>Improved polyline calculation to be ~4000x faster (legacy method kept).</li>
 </ul>
 <h3 id="changed">Changed</h3>
@@ -279,13 +279,17 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <li>Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
   converged to MyTraL's task manager, typed tasks are used from now on.</li>
 </ul>
+<h3 id="removed">Removed**</h3>
+<ul>
+<li>Removed <code>Suffer Score</code> from the ActivityEntity and related forms and HTML code.</li>
+</ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed blobstore logging message which no longer specifies wrong blob type.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="190"><a href="https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0">1.9.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_2">Added</h3>
+<h3 id="added_1">Added</h3>
 <ul>
 <li>Added import from FIT.</li>
 <li>Added import from GPX - file or directory.</li>
@@ -349,7 +353,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="180"><a href="https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0">1.8.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_3">Added</h3>
+<h3 id="added_2">Added</h3>
 <ul>
 <li>ACoaches - AI coaching feature powered by LLM providers:</li>
 <li>Configure LLM providers: local Ollama, Anthropic Claude,
@@ -387,7 +391,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="170"><a href="https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0">1.7.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_4">Added</h3>
+<h3 id="added_3">Added</h3>
 <ul>
 <li>Ability to specify muscle groups for exercises and activity types - shown in
   the activity detail and day pages.</li>
@@ -408,7 +412,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="160"><a href="https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0">1.6.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_5">Added</h3>
+<h3 id="added_4">Added</h3>
 <ul>
 <li>Filtering of fields in create / update activity HTML pages.</li>
 <li>Filtering of exercise types by tag.</li>
@@ -471,13 +475,13 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="150"><a href="https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0">1.5.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_6">Added</h3>
+<h3 id="added_5">Added</h3>
 <ul>
 <li>Eisenhower matrix HTML page for goals.</li>
 <li>Ability to tag exercises to filter them and to create routines/sets.</li>
 <li>Admin view with the deployment environment introspection.</li>
 </ul>
-<h3 id="removed">Removed</h3>
+<h3 id="removed_1">Removed</h3>
 <ul>
 <li><code>CLAUDE.md</code> removed as its content is getting obsolete
    (GitHub copilot and Augment AI is used for agent assisted coding).</li>
@@ -508,21 +512,21 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="140"><a href="https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0">1.4.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_7">Added</h3>
+<h3 id="added_6">Added</h3>
 <ul>
 <li>Pass through cache allowing to operate on system where caching would cause data inconsistency
   (data modified &amp; uploaded to cache on 1 node and then overwritten on another node).</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="132">[1.3.2]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_8">Added</h3>
+<h3 id="added_7">Added</h3>
 <ul>
 <li>Weight graph shows the Monday's date instead of the week number.</li>
 <li>Goals listing page shows activity type display name instead of the ID.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="130">[1.3.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_9">Added</h3>
+<h3 id="added_8">Added</h3>
 <ul>
 <li>Onboarding logic:</li>
 <li>checklist feature with progress tracking</li>
@@ -537,7 +541,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="120">[1.2.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_10">Added</h3>
+<h3 id="added_9">Added</h3>
 <ul>
 <li>Gear Components Feature: Track individual components of gear items</li>
 <li>Add, edit, delete components for any gear (e.g., bike chain, running shoe insoles)</li>
@@ -569,7 +573,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="110">[1.1.0]</h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="added_11">Added</h3>
+<h3 id="added_10">Added</h3>
 <ul>
 <li>Lap type data model entity, forms, routes and HTML pages.</li>
 <li>Day view.</li>
@@ -583,7 +587,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <li>Activity can newly have more than one gear.</li>
 <li>Activity newly has 0 or more laps.</li>
 </ul>
-<h3 id="removed_1">Removed</h3>
+<h3 id="removed_2">Removed</h3>
 <ul>
 <li>Route data model entity, forms and HTML pages.</li>
 </ul>
@@ -598,7 +602,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="100">[1.0.0]</h2>
 <p>This MyTraL <strong>major</strong> release brings:</p>
-<h3 id="added_12">Added</h3>
+<h3 id="added_11">Added</h3>
 <ul>
 <li>Initial release of MyTraL training log application.</li>
 <li>User authentication and session management.</li>
@@ -642,7 +646,7 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="001">[0.0.1]</h2>
 <p>This MyTraL <strong>patch</strong> release brings:</p>
-<h3 id="added_13">Added</h3>
+<h3 id="added_12">Added</h3>
 <ul>
 <li>Initial YAML data format with applications.</li>
 <li>Manually written pure HTML pages no-JavaScript/no-CSS (bar) charts.</li>
@@ -701,8 +705,8 @@ Find conventions details and template at the bottom of this document.</p>
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#added" class="nav-link ms-3">Added</a>
-<a href="#added" class="nav-link ms-3">Added</a>
 <a href="#changed" class="nav-link ms-3">Changed</a>
+<a href="#removed" class="nav-link ms-3">Removed**</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
 <a href="#added" class="nav-link ms-3">Added</a>
 <a href="#changed" class="nav-link ms-3">Changed</a>

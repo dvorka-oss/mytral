@@ -523,3 +523,399 @@ class WorkoutEntity(DbEntity):
 
     total_duration: str = ""  # 00h00m00s
     total_duration_seconds: int = 0
+
+
+# activity types that typically record distance
+_DISTANCE_ACTIVITY_TYPES: set[str] = {
+    "run",
+    "ride",
+    "row",
+    "swim",
+    "walk",
+    "ski",
+    "rollerski",
+    "xcski",
+    "inline",
+    "ice",
+    "paddle",
+    "kayak",
+    "canoe",
+    "hike",
+    "trek",
+    "mtb",
+    "cx",
+    "elliptical",
+    "treadmill",
+}
+
+
+# severity levels for activity validation
+SEVERITY_ERROR = "error"
+SEVERITY_WARNING = "warning"
+
+
+def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
+    """Check an activity for data problems and return a list of (description, severity).
+
+    Severity levels:
+    - ``"error"``: Internal inconsistency or impossible value (e.g. avg > max).
+    - ``"warning"``: Suspicious but potentially legitimate value (e.g. elite athlete).
+
+    An empty list means the activity is valid with no detected problems.
+
+    Validation checks performed:
+
+    **Errors — internal consistency (average must not exceed maximum):**
+    - ``avg_cadence > max_cadence`` when both are non-zero
+    - ``avg_hr > max_hr`` when both are non-zero
+    - ``avg_watts > max_watts`` when both are non-zero
+    - ``avg_speed > max_speed`` when both are non-zero
+    - ``elevation_min > elevation_max`` when both are non-zero
+
+    **Errors — zero-value anomalies (one field set, related field missing):**
+    - ``distance > 0`` but ``duration_seconds == 0`` (no time recorded)
+    - ``duration_seconds > 0`` but ``distance == 0`` for distance-based activity types
+
+    **Warnings — out-of-range values (suspiciously high or low):**
+    - ``distance > 500 000 m`` (500 km in a single activity)
+    - ``duration_seconds > 172 800 s`` (48 hours)
+    - ``max_speed > 100 km/h`` (suspicious for any human-powered activity)
+    - ``avg_speed`` outside reasonable range for the activity type:
+      - run 3-25 km/h
+      - ride/mtb/cx 5-70 km/h
+      - row/paddle/kayak/canoe 2-20 km/h
+      - swim 1-8 km/h
+      - walk/hike/trek 1-12 km/h
+      - ski/rollerski/xcski/inline/ice 3-50 km/h
+    - ``avg_cadence > 250 rpm`` or ``max_cadence > 300 rpm``
+    - ``avg_hr > 230 bpm`` or ``max_hr > 240 bpm``
+    - ``min_hr < 25 bpm`` or ``min_hr > 120 bpm`` (resting HR range)
+    - ``kcal`` burn rate ``> 2000 kcal/h``
+    - ``elevation_gain / (distance_km) > 150 m/km`` (implausibly steep)
+    - ``avg_watts > 2500 W`` or ``max_watts > 3000 W``
+    - ``temperature < -70 C`` or ``temperature > 70 C``
+    - ``weight < 20 kg`` or ``weight > 300 kg``
+
+    Parameters
+    ----------
+    entity : ActivityEntity
+        The activity to validate. Should already have transient fields
+        (duration_seconds, avg_speed, pace, etc.) computed via
+        ``evaluate_activity()``.
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        List of (description, severity) tuples. Severity is ``"error"`` or
+        ``"warning"``. Empty if no problems found.
+    """
+    problems: list[tuple[str, str]] = []
+
+    # -- internal consistency: average must not exceed maximum --
+
+    if entity.avg_cadence > 0 and entity.max_cadence > 0:
+        if entity.avg_cadence > entity.max_cadence:
+            problems.append(
+                (
+                    f"Avg cadence ({entity.avg_cadence:.0f} rpm) > "
+                    f"max cadence ({entity.max_cadence:.0f} rpm)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    if entity.avg_hr > 0 and entity.max_hr > 0:
+        if entity.avg_hr > entity.max_hr:
+            problems.append(
+                (
+                    f"Avg HR ({entity.avg_hr:.0f} bpm) > "
+                    f"max HR ({entity.max_hr:.0f} bpm)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    if entity.avg_watts > 0 and entity.max_watts > 0:
+        if entity.avg_watts > entity.max_watts:
+            problems.append(
+                (
+                    f"Avg power ({entity.avg_watts:.0f} W) > "
+                    f"max power ({entity.max_watts:.0f} W)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    if entity.avg_speed > 0 and entity.max_speed > 0:
+        if entity.avg_speed > entity.max_speed:
+            problems.append(
+                (
+                    f"Avg speed ({entity.avg_speed:.1f} km/h) > "
+                    f"max speed ({entity.max_speed:.1f} km/h)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    if entity.elevation_min > 0 and entity.elevation_max > 0:
+        if entity.elevation_min > entity.elevation_max:
+            problems.append(
+                (
+                    f"Min elevation ({entity.elevation_min} m) > "
+                    f"max elevation ({entity.elevation_max} m)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    # -- zero-value anomalies --
+
+    if entity.distance > 0 and entity.duration_seconds == 0:
+        problems.append(
+            (
+                f"Distance {entity.distance} m recorded but duration is zero",
+                SEVERITY_ERROR,
+            )
+        )
+
+    at = entity.activity_type_key
+    if entity.duration_seconds > 0 and entity.distance == 0:
+        if at in _DISTANCE_ACTIVITY_TYPES:
+            problems.append(
+                (
+                    f"Duration {entity.duration} recorded but distance is zero "
+                    f"({at} activity)",
+                    SEVERITY_ERROR,
+                )
+            )
+
+    # -- out-of-range values --
+
+    if entity.distance > 500_000:
+        problems.append(
+            (
+                f"Distance {entity.distance} m ({entity.distance / 1000:.0f} km) "
+                f"is suspiciously large",
+                SEVERITY_WARNING,
+            )
+        )
+
+    if entity.duration_seconds > 172_800:
+        problems.append(
+            (
+                f"Duration {entity.duration} ({entity.duration_seconds / 3600:.0f} h) "
+                f"is suspiciously long (> 48 h)",
+                SEVERITY_WARNING,
+            )
+        )
+
+    if entity.max_speed > 100:
+        problems.append(
+            (
+                f"Max speed {entity.max_speed:.1f} km/h is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+
+    # speed ranges by activity type
+    if entity.avg_speed > 0:
+        if at == "run":
+            if entity.avg_speed > 25:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high "
+                        f"for running",
+                        SEVERITY_WARNING,
+                    )
+                )
+            elif entity.avg_speed < 3 and entity.distance > 1000:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h "
+                        f"({entity.pace} min/km) is too slow for running",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at in ("ride", "mtb", "cx"):
+            if entity.avg_speed > 70:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high "
+                        f"for cycling",
+                        SEVERITY_WARNING,
+                    )
+                )
+            elif entity.avg_speed < 5 and entity.distance > 1000:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too slow "
+                        f"for cycling",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at in ("row", "paddle", "kayak", "canoe"):
+            if entity.avg_speed > 20:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high for {at}",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at == "swim":
+            if entity.avg_speed > 8:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high "
+                        f"for swimming",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at in ("walk", "hike", "trek"):
+            if entity.avg_speed > 12:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high "
+                        f"for walking",
+                        SEVERITY_WARNING,
+                    )
+                )
+            elif entity.avg_speed < 1 and entity.distance > 500:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too slow "
+                        f"for walking",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at in (
+            "ski",
+            "rollerski",
+            "xcski",
+            "inline",
+            "ice",
+        ):
+            if entity.avg_speed > 50:
+                problems.append(
+                    (
+                        f"Avg speed {entity.avg_speed:.1f} km/h is too high for {at}",
+                        SEVERITY_WARNING,
+                    )
+                )
+
+    # cadence ranges
+    if entity.avg_cadence > 250:
+        problems.append(
+            (
+                f"Avg cadence {entity.avg_cadence:.0f} rpm is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+    if entity.max_cadence > 300:
+        problems.append(
+            (
+                f"Max cadence {entity.max_cadence:.0f} rpm is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+
+    # HR ranges
+    if entity.avg_hr > 230:
+        problems.append(
+            (
+                f"Avg HR {entity.avg_hr:.0f} bpm is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+    if entity.max_hr > 240:
+        problems.append(
+            (
+                f"Max HR {entity.max_hr:.0f} bpm is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+    if entity.min_hr > 0:
+        if entity.min_hr < 25:
+            problems.append(
+                (
+                    f"Resting HR {entity.min_hr:.0f} bpm is suspiciously low",
+                    SEVERITY_WARNING,
+                )
+            )
+        elif entity.min_hr > 120:
+            problems.append(
+                (
+                    f"Resting HR {entity.min_hr:.0f} bpm is suspiciously high",
+                    SEVERITY_WARNING,
+                )
+            )
+
+    # kcal burn rate
+    if entity.kcal > 0 and entity.duration_seconds > 0:
+        kcal_per_hour = entity.kcal / (entity.duration_seconds / 3600)
+        if kcal_per_hour > 2000:
+            problems.append(
+                (
+                    f"Calorie burn rate {kcal_per_hour:.0f} kcal/h "
+                    f"is suspiciously high",
+                    SEVERITY_WARNING,
+                )
+            )
+
+    # elevation gain per km
+    if entity.elevation_gain > 0 and entity.distance > 0:
+        elev_per_km = entity.elevation_gain / (entity.distance / 1000)
+        if elev_per_km > 150:
+            problems.append(
+                (
+                    f"Elevation gain {entity.elevation_gain} m over "
+                    f"{entity.distance / 1000:.1f} km "
+                    f"({elev_per_km:.0f} m/km) is implausibly steep",
+                    SEVERITY_WARNING,
+                )
+            )
+
+    # power ranges
+    if entity.avg_watts > 2500:
+        problems.append(
+            (
+                f"Avg power {entity.avg_watts:.0f} W is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+    if entity.max_watts > 3000:
+        problems.append(
+            (
+                f"Max power {entity.max_watts:.0f} W is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+
+    # temperature range
+    if entity.temperature < -70:
+        problems.append(
+            (
+                f"Temperature {entity.temperature} C is suspiciously low",
+                SEVERITY_WARNING,
+            )
+        )
+    elif entity.temperature > 70:
+        problems.append(
+            (
+                f"Temperature {entity.temperature} C is suspiciously high",
+                SEVERITY_WARNING,
+            )
+        )
+
+    # weight range
+    if entity.weight > 0:
+        if entity.weight < 20:
+            problems.append(
+                (
+                    f"Weight {entity.weight:.1f} kg is suspiciously low",
+                    SEVERITY_WARNING,
+                )
+            )
+        elif entity.weight > 300:
+            problems.append(
+                (
+                    f"Weight {entity.weight:.1f} kg is suspiciously high",
+                    SEVERITY_WARNING,
+                )
+            )
+
+    return problems
