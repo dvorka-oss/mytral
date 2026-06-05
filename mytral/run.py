@@ -33,6 +33,7 @@ from mytral.blueprints import gear_crud
 from mytral.blueprints import goal_crud
 from mytral.blueprints import health_uri_space
 from mytral.blueprints import import_uri_space
+from mytral.blueprints import irm3d_uri_space
 from mytral.blueprints import lap_types_crud
 from mytral.blueprints import maps_uri_space
 from mytral.blueprints import outfit_crud
@@ -83,6 +84,7 @@ MyTraL: My Trailing Log
         goal_crud,
         health_uri_space,
         import_uri_space,
+        irm3d_uri_space,
         export_uri_space,
         lap_types_crud,
         maps_uri_space,

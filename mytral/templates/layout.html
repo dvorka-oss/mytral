@@ -572,14 +572,21 @@
                         <div class="dropdown-menu">
                           <a href="{{ url_for('athlete_metrics') }}" class="dropdown-item {% if running_tasks_count > 0 %}disabled{% endif %}">
                             Athlete Metrics
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">me</span>
+                          </a>
+                          <a class="dropdown-item"
+                            title="Three-dimensional impulse-response chart driven by strain score"
+                            href="{{ url_for('insight_irm3d') }}"
+                          >
+                            3D IRM
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">SOTA</span>
                           </a>
                           <a class="dropdown-item"
                             title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
                             href="{{ url_for('insight_trimp') }}"
                           >
                             TRIMP
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">classic</span>
                           </a>
 
                           {% if ff.can("ACOACHES") %}

@@ -36,6 +36,9 @@ def test_athlete_metrics_to_dict_persisted_defaults():
     assert data["anaerobic_threshold_hr"] == 0
     assert data["aerobic_threshold_hr"] == 0
     assert data["ftp"] == 0.0
+    assert data["critical_power"] == 0.0
+    assert data["w_prime_joules"] == 0.0
+    assert data["p_max_watts"] == 0.0
     assert data["vo2max"] == 0.0
     assert data["hrv_rmssd"] == 0.0
     assert data["fat_max"] == 0.0
@@ -57,6 +60,9 @@ def test_athlete_metrics_round_trip():
         anaerobic_threshold_hr=156,
         aerobic_threshold_hr=131,
         ftp=220.0,
+        critical_power=215.0,
+        w_prime_joules=19000.0,
+        p_max_watts=980.0,
         vo2max=52.5,
         hrv_rmssd=42.0,
         fat_max=31.5,
@@ -75,6 +81,9 @@ def test_athlete_metrics_round_trip():
     assert restored.anaerobic_threshold_hr == 156
     assert restored.aerobic_threshold_hr == 131
     assert restored.ftp == pytest.approx(220.0)
+    assert restored.critical_power == pytest.approx(215.0)
+    assert restored.w_prime_joules == pytest.approx(19000.0)
+    assert restored.p_max_watts == pytest.approx(980.0)
     assert restored.vo2max == pytest.approx(52.5)
     assert restored.hrv_rmssd == pytest.approx(42.0)
     assert restored.fat_max == pytest.approx(31.5)
@@ -114,6 +123,9 @@ def test_athlete_metrics_from_dict_partial():
     # THEN
     assert metrics.max_hr == 175
     assert metrics.ftp == pytest.approx(230.0)
+    assert metrics.critical_power == 0.0
+    assert metrics.w_prime_joules == 0.0
+    assert metrics.p_max_watts == 0.0
     assert metrics.anaerobic_threshold_hr == 0  # not in dict → default
     assert metrics.z1_high == 0
     print("DONE: AthleteMetrics.from_dict with partial data OK")

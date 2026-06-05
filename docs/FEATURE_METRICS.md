@@ -19,6 +19,7 @@ Table of metrics:
 * Power to weight ratio
 * Power zones
 * Resting HR
+* 3D IRM (CP / W′ / Pmax)
 * TRIMP
 * TSS
 * VO2MAX: maximal oxygen uptake
@@ -92,7 +93,6 @@ Pros:
 Cons:
 
 * .
-
 
 
 

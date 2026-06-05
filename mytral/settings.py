@@ -3935,6 +3935,12 @@ class AthleteMetrics:
     aerobic_threshold_hr: int = 0
     # functional threshold power (Watts) — 0 = not set
     ftp: float = 0.0
+    # critical power (Watts) — 0 = not set, falls back to e_ftp
+    critical_power: float = 0.0
+    # work prime W′ (Joules) — 0 = not set
+    w_prime_joules: float = 0.0
+    # maximal power Pmax (Watts) — 0 = not set
+    p_max_watts: float = 0.0
     # VO2 Max (mL/kg/min) — 0 = not set
     vo2max: float = 0.0
     # HRV overnight RMSSD (ms) — 0 = not set
@@ -3965,6 +3971,9 @@ class AthleteMetrics:
     e_anaerobic_threshold_hr: int = dataclasses.field(default=0, repr=False)
     e_aerobic_threshold_hr: int = dataclasses.field(default=0, repr=False)
     e_ftp: float = dataclasses.field(default=0.0, repr=False)
+    e_critical_power: float = dataclasses.field(default=0.0, repr=False)
+    e_w_prime_joules: float = dataclasses.field(default=0.0, repr=False)
+    e_p_max_watts: float = dataclasses.field(default=0.0, repr=False)
     e_vo2max: float = dataclasses.field(default=0.0, repr=False)
     e_hrv_rmssd: float = dataclasses.field(default=0.0, repr=False)
     e_fat_max: float = dataclasses.field(default=0.0, repr=False)
@@ -4010,6 +4019,9 @@ class AthleteMetrics:
     KEY_ANAEROBIC_THRESHOLD_HR = "anaerobic_threshold_hr"
     KEY_AEROBIC_THRESHOLD_HR = "aerobic_threshold_hr"
     KEY_FTP = "ftp"
+    KEY_CRITICAL_POWER = "critical_power"
+    KEY_W_PRIME_JOULES = "w_prime_joules"
+    KEY_P_MAX_WATTS = "p_max_watts"
     KEY_VO2MAX = "vo2max"
     KEY_HRV_RMSSD = "hrv_rmssd"
     KEY_FAT_MAX = "fat_max"
@@ -4039,6 +4051,9 @@ class AthleteMetrics:
             AthleteMetrics.KEY_ANAEROBIC_THRESHOLD_HR: self.anaerobic_threshold_hr,
             AthleteMetrics.KEY_AEROBIC_THRESHOLD_HR: self.aerobic_threshold_hr,
             AthleteMetrics.KEY_FTP: self.ftp,
+            AthleteMetrics.KEY_CRITICAL_POWER: self.critical_power,
+            AthleteMetrics.KEY_W_PRIME_JOULES: self.w_prime_joules,
+            AthleteMetrics.KEY_P_MAX_WATTS: self.p_max_watts,
             AthleteMetrics.KEY_VO2MAX: self.vo2max,
             AthleteMetrics.KEY_HRV_RMSSD: self.hrv_rmssd,
             AthleteMetrics.KEY_FAT_MAX: self.fat_max,
@@ -4077,6 +4092,9 @@ class AthleteMetrics:
             ),
             aerobic_threshold_hr=data.get(AthleteMetrics.KEY_AEROBIC_THRESHOLD_HR, 0),
             ftp=data.get(AthleteMetrics.KEY_FTP, 0.0),
+            critical_power=data.get(AthleteMetrics.KEY_CRITICAL_POWER, 0.0),
+            w_prime_joules=data.get(AthleteMetrics.KEY_W_PRIME_JOULES, 0.0),
+            p_max_watts=data.get(AthleteMetrics.KEY_P_MAX_WATTS, 0.0),
             vo2max=data.get(AthleteMetrics.KEY_VO2MAX, 0.0),
             hrv_rmssd=data.get(AthleteMetrics.KEY_HRV_RMSSD, 0.0),
             fat_max=data.get(AthleteMetrics.KEY_FAT_MAX, 0.0),

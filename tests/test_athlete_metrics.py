@@ -152,10 +152,17 @@ def test_power_fraction_interpolated():
 #
 
 
-def _make_activity(avg_watts: float, hours: int, minutes: int, seconds: int = 0):
+def _make_activity(
+    avg_watts: float,
+    hours: int,
+    minutes: int,
+    seconds: int = 0,
+    max_watts: float = 0.0,
+):
     """Create a minimal mock activity entity for FTP estimation tests."""
     activity = mock.MagicMock()
     activity.avg_watts = avg_watts
+    activity.max_watts = max_watts
     activity.hours = hours
     activity.minutes = minutes
     activity.seconds = seconds
@@ -356,6 +363,9 @@ def test_resolve_all_estimated():
     assert metrics.e_hrv_rmssd > 0
     assert metrics.e_fat_max > 0  # weight 75 kg provided
     assert metrics.e_ftp == 0.0  # no activities with power
+    assert metrics.e_critical_power == 0.0
+    assert metrics.e_w_prime_joules > 0
+    assert metrics.e_p_max_watts > 0
     # zones must be computed
     assert metrics.e_z1_high > 0
     assert metrics.e_z5_high == metrics.e_max_hr
@@ -380,6 +390,7 @@ def test_resolve_uses_set_values():
     # THEN — e_max_hr must equal the set value
     assert metrics.e_max_hr == 175
     assert metrics.e_anaerobic_threshold_hr == 150
+    assert metrics.e_w_prime_joules > 0
     print("DONE: resolve uses athlete-set values")
 
 
@@ -403,6 +414,8 @@ def test_resolve_ftp_from_power_activity():
     # THEN
     assert metrics.e_ftp > 0
     assert metrics.e_power_to_weight > 0
+    assert metrics.e_critical_power == pytest.approx(metrics.e_ftp)
+    assert metrics.e_p_max_watts > metrics.e_critical_power
     print(
         f"DONE: resolve estimated FTP = {metrics.e_ftp:.1f} W, "
         f"W/kg = {metrics.e_power_to_weight:.2f}"

@@ -27,6 +27,7 @@ All e_* fields are transient and never persisted to disk.
 
 from mytral import settings as app_settings
 from mytral.backends import entities
+from mytral.metrics import irm3d as irm3d_metrics
 
 # HR zone percentages of LTHR (Coggan/Friel zones).
 # Each tuple is (low_pct, high_pct); high of Z5 is always e_max_hr (None).
@@ -279,6 +280,45 @@ def derive_power_to_weight(e_ftp: float, weight_kg: float) -> float:
     return round(e_ftp / weight_kg, 2)
 
 
+def estimate_pmax_from_activities(
+    activities: list[entities.ActivityEntity],
+    fallback_cp_watts: float,
+) -> float:
+    """Estimate Pmax from activity max power values.
+
+    Parameters
+    ----------
+    activities : list[entities.ActivityEntity]
+        Activities used to estimate maximal power.
+    fallback_cp_watts : float
+        Effective CP fallback used to keep Pmax > CP.
+
+    Returns
+    -------
+    float
+        Estimated Pmax in watts.
+    """
+    max_observed = 0.0
+    for activity in activities:
+        max_watts = getattr(activity, "max_watts", 0.0)
+        if not isinstance(max_watts, (int, float)):
+            continue
+        if max_watts > max_observed:
+            max_observed = float(max_watts)
+
+    if max_observed > 0:
+        return max(
+            max_observed,
+            fallback_cp_watts * 1.1,
+            irm3d_metrics.DEFAULT_MIN_PMAX_WATTS,
+        )
+
+    return max(
+        fallback_cp_watts * irm3d_metrics.DEFAULT_PMAX_MULTIPLIER,
+        irm3d_metrics.DEFAULT_MIN_PMAX_WATTS,
+    )
+
+
 def calculate_zones(
     e_anaerobic_threshold_hr: int, e_max_hr: int
 ) -> list[tuple[int, int]]:
@@ -475,6 +515,30 @@ def resolve(
         athlete_metrics.e_ftp = athlete_metrics.ftp
     else:
         athlete_metrics.e_ftp = estimate_ftp_from_activities(activities)
+
+    # --- 3D IRM parameters ---
+    athlete_metrics.e_critical_power = (
+        athlete_metrics.critical_power
+        if athlete_metrics.critical_power > 0
+        else athlete_metrics.e_ftp
+    )
+    athlete_metrics.e_w_prime_joules = (
+        athlete_metrics.w_prime_joules
+        if athlete_metrics.w_prime_joules > 0
+        else irm3d_metrics.DEFAULT_W_PRIME_JOULES
+    )
+    if athlete_metrics.p_max_watts > 0:
+        athlete_metrics.e_p_max_watts = athlete_metrics.p_max_watts
+    else:
+        athlete_metrics.e_p_max_watts = estimate_pmax_from_activities(
+            activities=activities,
+            fallback_cp_watts=athlete_metrics.e_critical_power,
+        )
+    if athlete_metrics.e_critical_power > 0:
+        athlete_metrics.e_p_max_watts = max(
+            athlete_metrics.e_p_max_watts,
+            athlete_metrics.e_critical_power * 1.1,
+        )
 
     # --- VO2 Max ---
     athlete_metrics.e_vo2max = (

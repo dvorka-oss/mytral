@@ -3451,6 +3451,283 @@ def trimp_composite(
     return script, div
 
 
+def irm3d_composite(
+    daily_rows: list[dict],
+    state_rows: list[dict],
+    is_mobile_view: bool = False,
+) -> tuple[str, Any]:
+    """Render 3D IRM composite chart with CP/W′/Pmax dimensions."""
+    if not state_rows:
+        return "", "<div><p>Not enough power data to compute 3D IRM metrics.</p></div>"
+
+    daily_by_date = {row["date"]: row for row in daily_rows}
+    date_values = []
+    cp_values = []
+    w_prime_kj_values = []
+    pmax_values = []
+    cp_fitness_values = []
+    cp_fatigue_values = []
+    cp_readiness_values = []
+    w_prime_fitness_values = []
+    w_prime_fatigue_values = []
+    w_prime_readiness_values = []
+    pmax_fitness_values = []
+    pmax_fatigue_values = []
+    pmax_readiness_values = []
+    load_cp_values = []
+    load_w_prime_values = []
+    load_pmax_values = []
+    ss_total_values = []
+    min_mpa_values = []
+    near_limit_values = []
+
+    for state_row in state_rows:
+        state_date = state_row["date"]
+        date_values.append(datetime.datetime.combine(state_date, datetime.time.min))
+        cp_values.append(float(state_row["cp_watts"]))
+        w_prime_kj_values.append(float(state_row["w_prime_joules"]) / 1000.0)
+        pmax_values.append(float(state_row["pmax_watts"]))
+        cp_fitness_values.append(float(state_row["cp_fitness"]))
+        cp_fatigue_values.append(float(state_row["cp_fatigue"]))
+        cp_readiness_values.append(float(state_row["cp_readiness"]))
+        w_prime_fitness_values.append(float(state_row["w_prime_fitness"]))
+        w_prime_fatigue_values.append(float(state_row["w_prime_fatigue"]))
+        w_prime_readiness_values.append(float(state_row["w_prime_readiness"]))
+        pmax_fitness_values.append(float(state_row["pmax_fitness"]))
+        pmax_fatigue_values.append(float(state_row["pmax_fatigue"]))
+        pmax_readiness_values.append(float(state_row["pmax_readiness"]))
+
+        daily_row = daily_by_date.get(state_date, {})
+        load_cp_values.append(float(daily_row.get("ss_cp", state_row["load_cp"])))
+        load_w_prime_values.append(
+            float(daily_row.get("ss_w_prime", state_row["load_w_prime"]))
+        )
+        load_pmax_values.append(float(daily_row.get("ss_pmax", state_row["load_pmax"])))
+        ss_total_values.append(float(daily_row.get("ss_total", 0.0)))
+        min_mpa_values.append(float(daily_row.get("min_mpa_watts", 0.0)))
+        near_limit_values.append(float(daily_row.get("near_limit_seconds", 0.0)))
+
+    source = ColumnDataSource(
+        data={
+            "date": date_values,
+            "cp_watts": cp_values,
+            "w_prime_kj": w_prime_kj_values,
+            "pmax_watts": pmax_values,
+            "cp_fitness": cp_fitness_values,
+            "cp_fatigue": cp_fatigue_values,
+            "cp_readiness": cp_readiness_values,
+            "w_prime_fitness": w_prime_fitness_values,
+            "w_prime_fatigue": w_prime_fatigue_values,
+            "w_prime_readiness": w_prime_readiness_values,
+            "pmax_fitness": pmax_fitness_values,
+            "pmax_fatigue": pmax_fatigue_values,
+            "pmax_readiness": pmax_readiness_values,
+            "load_cp": load_cp_values,
+            "load_w_prime": load_w_prime_values,
+            "load_pmax": load_pmax_values,
+            "ss_total": ss_total_values,
+            "min_mpa_watts": min_mpa_values,
+            "near_limit_seconds": near_limit_values,
+        }
+    )
+
+    panel_width = VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT
+    if len(date_values) == 1:
+        x_range = bokeh_models.Range1d(
+            start=date_values[0] - datetime.timedelta(days=1),
+            end=date_values[0] + datetime.timedelta(days=1),
+        )
+    else:
+        x_range = bokeh_models.Range1d(start=date_values[0], end=date_values[-1])
+
+    def _irm_panel(
+        panel_title: str,
+        metric_key: str,
+        metric_label: str,
+        fitness_key: str,
+        fatigue_key: str,
+        readiness_key: str,
+        load_key: str,
+        load_label: str,
+        metric_color: str,
+        metric_fmt: str,
+        show_xaxis: bool,
+    ) -> Any:
+        panel = bokeh_plt.figure(
+            title=panel_title,
+            x_axis_type="datetime",
+            x_range=x_range,
+            width=panel_width,
+            height=260,
+            toolbar_location="below" if not is_mobile_view else None,
+        )
+        panel.sizing_mode = "scale_width"
+        panel.toolbar.logo = None
+        panel.yaxis.axis_label = metric_label
+        if not show_xaxis:
+            panel.xaxis.visible = False
+
+        panel.vbar(
+            x="date",
+            top=load_key,
+            source=source,
+            width=12 * 60 * 60 * 1000,
+            fill_alpha=0.16,
+            line_alpha=0.0,
+            color="#6c757d",
+            legend_label=load_label,
+        )
+        panel.line(
+            x="date",
+            y=metric_key,
+            source=source,
+            line_width=2.5,
+            color=metric_color,
+            legend_label=metric_label,
+        )
+        panel.line(
+            x="date",
+            y=fitness_key,
+            source=source,
+            line_width=1.8,
+            color="#2fb344",
+            legend_label="Fitness",
+        )
+        panel.line(
+            x="date",
+            y=fatigue_key,
+            source=source,
+            line_width=1.8,
+            color="#d63939",
+            legend_label="Fatigue",
+        )
+        panel.line(
+            x="date",
+            y=readiness_key,
+            source=source,
+            line_width=1.8,
+            color="#206bc4",
+            line_dash="dashed",
+            legend_label="Readiness",
+        )
+        hover_renderer = panel.scatter(
+            x="date",
+            y=metric_key,
+            source=source,
+            size=10,
+            alpha=0.0,
+            line_alpha=0.0,
+            fill_alpha=0.0,
+        )
+        panel.add_tools(
+            bokeh_models.HoverTool(
+                tooltips=[
+                    ("date", "@date{%F}"),
+                    (metric_label, f"@{metric_key}{{{metric_fmt}}}"),
+                    ("SS total", "@ss_total{0.0}"),
+                    ("load", f"@{load_key}{{0.0}}"),
+                    ("min MPA", "@min_mpa_watts{0.0} W"),
+                    ("near-limit", "@near_limit_seconds{0.0} s"),
+                ],
+                formatters={"@date": "datetime"},
+                renderers=[hover_renderer],
+            )
+        )
+        if is_mobile_view:
+            panel.legend.visible = False
+        else:
+            panel.legend.location = "top_left"
+            panel.legend.click_policy = "hide"
+        return panel
+
+    cp_panel = _irm_panel(
+        panel_title="Aero Generator (CP) — Oxidative dimension",
+        metric_key="cp_watts",
+        metric_label="CP (W)",
+        fitness_key="cp_fitness",
+        fatigue_key="cp_fatigue",
+        readiness_key="cp_readiness",
+        load_key="load_cp",
+        load_label="Daily SSCP",
+        metric_color="#111827",
+        metric_fmt="0.0",
+        show_xaxis=False,
+    )
+    w_prime_panel = _irm_panel(
+        panel_title="Prime Battery (W′) — Glycolytic dimension",
+        metric_key="w_prime_kj",
+        metric_label="W′ (kJ)",
+        fitness_key="w_prime_fitness",
+        fatigue_key="w_prime_fatigue",
+        readiness_key="w_prime_readiness",
+        load_key="load_w_prime",
+        load_label="Daily SSW′",
+        metric_color="#7c3aed",
+        metric_fmt="0.00",
+        show_xaxis=False,
+    )
+    pmax_panel = _irm_panel(
+        panel_title="Explosive Power (Pmax) — PCr dimension",
+        metric_key="pmax_watts",
+        metric_label="Pmax (W)",
+        fitness_key="pmax_fitness",
+        fatigue_key="pmax_fatigue",
+        readiness_key="pmax_readiness",
+        load_key="load_pmax",
+        load_label="Daily SSPmax",
+        metric_color="#f97316",
+        metric_fmt="0.0",
+        show_xaxis=True,
+    )
+
+    if is_mobile_view:
+        script, div = bokeh_embed.components(
+            bokeh_layouts.column(
+                cp_panel,
+                w_prime_panel,
+                pmax_panel,
+                sizing_mode="scale_width",
+            )
+        )
+        return script, div
+
+    default_days = 182
+    if len(date_values) > 1:
+        x_range.start = date_values[max(0, len(date_values) - default_days)]
+        x_range.end = date_values[-1]
+
+    select = bokeh_plt.figure(
+        title="Drag the range to zoom the 3D IRM timeline above",
+        height=130,
+        width=VIEW_WIDTH_DEFAULT,
+        x_axis_type="datetime",
+        y_axis_type=None,
+        tools="",
+        toolbar_location=None,
+        background_fill_color="#efefef",
+    )
+    select.sizing_mode = "scale_width"
+    range_tool = bokeh_models.RangeTool(x_range=x_range)
+    range_tool.overlay.fill_color = "navy"
+    range_tool.overlay.fill_alpha = 0.2
+    select.line("date", "cp_watts", source=source, color="#111827", line_width=1.5)
+    select.line("date", "w_prime_kj", source=source, color="#7c3aed", line_width=1.2)
+    select.line("date", "pmax_watts", source=source, color="#f97316", line_width=1.2)
+    select.ygrid.grid_line_color = None
+    select.add_tools(range_tool)
+
+    script, div = bokeh_embed.components(
+        bokeh_layouts.column(
+            cp_panel,
+            w_prime_panel,
+            pmax_panel,
+            select,
+            sizing_mode="scale_width",
+        )
+    )
+    return script, div
+
+
 def total_km_per_year(
     ds_stats: stats.UserDatasetStats,
     activity_types: settings.UserActivityTypes = None,

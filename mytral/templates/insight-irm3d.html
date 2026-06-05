@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Progress</span>
+                <h2 class="page-title">
+                    3D Impulse-Response Model
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p>
+                This chart models training load in three independent dimensions using strain score (SS):
+                <strong>Aero Generator</strong> (CP), <strong>Prime Battery</strong> (W′), and
+                <strong>Explosive Power</strong> (Pmax).
+            </p>
+            <p class="mb-0">
+                Workouts with power recordings are converted second-by-second into SSCP / SSW′ / SSPmax,
+                then aggregated daily and fed into parallel impulse-response models.
+            </p>
+        </div>
+    </div>
+
+    {% if latest_state and latest_day %}
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Explosive Power (Pmax)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_state.pmax_watts) }} W</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Prime Battery (W′)</div>
+                    <div class="h2 mb-0">{{ "%.2f"|format(latest_state.w_prime_kj) }} kJ</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Aero Generator (CP)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_state.cp_watts) }} W</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Daily strain score (SS)</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_day.ss_total) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Daily SSCP</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(latest_day.ss_cp) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Daily SSW′</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(latest_day.ss_w_prime) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Daily SSPmax</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(latest_day.ss_pmax) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Minimum MPA / day</div>
+                    <div class="h3 mb-0">{{ "%.1f"|format(latest_day.min_mpa_watts) }} W</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                3D impulse-response timeline
+            </h3>
+            <div class="card-actions">
+                <span class="badge bg-azure text-azure-fg">{{ analyzed_workouts }} analyzed workouts</span>
+                <span class="badge bg-secondary text-secondary-fg">{{ total_activities }} total activities</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Friendly names mapping used in MyTraL</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-vcenter">
+                    <thead>
+                        <tr>
+                            <th>MyTraL friendly name</th>
+                            <th>Academic name</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Explosive Power</strong></td>
+                            <td>Pmax</td>
+                            <td>maximal instantaneous power capability (PCr dimension)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Prime Battery</strong></td>
+                            <td>W′ (work prime)</td>
+                            <td>finite work capacity above CP (glycolytic dimension)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Aero Generator</strong></td>
+                            <td>CP (critical power)</td>
+                            <td>highest sustainable oxidative power (aerobic dimension)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-secondary mb-0">
+                Strain score (SS) is computed from second-by-second power and current MPA
+                (Maximum Power Available), then split into SSCP, SSW′ and SSPmax.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
