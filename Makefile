@@ -449,8 +449,17 @@ test: py-test ## alias for py-test
 #
 
 random-attack: py-install-test-deps ## run random attack benchmark w/ synthetic
+	MYTRAL_TEST_RANDOM_ATTACK=true \
 	MYTRAL_ENCRYPTION_KEY=foo-random-key-for-tests \
 	$(PYTHON) -m pytest -s tests/test_random_attack.py
+	cat /tmp/mytral-random-attack-data-dir.txt && MYTRAL_DATA_DIR=`cat /tmp/mytral-random-attack-data-dir.txt` make run
+
+.PHONY: random-attack-watts
+random-attack-watts: py-install-test-deps ## run random attack benchmark with synthetic watts for 3D IRM
+	MYTRAL_TEST_RANDOM_ATTACK=true \
+	MYTRAL_RANDOM_ATTACK_WATTS=true \
+	MYTRAL_ENCRYPTION_KEY=foo-random-key-for-tests \
+	$(PYTHON) -m pytest -s tests/test_random_attack.py::test_generate_mytral_dataset
 	cat /tmp/mytral-random-attack-data-dir.txt && MYTRAL_DATA_DIR=`cat /tmp/mytral-random-attack-data-dir.txt` make run
 
 #

@@ -30,11 +30,14 @@ This module brings ability to:
 """
 
 import datetime
+import io
+import math
 import os
 import pathlib
 import random
 import uuid
 
+import polars
 import pytest
 
 from mytral import blobstore as blobstore_pkg
@@ -406,30 +409,184 @@ def _pregenerate_parquets(
     return samples
 
 
+def _generate_synthetic_power_values(
+    sample_count: int,
+    profile: str,
+) -> list[float]:
+    """Generate deterministic synthetic power values in watts.
+
+    Parameters
+    ----------
+    sample_count : int
+        Number of power samples to generate.
+    profile : str
+        Profile name: ``steady`` | ``threshold`` | ``vo2`` | ``sprint``.
+
+    Returns
+    -------
+    list[float]
+        Power values in watts.
+
+    """
+    if sample_count <= 0:
+        return []
+
+    power_values: list[float] = []
+    for idx in range(sample_count):
+        if profile == "steady":
+            base = 200.0
+            wave = 18.0 * math.sin(idx / 45.0)
+            surge = 22.0 if idx % 300 < 18 else 0.0
+            power = base + wave + surge
+        elif profile == "threshold":
+            block = (idx // 180) % 2
+            power = 285.0 if block == 0 else 165.0
+            power += 12.0 * math.sin(idx / 20.0)
+        elif profile == "vo2":
+            block = (idx // 75) % 2
+            power = 360.0 if block == 0 else 150.0
+            power += 10.0 * math.sin(idx / 10.0)
+        else:  # sprint
+            phase = idx % 120
+            if phase < 12:
+                power = 700.0 - (phase * 15.0)
+            elif phase < 35:
+                power = 280.0
+            else:
+                power = 140.0
+            power += 8.0 * math.sin(idx / 7.0)
+
+        power_values.append(max(60.0, min(1200.0, power)))
+
+    return power_values
+
+
+def _synthesize_power_parquet(
+    parquet_bytes: bytes,
+    profile: str,
+) -> bytes:
+    """Overwrite parquet power channel with synthetic high-quality watts."""
+    df = polars.read_parquet(io.BytesIO(parquet_bytes))
+    if df.height == 0:
+        return parquet_bytes
+
+    power_values = _generate_synthetic_power_values(
+        sample_count=df.height,
+        profile=profile,
+    )
+    df = df.with_columns(
+        [
+            polars.Series("power", power_values, dtype=polars.Float64),
+            polars.Series("has_power", [True] * df.height, dtype=polars.Boolean),
+        ]
+    )
+
+    parquet_stream = io.BytesIO()
+    df.write_parquet(parquet_stream)
+    return parquet_stream.getvalue()
+
+
+def _augment_parquet_samples_with_watts(
+    parquet_samples: dict[str, list[tuple[pathlib.Path, bytes]]],
+) -> dict[str, list[tuple[pathlib.Path, bytes]]]:
+    """Create synthetic watts variants for each pre-generated parquet sample."""
+    profiles = ["steady", "threshold", "vo2", "sprint"]
+    synthetic_samples: dict[str, list[tuple[pathlib.Path, bytes]]] = {
+        ext: list(samples) for ext, samples in parquet_samples.items()
+    }
+
+    for ext, samples in parquet_samples.items():
+        for sample_index, (recording_path, parquet_bytes) in enumerate(samples):
+            profile = profiles[sample_index % len(profiles)]
+            synthetic_parquet = _synthesize_power_parquet(
+                parquet_bytes=parquet_bytes,
+                profile=profile,
+            )
+            synthetic_samples[ext].append((recording_path, synthetic_parquet))
+
+    return synthetic_samples
+
+
 # TODO add dataset ZOO as default, w/ callback to data
-# TODO parametrize to have short, medium and huge attack
-@pytest.mark.skip(reason="This is random attack, not a test to be run on CI")
+@pytest.mark.skipif(
+    os.getenv("MYTRAL_TEST_RANDOM_ATTACK", "").lower() != "true",
+    reason=(
+        "Set MYTRAL_TEST_RANDOM_ATTACK=true to run random-attack dataset generation."
+    ),
+)
 @pytest.mark.mytral
 @pytest.mark.tool
+@pytest.mark.parametrize(
+    "attack_config",
+    [
+        pytest.param(
+            {
+                "user_display_name": "Random Attack",
+                "user_name": "random",
+                "user_password": "attack",
+                "from_date": "2026-05-01",
+                "to_date": UNSET_DATE,
+                "max_activities": 100,
+                "max_activity_types": 10,
+                "max_exercises": 10,
+                "max_gear_components": 10,
+                "max_gears": 10,
+                "max_goals": 10,
+                "max_laps": 10,
+                "max_outfits": 10,
+                "max_symptoms": 10,
+                "recording_attach_probability": 0.30,
+            },
+            id="current-settings",
+        ),
+        pytest.param(
+            {
+                "user_display_name": "Random Attack Watts",
+                "user_name": "random",
+                "user_password": "attack",
+                "from_date": "2024-01-01",
+                "to_date": UNSET_DATE,
+                "max_activities": 300,
+                "max_activity_types": 15,
+                "max_exercises": 10,
+                "max_gear_components": 10,
+                "max_gears": 10,
+                "max_goals": 10,
+                "max_laps": 10,
+                "max_outfits": 10,
+                "max_symptoms": 10,
+                "recording_attach_probability": 0.85,
+            },
+            id="watts-heavy",
+        ),
+    ],
+)
 def test_generate_mytral_dataset(
     tmp_path: pathlib.Path,
-    user_id: str = str(uuid.uuid4()),
-    user_display_name: str = "Random Attack",
-    user_name: str = "random",
-    user_password: str = "attack",
-    from_date: str = "2026-05-01",  # UNSET_DATE "2026-05-01"
-    to_date: str = UNSET_DATE,
-    max_activities: int = 100,  # 100, 1_000
-    max_activity_types: int = 10,
-    max_exercises: int = 10,
-    max_gear_components: int = 10,
-    max_gears: int = 10,
-    max_goals: int = 10,
-    max_laps: int = 10,
-    max_outfits: int = 10,
-    max_symptoms: int = 10,
+    attack_config: dict,
 ):
     """Generate synthetic anonymized MyTral dataset."""
+
+    user_id = str(uuid.uuid4())
+    user_display_name = attack_config["user_display_name"]
+    user_name = attack_config["user_name"]
+    user_password = attack_config["user_password"]
+    from_date = attack_config["from_date"]
+    to_date = attack_config["to_date"]
+    max_activities = attack_config["max_activities"]
+    max_activity_types = attack_config["max_activity_types"]
+    max_exercises = attack_config["max_exercises"]
+    max_gear_components = attack_config["max_gear_components"]
+    max_gears = attack_config["max_gears"]
+    max_goals = attack_config["max_goals"]
+    max_laps = attack_config["max_laps"]
+    max_outfits = attack_config["max_outfits"]
+    max_symptoms = attack_config["max_symptoms"]
+    recording_attach_probability = float(attack_config["recording_attach_probability"])
+
+    watts_mode = os.getenv("MYTRAL_RANDOM_ATTACK_WATTS", "").lower() == "true"
+    if watts_mode:
+        recording_attach_probability = 0.85
 
     #
     # GIVEN
@@ -455,6 +612,8 @@ def test_generate_mytral_dataset(
     # pre-generate parquets to avoid re-encoding
     recording_dir = pathlib.Path(__file__).parent / "data" / "import"
     parquet_samples = _pregenerate_parquets(recording_dir, tmp_path)
+    if watts_mode:
+        parquet_samples = _augment_parquet_samples_with_watts(parquet_samples)
 
     #
     # WHEN
@@ -722,8 +881,10 @@ def test_generate_mytral_dataset(
             a_dict[a.key] = a
 
             # recording(s) for the activity
-            # 30% chance of having a recording
-            if any(parquet_samples.values()) and random.randint(0, 9) < 3:
+            # by default 30% chance of having a recording
+            if any(parquet_samples.values()) and (
+                random.random() < recording_attach_probability
+            ):
                 # choose random type from those that have samples
                 available_exts = [
                     ext for ext, samples in parquet_samples.items() if samples
@@ -741,6 +902,16 @@ def test_generate_mytral_dataset(
                             name=f"Recording for {a.name}",
                             description="Auto-attached by synthetic data generator",
                             parquet_bytes=parquet_bytes,
+                        )
+
+                    # align summary power fields when watts mode is enabled
+                    if watts_mode:
+                        a.avg_watts = random.uniform(180.0, 320.0)
+                        a.max_watts = random.uniform(650.0, 1050.0)
+                        u_ds.update_activity(
+                            user_id=user_id,
+                            dataset_name=u_ds.profile(user_id).dataset_name,
+                            entity=a,
                         )
 
                     # pre-compute GPX map metadata so the Feed UI does not block
