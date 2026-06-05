@@ -581,8 +581,12 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
     - ``duration_seconds > 172 800 s`` (48 hours)
     - ``max_speed > 100 km/h`` (suspicious for any human-powered activity)
     - ``avg_speed`` outside reasonable range for the activity type:
-      run 3-25 km/h, ride/mtb/cx 5-70 km/h, row/paddle/kayak/canoe 2-20 km/h,
-      swim 1-8 km/h, walk/hike/trek 1-12 km/h, ski/rollerski/xcski/inline/ice 3-50 km/h
+      - run 3-25 km/h
+      - ride/mtb/cx 5-70 km/h
+      - row/paddle/kayak/canoe 2-20 km/h
+      - swim 1-8 km/h
+      - walk/hike/trek 1-12 km/h
+      - ski/rollerski/xcski/inline/ice 3-50 km/h
     - ``avg_cadence > 250 rpm`` or ``max_cadence > 300 rpm``
     - ``avg_hr > 230 bpm`` or ``max_hr > 240 bpm``
     - ``min_hr < 25 bpm`` or ``min_hr > 120 bpm`` (resting HR range)
