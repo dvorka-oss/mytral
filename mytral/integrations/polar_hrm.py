@@ -784,12 +784,12 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         hrm_filename = exercise.get("hrm_filename", "")
         hrm: dict = {}
         if hrm_filename:
+            hrm_path = year_dir / hrm_filename
+            exercise[PolarHrmImportPlugin.KEY_HRM_PATH] = hrm_path
             # use pre-populated cache from parallel parse phase
             hrm = self._hrm_data_cache.get(hrm_filename, {})
             if not hrm:
                 # fallback: parse on-demand if not in cache (e.g. binary-skipped)
-                hrm_path = year_dir / hrm_filename
-                exercise[PolarHrmImportPlugin.KEY_HRM_PATH] = hrm_path
                 if hrm_path.exists() and not _is_binary(hrm_path):
                     try:
                         hrm = parse_hrm(hrm_path)

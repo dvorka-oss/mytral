@@ -189,11 +189,11 @@ class PolarHrmImportTask(tasks.TaskBase):
                     traceback=f"{traceback.format_exc()}",
                 )
 
-                # STEP 2: schedule persist activity
-                if not existing_key:
-                    activities_to_create.append(activity)
-                else:
-                    activities_to_update.append(activity)
+            # STEP 2: schedule persist activity
+            if not existing_key:
+                activities_to_create.append(activity)
+            else:
+                activities_to_update.append(activity)
 
             # # TODO change this to BULK create + BULK update - keep them in memory,
             # #   do not save them in cycle
