@@ -599,3 +599,58 @@ def _remove_empty_parents(directory: pathlib.Path, stop_at: pathlib.Path) -> Non
         except OSError:
             break
         current = current.parent
+
+
+def merge_blobstore_from_path(
+    src_blobs_dir: pathlib.Path,
+    dst_blobs_dir: pathlib.Path,
+) -> int:
+    """Merge blob directories from a sandbox blobstore into the main blobstore.
+
+    Copies blob directories from *src_blobs_dir* into *dst_blobs_dir*,
+    preserving the directory structure.  Since blob keys are UUIDs,
+    collisions are not expected.  Existing blobs in the destination are
+    skipped to be idempotent.
+
+    Parameters
+    ----------
+    src_blobs_dir : pathlib.Path
+        Source blobstore root directory (e.g. ``job-N/work/blobs/``).
+    dst_blobs_dir : pathlib.Path
+        Destination blobstore root directory (e.g. ``data/<user>/blobs/``).
+
+    Returns
+    -------
+    int
+        Number of blob directories copied.
+    """
+    if not src_blobs_dir.is_dir():
+        return 0
+
+    copied = 0
+    # walk activities/<activity_key>/<kind>/<blob_key>/ structure
+    activities_dir = src_blobs_dir / "activities"
+    if activities_dir.is_dir():
+        for activity_dir in activities_dir.iterdir():
+            if not activity_dir.is_dir():
+                continue
+            for kind_dir in activity_dir.iterdir():
+                if not kind_dir.is_dir():
+                    continue
+                for blob_dir in kind_dir.iterdir():
+                    if not blob_dir.is_dir():
+                        continue
+                    dst_blob_dir = (
+                        dst_blobs_dir
+                        / "activities"
+                        / activity_dir.name
+                        / kind_dir.name
+                        / blob_dir.name
+                    )
+                    if dst_blob_dir.exists():
+                        continue
+                    dst_blob_dir.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(str(blob_dir), str(dst_blob_dir))
+                    copied += 1
+
+    return copied

@@ -19,7 +19,6 @@
 
 Parses .hrm (single-exercise HR monitor export) and .pdd (daily exercise summary)
 files produced by Polar Precision Performance software (Polar S720i, model 12).
-All files are Windows-1250 encoded.
 
 """
 
