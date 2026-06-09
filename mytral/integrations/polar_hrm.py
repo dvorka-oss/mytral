@@ -21,13 +21,13 @@ Parses .hrm (single-exercise HR monitor export) and .pdd (daily exercise summary
 files produced by Polar Precision Performance software (Polar S720i, model 12).
 All files are Windows-1250 encoded.
 
-Public API entry point: :class:`PolarHrmImportPlugin`.
 """
 
 import concurrent.futures
 import os
 import pathlib
 import statistics
+import traceback
 import uuid
 
 from mytral import app_logger
@@ -274,115 +274,128 @@ def parse_hrm(path: pathlib.Path) -> dict:
     try:
         text = path.read_text(encoding=_ENCODING, errors="replace")
     except OSError as exc:
-        app_logger.warning(f"polar_hrm: cannot read {path}: {exc}")
+        app_logger.error(
+            f"[HRM parser] cannot read {path}: {exc}\n{traceback.format_exc()}",
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
         return result
 
-    lines = text.splitlines()
-    current_section = ""
-    section_lines: dict[str, list[str]] = {}
+    try:
+        lines = text.splitlines()
+        current_section = ""
+        section_lines: dict[str, list[str]] = {}
 
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            current_section = stripped[1:-1]
-            section_lines[current_section] = []
-        elif current_section:
-            section_lines.setdefault(current_section, []).append(line)
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                current_section = stripped[1:-1]
+                section_lines[current_section] = []
+            elif current_section:
+                section_lines.setdefault(current_section, []).append(line)
 
-    # ---- [Params] ----
-    params: dict[str, str] = {}
-    for line in section_lines.get("Params", []):
-        if "=" in line:
-            k, _, v = line.partition("=")
-            params[k.strip()] = v.strip()
+        # ---- [Params] ----
+        params: dict[str, str] = {}
+        for line in section_lines.get("Params", []):
+            if "=" in line:
+                k, _, v = line.partition("=")
+                params[k.strip()] = v.strip()
 
-    date_int = int(params.get("Date", "0") or "0")
-    start_time_str = params.get("StartTime", "0:00:00.0")
-    length_str = params.get("Length", "0:00:00.0")
-    interval_s = int(params.get("Interval", "5") or "5")
-    smode = params.get("SMode", "00000000")
-    max_hr_param = int(params.get("MaxHR", "0") or "0")
-    weight = int(params.get("Weight", "0") or "0")
+        date_int = int(params.get("Date", "0") or "0")
+        start_time_str = params.get("StartTime", "0:00:00.0")
+        length_str = params.get("Length", "0:00:00.0")
+        interval_s = int(params.get("Interval", "5") or "5")
+        smode = params.get("SMode", "00000000")
+        max_hr_param = int(params.get("MaxHR", "0") or "0")
+        weight = int(params.get("Weight", "0") or "0")
 
-    h, mi, s = _parse_start_time(start_time_str)
-    result["date"] = date_int
-    result["start_time"] = start_time_str
-    result["start_hour"] = h
-    result["start_minute"] = mi
-    result["start_second"] = s
-    result["hours"], result["minutes"], result["seconds"] = _parse_duration(length_str)
-    result["interval_s"] = interval_s
-    result["max_hr_param"] = max_hr_param
-    result["weight"] = weight
+        h, mi, s = _parse_start_time(start_time_str)
+        result["date"] = date_int
+        result["start_time"] = start_time_str
+        result["start_hour"] = h
+        result["start_minute"] = mi
+        result["start_second"] = s
+        result["hours"], result["minutes"], result["seconds"] = _parse_duration(
+            length_str
+        )
+        result["interval_s"] = interval_s
+        result["max_hr_param"] = max_hr_param
+        result["weight"] = weight
 
-    has_speed, has_cadence, has_altitude, _has_power, _mph = parse_smode(smode)
-    result["has_speed"] = has_speed
-    result["has_cadence"] = has_cadence
-    result["has_altitude"] = has_altitude
+        has_speed, has_cadence, has_altitude, _has_power, _mph = parse_smode(smode)
+        result["has_speed"] = has_speed
+        result["has_cadence"] = has_cadence
+        result["has_altitude"] = has_altitude
 
-    # ---- [Note] ----
-    note_lines = [
-        line.strip() for line in section_lines.get("Note", []) if line.strip()
-    ]
-    result["note"] = "\n".join(note_lines)
+        # ---- [Note] ----
+        note_lines = [
+            line.strip() for line in section_lines.get("Note", []) if line.strip()
+        ]
+        result["note"] = "\n".join(note_lines)
 
-    # ---- [Summary-TH] — kcal ----
-    summary_th_lines = [
-        line for line in section_lines.get("Summary-TH", []) if line.strip()
-    ]
-    kcal = 0
-    if summary_th_lines:
-        last_parts = summary_th_lines[-1].split()
-        if len(last_parts) >= 2:
+        # ---- [Summary-TH] — kcal ----
+        summary_th_lines = [
+            line for line in section_lines.get("Summary-TH", []) if line.strip()
+        ]
+        kcal = 0
+        if summary_th_lines:
+            last_parts = summary_th_lines[-1].split()
+            if len(last_parts) >= 2:
+                try:
+                    kcal = int(last_parts[-1])
+                except ValueError:
+                    kcal = 0
+        result["kcal"] = kcal
+
+        # ---- [Trip] — speed / elevation ----
+        trip_lines = [
+            line.strip() for line in section_lines.get("Trip", []) if line.strip()
+        ]
+        avg_speed_kmh = 0.0
+        max_speed_kmh = 0.0
+        elevation_gain = 0
+        elevation_max_trip = 0
+        if len(trip_lines) >= 4:
             try:
-                kcal = int(last_parts[-1])
-            except ValueError:
-                kcal = 0
-    result["kcal"] = kcal
-
-    # ---- [Trip] — speed / elevation ----
-    trip_lines = [
-        line.strip() for line in section_lines.get("Trip", []) if line.strip()
-    ]
-    avg_speed_kmh = 0.0
-    max_speed_kmh = 0.0
-    elevation_gain = 0
-    elevation_max_trip = 0
-    if len(trip_lines) >= 4:
-        try:
-            avg_speed_kmh = int(trip_lines[1]) / 10.0
-        except (ValueError, IndexError):
-            pass
-        try:
-            max_speed_kmh = int(trip_lines[3]) / 10.0
-        except (ValueError, IndexError):
-            pass
-        if len(trip_lines) >= 5:
-            try:
-                elevation_max_trip = int(trip_lines[4])
+                avg_speed_kmh = int(trip_lines[1]) / 10.0
             except (ValueError, IndexError):
                 pass
-        if len(trip_lines) >= 6:
             try:
-                elevation_gain = int(trip_lines[5])
+                max_speed_kmh = int(trip_lines[3]) / 10.0
             except (ValueError, IndexError):
                 pass
+            if len(trip_lines) >= 5:
+                try:
+                    elevation_max_trip = int(trip_lines[4])
+                except (ValueError, IndexError):
+                    pass
+            if len(trip_lines) >= 6:
+                try:
+                    elevation_gain = int(trip_lines[5])
+                except (ValueError, IndexError):
+                    pass
 
-    result["avg_speed_kmh"] = avg_speed_kmh
-    result["max_speed_kmh"] = max_speed_kmh
-    result["elevation_gain"] = elevation_gain
-    result["elevation_max_trip"] = elevation_max_trip
+        result["avg_speed_kmh"] = avg_speed_kmh
+        result["max_speed_kmh"] = max_speed_kmh
+        result["elevation_gain"] = elevation_gain
+        result["elevation_max_trip"] = elevation_max_trip
 
-    # ---- [HRData] ----
-    hrdata_raw = section_lines.get("HRData", [])
-    hr_dict = parse_hrdata(hrdata_raw, has_speed, has_cadence, has_altitude)
-    result["rows"] = hr_dict["rows"]
-    result["avg_hr"] = hr_dict["avg_hr"]
-    result["max_hr"] = hr_dict["max_hr"]
-    result["min_hr"] = hr_dict["min_hr"]
-    result["elevation_min"] = hr_dict["elevation_min"]
-    # prefer trip max altitude; fall back to HRData max
-    result["elevation_max"] = elevation_max_trip or hr_dict["elevation_max"]
+        # ---- [HRData] ----
+        hrdata_raw = section_lines.get("HRData", [])
+        hr_dict = parse_hrdata(hrdata_raw, has_speed, has_cadence, has_altitude)
+        result["rows"] = hr_dict["rows"]
+        result["avg_hr"] = hr_dict["avg_hr"]
+        result["max_hr"] = hr_dict["max_hr"]
+        result["min_hr"] = hr_dict["min_hr"]
+        result["elevation_min"] = hr_dict["elevation_min"]
+        # prefer trip max altitude; fall back to HRData max
+        result["elevation_max"] = elevation_max_trip or hr_dict["elevation_max"]
+    except Exception as ex:
+        app_logger.error(
+            f"[HRM parser] unable to parse {path}: {ex}\n{traceback.format_exc()}",
+            error=str(ex),
+            traceback=traceback.format_exc(),
+        )
 
     return result
 
@@ -538,6 +551,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
     NAME = "Polar HRM Import"
     DESCRIPTION = "Import from Polar Precision Performance (.hrm + .pdd) files."
 
+    # activity's parsed raw .hrm/.pdd data
+    KEY_POLAR_ROW_DATA = "polar_raw_data"
+    KEY_HRM_PATH = "hrm_path"
+
     def __init__(self) -> None:
         """Constructor."""
         plugins.ActivitiesImportPlugin.__init__(
@@ -546,6 +563,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             description=PolarHrmImportPlugin.DESCRIPTION,
         )
         self._hrm_data_cache: dict[str, dict] = {}
+        self._log_name = "[Polar HRM import plugin]"
 
     def import_activities(
         self,
@@ -585,16 +603,16 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         data_dir_raw = datasets.get(POLAR_HRM_DATA_DIR_KEY)
         if not data_dir_raw:
             raise ValueError(
-                f"PolarHrmImportPlugin: '{POLAR_HRM_DATA_DIR_KEY}' key is required."
+                f"{self._log_name} '{POLAR_HRM_DATA_DIR_KEY}' key is required."
             )
         data_dir = pathlib.Path(str(data_dir_raw))
         if not data_dir.is_dir():
             raise FileNotFoundError(
-                f"PolarHrmImportPlugin: data directory not found: {data_dir}"
+                f"{self._log_name} data directory not found: {data_dir}"
             )
 
         app_logger.info(
-            "PolarHrmImportPlugin: starting import",
+            "{self._log_name} starting import",
             data_dir=str(data_dir),
             correlation_id=correlation_id,
         )
@@ -605,11 +623,11 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         # discover all .pdd files recursively
         pdd_files = sorted(data_dir.rglob("*.pdd"))
         app_logger.info(
-            "PolarHrmImportPlugin: discovered PDD files",
+            f"{self._log_name} discovered PDD files",
             count=len(pdd_files),
         )
 
-        # ---- pass 1: parse all PDD files, collect (year_dir, exercise) pairs ----
+        # PASS 1: parse all PDD files, collect (year_dir, exercise) pairs
         all_exercises: list[tuple[pathlib.Path, dict]] = []
         for pdd_path in pdd_files:
             if _is_binary(pdd_path):
@@ -618,24 +636,26 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                 exercises = parse_pdd(pdd_path)
             except Exception as exc:
                 app_logger.warning(
-                    "PolarHrmImportPlugin: failed to parse PDD",
+                    f"{self._log_name} failed to parse PDD: {exc}\n"
+                    f"{traceback.format_exc()}",
                     path=str(pdd_path),
                     error=str(exc),
+                    traceback=traceback.format_exc(),
                 )
                 continue
             year_dir = pdd_path.parent
-            for ex in exercises:
-                all_exercises.append((year_dir, ex))
+            for exercise in exercises:
+                all_exercises.append((year_dir, exercise))
 
-        # ---- pass 2: parallel-parse HRM files into cache (I/O-bound) ----
+        # PASS 2: parallel-parse HRM files into cache (I/O-bound)
         self._parallel_parse_hrm_files(all_exercises)
 
-        # ---- pass 3: build ActivityEntity objects using pre-populated cache ----
+        # PASS 3: build ActivityEntity objects using pre-populated cache
         activities: list[entities.ActivityEntity] = []
-        for year_dir, ex in all_exercises:
+        for year_dir, exercise in all_exercises:
             try:
                 activity = self._build_activity(
-                    ex=ex,
+                    exercise=exercise,
                     year_dir=year_dir,
                     user_profile=user_profile,
                     correlation_id=correlation_id,
@@ -644,9 +664,9 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                     activities.append(activity)
             except Exception as exc:
                 app_logger.warning(
-                    "PolarHrmImportPlugin: failed to build activity",
+                    f"{self._log_name} failed to build activity",
                     pdd_dir=str(year_dir),
-                    hrm=ex.get("hrm_filename", ""),
+                    hrm=exercise.get("hrm_filename", ""),
                     error=str(exc),
                 )
 
@@ -654,7 +674,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         activities.sort(key=lambda a: (a.when_year, a.when_month, a.when_day))
 
         app_logger.info(
-            "PolarHrmImportPlugin: import complete",
+            "{self._log_name} import complete",
             total=len(activities),
             correlation_id=correlation_id,
         )
@@ -699,7 +719,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                 return filename, data
             except Exception as exc:
                 app_logger.warning(
-                    "PolarHrmImportPlugin: HRM parse failed in parallel phase",
+                    f"{self._log_name} HRM parse failed in parallel phase",
                     hrm=filename,
                     error=str(exc),
                 )
@@ -712,7 +732,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                     self._hrm_data_cache[filename] = data
 
         app_logger.info(
-            "PolarHrmImportPlugin: HRM files parsed",
+            f"{self._log_name} HRM files parsed",
             total=len(jobs),
             cached=len(self._hrm_data_cache),
             workers=workers,
@@ -720,7 +740,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
     def _build_activity(
         self,
-        ex: dict,
+        exercise: dict,
         year_dir: pathlib.Path,
         user_profile: settings.UserProfile,
         correlation_id: str,
@@ -743,25 +763,25 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         entities.ActivityEntity or None
             Built activity, or None when parsing produced no usable data.
         """
-        # ---- date from PDD ----
-        year, month, day = _parse_date(ex["date"])
+        # date from PDD
+        year, month, day = _parse_date(exercise["date"])
         if year == 0:
             return None
 
-        # ---- start time from PDD (fallback) ----
-        sts = ex.get("start_time_s", 0)
+        # start time from PDD (fallback)
+        sts = exercise.get("start_time_s", 0)
         pdd_hour = sts // 3600
         pdd_minute = (sts % 3600) // 60
         pdd_second = sts % 60
 
-        # ---- duration from PDD (fallback) ----
-        dur_s = ex.get("duration_s", 0)
+        # duration from PDD (fallback)
+        dur_s = exercise.get("duration_s", 0)
         pdd_hours = dur_s // 3600
         pdd_minutes = (dur_s % 3600) // 60
         pdd_seconds = dur_s % 60
 
-        # ---- HRM enrichment ----
-        hrm_filename = ex.get("hrm_filename", "")
+        # HRM enrichment
+        hrm_filename = exercise.get("hrm_filename", "")
         hrm: dict = {}
         if hrm_filename:
             # use pre-populated cache from parallel parse phase
@@ -769,25 +789,25 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             if not hrm:
                 # fallback: parse on-demand if not in cache (e.g. binary-skipped)
                 hrm_path = year_dir / hrm_filename
+                exercise[PolarHrmImportPlugin.KEY_HRM_PATH] = hrm_path
                 if hrm_path.exists() and not _is_binary(hrm_path):
                     try:
                         hrm = parse_hrm(hrm_path)
-                        hrm["sport_index"] = ex.get("sport_index", 0)
+                        hrm["sport_index"] = exercise.get("sport_index", 0)
                         self._hrm_data_cache[hrm_filename] = hrm
                     except Exception as exc:
                         app_logger.info(
-                            "PolarHrmImportPlugin: HRM parse failed,"
-                            " using PDD data only",
+                            f"{self._log_name} HRM parse failed, using PDD data only",
                             hrm=hrm_filename,
                             error=str(exc),
                         )
                 else:
                     app_logger.info(
-                        "PolarHrmImportPlugin: HRM file not found, using PDD data only",
+                        "{self._log_name} HRM file not found, using PDD data only",
                         hrm=hrm_filename,
                     )
 
-        # ---- merge: HRM takes precedence over PDD ----
+        # merge: HRM takes precedence over PDD
         if hrm:
             h_date = hrm.get("date", 0)
             if h_date:
@@ -798,11 +818,11 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             act_hours = hrm.get("hours", pdd_hours)
             act_minutes = hrm.get("minutes", pdd_minutes)
             act_seconds = hrm.get("seconds", pdd_seconds)
-            note = hrm.get("note", "") or ex.get("note", "")
-            avg_hr = hrm.get("avg_hr", 0) or ex.get("avg_hr", 0)
-            max_hr = hrm.get("max_hr", 0) or ex.get("max_hr", 0)
+            note = hrm.get("note", "") or exercise.get("note", "")
+            avg_hr = hrm.get("avg_hr", 0) or exercise.get("avg_hr", 0)
+            max_hr = hrm.get("max_hr", 0) or exercise.get("max_hr", 0)
             min_hr = hrm.get("min_hr", 0)
-            kcal = hrm.get("kcal", 0) or ex.get("kcal", 0)
+            kcal = hrm.get("kcal", 0) or exercise.get("kcal", 0)
             max_speed_kmh = hrm.get("max_speed_kmh", 0.0)
             elevation_gain = hrm.get("elevation_gain", 0)
             elevation_min = hrm.get("elevation_min", 0)
@@ -815,11 +835,11 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             act_hours = pdd_hours
             act_minutes = pdd_minutes
             act_seconds = pdd_seconds
-            note = ex.get("note", "")
-            avg_hr = ex.get("avg_hr", 0)
-            max_hr = ex.get("max_hr", 0)
+            note = exercise.get("note", "")
+            avg_hr = exercise.get("avg_hr", 0)
+            max_hr = exercise.get("max_hr", 0)
             min_hr = 0
-            kcal = ex.get("kcal", 0)
+            kcal = exercise.get("kcal", 0)
             max_speed_kmh = 0.0
             elevation_gain = 0
             elevation_min = 0
@@ -832,15 +852,15 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         description = note
 
         # distance always from PDD (HRM does not carry it)
-        distance_m = ex.get("distance_m", 0)
+        distance_m = exercise.get("distance_m", 0)
 
-        sport_str = map_activity_type_index(ex.get("sport_index", 0))
+        sport_str = map_activity_type_index(exercise.get("sport_index", 0))
 
         # determine src_key — prefer hrm filename; fall back to synthetic key
         src_key = (
             hrm_filename
             if hrm_filename
-            else f"pdd-{ex['date']}-{ex.get('sport_index', 0)}"
+            else f"pdd-{exercise['date']}-{exercise.get('sport_index', 0)}"
         )
 
         a = entities.ActivityEntity()
@@ -876,6 +896,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         a.src_key = src_key
         a.src_url = ""
         a.src_descriptor = correlation_id
+
+        # inject raw data to context for efficient processing
+        a.transient_fields = a.transient_fields or {}
+        a.transient_fields[PolarHrmImportPlugin.KEY_POLAR_ROW_DATA] = exercise
 
         entities.evaluate_activity(entity=a, user_profile=user_profile)
 

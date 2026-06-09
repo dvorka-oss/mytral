@@ -69,16 +69,6 @@ def _gpx_filename() -> str:
 class FilesystemBlobStore(BlobStoreAbc):
     """Blob store that persists blobs on the local filesystem.
 
-    Layout::
-
-        <base_dir>/<user_id>/blobs/activities/<activity_key>/gpx/<blob_key>/
-            data.gpx
-            metadata.json
-        <base_dir>/<user_id>/blobs/activities/<activity_key>/photos/<blob_key>/
-            normalized.jpg      (EXIF-stripped, resized; the only stored photo file)
-            thumbnail.jpg
-            metadata.json
-
     Parameters
     ----------
     base_dir : pathlib.Path

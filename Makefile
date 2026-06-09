@@ -74,9 +74,6 @@
 # MyTraL CLI
 #
 # uv run mytral help
-# uv run mytral import strava
-# uv run mytral upgrade --from 1.0.0 --to 1.1.0
-# uv run mytral-web
 #
 
 .DEFAULT_GOAL := help
@@ -656,3 +653,12 @@ tool-parquet-viewer: ## run Squey - Parquet viewer
 
 tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 	python3 -c "import tomllib, json, sys; print(json.dumps(tomllib.loads(sys.stdin.read()), indent=2))" < pyproject.toml
+
+#
+# USER SPECIFIC PRODUCTION DATA MANAGEMENT
+#
+
+# pull production data from Git repository & sync blobs from shared drive
+.PHONY: d-data-pull
+d-data-pull:
+	cd make && ./d_production_data_pull.sh
