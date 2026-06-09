@@ -424,16 +424,20 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
     elevation_gain_m = 0.0
     prev_lat: float | None = None
     prev_lon: float | None = None
+    prev_ts: datetime.datetime | None = None
     total_distance_m = 0.0
+    max_speed_mps = 0.0
 
     for trkpt in root.iter(f"{ns}trkpt"):
+        current_dt: datetime.datetime | None = None
+
         time_el = trkpt.find(f"{ns}time")
         if time_el is not None and time_el.text:
             try:
-                dt = datetime.datetime.fromisoformat(
+                current_dt = datetime.datetime.fromisoformat(
                     time_el.text.replace("Z", "+00:00")
                 )
-                timestamps.append(dt)
+                timestamps.append(current_dt)
             except ValueError:
                 pass
 
@@ -465,8 +469,16 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
                 lat = float(lat_raw)
                 lon = float(lon_raw)
                 if prev_lat is not None and prev_lon is not None:
-                    total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+                    seg_m = _haversine_m(prev_lat, prev_lon, lat, lon)
+                    total_distance_m += seg_m
+                    # track max speed between consecutive points with timestamps
+                    if prev_ts is not None and current_dt is not None:
+                        seg_s = abs((current_dt - prev_ts).total_seconds())
+                        if seg_s > 0:
+                            max_speed_mps = max(max_speed_mps, seg_m / seg_s)
                 prev_lat, prev_lon = lat, lon
+                if current_dt is not None:
+                    prev_ts = current_dt
             except ValueError:
                 pass
 
@@ -478,6 +490,8 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
         summary.elevation_gain = int(elevation_gain_m)
     if total_distance_m > 0:
         summary.distance = int(total_distance_m)
+    if max_speed_mps > 0:
+        summary.max_speed = round(max_speed_mps * 3.6, 2)
 
     if not timestamps:
         # estimate duration from distance using 7 km/h pace when timestamps are missing

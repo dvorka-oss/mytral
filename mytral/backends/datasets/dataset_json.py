@@ -91,6 +91,7 @@ from mytral import commons
 from mytral import config
 from mytral import loggers
 from mytral import persistences
+from mytral import security
 from mytral import settings
 from mytral import stats
 from mytral.backends import cache
@@ -102,63 +103,6 @@ from mytral.backends import entities
 FILE_ACTIVITIES_PRE = "activities-"
 FILE_STATS_INFIX = "stats"
 EXT_JSON = "json"
-
-
-def _decrypt_strava_secrets(profile_dict: dict) -> None:
-    """Decrypt encrypted Strava client secrets in a profile dict (in-place).
-
-    Reads ``client_id_enc`` / ``client_secret_enc`` and writes the decrypted
-    values back as ``client_id`` / ``client_secret`` so the rest of the code
-    can use plain-text values transparently.  Falls back to any existing
-    plain-text values for backward-compatibility (migration path).
-    """
-    # local imports avoid circular dependencies at module load time
-    from mytral import app_config
-    from mytral import security
-
-    strava = profile_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    enc_key = app_config.encryption_key
-
-    for enc_field, plain_field in (
-        (settings.UserProfile.KEY_CLIENT_ID_ENC, settings.UserProfile.KEY_CLIENT_ID),
-        (
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-            settings.UserProfile.KEY_CLIENT_SECRET,
-        ),
-    ):
-        enc_val = strava.get(enc_field, "")
-        if enc_val:
-            try:
-                strava[plain_field] = security.decrypt(enc_val, enc_key)
-            except ValueError:
-                # key mismatch or corrupt value – fall back to whatever is stored
-                pass
-
-
-def _encrypt_strava_secrets(data_dict: dict) -> None:
-    """Encrypt Strava client secrets in a serialisation dict (in-place).
-
-    Reads plain-text ``client_id`` / ``client_secret`` from the ``strava``
-    sub-dict, writes encrypted copies under ``client_id_enc`` /
-    ``client_secret_enc``, and removes the plain-text keys so they are never
-    written to disk.
-    """
-    # local imports avoid circular dependencies at module load time
-    from mytral import app_config
-    from mytral import security
-
-    strava = data_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    enc_key = app_config.encryption_key
-
-    for plain_field, enc_field in (
-        (settings.UserProfile.KEY_CLIENT_ID, settings.UserProfile.KEY_CLIENT_ID_ENC),
-        (
-            settings.UserProfile.KEY_CLIENT_SECRET,
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-        ),
-    ):
-        plain_val = strava.pop(plain_field, "")
-        strava[enc_field] = security.encrypt(plain_val, enc_key) if plain_val else ""
 
 
 def list_activity_dataset_names(user_dir: pathlib.Path) -> list[str]:
@@ -1120,7 +1064,10 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         profile_dict[settings.UserProfile.KEY_DATASET_NAMES] = (
             list_activity_dataset_names(self.user_dir(user_id=user_id))
         )
-        _decrypt_strava_secrets(profile_dict)
+        security.decrypt_strava_secrets(
+            profile_dict=profile_dict,
+            enc_key=self.config.encryption_key,
+        )
         return settings.UserProfile.from_dict(profile_dict)
 
     def create_profile(
@@ -1130,7 +1077,9 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         user_profile.user_id = user_profile.user_id or str(uuid.uuid4())
 
         data_dict = user_profile.to_dict()
-        _encrypt_strava_secrets(data_dict)
+        security.encrypt_strava_secrets(
+            data_dict=data_dict, enc_key=self.config.encryption_key
+        )
 
         # save profile to filesystem
         persistences.save_json(
@@ -2001,10 +1950,8 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     # tasks
     #
 
-    FILE_TASKS_DIR = "tasks"
-
     def user_tasks_dir(self, user_id: str) -> pathlib.Path:
-        tasks_dir = self.user_dir(user_id) / JsonUsersDataset.FILE_TASKS_DIR
+        tasks_dir = self.user_dir(user_id) / config.MytralPersistenceFsConfig.DIR_TASKS
         tasks_dir.mkdir(parents=True, exist_ok=True)
         return tasks_dir
 
