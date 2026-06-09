@@ -9,7 +9,7 @@
             <div class="col">
                 <span class="page-pretitle">Progress</span>
                 <h2 class="page-title">
-                    3D Impulse-Response Model
+                    Power-based Progress Analytics
                 </h2>
             </div>
         </div>
@@ -18,17 +18,13 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p>
-                <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D Impulse-Response Model</a> is a novel
-                approach to modeling training load and performance in endurance sports.
-                It models training load in 3 independent dimensions using strain score (SS):
-                <strong>Explosive Power</strong> (Pmax)
-
-                <strong>Aero Generator</strong> (CP), <strong>Prime Battery</strong> (W′), and
-                .
-            </p>
-            <p class="mb-0">
-                Workouts with power recordings are converted second-by-second into SSCP / SSW′ / SSPmax,
-                then aggregated daily and fed into parallel impulse-response models.
+                <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D impulse-response model</a>
+                is a novel power-based approach to modeling training load and performance in endurance sports.
+                In contrast to traditional models that rely on a single metric,
+                it models training load in <strong>3</strong> independent dimensions:
+                Explosive Power, Aero Generator, and Prime Battery.
+                This allows for a more nuanced understanding of how different types of training stress
+                impact sprint, interval, and endurance performance, as well as recovery.
             </p>
         </div>
     </div>
@@ -110,7 +106,7 @@
         <div class="card-status-top bg-yellow"></div>
         <div class="card-header">
             <h3 class="card-title">
-                3D impulse-response timeline
+                Daily 3D impulse-response model scores
             </h3>
             <div class="card-actions">
                 <span class="badge bg-yellow text-yellow-fg">warming cache</span>
@@ -161,46 +157,62 @@
     {% endif %}
 
     {% if not cache_warming %}
-    <div class="card">
+    <div class="card mt-3 mb-3">
         <div class="card-header">
-            <h3 class="card-title">Friendly names mapping used in MyTraL</h3>
+            <h3 class="card-title">
+                About 3D impulse-response model
+            </h3>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-vcenter">
-                    <thead>
-                        <tr>
-                            <th>MyTraL friendly name</th>
-                            <th>Academic name</th>
-                            <th>Meaning</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Explosive Power</strong></td>
-                            <td>Pmax</td>
-                            <td>maximal instantaneous power capability (PCr dimension)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Prime Battery</strong></td>
-                            <td>W′ (work prime)</td>
-                            <td>finite work capacity above CP (glycolytic dimension)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Aero Generator</strong></td>
-                            <td>CP (critical power)</td>
-                            <td>highest sustainable oxidative power (aerobic dimension)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p class="text-secondary mb-0">
-                Strain score (SS) is computed from second-by-second power and current MPA
-                (Maximum Power Available), then split into SSCP, SSW′ and SSPmax.
+            <p>
+                <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D Impulse-Response Model</a>
+                is a novel power-based approach to modeling training load and performance in endurance sports.
+                In contrast to traditional models that rely on a single metric,
+                it models training load in <strong>3 independent dimensions</strong>:
+
+                <ul>
+                    <li><strong>Explosive Power</strong> (Pmax)
+                        <ul>
+                            <li>Maximal instantaneous power capability (PCr dimension).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Aero Generator</strong> (CP)
+                        <ul>
+                            <li>Highest sustainable oxidative power (aerobic dimension).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Prime Battery</strong> (W′)
+                        <ul>
+                            <li>Finite work capacity above CP (glycolytic dimension).</li>
+                        </ul>
+                    </li>
+                </ul>
+            </p>
+            <p>
+                <strong>Strain score</strong> (SS) is computed from second-by-second power and current
+                <strong>Maximum Power Available</strong> (MPA), then split into:
+                <ul>
+                  <li><strong>SS CP</strong>
+                    <ul><li>Strain from time spent above CP, i.e. the aerobic generator dimension.</li></ul>
+                  </li>
+                  <li><strong>SS W′</strong>
+                    <ul><li>Strain from work done above CP, i.e. the prime battery dimension.</li></ul>
+                  </li>
+                  <li><strong>SS Pmax</strong>
+                    <ul><li>Strain from time spent above Pmax, i.e. the explosive power dimension.</li></ul>
+                  </li>
+                </ul>
+            </p>
+            <p>
+                Resources:
+                <ul>
+                <li>Kontro, H., Mastracci, A., Cheung, S. S., & MacInnis, M. J. (2025). <i>The three-dimensional impulse-response model: Modeling the training process in accordance with energy system-specific adaptation.</i> arXiv preprint arXiv:2503.14841. <a href="https://arxiv.org/abs/2503.14841" class="link-primary" target="_blank">https://doi.org/10.48550/arXiv.2503.14841</a></li>
+                </ul>
             </p>
         </div>
     </div>
     {% endif %}
+
 </div>
 {% endblock %}
 

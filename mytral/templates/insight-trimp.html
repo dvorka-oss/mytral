@@ -6,7 +6,7 @@
             <div class="col">
                 <span class="page-pretitle">Progress</span>
                 <h2 class="page-title">
-                    TRIMP: TRaining IMPulse
+                    HR-based progress analytics
                 </h2>
             </div>
         </div>
@@ -15,17 +15,11 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p>
-                Training Impulse (TRIMP) quantifies internal training load from session duration and heart-rate reserve.
-            </p>
-            <p>
-                Dots show daily TRIMP -
-                <span class="badge bg-green text-green-fg">&lt; 50 recovery/easy</span>
-                <span class="badge bg-orange text-orange-fg">50 - 120 moderate</span>
-                <span class="badge bg-red text-red-fg">&gt; 120 hard</span> -
-                while ATRIMP (Acute TRIMP, 7-day exponential moving average),
-                CTRIMP (Chronic TRIMP, 42-day exponential moving average) and
-                TRIMPB (TRIMP balance CTRIMP - ATRIMP)
-                shows balance between short-term load, long-term load i.e. delta between fitness and fatigue.
+                <a href="https://journals.physiology.org/doi/full/10.1152/advan.00078.2011" class="link-primary" target="_blank">TRIMP (Training Impulse)</a>
+                is a heart rate (HR) based training load analytics model used to
+                quantify the stress of a workout. TRIMP can objectively balance
+                long-term fitness gains against short-term fatigue, giving you a precise
+                blueprint for peak performance and injury prevention.
             </p>
         </div>
     </div>
@@ -109,5 +103,64 @@
             </div>
         </div>
     </div>
+
+
+    <div class="card mt-3 mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                About TRIMP
+            </h3>
+        </div>
+        <div class="card-body">
+            <p>
+                <strong>TRIMP</strong> (Training Impulse) is a sophisticated training load analytics
+                model used to quantify the physiological stress of a workout. It is
+                fundamentally heart-rate based, calculating cumulative effort by
+                factoring in your heart rate reserve, duration, and the exponential
+                intensity of the session. Its biggest strength is its ability to
+                objectively balance long-term fitness gains against short-term fatigue,
+                giving athletes a precise blueprint for peak performance and injury
+                prevention.
+            </p>
+            <p>
+                In addition to daily TRIMP scores, the model and its chart also tracks
+                three key metrics:
+                <ul>
+                <li><strong>ATRIMP</strong> (Acute TRIMP)
+                    <ul><li>A 7-day exponentially weighted moving average of your daily TRIMP scores, representing short-term training load and fatigue.</li></ul>
+                </li>
+                <li><strong>CTRIMP</strong> (Chronic TRIMP)
+                    <ul><li>A 42-day exponentially weighted moving average of your daily TRIMP scores, representing long-term training load and fitness.</li></ul>
+                </li>
+                <li><strong>TRIMPB</strong> (TRIMP Balance)
+                    <ul><li>The clean delta between your fitness and your fatigue, calculated as CTRIMP - ATRIMP, showing the balance between short-term load and long-term load, i.e. the delta between fitness and fatigue.</li></ul>
+                </li>
+                </ul>
+            </p>
+            <p>
+                Chart legend:
+                <ul>
+                <li>
+                    <strong>TRIMP</strong> load is represented by colored dots for each day, with color indicating the level of daily strain:
+                    <ul>
+                        <li><span class="badge bg-green text-green-fg">&nbsp;</span> ~ &lt; 50 recovery/easy</li>
+                        <li><span class="badge bg-orange text-orange-fg">&nbsp;</span> ~ 50 - 120 moderate</li>
+                        <li><span class="badge bg-red text-red-fg">&nbsp;</span> ~ &gt; 120 hard</li>
+                    </ul>
+                </li>
+                <li><span class="badge bg-blue text-blue-fg">blue line</span> ~ <strong>ATRIMP</strong></li>
+                <li><span class="badge bg-green text-green-fg">green line</span> ~ <strong>CTRIMP</strong></li>
+                <li><span class="badge bg-orange text-orange-fg">orange line</span> ~ <strong>TRIMPB</strong></li>
+                </ul>
+            </p>
+            <p>
+                Resources:
+                <ul>
+                <li><a href="https://journals.physiology.org/doi/full/10.1152/advan.00078.2011" class="link-primary" target="_blank">Busso, T., Denis, C., Bonnefoy, R., Geyssant, A., & Lacour, J. R. (1997). <i>Modeling of adaptations to physical training by using a recursive least squares algorithm.</i> Journal of Applied Physiology, 82(5), 1685–1693.</a></li>
+                </ul>
+            </p>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

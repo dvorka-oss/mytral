@@ -574,20 +574,25 @@
                             Athlete Metrics
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">me</span>
                           </a>
+
+                          <div class="dropdown-divider"></div>
+
                           <a class="dropdown-item"
                             title="Three-dimensional impulse-response chart driven by strain score"
                             href="{{ url_for('insight_irm3d') }}"
                           >
-                            3D IR model
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">SOTA</span>
+                            Power-based
+                            <span class="badge badge-sm bg-blue-lt text-uppercase ms-auto">3D IRM</span>
                           </a>
                           <a class="dropdown-item"
                             title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
                             href="{{ url_for('insight_trimp') }}"
                           >
-                            TRIMP
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">classic</span>
+                            HR-based
+                            <span class="badge badge-sm bg-blue-lt text-uppercase ms-auto">TRIMP</span>
                           </a>
+
+                          <div class="dropdown-divider"></div>
 
                           {% if ff.can("ACOACHES") %}
                           <a class="dropdown-item"
