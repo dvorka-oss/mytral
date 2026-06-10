@@ -3404,6 +3404,8 @@ def get_activity_irm3d_analysis(key):
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    if not mytral.ff.can(mytral.releng.FeatureFlags.IRM3D):
+        flask.abort(404)
     user_profile = ds.profile(user_id)
     dataset_name = user_profile.dataset_name
     a = ds.get_activity(user_id=user_id, dataset_name=dataset_name, key=key)

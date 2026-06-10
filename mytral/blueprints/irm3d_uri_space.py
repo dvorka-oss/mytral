@@ -357,6 +357,8 @@ def insight_irm3d():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+    if not mytral.ff.can(mytral.releng.FeatureFlags.IRM3D):
+        flask.abort(404)
 
     user_profile = ds.profile(user_id)
     activities = ds.list_activities(

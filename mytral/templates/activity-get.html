@@ -55,6 +55,7 @@
                             </svg>
                             Analysis
                         </a>
+                        {% if ff.can("IRM3D") %}
                         <a href="{{ url_for('get_activity_irm3d_analysis', key=activity_entity.key, blob_uuid=selected_blob_uuid) if selected_blob_uuid else url_for('get_activity_irm3d_analysis', key=activity_entity.key) }}"
                             class="btn btn-primary"
                             title="3D Impulse-Response Model">
@@ -72,6 +73,7 @@
                             </svg>
                             3D IRM
                         </a>
+                        {% endif %}
                     </div>
 
                     <div class="btn-group" role="group" aria-label="Clone activity">
