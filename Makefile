@@ -702,3 +702,25 @@ tool-parquet-viewer: ## run Squey - Parquet viewer
 
 tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 	python3 -c "import tomllib, json, sys; print(json.dumps(tomllib.loads(sys.stdin.read()), indent=2))" < pyproject.toml
+
+#
+# USER SPECIFIC PRODUCTION DATA MANAGEMENT
+#
+
+# pull production data from Git repository & sync blobs from the shared drive
+PHONY: my-data-pull
+my-data-pull:
+	cd make && ./d_production_data_pull.sh
+
+# push production data to Git repository & sync blobs to the shared drive
+.PHONY: my-data-push
+my-data-push:
+	cd make && ./d_production_data_push.sh
+
+.PHONY: my-data-zip
+my-data-zip-snapshot:
+	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	archive=$(USER_HOME)/mytral-snapshot-$${timestamp}.tgz; \
+	echo "Zipping production data to $${archive} ..."; \
+	tar czf "$${archive}" -C $(USER_HOME)/.local/share mytral; \
+	echo "DONE Archive created: $${archive}"
