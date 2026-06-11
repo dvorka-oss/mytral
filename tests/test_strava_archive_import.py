@@ -84,6 +84,15 @@ class FakeDataset:
         self.activities[entity.key] = entity
         return entity
 
+    def update_activities(
+        self,
+        user_id: str,
+        dataset_name: str,
+        activities: list[entities.ActivityEntity],
+    ) -> None:
+        for activity in activities:
+            self.activities[activity.key] = activity
+
     def list_activities(
         self, user_id: str, dataset_name: str
     ) -> list[entities.ActivityEntity]:

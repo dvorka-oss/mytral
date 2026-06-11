@@ -38,7 +38,6 @@ from mytral.blobstore.models import BLOB_VARIANT_THUMBNAIL
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobMetadata
 from mytral.blobstore.models import BlobOwnerKind
-from mytral.blobstore.validation import parse_gpx
 from mytral.integrations import strava_user_archive
 from mytral.recordings import gpx_extractor
 from mytral.recordings import parquet_converter
@@ -536,17 +535,14 @@ def _strava_gpx_map_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
 
         try:
             if extension == ".tcx":
-                track_count, track_point_count = tcx_extractor.parse_tcx(gpx_data)
-                gps_points = tcx_extractor.extract_gps_points(gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    tcx_extractor.extract_elevation_profile(gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    tcx_extractor.extract_all_from_tcx(gpx_data)
                 )
             else:
-                track_count, track_point_count = parse_gpx(data=gpx_data)
-                gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    gpx_extractor.extract_all_from_gpx(gpx_data)
                 )
+            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
         except Exception:
             results[blob_uuid] = {"skipped": True, "error": "parse/extract failed"}
             continue
@@ -707,13 +703,14 @@ class StravaArchiveImportTask(tasks.TaskBase):
             return
 
         # PHASE 1: create activities in dataset
+        self.update_progress(12)
         self._dataset.create_activities(
             user_id=user_id,
             dataset_name=dataset_name,
             entity_list=activities,
         )
         self.log(f"Created {total} activities in dataset '{dataset_name}'")
-        self.update_progress(25)
+        self.update_progress(18)
         self.check_cancellation()
 
         # PHASE 2: clear blobs for overridden activities
@@ -733,10 +730,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     "  WARNING: failed to clear existing blobs for overridden "
                     f"activity {overridden_key}: {exc}"
                 )
-        self.update_progress(15)
+        self.update_progress(20)
 
         # PHASE 3: Bulldozer-parallelized photo + recording import
-        self.log("BEGIN: Uploading photos & recordings (parallel)...")
+        self.log("Uploading photos & recordings...")
 
         # split activities evenly across workers
         workers = max(1, (os.cpu_count() or 1) // 2)
@@ -784,6 +781,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
             f"Split {total} activities into {len(chunks)} chunks "
             f"({len(chunks)} workers)"
         )
+        self.update_progress(22)
 
         # run Bulldozer
         bzz.run(job_dirs=job_dirs, job_function=_strava_blob_job)
@@ -801,11 +799,11 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 )
         if failed_jobs:
             raise RuntimeError(
-                f"Bulldozer jobs {failed_jobs} failed — see log for details"
+                f"Bulldozer jobs {failed_jobs} failed - see log for details"
             )
 
-        self.log("All Bulldozer jobs DONE — merging blobstores...")
-        self.update_progress(40)
+        self.log("All photo and recordings Bulldozer jobs DONE - merging blobstores...")
+        self.update_progress(50)
 
         # PHASE 4: merge sandbox blobstores into main blobstore
         main_blobs_dir = persistence_root / "data" / user_id / "blobs"
@@ -815,7 +813,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
             main_blobs_dir=main_blobs_dir,
         )
         self.log(f"Merged {merged} blob directories from sandboxes into main store")
-        self.update_progress(50)
+        self.update_progress(55)
+        self.check_cancellation()
 
         # PHASE 5: collect activities + summaries, apply, batch update
         self.log("Collecting activities from sandbox outputs...")
@@ -848,6 +847,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 f"WARNING: collected {len(all_activities)} activities, expected {total}"
             )
 
+        self.update_progress(60)
+
         # apply summaries and count statistics
         photos_before = 0
         recordings_before = 0
@@ -869,19 +870,20 @@ class StravaArchiveImportTask(tasks.TaskBase):
         recordings_imported = recordings_after
         recordings_failed = max(0, recordings_before - recordings_after)
 
+        self.update_progress(70)
+
         # batch-update all activities with new blob keys + summaries
         self.log(f"Applying updates to {len(all_activities)} activities in dataset...")
-        # TODO rewrite to bulk
-        for activity in all_activities:
-            self._dataset.update_activity(
-                user_id=user_id,
-                dataset_name=dataset_name,
-                entity=activity,
-            )
-        self.update_progress(90)
+        self._dataset.update_activities(
+            user_id=user_id,
+            dataset_name=dataset_name,
+            activities=all_activities,
+        )
+        self.update_progress(80)
+        self.check_cancellation()
 
         # PHASE 6: Bulldozer-parallelized GPX map data precomputation
-        self.log("Precomputing GPX map data for recordings (parallel)...")
+        self.log("Precomputing GPX map data for recordings...")
 
         # collect recording blob references
         gpx_entries: list[dict] = []
@@ -928,8 +930,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 f"Split {len(gpx_entries)} recording blobs into "
                 f"{len(gpx_chunks)} GPX-map chunks ({len(gpx_chunks)} workers)"
             )
+            self.update_progress(85)
 
             gpx_bzz.run(job_dirs=gpx_job_dirs, job_function=_strava_gpx_map_job)
+            self.update_progress(86)
 
             # detect failed GPX jobs
             gpx_failed = []
@@ -950,6 +954,11 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 )
 
             # collect results and update blob metadata
+            self.update_progress(90)
+            self.log(
+                f"Collecting GPX map data from {len(gpx_job_dirs)} job outputs and "
+                f"updating blob metadata..."
+            )
             gpx_map_count = 0
             gpx_skip_count = 0
             for job_dir in gpx_job_dirs:

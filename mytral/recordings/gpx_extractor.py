@@ -188,6 +188,83 @@ def extract_elevation_profile(gpx_data: bytes) -> list[tuple[float, float]]:
     return profile
 
 
+def extract_all_from_gpx(
+    gpx_data: bytes,
+) -> tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]:
+    """Parse GPX once and extract track counts, GPS points, and elevation profile.
+
+    Avoids the triple-parse overhead of calling ``parse_gpx``,
+    ``extract_gps_points``, and ``extract_elevation_profile`` separately.
+
+    Parameters
+    ----------
+    gpx_data : bytes
+        Raw GPX file content.
+
+    Returns
+    -------
+    tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]
+        ``(track_count, track_point_count, gps_points, elevation_profile)``
+
+    Raises
+    ------
+    ValueError
+        If the GPX is malformed, contains invalid coordinates, or has no points.
+    """
+    root = _parse_gpx_root(gpx_data=gpx_data)
+    ns = _extract_namespace(root=root)
+
+    track_count = len(root.findall(f"{ns}trk"))
+
+    gps_points: list[tuple[float, float]] = []
+    profile: list[tuple[float, float]] = []
+    track_point_count = 0
+
+    total_distance_m = 0.0
+    prev_lat: float | None = None
+    prev_lon: float | None = None
+
+    for trkpt in root.iter(f"{ns}trkpt"):
+        lat_raw = trkpt.attrib.get("lat")
+        lon_raw = trkpt.attrib.get("lon")
+        if lat_raw is None or lon_raw is None:
+            raise ValueError("GPX trackpoint is missing latitude or longitude.")
+
+        try:
+            lat = float(lat_raw)
+            lon = float(lon_raw)
+        except ValueError as exc:
+            raise ValueError("GPX trackpoint has invalid latitude/longitude.") from exc
+
+        if not (-90 <= lat <= 90):
+            raise ValueError(f"Invalid latitude value in GPX: {lat}.")
+        if not (-180 <= lon <= 180):
+            raise ValueError(f"Invalid longitude value in GPX: {lon}.")
+
+        gps_points.append((lat, lon))
+        track_point_count += 1
+
+        ele_val: float | None = None
+        ele_el = trkpt.find(f"{ns}ele")
+        if ele_el is not None and ele_el.text:
+            try:
+                ele_val = float(ele_el.text)
+            except ValueError:
+                ele_val = None
+
+        if prev_lat is not None and prev_lon is not None:
+            total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+        if ele_val is not None:
+            profile.append((float(total_distance_m), float(ele_val)))
+
+        prev_lat, prev_lon = lat, lon
+
+    if not gps_points:
+        raise ValueError("GPX file contains no valid trackpoints.")
+
+    return track_count, track_point_count, gps_points, profile
+
+
 def _sample_points(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
@@ -205,12 +282,15 @@ def _sample_points(
 
 def _sample_points_by_distance(
     points: list[tuple[float, float]], max_points: int
-) -> list[tuple[float, float]]:
-    """Downsample points using equal arc-length spacing."""
+) -> tuple[list[tuple[float, float]], float]:
+    """Downsample points using equal arc-length spacing.
+
+    Returns (sampled_points, total_distance_m).
+    """
     if len(points) <= max_points:
-        return list(points)
+        return list(points), _polyline_length_meters(points)
     if max_points <= 2:
-        return [points[0], points[-1]]
+        return [points[0], points[-1]], _polyline_length_meters(points)
 
     cumulative_distances: list[float] = [0.0]
     for index in range(1, len(points)):
@@ -223,7 +303,8 @@ def _sample_points_by_distance(
 
     total_distance = cumulative_distances[-1]
     if total_distance <= 0:
-        return _sample_points(points=points, max_points=max_points)
+        sampled = _sample_points(points=points, max_points=max_points)
+        return sampled, 0.0
 
     sampled: list[tuple[float, float]] = [points[0]]
     cursor = 1
@@ -244,7 +325,7 @@ def _sample_points_by_distance(
             sampled.append(points[prev_index])
 
     sampled.append(points[-1])
-    return sampled
+    return sampled, total_distance
 
 
 def _polyline_length_meters(points: list[tuple[float, float]]) -> float:
@@ -271,12 +352,13 @@ def _simplify_points_sample(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
     """Simplify points with deterministic endpoint-preserving sampling."""
-    sampled = _sample_points_by_distance(points=points, max_points=max_points)
-    original_length_m = _polyline_length_meters(points)
+    sampled, total_distance_m = _sample_points_by_distance(
+        points=points, max_points=max_points
+    )
     sampled_length_m = _polyline_length_meters(sampled)
     if (
-        original_length_m > 0.0
-        and sampled_length_m / original_length_m < 0.88
+        total_distance_m > 0.0
+        and sampled_length_m / total_distance_m < 0.88
         and len(points) > max_points
     ):
         return _simplify_points_current(points=points, max_points=max_points)

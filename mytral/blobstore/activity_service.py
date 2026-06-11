@@ -40,7 +40,6 @@ from mytral.blobstore.models import BLOB_VARIANT_THUMBNAIL
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobMetadata
 from mytral.blobstore.models import BlobOwnerKind
-from mytral.blobstore.validation import parse_gpx
 from mytral.blobstore.validation import validate_blob_metadata
 from mytral.blobstore.validation import validate_photo
 from mytral.blobstore.validation import validate_recording
@@ -744,17 +743,14 @@ class ActivityBlobService:
         track_point_count = meta.track_point_count
         try:
             if meta.extension == ".tcx":
-                track_count, track_point_count = tcx_extractor.parse_tcx(gpx_data)
-                gps_points = tcx_extractor.extract_gps_points(gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    tcx_extractor.extract_elevation_profile(gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    tcx_extractor.extract_all_from_tcx(gpx_data)
                 )
             else:
-                track_count, track_point_count = parse_gpx(data=gpx_data)
-                gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    gpx_extractor.extract_all_from_gpx(gpx_data)
                 )
+            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
             if gps_points:
                 summary_polyline, summary_bbox, full_polyline = (
                     gpx_extractor.encode_gps_polylines(

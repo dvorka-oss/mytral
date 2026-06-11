@@ -241,7 +241,12 @@ class UserDataset(abc.ABC):
     def update_activities(
         self, user_id: str, dataset_name: str, activities: list[entities.ActivityEntity]
     ):
-        """Update (rewrite) all dataset activities."""
+        """Bulk update of activities:
+
+        - activities are clustered by year
+        - activities w/ the same year are routed to their target dataset files for year
+
+        """
         raise NotImplementedError
 
     @abc.abstractmethod

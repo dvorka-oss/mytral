@@ -180,6 +180,68 @@ def extract_elevation_profile(tcx_data: bytes) -> list[tuple[float, float]]:
     return profile
 
 
+def extract_all_from_tcx(
+    tcx_data: bytes,
+) -> tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]:
+    """Parse TCX once and extract track counts, GPS points, and elevation profile.
+
+    Avoids the triple-parse overhead of calling ``parse_tcx``,
+    ``extract_gps_points``, and ``extract_elevation_profile`` separately.
+
+    Parameters
+    ----------
+    tcx_data : bytes
+        Raw TCX file content.
+
+    Returns
+    -------
+    tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]
+        ``(track_count, track_point_count, gps_points, elevation_profile)``
+    """
+    root = _parse_tcx_root(tcx_data)
+    ns = _extract_namespace(root)
+
+    track_count = 0
+    track_point_count = 0
+    gps_points: list[tuple[float, float]] = []
+    profile: list[tuple[float, float]] = []
+
+    total_distance_m = 0.0
+    prev_lat: float | None = None
+    prev_lon: float | None = None
+
+    for track in root.iter(f"{ns}Track"):
+        track_count += 1
+        for trackpoint in track.iter(f"{ns}Trackpoint"):
+            lat_el = trackpoint.find(f"{ns}Position/{ns}LatitudeDegrees")
+            lon_el = trackpoint.find(f"{ns}Position/{ns}LongitudeDegrees")
+            if lat_el is None or lon_el is None or not lat_el.text or not lon_el.text:
+                continue
+
+            try:
+                lat = float(lat_el.text)
+                lon = float(lon_el.text)
+            except ValueError:
+                continue
+
+            gps_points.append((lat, lon))
+            track_point_count += 1
+
+            if prev_lat is not None and prev_lon is not None:
+                total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+
+            ele_el = trackpoint.find(f"{ns}AltitudeMeters")
+            if ele_el is not None and ele_el.text:
+                ele = _safe_float(ele_el.text)
+                if ele is not None:
+                    profile.append((float(total_distance_m), ele))
+
+            prev_lat = lat
+            prev_lon = lon
+
+    return track_count, track_point_count, gps_points, profile
+
+
 def extract_tcx_summary(tcx_data: bytes) -> RecordingSummary:
     """Parse a TCX file and derive an activity-level summary."""
     summary = RecordingSummary()
