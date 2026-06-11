@@ -450,7 +450,7 @@
                           >
                             Predictions
                           </a>
-                          {% if user_profile.expert %}
+                          {% if ff.can("INSIGHTS_ANALYTICS") %}
                           <a class="dropdown-item"
                             title="Analytics."
                             href="{{ url_for('insight_predictions') }}"
@@ -459,7 +459,9 @@
                             <span class="badge badge-sm bg-yellow-lt text-uppercase ms-auto">TODO</span>
                           </a>
                           {% endif %}
+
                           <div class="dropdown-divider"></div>
+
                           <a class="dropdown-item"
                             title="Tabuler overview of activity types per year."
                             href="{{ url_for('insight_lifetime_totals') }}"
@@ -473,17 +475,31 @@
                             Top sports
                           </a>
                           <a class="dropdown-item"
+                            title="Year-over-year performance trends chart and table."
+                            href="{{ url_for('insight_yoy_performance') }}"
+                          >
+                            Performance trends
+                          </a>
+
+                          <div class="dropdown-divider"></div>
+
+                          <a class="dropdown-item"
                             title="Weekday/sport heatmap"
                             href="{{ url_for('heatmap_weekday_to_activity') }}"
                           >
                             Weekday sport heatmap
                           </a>
                           <a class="dropdown-item"
-                            title="Year-over-year performance trends chart and table."
-                            href="{{ url_for('insight_yoy_performance') }}"
+                            title="Monday to Sunday 0-24 by hour when active within the day"
+                            href="{{ url_for('insight_active_in_week') }}"
                           >
-                            YoY performance trends
+                            Active in week
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
+
+                          <div class="dropdown-divider"></div>
+
+
                           <a class="dropdown-item"
                             title="Chart to compare this vs. last week, month, year."
                             href="{{ url_for('this_vs_last') }}"
@@ -497,13 +513,6 @@
                           >
                             This vs. previous years
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
-                          </a>
-                          <a class="dropdown-item"
-                            title="Monday to Sunday 0-24 by hour when active within the day"
-                            href="{{ url_for('insight_active_in_week') }}"
-                          >
-                            Active in week
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
                         </div>
                       </li>
@@ -568,6 +577,7 @@
                             Athlete Metrics
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
                           </a>
+                          {% if ff.can("TRIMP") %}
                           <a class="dropdown-item"
                             title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
                             href="{{ url_for('insight_trimp') }}"
@@ -575,6 +585,7 @@
                             TRIMP
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
                           </a>
+                          {% endif %}
 
                           {% if ff.can("ACOACHES") %}
                           <a class="dropdown-item"
