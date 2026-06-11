@@ -420,6 +420,11 @@ vibe-cc-ollama-minimax:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
 	ollama launch claude --model minimax-m3:cloud -- --dangerously-skip-permissions
 
+.PHONY: vibe-cc-ollama-gemma4
+vibe-cc-ollama-gemma4:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model gemma4:31b-cloud -- --dangerously-skip-permissions
+
 # Pi CLI
 # - run vibe coding w/ Mario's Pi CLI
 .PHONY: vibe-pi
