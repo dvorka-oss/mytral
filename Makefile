@@ -667,7 +667,3 @@ __data-pull:
 __production-data-push:
 	cd make && ./d_production_data_push.sh
 
-.PHONY: __production-data-zip
-__production-data-zip:
-	echo "Zipping production data to timestamped archive..."
-	exit 1 # TODO implement

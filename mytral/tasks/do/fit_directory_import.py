@@ -201,8 +201,11 @@ class FitDirectoryImportTask(tasks.TaskBase):
         # extract summary to get name and other metadata
         summary = fit_extractor.extract_fit_summary(fit_data)
 
-        # determine activity name: use filename stem
-        activity_name = fit_path.stem
+        # determine activity name: use name_hint from FIT or filename stem
+        if summary.name_hint:
+            activity_name = summary.name_hint
+        else:
+            activity_name = fit_path.stem
 
         # create activity entity
         activity = be_entities.ActivityEntity()
@@ -223,6 +226,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
             activity.when_day = summary.when.day
             activity.when_hour = summary.when.hour
             activity.when_minute = summary.when.minute
+            activity.when_second = summary.when.second
 
         # set duration from summary
         if summary.hours is not None:
@@ -255,6 +259,14 @@ class FitDirectoryImportTask(tasks.TaskBase):
         # set speed from summary
         if summary.avg_speed:
             activity.avg_speed = summary.avg_speed
+        if summary.max_speed:
+            activity.max_speed = summary.max_speed
+
+        # set power from summary
+        if summary.avg_watts:
+            activity.avg_watts = summary.avg_watts
+        if summary.max_watts:
+            activity.max_watts = summary.max_watts
 
         # set elevation from summary
         if summary.elevation_gain:
@@ -280,7 +292,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
             if on_conflict == "skip":
                 self.log(f"Skipping {fit_path.name} (conflict)")
                 return "skipped"
-            if on_conflict == "override":
+            elif on_conflict == "override":
                 # delete existing blobs to avoid storage leak
                 blob_svc.delete_all_activity_blobs(
                     user_id=user_id,
@@ -293,8 +305,9 @@ class FitDirectoryImportTask(tasks.TaskBase):
                     entity=activity,
                 )
                 self.log(f"Updated activity from {fit_path.name}")
+            # else: on_conflict == "new_key" — fall through to create with new key
 
-        # create activity if not overriding
+        # create activity if not overriding an existing one
         if not existing_key or on_conflict != "override":
             ds.create_activity(
                 user_id=user_id,

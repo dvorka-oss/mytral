@@ -1302,23 +1302,7 @@ def tool_import_gpx_directory():
                 flask.flash(error, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
-    data_dir = form.data_dir.data.strip()
-    if not data_dir:
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="GPX directory path cannot be empty or whitespace-only.",
-            back_endpoint="tool_import",
-        )
-    if not os.path.isabs(data_dir):
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="GPX directory path must be absolute (e.g. /home/user/gpx).",
-            back_endpoint="tool_import",
-        )
+    data_dir = form.data_dir.data
     if not os.path.isdir(data_dir):
         return flask.render_template(
             "mytral-error.html",
@@ -1392,23 +1376,7 @@ def tool_import_tcx_directory():
                 flask.flash(error, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
-    data_dir = form.data_dir.data.strip()
-    if not data_dir:
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="TCX directory path cannot be empty or whitespace-only.",
-            back_endpoint="tool_import",
-        )
-    if not os.path.isabs(data_dir):
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="TCX directory path must be absolute (e.g. /home/user/tcx).",
-            back_endpoint="tool_import",
-        )
+    data_dir = form.data_dir.data
     if not os.path.isdir(data_dir):
         return flask.render_template(
             "mytral-error.html",
@@ -1486,23 +1454,7 @@ def tool_import_fit_directory():
                 flask.flash(error, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
-    data_dir = form.data_dir.data.strip()
-    if not data_dir:
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="FIT directory path cannot be empty or whitespace-only.",
-            back_endpoint="tool_import",
-        )
-    if not os.path.isabs(data_dir):
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="FIT directory path must be absolute (e.g. /home/user/fit).",
-            back_endpoint="tool_import",
-        )
+    data_dir = form.data_dir.data
     if not os.path.isdir(data_dir):
         return flask.render_template(
             "mytral-error.html",
