@@ -21,7 +21,7 @@
 # | |_| |\ V /
 #  \__,_| \_/
 #
-# This Makefile is a Makefile for uv-centric/pyproject.toml development of the MyTral app.
+# This is a Makefile for uv/pyproject.toml centric development of the MyTral app.
 
 ###########################
 # Project DEVELOPMENT setup
@@ -97,6 +97,8 @@ ACTIVE_VENV := $(shell echo $$VIRTUAL_ENV)
 USER_HOME := $(shell echo $$HOME)
 # platform name for test reports
 PLATFORM := $(shell uname -s)
+# DeepSeek API key (for vibe coding with DeepSeek)
+DEEPSEEK_API_KEY ?= $(shell pass show deepseek/apikey20260605)
 
 #
 # HELP
@@ -284,6 +286,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 else
 run-dev: .venv ## run MyTraL server on Linux w/ DEV data
@@ -295,6 +298,7 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 endif
 
@@ -307,6 +311,7 @@ run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-production
@@ -322,9 +327,7 @@ run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
 	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	MYTRAL_ENABLE_CACHE=true \
-	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
-	MYTRAL_FF_STRAVA_API_IMPORT=true \
-	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-digi
@@ -360,10 +363,40 @@ vibe-copilot:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
 # - kimi-k2.5:cloud / kimi-k2.6:cloud
 # - qwen3.5:cloud
-vibe-o-copilot:
+.PHONY: vibe-copilot-ollama-deepseek
+vibe-copilot-ollama-deepseek:
 	@mkdir -pv ./.github
 	@cp -vf ./vibe/GH-COPILOT-INSTRUCTIONS.md ./.github/copilot-instructions.md
+	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
+	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	ollama launch copilot-cli --model deepseek-v4-pro:cloud -- --allow-all-tools
+
+# DeepSeek
+# https://api-docs.deepseek.com/quick_start/agent_integrations/copilot_cli
+.PHONY: vibe-copilot-deepseek
+vibe-copilot-deepseek:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./DEEPSEEK.md
+	COPILOT_PROVIDER_TYPE=anthropic \
+	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
+	COPILOT_PROVIDER_API_KEY=$(DEEPSEEK_API_KEY) \
+	COPILOT_MODEL=deepseek-v4-pro \
+	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
+	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
+	copilot --allow-all-tools --banner
+
+# DeepSeek
+# https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
+.PHONY: vibe-deepseek-cc
+vibe-cc-deepseek:
+	ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic \
+	ANTHROPIC_AUTH_TOKEN=$(DEEPSEEK_API_KEY) \
+	ANTHROPIC_MODEL=deepseek-v4-pro[1m] \
+	ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m] \
+	ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m] \
+	ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash \
+	CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash \
+	CLAUDE_CODE_EFFORT_LEVEL=max \
+	claude --dangerously-skip-permissions
 
 # Anthrop\c Claude Code
 # - run vibe coding Anthropic Claude CODE harness w/ Ollama hosted models
@@ -400,7 +433,7 @@ vibe-agy:
 
 # Vibe coding - run a DEFAULT vibe coding CLI
 .PHONY: vibe
-vibe: vibe-o-copilot
+vibe: vibe-copilot-ollama-deepseek
 	@echo "DONE"
 
 #
@@ -449,8 +482,17 @@ test: py-test ## alias for py-test
 #
 
 random-attack: py-install-test-deps ## run random attack benchmark w/ synthetic
+	MYTRAL_TEST_RANDOM_ATTACK=true \
 	MYTRAL_ENCRYPTION_KEY=foo-random-key-for-tests \
 	$(PYTHON) -m pytest -s tests/test_random_attack.py
+	cat /tmp/mytral-random-attack-data-dir.txt && MYTRAL_DATA_DIR=`cat /tmp/mytral-random-attack-data-dir.txt` make run
+
+.PHONY: random-attack-watts
+random-attack-watts: py-install-test-deps ## run random attack benchmark with synthetic watts for 3D IRM
+	MYTRAL_TEST_RANDOM_ATTACK=true \
+	MYTRAL_RANDOM_ATTACK_WATTS=true \
+	MYTRAL_ENCRYPTION_KEY=foo-random-key-for-tests \
+	$(PYTHON) -m pytest -s tests/test_random_attack.py::test_generate_mytral_dataset
 	cat /tmp/mytral-random-attack-data-dir.txt && MYTRAL_DATA_DIR=`cat /tmp/mytral-random-attack-data-dir.txt` make run
 
 #
@@ -539,11 +581,15 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 #
 
 .PHONY: doc
-doc: ## generate HTML documentation from Markdown sources
+doc-sync-data:
 	@echo "Preparing data..."
+	cp -vf CREDITS.md docs/CREDITS.md
 	cp -vf CHANGELOG.md docs/CHANGELOG.md
 	uv run python make/preprocess_license_to_markdown.py
 	uv run python make/preprocess_licenses_to_markdown.py
+
+.PHONY: doc
+doc: doc-sync-data ## generate HTML documentation from Markdown sources
 	@echo "Generating documentation from Markdown..."
 	uv run python make/generate_docs_from_markdown.py
 	@echo "DONE Documentation generated successfully"
@@ -567,20 +613,20 @@ doc-serve: doc ## serve documentation locally for preview
 www-live-server: ## start live server for www.mytral.fitness development
 	@cd webs/www.mytral.fitness && live-server ./
 
-.PHONY: www-docs
-www-docs: ## generate public documentation for www.mytral.fitness
+.PHONY: www-doc
+www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
 	@echo "Generating public documentation from Markdown..."
 	uv run python make/generate_public_docs.py
 	@echo "DONE Public documentation generated successfully"
 
-.PHONY: www-docs-clean
-www-docs-clean: ## clean generated public documentation
+.PHONY: www-doc-clean
+www-doc-clean: ## clean generated public documentation
 	rm -rf webs/www.mytral.fitness/docs/*.html
 	rm -rf webs/www.mytral.fitness/docs/*.png
 	@echo "Public documentation cleaned"
 
-.PHONY: www-docs-serve
-www-docs-serve: www-docs ## serve public documentation locally for preview
+.PHONY: www-doc-serve
+www-doc-serve: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 

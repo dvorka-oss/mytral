@@ -42,7 +42,8 @@ Acknowledgements to reviewers, testers and supporters:
 Acknowledgements to athletes and projects who/which provided their data:
 
 * Roman "Marco" Vetešník - 10+ years of Polar Precision Performance data, literature, expertise.
-* GoldenCheetah - really nice collection of GC's activity recordings is used to test MyTraL.
+* [GoldenCheetah OpenData Project](https://osf.io/6hfpz/overview) and GoldenCheetah project test data - amazing collection of activity recordings.
+* OSF - for beging a free, open platform to support research and hosting dataset like crowd-sourced GoldenCheetah dataset for the sport science.
 
 MyTral project is/was supported by:
 
