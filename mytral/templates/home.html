@@ -140,6 +140,17 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
+                        {% if gear_requires_attention %}
+                        <div class="subheader text-warning">
+                            Gear Require Attention
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Gear whose component(s) require attention and/or service.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                        {% else %}
                         <div class="subheader">
                             Years Active
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Number of calendar years with recorded training activities ({{ stats.year_min }} to {{ stats.year_max }}). The progress bar shows what percentage of your life (birth to age 100) you've spent actively training, demonstrating your long-term commitment to fitness.">
@@ -149,11 +160,17 @@
                                 <path d="M11 12h1v4h1"></path>
                             </svg>
                         </div>
+                        {% endif %}
                     </div>
+                    {% if gear_requires_attention %}
+                    <a class="h1 mb-1 text-warning" href="{{ url_for('settings_gear_list') }}">{{ gear_requires_attention }}</a>
+                    {% else %}
                     <div class="h1 mb-1">{{ stats.years|length }}</div>
+                    {% endif %}
                 </div>
             </div>
         </div>
+
     </div>
 
     {# Chart: lifetime training volume #}

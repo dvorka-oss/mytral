@@ -500,13 +500,13 @@ def gear_in_time(
 
             y_labels[gear_count] = user_gear.gear_by_key[g_key].name
             y.append(gear_count)
-            t_split = stat.stat_from.split("/")
+            t_split = stat.stat_from.split("-")
             x.append(
                 datetime.datetime(int(t_split[0]), int(t_split[1]), int(t_split[2]))
             )
 
             y.append(gear_count)
-            t_split = stat.stat_to.split("/")
+            t_split = stat.stat_to.split("-")
             x.append(
                 datetime.datetime(int(t_split[0]), int(t_split[1]), int(t_split[2]))
             )

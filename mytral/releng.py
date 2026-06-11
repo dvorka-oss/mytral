@@ -20,12 +20,12 @@ from mytral import utils
 class FeatureFlags:
     """Control which features are enabled in the application."""
 
-    # particular features
-    GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"
-    STRAVA_API_IMPORT = "STRAVA_API_IMPORT"
+    # features to enable / disable
+    GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"  # Dvorka's own GSheets import
+    STRAVA_API_IMPORT = "STRAVA_API_IMPORT"  # Strava API import
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
-    ACOACHES = "ACOACHES"
-    IRM3D = "IRM3D"
+    ACOACHES = "ACOACHES"  # AI coaches
+    IRM3D = "IRM3D"  # 3D inpulse response model
 
     # env variables
     ENV_FF_PREFIX = "MYTRAL_FF"
@@ -50,9 +50,7 @@ class FeatureFlags:
             ),
             FeatureFlags.TASKS_DEV: utils.getenv_bool(FeatureFlags.ENV_TASKS_DEV),
             FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),
-            FeatureFlags.IRM3D: utils.getenv_bool(
-                name=FeatureFlags.ENV_IRM3D, default=True
-            ),
+            FeatureFlags.IRM3D: utils.getenv_bool(name=FeatureFlags.ENV_IRM3D),
         }
         self._mode = FeatureFlags.MODE_GA  # MyTraL is in GA mode by default
 

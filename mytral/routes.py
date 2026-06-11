@@ -565,6 +565,20 @@ def home():
         else None
     )
 
+    # warnings: gear
+    gear_requires_attention = None
+    gear = ds.list_gear(
+        user_id=user_id,
+        dataset_name=ds.profile(user_id).dataset_name,
+    )
+    if gear:
+        for g in gear.gear.values():
+            if g.requires_attention():
+                if not gear_requires_attention:
+                    gear_requires_attention = 1
+                else:
+                    gear_requires_attention += 1
+
     # onboarding
     onboarding_active = onboarding.is_onboarding_active(user_profile)
     onboarding_state = None
@@ -594,6 +608,8 @@ def home():
         radar_script=radar_script,
         is_mobile=is_mobile,
         activity_types=activity_types,
+        # warnings
+        gear_requires_attention=gear_requires_attention,
         # dashboard statistics
         dashboard_fastest_activity=dashboard_fastest_activity,
         dashboard_longest_activity=dashboard_longest_activity,
@@ -3584,13 +3600,14 @@ def list_activities_year(year):
             return flask.redirect(flask.url_for("home"))
 
     # load only activities for given year
-    activities = ds.list_activities(
+    all_activities = ds.list_activities(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
         filter_year=year_int,
         skip_future=True,
         sort_by_when=True,
     )
+    activities = all_activities.copy()
 
     # get filter parameters from query string
     filter_activity_type = flask.request.args.get("activity_type", "")
@@ -3691,13 +3708,6 @@ def list_activities_year(year):
         else 0
     )
 
-    # get unique values for filter dropdowns
-    all_activities = ds.list_activities(
-        user_id=user_id,
-        dataset_name=user_profile.dataset_name,
-        filter_year=int(year),
-        skip_future=True,
-    )
     unique_activity_types = sorted(
         set(a.activity_type_key for a in all_activities if a.activity_type_key)
     )

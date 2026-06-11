@@ -21,7 +21,7 @@
 # | |_| |\ V /
 #  \__,_| \_/
 #
-# This Makefile is a Makefile for uv-centric/pyproject.toml development of the MyTral app.
+# This is a Makefile for uv/pyproject.toml centric development of the MyTral app.
 
 ###########################
 # Project DEVELOPMENT setup
@@ -286,6 +286,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 else
 run-dev: .venv ## run MyTraL server on Linux w/ DEV data
@@ -297,6 +298,7 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 endif
 
@@ -309,6 +311,7 @@ run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-production
@@ -324,9 +327,6 @@ run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
 	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	MYTRAL_ENABLE_CACHE=true \
-	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
-	MYTRAL_FF_STRAVA_API_IMPORT=true \
-	MYTRAL_FF_TASKS_DEV=true \
 	uv run python -m mytral.run
 
 .PHONY: run-digi
@@ -362,8 +362,8 @@ vibe-copilot:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
 # - kimi-k2.5:cloud / kimi-k2.6:cloud
 # - qwen3.5:cloud
-.PHONY: vibe-ollama-deepseek-copilot
-vibe-ollama-deepseek-copilot:
+.PHONY: vibe-copilot-ollama-deepseek
+vibe-copilot-ollama-deepseek:
 	@mkdir -pv ./.github
 	@cp -vf ./vibe/GH-COPILOT-INSTRUCTIONS.md ./.github/copilot-instructions.md
 	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
@@ -372,8 +372,8 @@ vibe-ollama-deepseek-copilot:
 
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/copilot_cli
-.PHONY: vibe-deepseek-copilot
-vibe-deepseek-copilot:
+.PHONY: vibe-copilot-deepseek
+vibe-copilot-deepseek:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./DEEPSEEK.md
 	COPILOT_PROVIDER_TYPE=anthropic \
  	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
@@ -386,7 +386,7 @@ vibe-deepseek-copilot:
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 .PHONY: vibe-deepseek-cc
-vibe-deepseek-cc:
+vibe-cc-deepseek:
 	ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic \
 	ANTHROPIC_AUTH_TOKEN=$(DEEPSEEK_API_KEY) \
 	ANTHROPIC_MODEL=deepseek-v4-pro[1m] \
@@ -432,7 +432,7 @@ vibe-agy:
 
 # Vibe coding - run a DEFAULT vibe coding CLI
 .PHONY: vibe
-vibe: vibe-ollama-deepseek-copilot
+vibe: vibe-copilot-ollama-deepseek
 	@echo "DONE"
 
 #
