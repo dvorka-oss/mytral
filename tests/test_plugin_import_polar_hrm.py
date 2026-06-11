@@ -339,3 +339,191 @@ def test_plugin_import_activities_2003(tmp_path: pathlib.Path):
         f"DONE: plugin imported {len(activities)} activities from 2003, "
         f"first={activities[0].src_key}"
     )
+
+
+#
+# compute_max_speed_kmh / compute_elevation_gain — pure-function helpers
+#
+
+
+@pytest.mark.mytral
+def test_compute_max_speed_kmh_from_rows():
+    """compute_max_speed_kmh should return the max row speed divided by 10."""
+    #
+    # GIVEN
+    #
+    rows: list[dict] = [
+        {"hr": 120, "speed_01kmh": 0, "altitude_m": 100},
+        {"hr": 130, "speed_01kmh": 200, "altitude_m": 105},
+        {"hr": 140, "speed_01kmh": 350, "altitude_m": 110},
+        {"hr": 135, "speed_01kmh": 280, "altitude_m": 108},
+        {"hr": 125, "speed_01kmh": 100, "altitude_m": 112},
+    ]
+
+    #
+    # WHEN
+    #
+    max_speed_with_flag = polar_hrm.compute_max_speed_kmh(rows, True)
+    max_speed_without_flag = polar_hrm.compute_max_speed_kmh(rows, False)
+    max_speed_empty = polar_hrm.compute_max_speed_kmh([], True)
+
+    #
+    # THEN
+    #
+    assert max_speed_with_flag == 35.0, f"Expected 35.0 km/h, got {max_speed_with_flag}"
+    assert max_speed_without_flag == 0.0, (
+        f"Expected 0.0 when has_speed=False, got {max_speed_without_flag}"
+    )
+    assert max_speed_empty == 0.0, f"Expected 0.0 for empty rows, got {max_speed_empty}"
+    print("DONE: compute_max_speed_kmh returns row max / 10")
+
+
+@pytest.mark.mytral
+def test_compute_elevation_gain_from_rows():
+    """compute_elevation_gain should sum positive altitude deltas only."""
+    #
+    # GIVEN
+    #
+    rows: list[dict] = [
+        {"hr": 120, "speed_01kmh": 0, "altitude_m": 100},
+        {"hr": 130, "speed_01kmh": 200, "altitude_m": 105},
+        {"hr": 140, "speed_01kmh": 350, "altitude_m": 110},
+        {"hr": 135, "speed_01kmh": 280, "altitude_m": 108},  # down-step ignored
+        {"hr": 125, "speed_01kmh": 100, "altitude_m": 112},
+    ]
+
+    #
+    # WHEN
+    #
+    gain_with_flag = polar_hrm.compute_elevation_gain(rows, True)
+    gain_without_flag = polar_hrm.compute_elevation_gain(rows, False)
+    gain_empty = polar_hrm.compute_elevation_gain([], True)
+
+    #
+    # THEN
+    #
+    # +5 (100→105) +5 (105→110) +0 (110→108 down) +4 (108→112) = 14
+    assert gain_with_flag == 14, f"Expected 14 m, got {gain_with_flag}"
+    assert gain_without_flag == 0, (
+        f"Expected 0 when has_altitude=False, got {gain_without_flag}"
+    )
+    assert gain_empty == 0, f"Expected 0 for empty rows, got {gain_empty}"
+    print("DONE: compute_elevation_gain sums positive altitude deltas only")
+
+
+#
+# _build_activity — uses HRData, not the broken [Trip] section
+#
+
+# Roman's Polar dataset — only present on the local development machine,
+# used to validate the fix for the validation-page regressions.
+_ROMAN_DATA_DIR = (
+    pathlib.Path("/home/dvorka/p/mytral/datasets-COMPLETE/roman-vetesnik")
+    / "Polar 20.1.18"
+    / "Polar Precision Performance"
+    / "Roman"
+)
+_ROMAN_HAS_DATA = _ROMAN_DATA_DIR.is_dir()
+# A known-bad file from Roman's 2003-11-08 run where the GPS was just
+# acquiring a fix; the [Trip] section reports elevation_gain=3280m and
+# max_speed=9.0 km/h but the HRData has the correct values.
+_ROMAN_2003_11_08_HRM = _ROMAN_DATA_DIR / "2003" / "03110803.hrm"
+_ROMAN_2003_11_08_PDD = _ROMAN_DATA_DIR / "2003" / "20031108.pdd"
+
+
+@pytest.mark.mytral
+@pytest.mark.skipif(
+    not _ROMAN_2003_11_08_HRM.exists() or not _ROMAN_2003_11_08_PDD.exists(),
+    reason="Roman Polar dataset not available",
+)
+def test_build_activity_uses_hrdata_not_trip_for_speed_elevation():
+    """_build_activity must take max_speed/elevation_gain from HRData, not Trip.
+
+    The Polar S720i ``[Trip]`` section is unreliable: for Roman's
+    2003-11-08 08:50:18 run it reports ``max_speed_kmh=9.0`` and
+    ``elevation_gain=3280`` while the HRData time series has the
+    correct values. The activity produced for the validation page must
+    use the HRData-derived values, and must not set ``min_hr`` (a
+    day-level metric, not a per-activity one).
+    """
+    #
+    # GIVEN
+    #
+    hrm_data = polar_hrm.parse_hrm(_ROMAN_2003_11_08_HRM)
+    pdd_exercises = polar_hrm.parse_pdd(_ROMAN_2003_11_08_PDD)
+    # Find the exercise that points at 03110803.hrm
+    ex = next(
+        (e for e in pdd_exercises if e.get("hrm_filename") == "03110803.hrm"),
+        None,
+    )
+    assert ex is not None, "Expected PDD exercise for 03110803.hrm"
+
+    plugin: PolarPlugin = PolarPlugin()
+    plugin._hrm_data_cache["03110803.hrm"] = hrm_data
+
+    # Synthetic user profile with the minimum surface the plugin reads.
+    profile = _make_minimal_user_profile()
+
+    #
+    # WHEN
+    #
+    activity = plugin._build_activity(
+        ex=ex,
+        year_dir=_ROMAN_2003_11_08_HRM.parent,
+        user_profile=profile,
+        correlation_id="test-correlation",
+    )
+
+    #
+    # THEN
+    #
+    assert activity is not None
+    # max_speed comes from HRData, NOT the broken [Trip] section
+    assert activity.max_speed > 30.0, (
+        f"max_speed should be HRData-derived (>30 km/h), got {activity.max_speed}"
+    )
+    # elevation_gain comes from HRData, NOT the broken [Trip] section
+    assert activity.elevation_gain < 200, (
+        f"elevation_gain should be HRData-derived (small), "
+        f"got {activity.elevation_gain}"
+    )
+    # min_hr is a day-level metric — must not be set from per-activity HR
+    assert activity.min_hr == 0.0, (
+        f"min_hr must be 0 (day-level metric), got {activity.min_hr}"
+    )
+    # avg_speed is still recomputed from distance / duration (PDD-based)
+    assert activity.avg_speed > 20.0, (
+        f"avg_speed should be ~26 km/h (distance/duration), got {activity.avg_speed}"
+    )
+    # and the validation-page invariant avg_speed <= max_speed now holds
+    assert activity.avg_speed <= activity.max_speed, (
+        f"avg_speed ({activity.avg_speed}) should not exceed max_speed "
+        f"({activity.max_speed})"
+    )
+    print(
+        "DONE: _build_activity uses HRData for max_speed/elevation_gain "
+        f"and leaves min_hr at 0 (max_speed={activity.max_speed}, "
+        f"elevation_gain={activity.elevation_gain})"
+    )
+
+
+def _make_minimal_user_profile() -> object:
+    """Build a stand-in UserProfile that exposes the attributes the plugin reads.
+
+    The real ``UserProfile.__init__`` has many required fields and pulls in
+    several heavyweight subsystems; tests only need ``height`` to be set
+    so :func:`evaluate_activity` does not crash.
+    """
+    return type(
+        "_MinimalUserProfile",
+        (),
+        {
+            "height": 180,
+            "weight": 80,
+            "rest_hr": 60,
+            "max_hr": 190,
+            "ftp_watts": 250,
+            "refresh": lambda self: None,
+            "refresh_age": lambda self: 30,
+        },
+    )()
