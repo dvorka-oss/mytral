@@ -327,6 +327,7 @@ run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
 	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-digi

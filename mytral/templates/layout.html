@@ -579,7 +579,7 @@
 
                           {% if ff.can("IRM3D") %}
                           <a class="dropdown-item"
-                            title="Three-dimensional impulse-response chart driven by strain score"
+                            title="Three-dimensional impulse-response model driven by strain score"
                             href="{{ url_for('insight_irm3d') }}"
                           >
                             Power-based
@@ -587,7 +587,7 @@
                           </a>
                           {% endif %}
                           <a class="dropdown-item"
-                            title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
+                            title="TRaining IMPulse model"
                             href="{{ url_for('insight_trimp') }}"
                           >
                             HR-based

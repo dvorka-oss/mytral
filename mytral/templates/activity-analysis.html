@@ -7,34 +7,24 @@
                 <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="page-pretitle">
                     Activity
                 </a>
-                <h2 class="page-title">Activity Analysis</h2>
+                <h2 class="page-title">Classic Activity Analysis</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list flex-wrap">
-                    {% if fit_chart_div or fit_ridge_div %}
-                    <div class="btn-group">
-                        <a href="#section-fit" class="btn btn-outline-primary" title="Recording Charts">Recording Charts</a>
-                    </div>
+                    {% if ff.can("IRM3D") %}
+                    <a href="{{ url_for('get_activity_irm3d_analysis', key=activity_entity.key, blob_uuid=selected_blob_uuid) if selected_blob_uuid else url_for('get_activity_irm3d_analysis', key=activity_entity.key) }}"
+                        class="btn btn-primary"
+                        title="3D impulse-response model for this activity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-battery-charging">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M16 7h1a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-2" />
+                            <path d="M8 7h-2a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h1" />
+                            <path d="M12 8l-2 4h3l-2 4" />
+                        </svg>
+                        Power-based Analysis
+                    </a>
                     {% endif %}
-                    {% if hr_ts_div or hr_zones_div %}
-                    <div class="btn-group">
-                        <a href="#section-hr" class="btn btn-outline-primary" title="Heart Rate">HR</a>
-                        <a href="#section-hr-zones" class="btn btn-outline-primary" title="Heart Rate Zones">HR Zones</a>
-                    </div>
-                    {% endif %}
-                    {% if speed_cadence_ts_div or cadence_hist_div %}
-                    <div class="btn-group">
-                        <a href="#section-speed-cadence" class="btn btn-outline-primary" title="Speed and Cadence">Speed</a>
-                        <a href="#section-cadence" class="btn btn-outline-primary" title="Cadence">Cadence</a>
-                    </div>
-                    {% endif %}
-                    {% if power_ts_div or power_curve_div or power_zones_div %}
-                    <div class="btn-group">
-                        <a href="#section-power" class="btn btn-outline-primary" title="Power">Power</a>
-                        <a href="#section-power-curve" class="btn btn-outline-primary" title="Power Curve">Power Curve</a>
-                        <a href="#section-power-zones" class="btn btn-outline-primary" title="Power Zones">Power Zones</a>
-                    </div>
-                    {% endif %}
+
                     <a href="{{ url_for('get_activity', key=activity_entity.key) }}"
                         title="Back to Activity Details"
                         class="btn btn-primary">
@@ -57,16 +47,24 @@
         <div class="card">
             <div class="card-body">
                 <p>
-                    <strong>Classic analysis</strong> provides the standard set of
-                    performance charts for a single activity recording. All metrics
-                    are derived from the recording&rsquo;s second-by-second data (heart
-                    rate, power, speed, cadence, altitude).
+                    <strong>Classic</strong> activity analysis provides the standard set of
+                    performance charts for a single activity recording. All metrics are
+                    derived from the recording&rsquo;s data - heart rate, power, speed,
+                    cadence, and altitude.
                 </p>
                 <ul class="mb-0">
-                    <li><strong>Recording Charts</strong> — heart rate &amp; performance overlay and swimlane view</li>
-                    <li><strong>Heart Rate</strong> — time series and zone distribution histogram</li>
-                    <li><strong>Speed &amp; Cadence</strong> — time series and cadence distribution</li>
-                    <li><strong>Power</strong> — time series, power-duration curve, and zone histogram</li>
+                    {% if fit_chart_div or fit_ridge_div %}
+                    <li><a href="#section-fit" class="link-primary">Recording Charts</a> — heart rate &amp; performance overlay and swimlane view.</li>
+                    {% endif %}
+                    {% if hr_ts_div or hr_zones_div %}
+                    <li><a href="#section-hr" class="link-primary">Heart Rate</a> — time series and zone distribution histogram.</li>
+                    {% endif %}
+                    {% if speed_cadence_ts_div or cadence_hist_div %}
+                    <li><a href="#section-speed-cadence" class="link-primary">Speed &amp; Cadence</a> — time series and cadence distribution.</li>
+                    {% endif %}
+                    {% if power_ts_div or power_curve_div or power_zones_div %}
+                    <li><a href="#section-power" class="link-primary">Power</a> — time series, power-duration curve, and zone histogram.</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

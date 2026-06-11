@@ -21,6 +21,7 @@ from types import SimpleNamespace
 import flask
 import pytest
 
+import mytral
 from mytral.blueprints import irm3d_uri_space
 from mytral.metrics import irm3d
 
@@ -29,6 +30,7 @@ from mytral.metrics import irm3d
 def test_insight_irm3d_redirects_without_user(monkeypatch):
     # GIVEN
     monkeypatch.setattr(flask, "url_for", lambda endpoint: "/login")
+    monkeypatch.setattr(mytral.ff, "can", lambda flag: True)
     with irm3d_uri_space.flask_app.test_request_context("/insight/irm3d", method="GET"):
         # WHEN
         response = irm3d_uri_space.insight_irm3d()
@@ -42,6 +44,7 @@ def test_insight_irm3d_redirects_without_user(monkeypatch):
 @pytest.mark.mytral
 def test_insight_irm3d_route_renders_with_data(monkeypatch, tmp_path):
     # GIVEN
+    monkeypatch.setattr(mytral.ff, "can", lambda flag: True)
     captured = {}
     profile = SimpleNamespace(
         dataset_name="main",

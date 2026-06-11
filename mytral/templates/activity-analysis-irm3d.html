@@ -9,10 +9,20 @@
                     <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="page-pretitle">
                         Activity
                     </a>
-                    <h2 class="page-title">3D Impuls-Response Model Activity Analysis</h2>
+                    <h2 class="page-title">Power-based Activity Analysis</h2>
                 </div>
                 <div class="col-auto ms-auto d-print-none">
                     <div class="btn-list">
+                        <a href="{{ url_for('get_activity_analysis', key=activity_entity.key) }}"
+                            title="Activity Analysis"
+                            class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M4 19l4 -6l4 3l4 -6l4 4"></path>
+                                <path d="M3 19h18"></path>
+                            </svg>
+                            Classic Activity Analysis
+                        </a>
                         <a href="{{ url_for('get_activity', key=activity_entity.key) }}" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-left" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -34,18 +44,13 @@
         <div class="card">
             <div class="card-body">
                 <p>
-                    <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D Impulse-Response Model</a> is a novel
-                    approach to modeling training load and performance in endurance sports.
-                    It models training load in 3 independent dimensions using the <b>Strain Score (SS)</b>:
-                    <ul>
-                        <li><strong>Explosive Power</strong> (Pmax) — strain on the phosphocreatine system</li>
-                        <li><strong>Aero Generator</strong> (CP) — strain on the oxidative system</li>
-                        <li><strong>Prime Battery</strong> (W′) — strain on the glycolytic system</li>
-                    </ul>
-                </p>
-                <p class="mb-0">
-                    Workouts with power recordings are converted second-by-second into <b>SS CP</b> / <b>SS W′</b> / <b>SS Pmax</b>,
-                    then aggregated daily and fed into parallel impulse-response models.
+                    <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D impulse-response model</a>
+                    is a novel power-based approach to modeling training load and performance in endurance sports.
+                    In contrast to traditional models that rely on a single metric,
+                    it models training load in <strong>3</strong> independent dimensions:
+                    Explosive Power, Aero Generator, and Prime Battery.
+                    This allows for a more nuanced understanding of how different types of training stress
+                    impact sprint, interval, and endurance performance, as well as recovery.
                 </p>
             </div>
         </div>
@@ -90,9 +95,6 @@
                         Activity: {{ activity_types.name(activity_entity.activity_type_key) }}
                     {% endif %}
                 </h2>
-                <div class="text-muted mb-4">
-                    {{ activity_entity.description|markdown }}
-                </div>
             </div>
         </div>
 
@@ -193,7 +195,7 @@
         <div class="card mb-3">
             <div class="card-header">
                 <h3 class="card-title">
-                    3D Impulse-Response Model — per-second breakdown
+                    3D impulse-response model activity breakdown
                 </h3>
                 <div class="card-actions">
                     <span class="badge bg-azure text-azure-fg">Power &amp; MPA &amp; W′ &amp; kstrain &amp; SS</span>
@@ -239,6 +241,62 @@
             </div>
         </div>
         {% endif %}
+
+        <div class="card mt-3 mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    About 3D impulse-response model
+                </h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D Impulse-Response Model</a>
+                    is a novel power-based approach to modeling training load and performance in endurance sports.
+                    In contrast to traditional models that rely on a single metric,
+                    it models training load in <strong>3 independent dimensions</strong>:
+
+                    <ul>
+                        <li><strong>Explosive Power</strong> (Pmax)
+                            <ul>
+                                <li>Maximal instantaneous power capability (PCr dimension).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Aero Generator</strong> (CP)
+                            <ul>
+                                <li>Highest sustainable oxidative power (aerobic dimension).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Prime Battery</strong> (W′)
+                            <ul>
+                                <li>Finite work capacity above CP (glycolytic dimension).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </p>
+                <p>
+                    <strong>Strain score</strong> (SS) is computed from second-by-second power and current
+                    <strong>Maximum Power Available</strong> (MPA), then split into:
+                    <ul>
+                    <li><strong>SS CP</strong>
+                        <ul><li>Strain from time spent above CP, i.e. the aerobic generator dimension.</li></ul>
+                    </li>
+                    <li><strong>SS W′</strong>
+                        <ul><li>Strain from work done above CP, i.e. the prime battery dimension.</li></ul>
+                    </li>
+                    <li><strong>SS Pmax</strong>
+                        <ul><li>Strain from time spent above Pmax, i.e. the explosive power dimension.</li></ul>
+                    </li>
+                    </ul>
+                </p>
+                <p>
+                    Resources:
+                    <ul>
+                    <li>Kontro, H., Mastracci, A., Cheung, S. S., & MacInnis, M. J. (2025). <i>The three-dimensional impulse-response model: Modeling the training process in accordance with energy system-specific adaptation.</i> arXiv preprint arXiv:2503.14841. <a href="https://arxiv.org/abs/2503.14841" class="link-primary" target="_blank">https://doi.org/10.48550/arXiv.2503.14841</a></li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

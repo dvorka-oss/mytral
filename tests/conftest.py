@@ -20,9 +20,6 @@ import pytest
 
 from tests import _given
 
-# set environment variables
-os.environ["MYTRAL_DEBUG"] = "true"
-
 
 @pytest.fixture(scope="session")
 def mytral_user() -> str:
