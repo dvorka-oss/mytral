@@ -3507,6 +3507,15 @@ def irm3d_composite(
         min_mpa_values.append(float(daily_row.get("min_mpa_watts", 0.0)))
         near_limit_values.append(float(daily_row.get("near_limit_seconds", 0.0)))
 
+    ss_total_colors = []
+    for ss_value in ss_total_values:
+        if ss_value < 50:
+            ss_total_colors.append("#2fb344")
+        elif ss_value <= 150:
+            ss_total_colors.append("#f59f00")
+        else:
+            ss_total_colors.append("#d63939")
+
     source = ColumnDataSource(
         data={
             "date": date_values,
@@ -3528,6 +3537,7 @@ def irm3d_composite(
             "ss_total": ss_total_values,
             "min_mpa_watts": min_mpa_values,
             "near_limit_seconds": near_limit_values,
+            "dot_color": ss_total_colors,
         }
     )
 
@@ -3567,14 +3577,13 @@ def irm3d_composite(
         if not show_xaxis:
             panel.xaxis.visible = False
 
-        panel.vbar(
+        panel.scatter(
             x="date",
-            top=load_key,
+            y=load_key,
             source=source,
-            width=12 * 60 * 60 * 1000,
-            fill_alpha=0.16,
-            line_alpha=0.0,
-            color="#6c757d",
+            size=7,
+            color="dot_color",
+            alpha=0.9,
             legend_label=load_label,
         )
         panel.line(

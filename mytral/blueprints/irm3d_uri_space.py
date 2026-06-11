@@ -17,6 +17,7 @@
 import dataclasses
 import datetime
 import hashlib
+import json
 import uuid
 
 import flask
@@ -445,4 +446,80 @@ def insight_irm3d():
         analyzed_workouts=len(workout_rows),
         cache_warming=cache_warming,
         warmup_task_id=warmup_task_id,
+    )
+
+
+@flask_app.route("/insight/irm3d/activities-3d-chart")
+def insight_irm3d_activities_3d_chart():
+    """Render 3D scatter plot of all activities in SS CP/W′/Pmax space."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    if not mytral.ff.can(mytral.releng.FeatureFlags.IRM3D):
+        flask.abort(404)
+
+    user_profile = ds.profile(user_id)
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        sort_by_when=True,
+        skip_future=True,
+    )
+
+    athlete_metrics_mod.resolve(
+        athlete_metrics=user_profile.athlete_metrics,
+        user_profile=user_profile,
+        activities=activities,
+        weight_kg=_latest_weight_kg(activities=activities),
+    )
+
+    model_params = _resolve_power_model_params(
+        activities=activities,
+        athlete_metrics=user_profile.athlete_metrics,
+    )
+    if model_params is None:
+        workout_rows = []
+    else:
+        user_data_dir = str(ds.user_dir(user_id))
+        workout_rows = _compute_workout_rows_with_cache(
+            activities=activities,
+            user_id=user_id,
+            model_params=model_params,
+            user_data_dir=user_data_dir,
+        )
+
+    # build activity type lookup for display names
+    activity_types = ds.list_activity_types(user_id=user_id)
+    activity_lookup = {a.key: a for a in activities if hasattr(a, "activity_type_key")}
+
+    # build chart data as plain dicts for JSON serialization
+    chart_data = []
+    for row in workout_rows:
+        if row.ss_total <= 0:
+            continue
+        activity = activity_lookup.get(row.activity_key)
+        activity_type_key = activity.activity_type_key if activity else ""
+        activity_name = activity.name if activity else ""
+        chart_data.append(
+            {
+                "activity_key": row.activity_key,
+                "date": str(row.date) if row.date else "",
+                "activity_type": activity_type_key,
+                "activity_name": activity_name,
+                "ss_cp": round(float(row.ss_cp), 2),
+                "ss_w_prime": round(float(row.ss_w_prime), 2),
+                "ss_pmax": round(float(row.ss_pmax), 2),
+                "ss_total": round(float(row.ss_total), 2),
+            }
+        )
+
+    return flask.render_template(
+        "insight-irm3d-activities-3d-chart.html",
+        user_profile=user_profile,
+        chart_data=chart_data,
+        chart_data_json=json.dumps(chart_data),
+        total_activities=len(activities),
+        analyzed_workouts=len(workout_rows),
+        chart_points=len(chart_data),
+        activity_types=activity_types,
     )

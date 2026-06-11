@@ -1,0 +1,305 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Progress</span>
+                <h2 class="page-title">
+                    Activities Classification Chart
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    <a href="{{ url_for('insight_irm3d') }}"
+                        title="Power-based Progress Analysis"
+                        class="btn btn-primary d-none d-sm-inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M5 12l14 0"></path>
+                            <path d="M5 12l6 6"></path>
+                            <path d="M5 12l6 -6"></path>
+                        </svg>
+                        Power-based Progress Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p>
+                This chart classifies every activity in the <strong>3D strain space</strong>
+                defined by
+                <a href="https://arxiv.org/abs/2503.14841" class="link-primary">3D impulse-response model</a>
+                strain scores:
+                <strong>SS CP</strong> (oxidative strain),
+                <strong>SS W′</strong> (glycolytic strain), and
+                <strong>SS Pmax</strong> (PCr strain).
+                Each activity is a vector in this space, allowing natural clustering
+                by training type — endurance rides cluster near the CP axis,
+                interval workouts spread across CP and W′,
+                and sprints extend along the Pmax axis.
+                <strong>Dot color</strong> indicates overall training load:
+                <span class="badge bg-green text-green-fg">easy</span>,
+                <span class="badge bg-yellow text-yellow-fg">moderate</span>, and
+                <span class="badge bg-red text-red-fg">hard</span>.
+            </p>
+        </div>
+    </div>
+
+    {% if analyzed_workouts > 0 %}
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Total Activities</div>
+                    <div class="h2 mb-0">{{ total_activities }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Activities with Power Data</div>
+                    <div class="h2 mb-0">{{ analyzed_workouts }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Points in 3D Chart</div>
+                    <div class="h2 mb-0">{{ chart_points }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Overlapping dots</div>
+                    <div class="h2 mb-0 text-secondary">expected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                3D Activity Strain Classification
+            </h3>
+            <div class="card-actions">
+                <span class="badge bg-azure text-azure-fg">SS CP × SS W′ × SS Pmax</span>
+            </div>
+        </div>
+        <div class="card-body" style="overflow: visible; padding-bottom: 0;">
+            <div id="irm3d-3d-chart" style="width: 100%; height: 680px; position: relative;"></div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-3">
+        <div class="card-status-top bg-yellow"></div>
+        <div class="card-header">
+            <h3 class="card-title">
+                3D Activity Strain Classification
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-scatter-3d" width="48" height="48" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 20l4 -2l1 2l3 -1l2 2l3 -1l2 2l4 -2"/>
+                        <path d="M12 6l1 -2l-1 -2l-1 2l1 2z"/>
+                        <path d="M16 9l2 -1l-1 -2l-2 1l1 2z"/>
+                        <path d="M8 9l-2 -1l1 -2l2 1l-1 2z"/>
+                    </svg>
+                </div>
+                <p class="empty-title">No 3D IRM data available</p>
+                <p class="empty-subtitle text-secondary">
+                    Activities need power data and configured
+                    power-model parameters (CP / W′ / Pmax) to appear in this chart.
+                    Set your CP in athlete metrics and record activities with a power meter.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card mt-3 mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                How to Read This Chart
+            </h3>
+        </div>
+        <div class="card-body">
+            <p>
+                Each <strong>dot</strong> represents one activity positioned by its strain
+                scores in three independent energy-system dimensions:
+            </p>
+            <ul>
+                <li><strong>SS CP (X axis)</strong> — oxidative / aerobic strain.
+                    Endurance and tempo workouts score high here.</li>
+                <li><strong>SS W′ (Y axis)</strong> — glycolytic strain.
+                    Interval and threshold workouts score high here.</li>
+                <li><strong>SS Pmax (Z axis)</strong> — PCr / explosive strain.
+                    Sprint and neuromuscular workouts score high here.</li>
+            </ul>
+            <p>
+                <strong>Natural clusters</strong> emerge:
+                endurance rides group near the CP axis,
+                intervals spread across CP + W′,
+                and sprint-heavy sessions extend along the Pmax axis.
+                Activities of similar type tend to cluster together,
+                making it easy to spot outliers or shifts in training composition.
+            </p>
+            <p>
+                <strong>Dot color</strong> reflects total strain score (SS total):
+                <span class="badge bg-green text-green-fg">easy (SS &#60; 50)</span>,
+                <span class="badge bg-yellow text-yellow-fg">moderate (SS 50–150)</span>,
+                <span class="badge bg-red text-red-fg">hard (SS > 150)</span>.
+            </p>
+            <p>
+                <strong>Interact</strong> — drag to rotate, scroll to zoom,
+                and hover over any dot to see activity details.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% if analyzed_workouts > 0 %}
+<style>
+    /* light modebar to match Tabler UI */
+    .js-plotly-plot .plotly .modebar {
+        background: rgba(255,255,255,0.92) !important;
+    }
+    .js-plotly-plot .plotly .modebar-btn path {
+        fill: rgba(0,0,0,0.45) !important;
+    }
+    .js-plotly-plot .plotly .modebar-btn.active path,
+    .js-plotly-plot .plotly .modebar-btn:hover path {
+        fill: rgba(0,0,0,0.75) !important;
+    }
+    .js-plotly-plot .plotly .modebar-group {
+        background: rgba(255,255,255,0.92) !important;
+    }
+    /* prevent modebar clipping */
+    #irm3d-3d-chart {
+        overflow: visible !important;
+    }
+    #irm3d-3d-chart .plot-container {
+        overflow: visible !important;
+    }
+    #irm3d-3d-chart .svg-container {
+        overflow: visible !important;
+    }
+</style>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+(function() {
+    var chartData = {{ chart_data_json|safe }};
+
+    // extract coordinates and metadata
+    var xs = chartData.map(function(d) { return d.ss_cp; });
+    var ys = chartData.map(function(d) { return d.ss_w_prime; });
+    var zs = chartData.map(function(d) { return d.ss_pmax; });
+
+    // color by SS total intensity
+    var colors = chartData.map(function(d) {
+        if (d.ss_total < 50) return "#2fb344";
+        if (d.ss_total <= 150) return "#f59f00";
+        return "#d63939";
+    });
+
+    // hover tooltip text
+    var hoverTexts = chartData.map(function(d) {
+        var label = d.activity_name || d.activity_type || d.activity_key;
+        return (
+            "<b>" + label + "</b><br>" +
+            "Date: " + d.date + "<br>" +
+            "SS CP: " + d.ss_cp.toFixed(1) + "<br>" +
+            "SS W\u2032: " + d.ss_w_prime.toFixed(1) + "<br>" +
+            "SS Pmax: " + d.ss_pmax.toFixed(1) + "<br>" +
+            "SS Total: " + d.ss_total.toFixed(1)
+        );
+    });
+
+    // activity detail URL: click to navigate
+    var urls = chartData.map(function(d) {
+        return "/app/activities/" + d.activity_key + "/analysis-irm3d";
+    });
+
+    var trace = {
+        type: "scatter3d",
+        mode: "markers",
+        x: xs,
+        y: ys,
+        z: zs,
+        text: hoverTexts,
+        hoverinfo: "text",
+        hoverlabel: { namelength: -1 },
+        customdata: urls,
+        marker: {
+            size: 10,
+            sizemode: "diameter",
+            color: colors,
+            opacity: 0.45,
+            line: {
+                color: "rgba(255,255,255,0.7)",
+                width: 0.8
+            }
+        }
+    };
+
+    var layout = {
+        title: {
+            text: "Activities in 3D Strain Space (SS CP × SS W\u2032 × SS Pmax)",
+            font: { size: 16 }
+        },
+        scene: {
+            xaxis: {
+                title: { text: "SS CP (oxidative)", font: { size: 13 } },
+                zerolinecolor: "rgba(128,128,128,0.4)"
+            },
+            yaxis: {
+                title: { text: "SS W\u2032 (glycolytic)", font: { size: 13 } },
+                zerolinecolor: "rgba(128,128,128,0.4)"
+            },
+            zaxis: {
+                title: { text: "SS Pmax (explosive)", font: { size: 13 } },
+                zerolinecolor: "rgba(128,128,128,0.4)"
+            },
+            camera: {
+                eye: { x: 1.6, y: 1.3, z: 1.2 }
+            },
+            bgcolor: "rgba(0,0,0,0)"
+        },
+        showlegend: false,
+        margin: { l: 40, r: 40, b: 50, t: 50 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        autosize: true
+    };
+
+    var config = {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ["sendDataToCloud", "lasso2d", "select2d"],
+        displaylogo: false
+    };
+
+    Plotly.newPlot("irm3d-3d-chart", [trace], layout, config);
+
+    // click to navigate to activity analysis page
+    document.getElementById("irm3d-3d-chart").on("plotly_click", function(data) {
+        var pt = data.points[0];
+        if (pt && pt.customdata) {
+            window.location.href = pt.customdata;
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

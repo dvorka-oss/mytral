@@ -18,6 +18,9 @@ import pathlib
 
 import pytest
 
+# set environment variables BEFORE importing anything from mytral
+os.environ["MYTRAL_DEBUG"] = "true"
+
 from tests import _given
 
 

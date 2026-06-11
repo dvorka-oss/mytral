@@ -303,15 +303,10 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 endif
 
 run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data
-	MYTRAL_INCARNATION=DESKTOP \
 	MYTRAL_DEBUG=true \
+	MYTRAL_INCARNATION=DESKTOP \
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/pre-production \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
-	MYTRAL_ENABLE_CACHE=true \
-	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
-	MYTRAL_FF_STRAVA_API_IMPORT=true \
-	MYTRAL_FF_TASKS_DEV=true \
-	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-production
