@@ -659,6 +659,11 @@ tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 #
 
 # pull production data from Git repository & sync blobs from shared drive
-.PHONY: d-data-pull
-d-data-pull:
+.PHONY: __data-pull
+__data-pull:
 	cd make && ./d_production_data_pull.sh
+
+.PHONY: __production-data-push
+__production-data-push:
+	cd make && ./d_production_data_push.sh
+
