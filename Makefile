@@ -410,10 +410,15 @@ vibe-cc-deepseek:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
 # - kimi-k2.5:cloud / kimi-k2.6:cloud
 # - qwen3.5:cloud
-.PHONY: vibe-cc
-vibe-cc:
+.PHONY: vibe-cc-ollama-deepseek
+vibe-cc-ollama-deepseek:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
 	ollama launch claude --model deepseek-v4-pro:cloud -- --dangerously-skip-permissions
+
+.PHONY: vibe-cc-ollama-minimax
+vibe-cc-ollama-minimax:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model minimax-m3:cloud -- --dangerously-skip-permissions
 
 # Pi CLI
 # - run vibe coding w/ Mario's Pi CLI
