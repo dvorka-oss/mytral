@@ -184,6 +184,12 @@ py-lint-mypy: .venv py-install-dev-deps ## mypy type checking
 	uv tool run mypy --install-types --non-interactive
 	uv tool run mypy mytral
 
+# TY static type checker:
+# - https://pydevtools.com/handbook/reference/ty/
+.PHONY: py-lint-ty
+py-lint-ty: .venv py-install-dev-deps ## ty type checking
+	uv run ty check --python-version 3.11 mytral
+
 # check Bokeh version: Python Bokeh package and JavaScript Bokeh versions MUST MATCH
 .PHONY: py-check-bokeh
 py-check-bokeh: .venv py-install-dev-deps
