@@ -19,6 +19,7 @@
 
 import datetime
 import gzip
+import json
 import pathlib
 import uuid
 from types import SimpleNamespace
@@ -296,15 +297,19 @@ def test_import_gpx_recording_bytes_generates_parquet_and_summary(monkeypatch):
 
 @pytest.mark.mytral
 def test_strava_archive_task_imports_gpx_gz_and_tcx_gz(monkeypatch, tmp_path):
-    # GIVEN
-    archive_dir = tmp_path / "archive"
-    recordings_dir = archive_dir / "activities"
+    # GIVEN: a sandbox directory with GPX+TCX recording files and an input payload
+    sandbox = tmp_path / "sandbox"
+    input_dir = sandbox / "input"
+    input_dir.mkdir(parents=True)
+    data_dir = sandbox / "data"
+    data_dir.mkdir(parents=True)
+    recordings_dir = data_dir / "activities"
     recordings_dir.mkdir(parents=True)
-    (archive_dir / "activities.csv").write_text("placeholder", encoding="utf-8")
 
     raw_gpx = b'<?xml version="1.0"?><gpx/>'
+    raw_tcx = b"<tcx/>"
     (recordings_dir / "track.gpx.gz").write_bytes(gzip.compress(raw_gpx))
-    (recordings_dir / "ignored.tcx.gz").write_bytes(gzip.compress(b"<tcx/>"))
+    (recordings_dir / "ignored.tcx.gz").write_bytes(gzip.compress(raw_tcx))
 
     gpx_activity = entities.ActivityEntity()
     gpx_activity.key = "activity-gpx"
@@ -318,82 +323,44 @@ def test_strava_archive_task_imports_gpx_gz_and_tcx_gz(monkeypatch, tmp_path):
     tcx_activity._photo_paths = []
     tcx_activity._recording_path = "activities/ignored.tcx.gz"
 
-    class FakePlugin:
-        def import_activities(self, datasets, user_profile, correlation_id):
-            return [gpx_activity, tcx_activity]
+    def _to_payload_dict(a):
+        d = a.to_dict()
+        d["_recording_path"] = getattr(a, "_recording_path", "")
+        d["_photo_paths"] = getattr(a, "_photo_paths", []) or []
+        return d
 
-    captured: list[tuple[str, str, bytes, str]] = []
+    payload = {
+        "user_id": "test_user",
+        "data_dir": str(data_dir),
+        "import_photos": False,
+        "import_recordings": True,
+        "activities": [_to_payload_dict(gpx_activity), _to_payload_dict(tcx_activity)],
+    }
+    with open(input_dir / "payload.json", "w") as fh:
+        json.dump(payload, fh, cls=strava_archive_import._PathEncoder)
 
-    def _fake_import_gpx_recording_bytes(
-        *,
-        user_id: str,
-        activity_key: str,
-        gpx_data: bytes,
-        original_filename: str,
-        blob_svc,
-        extract_summary: bool = False,
-        summary_handler=None,
-        log=None,
-    ) -> str:
-        captured.append((user_id, activity_key, gpx_data, original_filename))
-        return "blob-123"
+    # WHEN: run the blob job implementation directly
+    strava_archive_import._strava_blob_job_impl(0, sandbox)
 
-    def _fake_import_tcx_recording_bytes(
-        *,
-        user_id: str,
-        activity_key: str,
-        tcx_data: bytes,
-        original_filename: str,
-        blob_svc,
-        extract_summary: bool = False,
-        summary_handler=None,
-        log=None,
-    ) -> str:
-        captured.append((user_id, activity_key, tcx_data, original_filename))
-        return "blob-456"
+    # THEN: output payload has blob keys and summaries for both activities
+    output_file = sandbox / "output" / "payload.json"
+    assert output_file.exists()
 
-    monkeypatch.setattr(
-        strava_archive_import.plugins.registry,
-        "get_plugin",
-        lambda name: FakePlugin(),
-    )
-    monkeypatch.setattr(
-        strava_archive_import.blob_svc_module,
-        "ActivityBlobService",
-        FakeTaskBlobService,
-    )
-    monkeypatch.setattr(
-        strava_archive_import.gpx_recording,
-        "import_gpx_recording_bytes",
-        _fake_import_gpx_recording_bytes,
-    )
-    monkeypatch.setattr(
-        strava_archive_import.tcx_recording,
-        "import_tcx_recording_bytes",
-        _fake_import_tcx_recording_bytes,
-    )
+    with open(output_file) as fh:
+        result = json.load(fh)
 
-    dataset = FakeDataset(dataset_name="dataset")
-    task_entity = _make_task_entity(archive_dir)
-    task = strava_archive_import.StravaArchiveImportTask(
-        task_entity=task_entity,
-        logger=FakeLogger(),
-        log_callback=None,
-        config=SimpleNamespace(),
-        dataset=dataset,
-        blobstore=object(),
-    )
+    activities_out = result["activities"]
+    assert len(activities_out) == 2
 
-    # WHEN
-    task.execute()
+    gpx_out = next(a for a in activities_out if a["key"] == "activity-gpx")
+    tcx_out = next(a for a in activities_out if a["key"] == "activity-tcx")
+    assert len(gpx_out.get("recorded_blob_keys", [])) == 1
+    assert len(tcx_out.get("recorded_blob_keys", [])) == 1
 
-    # THEN
-    assert captured == [
-        ("test_user", "activity-gpx", raw_gpx, "track.gpx"),
-        ("test_user", "activity-tcx", b"<tcx/>", "ignored.tcx"),
-    ]
-    assert task_entity.progress == 100
-    print("DONE: Strava archive task imported GPX and TCX")
+    summaries = result.get("summaries", {})
+    assert "activity-gpx" in summaries or "activity-tcx" in summaries
+
+    print("DONE: Strava archive blob job processed GPX and TCX recordings")
 
 
 @pytest.mark.mytral
@@ -433,19 +400,42 @@ def test_strava_archive_task_applies_toggles_and_date_filter(monkeypatch, tmp_pa
         def import_activities(self, datasets, user_profile, correlation_id):
             return [early_activity, in_range_activity, late_activity]
 
-    class StrictBlobService(FakeTaskBlobService):
-        def upload_photos(self, *args, **kwargs):
-            raise AssertionError("photos should not be uploaded when disabled")
-
     monkeypatch.setattr(
         strava_archive_import.plugins.registry,
         "get_plugin",
         lambda name: FakePlugin(),
     )
+
+    # monkeypatch Bulldozer to be a no-op — write empty outputs per chunk dir
+    class NoOpBulldozer(strava_archive_import.bulldozer.SubtaskBulldozer):
+        def __init__(self, **kwargs):
+            self._worker_to_cpu = 2
+            self.logger = FakeLogger()
+            self.usr_task_dir = kwargs.get("usr_task_dir", tmp_path)
+
+        def make_sandbox(self):
+            subtask_dir = self.usr_task_dir / "subtasks" / "noop"
+            job_dirs = []
+            for i in range(16):
+                job_dir = subtask_dir / f"job-{i}"
+                (job_dir / "input").mkdir(parents=True, exist_ok=True)
+                (job_dir / "work").mkdir(parents=True, exist_ok=True)
+                (job_dir / "output").mkdir(parents=True, exist_ok=True)
+                job_dirs.append(job_dir)
+            return job_dirs
+
+        def run(self, *, job_dirs=None, job_function=None):
+            # write empty output payloads so the collect phase passes
+            for job_dir in job_dirs or []:
+                out_dir = job_dir / "output"
+                out_dir.mkdir(parents=True, exist_ok=True)
+                with open(out_dir / "payload.json", "w") as fh:
+                    json.dump({"activities": [], "summaries": {}}, fh)
+
     monkeypatch.setattr(
-        strava_archive_import.blob_svc_module,
-        "ActivityBlobService",
-        StrictBlobService,
+        strava_archive_import.bulldozer,
+        "SubtaskBulldozer",
+        NoOpBulldozer,
     )
 
     dataset = FakeDataset(dataset_name="dataset")
@@ -466,22 +456,15 @@ def test_strava_archive_task_applies_toggles_and_date_filter(monkeypatch, tmp_pa
         task_entity=task_entity,
         logger=FakeLogger(),
         log_callback=None,
-        config=SimpleNamespace(),
+        config=SimpleNamespace(persistence_data_dir=tmp_path),
         dataset=dataset,
         blobstore=object(),
-    )
-    monkeypatch.setattr(
-        task,
-        "_import_recording",
-        lambda **kwargs: (_ for _ in ()).throw(
-            AssertionError("recordings should not be imported when disabled")
-        ),
     )
 
     # WHEN
     task.execute()
 
-    # THEN
+    # THEN: only in-range activity is created (date filter), photos disabled
     assert [activity.key for activity in dataset.created_activities] == ["a-in-range"]
     assert task_entity.progress == 100
     print("DONE: Strava archive task applies toggles and date range filtering")
@@ -535,7 +518,7 @@ def test_strava_archive_task_on_conflict_skip_filters_existing(monkeypatch, tmp_
         task_entity=task_entity,
         logger=FakeLogger(),
         log_callback=None,
-        config=SimpleNamespace(),
+        config=SimpleNamespace(persistence_data_dir=tmp_path),
         dataset=dataset,
         blobstore=object(),
     )

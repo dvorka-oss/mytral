@@ -826,6 +826,8 @@ class MytralPersistenceFsConfigBean:
 
 
 class MytralPersistenceFsConfig:
+    DIR_DATA = "data"
+    DIR_TASKS = "tasks"
     FILENAME_CFG = "config.json"
 
     # class-level migration cache — survives across instances
@@ -881,7 +883,7 @@ class MytralPersistenceFsConfig:
 
         # load data spec version right away
         self._cfg_path = (
-            self._mytral_config.persistence_data_dir / "data" / self.FILENAME_CFG
+            self._mytral_config.persistence_data_dir / self.DIR_DATA / self.FILENAME_CFG
         )
         if not self._cfg_path.exists():
             self._config_save(self._get_initial_config())

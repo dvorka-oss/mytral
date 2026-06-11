@@ -365,7 +365,11 @@ class PolarHrmImportTask(tasks.TaskBase):
         # create Bulldozer sandbox
         persistence_root = self._config.persistence_data_dir
         usr_task_dir = (
-            persistence_root / user_id / "tasks" / f"task-{self.task_entity.key}"
+            persistence_root
+            / mytral_config.MytralPersistenceFsConfig.DIR_DATA
+            / user_id
+            / mytral_config.MytralPersistenceFsConfig.DIR_TASKS
+            / f"task-{self.task_entity.key}"
         )
         bzz = bulldozer.SubtaskBulldozer(
             usr_task_dir=usr_task_dir,
@@ -418,7 +422,12 @@ class PolarHrmImportTask(tasks.TaskBase):
 
         # PHASE 3: merge sandbox blobstores into main blobstore ------------
         # main blobstore uses base_dir=config.user_data_dir (= persistence_root/"data")
-        main_blobs_dir = persistence_root / "data" / user_id / "blobs"
+        main_blobs_dir = (
+            persistence_root
+            / mytral_config.MytralPersistenceFsConfig.DIR_DATA
+            / user_id
+            / "blobs"
+        )
         sandbox_blobs_dirs = [_sandbox_blobs_dir(d, user_id) for d in job_dirs]
         merged = blob_svc_module.ActivityBlobService.merge_sandbox_blobstores(
             sandbox_blobs_dirs=sandbox_blobs_dirs,

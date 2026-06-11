@@ -387,6 +387,8 @@ def parse_hrm(path: pathlib.Path) -> dict:
         result["max_hr"] = hr_dict["max_hr"]
         result["min_hr"] = hr_dict["min_hr"]
         result["elevation_min"] = hr_dict["elevation_min"]
+        # preserve HRData elevation max for cross-reference (always meters)
+        result["elevation_max_hrmdata"] = hr_dict["elevation_max"]
         # prefer trip max altitude; fall back to HRData max
         result["elevation_max"] = elevation_max_trip or hr_dict["elevation_max"]
     except Exception as ex:
@@ -820,7 +822,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             note = hrm.get("note", "") or exercise.get("note", "")
             avg_hr = hrm.get("avg_hr", 0) or exercise.get("avg_hr", 0)
             max_hr = hrm.get("max_hr", 0) or exercise.get("max_hr", 0)
-            min_hr = hrm.get("min_hr", 0)
+            min_hr = 0  # exercise min HR from HRM, NOT resting HR
             kcal = hrm.get("kcal", 0) or exercise.get("kcal", 0)
             max_speed_kmh = hrm.get("max_speed_kmh", 0.0)
             elevation_gain = hrm.get("elevation_gain", 0)
@@ -852,6 +854,18 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
         # distance always from PDD (HRM does not carry it)
         distance_m = exercise.get("distance_m", 0)
+
+        # detect elevation values stored in cm (some Polar devices store Trip
+        # elevation in cm instead of meters → 100× inflation)
+        if elevation_gain > 0 and distance_m > 0:
+            gradient_m_per_km = elevation_gain / (distance_m / 1000)
+            if gradient_m_per_km > 150:
+                # cross-check: HRData altitude is always in meters
+                hrmdata_elev_max = hrm.get("elevation_max_hrmdata", 0) if hrm else 0
+                if hrmdata_elev_max > 0 and elevation_max > hrmdata_elev_max * 50:
+                    elevation_gain = elevation_gain // 100
+                    elevation_max = elevation_max // 100
+                    elevation_min = elevation_min // 100
 
         sport_str = map_activity_type_index(exercise.get("sport_index", 0))
 
@@ -901,6 +915,11 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         a.transient_fields[PolarHrmImportPlugin.KEY_POLAR_ROW_DATA] = exercise
 
         entities.evaluate_activity(entity=a, user_profile=user_profile)
+
+        # cap avg_speed when it exceeds max_speed (PDD distance/duration vs HRM
+        # Trip max_speed may disagree due to different measurement sources)
+        if a.max_speed > 0 and a.avg_speed > a.max_speed:
+            a.avg_speed = a.max_speed
 
         return a
 
