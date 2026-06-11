@@ -399,7 +399,7 @@
                               </a>
                               <a class="dropdown-item"
                                 title="Calendar"
-                                href="{{ url_for('calendar_year',year=0) }}#current-week"
+                                href="{{ url_for('calendar_year',year=0) }}"
                               > Calendar
                                 <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
                               </a>
@@ -450,7 +450,7 @@
                           >
                             Predictions
                           </a>
-                          {% if user_profile.expert %}
+                          {% if ff.can("INSIGHTS_ANALYTICS") %}
                           <a class="dropdown-item"
                             title="Analytics."
                             href="{{ url_for('insight_predictions') }}"
@@ -459,7 +459,9 @@
                             <span class="badge badge-sm bg-yellow-lt text-uppercase ms-auto">TODO</span>
                           </a>
                           {% endif %}
+
                           <div class="dropdown-divider"></div>
+
                           <a class="dropdown-item"
                             title="Tabuler overview of activity types per year."
                             href="{{ url_for('insight_lifetime_totals') }}"
@@ -473,17 +475,31 @@
                             Top sports
                           </a>
                           <a class="dropdown-item"
+                            title="Year-over-year performance trends chart and table."
+                            href="{{ url_for('insight_yoy_performance') }}"
+                          >
+                            Performance trends
+                          </a>
+
+                          <div class="dropdown-divider"></div>
+
+                          <a class="dropdown-item"
                             title="Weekday/sport heatmap"
                             href="{{ url_for('heatmap_weekday_to_activity') }}"
                           >
                             Weekday sport heatmap
                           </a>
                           <a class="dropdown-item"
-                            title="Year-over-year performance trends chart and table."
-                            href="{{ url_for('insight_yoy_performance') }}"
+                            title="Monday to Sunday 0-24 by hour when active within the day"
+                            href="{{ url_for('insight_active_in_week') }}"
                           >
-                            YoY performance trends
+                            Active in week
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
+
+                          <div class="dropdown-divider"></div>
+
+
                           <a class="dropdown-item"
                             title="Chart to compare this vs. last week, month, year."
                             href="{{ url_for('this_vs_last') }}"
@@ -497,13 +513,6 @@
                           >
                             This vs. previous years
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
-                          </a>
-                          <a class="dropdown-item"
-                            title="Monday to Sunday 0-24 by hour when active within the day"
-                            href="{{ url_for('insight_active_in_week') }}"
-                          >
-                            Active in week
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
                         </div>
                       </li>
@@ -568,6 +577,7 @@
                             Athlete Metrics
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
                           </a>
+                          {% if ff.can("TRIMP") %}
                           <a class="dropdown-item"
                             title="Training impulse load chart with ATRIMP, CTRIMP and BTRIMP"
                             href="{{ url_for('insight_trimp') }}"
@@ -575,6 +585,7 @@
                             TRIMP
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Performance</span>
                           </a>
+                          {% endif %}
 
                           {% if ff.can("ACOACHES") %}
                           <a class="dropdown-item"
@@ -1678,6 +1689,43 @@
                 }
             }, 100);
         }, { passive: true });
+
+        // scroll to current week on page load, accounting for sticky
+        // navbar + chart wrapper that the browser's native #anchor scroll ignores.
+        // use a short delay to ensure the DOM layout is fully settled before
+        // calculating element positions.
+        setTimeout(() => {
+            const todayBar = document.querySelector('.bar-day.today');
+            if (todayBar) {
+                const weekIndex = todayBar.dataset.navWeekIndex;
+                if (weekIndex !== undefined) {
+                    const allRows = document.querySelectorAll('tr[data-week-index]');
+                    const targetRow = allRows[weekIndex];
+                    if (targetRow) {
+                        const navWrapper = document.getElementById('week-bar-chart-container');
+                        const stickyOffset = navWrapper ? navWrapper.getBoundingClientRect().bottom : 0;
+                        const targetY = targetRow.getBoundingClientRect().top + window.scrollY - stickyOffset;
+                        window.scrollTo({ top: targetY, behavior: 'auto' });
+
+                        // highlight the current week bar
+                        if (currentVisibleIndex !== null) {
+                            const prevBar = document.querySelector(`.bar-day[data-nav-week-index="${currentVisibleIndex}"]`);
+                            if (prevBar) prevBar.classList.remove('in-viewport');
+                        }
+                        todayBar.classList.add('in-viewport');
+                        currentVisibleIndex = weekIndex;
+
+                        // suppress observer updates while the scroll settles,
+                        // otherwise the observer picks a row further down the viewport
+                        observerSuppressed = true;
+                        clearTimeout(observerSuppressTimeout);
+                        observerSuppressTimeout = setTimeout(() => {
+                            observerSuppressed = false;
+                        }, 800);
+                    }
+                }
+            }
+        }, 50);
     });
 </script>
 

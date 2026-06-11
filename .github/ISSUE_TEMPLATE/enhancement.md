@@ -17,8 +17,8 @@ assignees: dvorka
 
 **Acceptance criteria:**
 
-* .
+* Green tests, updated doc and 3rd party licenses.
 
 **Resources:**  (links, screenshots, wireframes or diagrams)
 
-* .
+* N/A
