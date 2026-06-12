@@ -269,7 +269,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.2]
+## 1.3.2
 
 This MyTraL **minor** release brings:
 
@@ -279,7 +279,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.0]
+## 1.3.0
 
 This MyTraL **minor** release brings:
 
@@ -296,7 +296,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.2.0]
+## 1.2.0
 
 This MyTraL **minor** release brings:
 
@@ -329,7 +329,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.1.0]
+## 1.1.0
 
 This MyTraL **minor** release brings:
 
@@ -357,7 +357,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.0.0]
+## 1.0.0
 
 This MyTraL **major** release brings:
 
@@ -400,7 +400,7 @@ This MyTraL **major** release brings:
 
 
 
-## [0.0.1]
+## 0.0.1
 
 This MyTraL **patch** release brings:
 
@@ -410,7 +410,7 @@ This MyTraL **patch** release brings:
 
 
 
-## [0.0.0] - 2014-09-12
+## 0.0.0 - 2014-09-12
 
 The first MyTraL commit - YAML based datasets with Python based scripts.
 
