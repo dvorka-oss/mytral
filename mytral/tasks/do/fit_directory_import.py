@@ -20,7 +20,6 @@ import pathlib
 import uuid
 
 from mytral import app_logger
-from mytral import app_user_ds as ds
 from mytral import tasks
 from mytral.backends import entities as be_entities
 from mytral.blobstore import activity_service as blob_svc_module
@@ -209,7 +208,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
 
         # create activity entity
         activity = be_entities.ActivityEntity()
-        activity.key = ds.create_key()
+        activity.key = self._dataset.create_key()
         activity.name = activity_name
 
         # set sport type from parameter or summary
@@ -299,7 +298,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
                     activity_key=existing_key,
                 )
                 activity.key = existing_key
-                ds.update_activity(
+                self._dataset.update_activity(
                     user_id=user_id,
                     dataset_name=dataset_name,
                     entity=activity,
@@ -309,7 +308,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
 
         # create activity if not overriding an existing one
         if not existing_key or on_conflict != "override":
-            ds.create_activity(
+            self._dataset.create_activity(
                 user_id=user_id,
                 dataset_name=dataset_name,
                 entity=activity,
@@ -376,7 +375,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
             # (activity.when_year defaults to current year, which would miss
             # conflicts from the same file imported in a prior year)
             filter_year = summary.when.year if summary.when else 0
-            year_activities = ds.list_activities(
+            year_activities = self._dataset.list_activities(
                 user_id=user_id,
                 dataset_name=dataset_name,
                 filter_year=filter_year,

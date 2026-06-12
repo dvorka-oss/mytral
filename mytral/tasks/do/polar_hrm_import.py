@@ -35,7 +35,6 @@ import json
 import os
 import pathlib
 import traceback
-import uuid
 
 from mytral import app_logger
 from mytral import config as mytral_config
@@ -45,78 +44,13 @@ from mytral.backends import entities
 from mytral.blobstore import activity_service as blob_svc_module
 from mytral.blobstore.filesystem import FilesystemBlobStore
 from mytral.blobstore.models import BlobKind
-from mytral.blobstore.models import BlobMetadata
-from mytral.blobstore.models import BlobOwnerKind
 from mytral.integrations import polar_hrm
 from mytral.recordings import parquet_converter
 from mytral.tasks import bulldozer
-
-
-class _PathEncoder(json.JSONEncoder):
-    """JSON encoder that converts pathlib.Path objects to strings."""
-
-    def default(self, o):
-        if isinstance(o, pathlib.PurePath):
-            return str(o)
-        return super().default(o)
-
-
-def _sandbox_blobs_dir(job_dir: pathlib.Path, user_id: str) -> pathlib.Path:
-    """Return the sandbox blobstore root directory for a given job.
-
-    Matches the internal layout of ``FilesystemBlobStore`` constructed with
-    ``base_dir=MytralConfig(persistence_data_dir=job_dir/"work").user_data_dir``
-    and ``blobs_subdir="blobs"``::
-
-        job_dir / "work" / "data" / <user_id> / "blobs"
-    """
-    return job_dir / "work" / "data" / user_id / "blobs"
-
-
-def _make_blob_metadata(
-    user_id: str,
-    activity_key: str,
-    kind: str,
-    file_name: str,
-    original_file_name: str,
-    extension: str,
-    size_bytes: int,
-    sha256: str,
-    name: str,
-    description: str,
-    keywords: list[str],
-    created_at: str,
-) -> BlobMetadata:
-    """Build a ``BlobMetadata`` for a recording or parquet blob."""
-    blob_key = str(uuid.uuid4()).replace("-", "")
-    return BlobMetadata(
-        blob_key=blob_key,
-        user_id=user_id,
-        owner_kind=BlobOwnerKind.ACTIVITY.value,
-        owner_key=activity_key,
-        kind=kind,
-        file_name=file_name,
-        original_file_name=original_file_name,
-        extension=extension,
-        content_type="application/octet-stream",
-        size_bytes=size_bytes,
-        sha256=sha256,
-        name=name,
-        description=description,
-        keywords=keywords,
-        created_at=created_at,
-        updated_at=created_at,
-    )
-
-
-def _split_evenly(items: list, num_chunks: int) -> list[list]:
-    """Distribute items round-robin across *num_chunks* buckets."""
-    if num_chunks < 1:
-        return [items]
-    chunks: list[list] = [[] for _ in range(num_chunks)]
-    for i, item in enumerate(items):
-        chunks[i % num_chunks].append(item)
-    return [c for c in chunks if c]
+from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
+from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
+from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
+from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
 
 
 def _polar_hrm_blob_job(job_key: int, job_dir: pathlib.Path) -> None:
@@ -399,7 +333,9 @@ class PolarHrmImportTask(tasks.TaskBase):
         )
 
         # run Bulldozer
+        self.check_cancellation()
         bzz.run(job_dirs=job_dirs, job_function=_polar_hrm_blob_job)
+        self.check_cancellation()
 
         # detect and report failed jobs
         failed_jobs = []
@@ -463,7 +399,9 @@ class PolarHrmImportTask(tasks.TaskBase):
         imported = 0
         skipped = 0
 
-        for activity in all_activities:
+        for i, activity in enumerate(all_activities):
+            if i % 50 == 0:
+                self.check_cancellation()
             existing_key = self._find_conflict(user_id, activity, year_cache)
             if existing_key:
                 if on_conflict == "skip":

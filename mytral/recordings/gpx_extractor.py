@@ -16,12 +16,13 @@
 """GPX file activity-level summary extractor."""
 
 import datetime
-import math
 import statistics
 
 import defusedxml.ElementTree
 
 from mytral import commons
+from mytral.recordings import _geo_utils
+from mytral.recordings import _xml_utils
 from mytral.recordings.models import RecordingSummary
 
 # GPX namespace
@@ -69,19 +70,12 @@ def _parse_gpx_root(gpx_data: bytes):
         raise ValueError(f"Invalid GPX XML payload: {exc}") from exc
 
 
-def _extract_namespace(root) -> str:
-    """Extract namespace prefix from GPX root tag."""
-    if "}" in root.tag:
-        return root.tag.split("}")[0] + "}"
-    return ""
-
-
 def _extract_track_samples(
     gpx_data: bytes,
 ) -> list[tuple[float, float, float | None]]:
     """Extract ordered latitude/longitude/elevation samples from GPX trackpoints."""
     root = _parse_gpx_root(gpx_data=gpx_data)
-    ns = _extract_namespace(root=root)
+    ns = _xml_utils._extract_namespace(root=root)
 
     samples: list[tuple[float, float, float | None]] = []
     for trkpt in root.iter(f"{ns}trkpt"):
@@ -138,21 +132,6 @@ def extract_gps_points(gpx_data: bytes) -> list[tuple[float, float]]:
     return [(sample[0], sample[1]) for sample in samples]
 
 
-def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Calculate great-circle distance in meters between two WGS84 points."""
-    radius_m = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(d_phi / 2.0) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2.0) ** 2
-    )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return radius_m * c
-
-
 def extract_elevation_profile(gpx_data: bytes) -> list[tuple[float, float]]:
     """Extract distance/elevation samples for rendering a gradient profile.
 
@@ -180,7 +159,7 @@ def extract_elevation_profile(gpx_data: bytes) -> list[tuple[float, float]]:
 
     for sample in samples[1:]:
         lat, lon, elevation = sample
-        total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+        total_distance_m += _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
         if elevation is not None:
             profile.append((float(total_distance_m), float(elevation)))
         prev_lat, prev_lon = lat, lon
@@ -212,7 +191,7 @@ def extract_all_from_gpx(
         If the GPX is malformed, contains invalid coordinates, or has no points.
     """
     root = _parse_gpx_root(gpx_data=gpx_data)
-    ns = _extract_namespace(root=root)
+    ns = _xml_utils._extract_namespace(root=root)
 
     track_count = len(root.findall(f"{ns}trk"))
 
@@ -253,7 +232,7 @@ def extract_all_from_gpx(
                 ele_val = None
 
         if prev_lat is not None and prev_lon is not None:
-            total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+            total_distance_m += _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
         if ele_val is not None:
             profile.append((float(total_distance_m), float(ele_val)))
 
@@ -298,7 +277,7 @@ def _sample_points_by_distance(
         current = points[index]
         cumulative_distances.append(
             cumulative_distances[-1]
-            + _haversine_m(prev[0], prev[1], current[0], current[1])
+            + _geo_utils._haversine_m(prev[0], prev[1], current[0], current[1])
         )
 
     total_distance = cumulative_distances[-1]
@@ -336,7 +315,7 @@ def _polyline_length_meters(points: list[tuple[float, float]]) -> float:
     for index in range(1, len(points)):
         prev = points[index - 1]
         current = points[index]
-        length += _haversine_m(prev[0], prev[1], current[0], current[1])
+        length += _geo_utils._haversine_m(prev[0], prev[1], current[0], current[1])
     return length
 
 
@@ -374,6 +353,10 @@ def _simplify_points_current(
 
     if rdp_module is not None and hasattr(rdp_module, "rdp"):
         path = [[point[0], point[1], 0.0] for point in points]
+        # start with a tiny epsilon (~1 m at equator) and grow exponentially
+        # across 18 iterations (0.00001 * 1.8^17 ≈ 220 km) so that the
+        # Ramer-Douglas-Peucker algorithm finds a simplification that fits
+        # within max_points without needing to guess the right epsilon upfront
         epsilon = 0.00001
         simplified: list[tuple[float, float]] = []
         for _ in range(18):
@@ -551,7 +534,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
                 lat = float(lat_raw)
                 lon = float(lon_raw)
                 if prev_lat is not None and prev_lon is not None:
-                    seg_m = _haversine_m(prev_lat, prev_lon, lat, lon)
+                    seg_m = _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
                     total_distance_m += seg_m
                     # track max speed between consecutive points with timestamps
                     if prev_ts is not None and current_dt is not None:

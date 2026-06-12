@@ -69,7 +69,14 @@ class SubtaskBulldozer:
     def _cpu_count() -> int:
         return max(1, os.cpu_count() or 1)
 
-    def _workers_count(self):
+    def _workers_count(self) -> int:
+        """Return the number of parallel worker processes.
+
+        Defaults to ``cpu_count // 2`` (at least 1) so that each worker can
+        saturate one core while leaving the other core free for the OS and
+        the parent process.  Override ``_worker_to_cpu`` in a subclass to
+        change the ratio (e.g. set to 1 for one worker per core).
+        """
         return max(1, SubtaskBulldozer._cpu_count() // self._worker_to_cpu)
 
     def make_sandbox(self) -> list[pathlib.Path]:
@@ -140,8 +147,16 @@ class SubtaskBulldozer:
         self.logger.info(f"Subtask {self.subtask_key}: ALL jobs started")
 
         # WAIT for jobs to finish
-        for job_process in job_processes:
+        for e, job_process in enumerate(job_processes):
             job_process.join()
+            job_key = e + 1
+            exitcode = job_process.exitcode
+            if exitcode != 0:
+                self.logger.error(
+                    f"  Subtask {self.subtask_key}: job {job_key} exited with "
+                    f"non-zero exit code {exitcode} — the process may have "
+                    f"crashed before writing error.json"
+                )
 
         self.logger.info(f"Subtask {self.subtask_key}: ALL jobs DONE")
         return job_dirs

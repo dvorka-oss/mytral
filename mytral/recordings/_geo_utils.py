@@ -6,7 +6,6 @@
 # it under the terms of the GNU Affero General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,18 +14,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""MyTraL multiprocessing-based subtask framework."""
+"""Shared geospatial helpers for GPX and TCX extractors."""
 
-from mytral.tasks.bulldozer._base import SubtaskBulldozer
-from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
-from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
-from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
-from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
+import math
 
-__all__ = [
-    "SubtaskBulldozer",
-    "_make_blob_metadata",
-    "_PathEncoder",
-    "_sandbox_blobs_dir",
-    "_split_evenly",
-]
+
+def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate great-circle distance in meters between two WGS84 points.
+
+    Uses the haversine formula with Earth radius 6,371,000 m.
+    """
+    radius_m = 6371000.0
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    d_phi = math.radians(lat2 - lat1)
+    d_lambda = math.radians(lon2 - lon1)
+    a = (
+        math.sin(d_phi / 2.0) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2.0) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius_m * c

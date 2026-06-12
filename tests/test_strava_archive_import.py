@@ -94,8 +94,17 @@ class FakeDataset:
             self.activities[activity.key] = activity
 
     def list_activities(
-        self, user_id: str, dataset_name: str
+        self,
+        user_id: str,
+        dataset_name: str,
+        year: int | None = None,
     ) -> list[entities.ActivityEntity]:
+        if year is not None:
+            return [
+                a
+                for a in self.activities.values()
+                if getattr(a, "when_year", 0) == year
+            ]
         return list(self.activities.values())
 
 
