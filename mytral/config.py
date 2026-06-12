@@ -522,7 +522,7 @@ class MytralConfig:
                 elif self.incarnation == MytralIncarnation.DESKTOP:
                     self.encryption_key = security.DEFAULT_ENC_KEY
                     self._init_warnings.append(
-                        "MYTRAL_ENCRYPTION_KEY is not set - the DEFAULT DEVELOPMENT"
+                        "MYTRAL_ENCRYPTION_KEY is not set - the DEFAULT DEVELOPMENT "
                         "key will be used as a fall back. "
                         "This is NOT SECURE and should NEVER be used in production. Set"
                         " MYTRAL_ENCRYPTION_KEY in environment for stable encryption."

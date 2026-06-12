@@ -33,9 +33,13 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execut
   (default) and legacy RDP-based simplification for preview rendering. New GPX polyline
   encoding is ~4000× faster with the new distance-based sampling method - the default
   for all recording import paths.
+- Added meta sport taxonomy based lifetime totals insight page.
+- Added new cards on the homepage indicating the risk of injury, gear needed service,
+  suggested activity and weight balance.
 
 ### Changed
 - Strava API import is not hidden behing feature flag (just inverse condition on FE).
+- Refactored Predictions insight page to two pages - Predictions and Analytics.
 - Rewritten task manager, tasks and tasks invocation - removed duplicated task manager
   definitions, converged to MyTraL's task manager, typed tasks are used from now on.
 - Strava bulk ZIP archive import rewritten with Bulldozer framework for parallel
@@ -300,7 +304,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.2]
+## 1.3.2
 
 This MyTraL **minor** release brings:
 
@@ -310,7 +314,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.0]
+## 1.3.0
 
 This MyTraL **minor** release brings:
 
@@ -327,7 +331,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.2.0]
+## 1.2.0
 
 This MyTraL **minor** release brings:
 
@@ -360,7 +364,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.1.0]
+## 1.1.0
 
 This MyTraL **minor** release brings:
 
@@ -388,7 +392,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.0.0]
+## 1.0.0
 
 This MyTraL **major** release brings:
 
@@ -431,7 +435,7 @@ This MyTraL **major** release brings:
 
 
 
-## [0.0.1]
+## 0.0.1
 
 This MyTraL **patch** release brings:
 
@@ -441,7 +445,7 @@ This MyTraL **patch** release brings:
 
 
 
-## [0.0.0] - 2014-09-12
+## 0.0.0 - 2014-09-12
 
 The first MyTraL commit - YAML based datasets with Python based scripts.
 
