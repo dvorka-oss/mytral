@@ -70,7 +70,9 @@ def test_fit_summary_hiking():
     assert summary.activity_type_key == commons.AT_HIKE, (
         f"Expected hike, got {summary.activity_type_key}"
     )
-    assert summary.when == datetime.datetime(2023, 5, 19, 8, 49, 12)
+    assert summary.when == datetime.datetime(
+        2023, 5, 19, 6, 49, 12, tzinfo=datetime.timezone.utc
+    )
     assert summary.hours == 10
     assert summary.minutes == 17
     assert summary.seconds == 53
@@ -114,7 +116,9 @@ def test_fit_summary_indoor():
     assert summary.activity_type_key == commons.AT_WORKOUT, (
         f"Expected workout, got {summary.activity_type_key}"
     )
-    assert summary.when == datetime.datetime(2022, 6, 1, 21, 12, 51)
+    assert summary.when == datetime.datetime(
+        2022, 6, 1, 19, 12, 51, tzinfo=datetime.timezone.utc
+    )
     assert summary.hours == 0
     assert summary.minutes == 38
     assert summary.seconds == 17
@@ -147,7 +151,9 @@ def test_fit_summary_running():
     assert summary.activity_type_key == commons.AT_RUN, (
         f"Expected run, got {summary.activity_type_key}"
     )
-    assert summary.when == datetime.datetime(2024, 3, 16, 14, 54, 21)
+    assert summary.when == datetime.datetime(
+        2024, 3, 16, 13, 54, 21, tzinfo=datetime.timezone.utc
+    )
     assert summary.hours == 0
     assert summary.minutes == 1
     assert summary.seconds == 57
