@@ -20,16 +20,50 @@
                     </svg>
                 </h2>
             </div>
+            <div class="col-auto ms-auto d-print-none">
+                {% if stats and stats.ukm %}
+                <div class="btn-group">
+                    <a href="{{ url_for('insight_lifetime_totals') }}" class="btn {{ 'btn-primary' if aspect == 'sports' else 'btn-outline-primary' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
+                            <path d="M3 10h18"></path>
+                            <path d="M10 3v18"></path>
+                        </svg>
+                        Sports
+                    </a>
+                    <a href="{{ url_for('insight_lifetime_totals', aspect='meta') }}" class="btn {{ 'btn-primary' if aspect == 'meta' else 'btn-outline-primary' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-category" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M4 4h6v6h-6z"></path>
+                            <path d="M14 4h6v6h-6z"></path>
+                            <path d="M4 14h6v6h-6z"></path>
+                            <path d="M14 14h6v6h-6z"></path>
+                        </svg>
+                        Meta Sports
+                    </a>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
     <div class="card mt-3 mb-3">
         <div class="card-body">
+            {% if aspect == 'meta' %}
+            <p class="text-muted">
+                Comprehensive tabular overview of your lifetime training statistics aggregated by meta-sport categories.
+                Individual activity types (e.g., road bike, mountain bike, gravel bike) are grouped into meta sports (e.g., Ride).
+                The table shows total activities count, Universal Kilometers (UKM), and breakdown by meta sport.
+                UKM normalizes different activities for fair comparison using sport-specific conversion factors.
+            </p>
+            {% else %}
             <p class="text-muted">
                 Comprehensive tabular overview of your lifetime training statistics across all activity types and years.
                 The table shows total activities count, Universal Kilometers (UKM), and breakdown by sport.
                 UKM normalizes different activities (running, cycling, swimming, etc.) for fair comparison using sport-specific conversion factors.
             </p>
+            {% endif %}
         </div>
     </div>
 
@@ -43,8 +77,12 @@
                     <path d="M3 10h18"></path>
                     <path d="M10 3v18"></path>
                 </svg>
+                {% if aspect == 'meta' %}
+                Activity Statistics by Year and Meta Sport
+                {% else %}
                 Activity Statistics by Year and Sport
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Lifetime statistics table showing: # (number of activities), All sports (UKM and total duration), and individual sport columns with distance in km and duration. The 'All years' row shows cumulative totals, followed by year-by-year breakdown. Dark cells indicate totals.">
+                {% endif %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="{% if aspect == 'meta' %}Lifetime statistics table showing: year with activity count, All sports (UKM and total duration), and meta-sport columns with aggregated distance in km and duration. Individual activity types are grouped into meta-sport categories (e.g., road bike + MTB + gravel = Ride). The 'All years' row shows cumulative totals, followed by year-by-year breakdown. Dark cells indicate totals.{% else %}Lifetime statistics table showing: year with activity count, All sports (UKM and total duration), and individual sport columns with distance in km and duration. The 'All years' row shows cumulative totals, followed by year-by-year breakdown. Dark cells indicate totals.{% endif %}">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                     <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
                     <path d="M12 9h.01"></path>
@@ -58,41 +96,69 @@
                     <thead>
                         <tr>
                             <th></th>
-                            <th class="text-end">#</th>
                             <th class="text-end">All sports</th>
+                            {% if aspect == 'meta' %}
+                            {% for mk in total_m_per_meta if total_km_per_meta[mk] %}
+                            <th class="text-center">{{ meta_display_names[mk] }}</th>
+                            {% endfor %}
+                            {% else %}
                             {% for s in stats.total_m_per_activity_type %}
                             <th class="text-center">{{ activity_types.name(s) }}</th>
                             {% endfor %}
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="table-active">
-                            <td><strong>All years</strong></td>
-                            <td class="text-end table-dark">
-                                <strong>{{ "{:,}".format(stats.activities_count) }}</strong><br/>
-                                <small class="text-muted">&nbsp;</small>
+                            <td>
+                                <strong>All years</strong><br/>
+                                <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top">{{ "{:,}".format(stats.activities_count) }} activities</small>
                             </td>
                             <td class="text-end table-dark">
                                 <strong>{{ "{:0,}".format(stats.ukm|int) }}&nbsp;ukm</strong><br/>
                                 <small class="text-muted">{{ format_duration(stats.utime) }}</small>
                             </td>
+                            {% if aspect == 'meta' %}
+                            {% for mk in total_m_per_meta if total_km_per_meta[mk] %}
+                            <td class="text-end table-dark">
+                                <strong>{{ "{:0,}".format(total_km_per_meta[mk]) }}&nbsp;km</strong><br/>
+                                <small class="text-muted">{{ format_duration(total_time_per_meta.get(mk, "")) }}</small>
+                            </td>
+                            {% endfor %}
+                            {% else %}
                             {% for s in stats.total_m_per_activity_type %}
                             <td class="text-end table-dark">
                                 <strong>{{ "{:0,}".format(stats.total_km_per_activity_type[s]) }}&nbsp;km</strong><br/>
                                 <small class="text-muted">{{ format_duration(stats.total_time_per_activity_type.get(s,"")) }}</small>
                             </td>
                             {% endfor %}
+                            {% endif %}
                         </tr>
 
                         {% if stats.year %}
                         {% for y in stats.year %}
                         <tr>
-                            <td class="text-center"><strong>{{ stats.year[y].year }}</strong></td>
-                            <td class="text-end">{{ "{:,}".format(stats.year[y].activities_count) }}</td>
+                            <td class="text-center">
+                                <strong>{{ stats.year[y].year }}</strong><br/>
+                                <small class="text-muted" data-bs-toggle="tooltip" data-bs-placement="top">{{ "{:,}".format(stats.year[y].activities_count) }} activities</small>
+                            </td>
                             <td class="text-end">
                                 {{ "{:0,}".format(stats.year[y].ukm|int) }}&nbsp;ukm<br/>
                                 <small class="text-muted">{{ format_duration(stats.year[y].utime) }}</small>
                             </td>
+                            {% if aspect == 'meta' %}
+                            {% set year_meta = per_year_meta[y] %}
+                            {% for mk in total_m_per_meta if total_km_per_meta[mk] %}
+                            {% if year_meta.total_km_per_meta[mk] %}
+                            <td class="text-end">
+                                {{ "{:0,}".format(year_meta.total_km_per_meta[mk]) }}&nbsp;km<br/>
+                                <small class="text-muted">{{ format_duration(year_meta.total_time_per_meta.get(mk, "")) }}</small>
+                            </td>
+                            {% else %}
+                            <td class="text-end text-muted">-</td>
+                            {% endif %}
+                            {% endfor %}
+                            {% else %}
                             {% for s in stats.total_m_per_activity_type %}
                             {% if stats.year[y].total_km_per_activity_type[s] %}
                             <td class="text-end">
@@ -103,6 +169,7 @@
                             <td class="text-end text-muted">-</td>
                             {% endif %}
                             {% endfor %}
+                            {% endif %}
                         </tr>
                         {% endfor %}
                         {% endif %}
@@ -112,10 +179,9 @@
         </div>
         <div class="card-footer">
             <p class="text-muted small mb-0">
-                <strong>Legend:</strong> 
-                # = Number of activities | 
-                UKM = Universal Kilometers (normalized across sports) | 
-                km = Actual distance | 
+                <strong>Legend:</strong>
+                UKM = Universal Kilometers (normalized across sports) |
+                km = Actual distance |
                 Duration format: hours:minutes:seconds
             </p>
         </div>

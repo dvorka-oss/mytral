@@ -962,12 +962,52 @@ def insight_lifetime_totals():
         user_id=user_id, dataset_name=user_profile.dataset_name
     )
 
-    return flask.render_template(
-        "lifetime-totals.html",
-        user_profile=user_profile,
-        stats=ds_stats,
-        activity_types=ds.list_activity_types(user_id=user_id),
-    )
+    aspect = flask.request.args.get(commons.URL_ARG_ASPECT, "sports")
+
+    template_vars: dict = {
+        "user_profile": user_profile,
+        "stats": ds_stats,
+        "activity_types": ds.list_activity_types(user_id=user_id),
+        "aspect": aspect,
+    }
+
+    if aspect == "meta":
+        # aggregate top-level totals by meta sport
+        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
+            ds_stats.total_m_per_activity_type,
+            ds_stats.total_seconds_per_activity_type,
+        )
+        template_vars["total_m_per_meta"] = m_per_meta
+        template_vars["total_km_per_meta"] = {
+            mk: int(meters / 1000.0) for mk, meters in m_per_meta.items()
+        }
+        template_vars["total_time_per_meta"] = {
+            mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
+        }
+
+        # aggregate per-year totals by meta sport
+        per_year_meta: dict[int, dict] = {}
+        for y, year_stats in ds_stats.year.items():
+            ym_m, ym_s = commons.aggregate_by_meta_sport(
+                year_stats.total_m_per_activity_type,
+                year_stats.total_seconds_per_activity_type,
+            )
+            per_year_meta[y] = {
+                "total_m_per_meta": ym_m,
+                "total_km_per_meta": {
+                    mk: int(meters / 1000.0) for mk, meters in ym_m.items()
+                },
+                "total_time_per_meta": {
+                    mk: cals.seconds_to_str_time(seconds)
+                    for mk, seconds in ym_s.items()
+                },
+            }
+        template_vars["per_year_meta"] = per_year_meta
+
+        # pass display names for column headers
+        template_vars["meta_display_names"] = commons.M_AT_DISPLAY_NAMES
+
+    return flask.render_template("lifetime-totals.html", **template_vars)
 
 
 @flask_app.route("/insight/yoy-performance")
