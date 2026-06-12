@@ -254,30 +254,45 @@
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><h2 id="1500"><a href="https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD">1.50.0</a></h2>
-<p>This MyTraL release is very <strong>special</strong> to me. After years of coding and hacking together
-various versions of MyTraL I am moving to a brand-new Git repository on my 50th birthday.</p>
-<p>Sports have been my main hobby for 40 years, and I have 30 years of training data
-scattered across everything from paper logs to MyTraL. Today, I’m starting a fresh
-chapter - free from hacks, sensitive data and the "sins of my youth."</p>
-<p>Channeling Steve Prefontaine energy today - pure heart, max effort, open-source execution!</p>
+<p>This MyTraL release is very <strong>special</strong> to me. After years of coding and hacking
+together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
+birthday.</p>
+<p>Sports have been my main hobby for 40 years - I have 30 years of training data scattered
+across everything from paper logs to MyTraL. Today, I’m starting a fresh chapter - free
+from hacks, sensitive data and the "sins of my youth."</p>
+<p>Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execution!</p>
 <h3 id="added">Added</h3>
 <ul>
-<li>Added polyline with map backround to the activity feed.</li>
+<li>Added polyline with map background to the activity feed.</li>
 <li>Added rainbow polyline w/ running dot to the activity feed.</li>
-<li>Added evevation chart to the activity feed.</li>
+<li>Added elevation chart to the activity feed.</li>
 <li>Added "maximize map" action to the activity view page.</li>
-<li>Added description field to symptoms so that user can specify how to cure such injury or illness.</li>
-<li>Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings, photos).</li>
+<li>Added description field to symptoms so that user can specify how to cure such injury
+  or illness.</li>
+<li>Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings,
+  photos).</li>
 <li>Added TCX import (individual files and directory of recordings/archives).</li>
-<li>Added <code>gender</code> field to the athlete profile in order to calculate metrics like TRIMP more accurately.</li>
+<li>Added <code>gender</code> field to the athlete profile in order to calculate metrics like TRIMP
+  more accurately.</li>
 <li>Added TRIMP calculation and chart to the <code>Progress</code> menu.</li>
-<li>Improved polyline calculation to be ~4000x faster (legacy method kept).</li>
+<li>Added FIT directory import - import all FIT files from a local directory in one go,
+  with automatic conflict detection and parquet generation.</li>
+<li>Bulldozer framework - a multiprocessing-based sandboxed job runner for
+  parallelizing CPU-bound import workloads across multiple cores.</li>
+<li>GPX polyline encoding with 2 selectable methods: fast distance-based sampling
+  (default) and legacy RDP-based simplification for preview rendering. New GPX polyline
+  encoding is ~4000× faster with the new distance-based sampling method - the default
+  for all recording import paths.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
 <li>Strava API import is not hidden behing feature flag (just inverse condition on FE).</li>
-<li>Rewritten task manager, tasks and tasks invocation - removed duplicated task manager definitions,
-  converged to MyTraL's task manager, typed tasks are used from now on.</li>
+<li>Rewritten task manager, tasks and tasks invocation - removed duplicated task manager
+  definitions, converged to MyTraL's task manager, typed tasks are used from now on.</li>
+<li>Strava bulk ZIP archive import rewritten with Bulldozer framework for parallel
+  photo &amp; recording upload, parquet conversion, and GPX map-data precomputation.</li>
+<li>Polar Precision Performance import rewritten with Bulldozer framework - HRM blob
+  upload and parquet generation now run in .</li>
 </ul>
 <h3 id="removed">Removed</h3>
 <ul>
@@ -286,6 +301,9 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed blobstore logging message which no longer specifies wrong blob type.</li>
+<li>Polar HRM import conflict resolution no longer fails on missing year-cache entries.</li>
+<li><code>fit_tool</code> monkeypatch tolerates non-UTF8 bytes in FIT string fields (Garmin
+  developer fields), preventing silent parse failures.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="190"><a href="https://github.com/dvorka-oss/my-training-log/compare/v1.8.0...v1.9.0">1.9.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
@@ -293,8 +311,10 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>Added import from FIT.</li>
 <li>Added import from GPX - file or directory.</li>
-<li>Added GPX recording management: upload, view metadata, edit name/description/keywords, download, and delete.</li>
-<li>Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based loading/saving.</li>
+<li>Added GPX recording management: upload, view metadata, edit name/description/keywords,
+  download, and delete.</li>
+<li>Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based
+  loading/saving.</li>
 <li>Added power zones.</li>
 <li>Added HR zones.</li>
 <li>Added 2D maps rendering for GPX recordings.</li>
@@ -307,20 +327,24 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <li>Added day-based navigation to the activity feed.</li>
 <li>Added week-based navigation to the caledar activity view.</li>
 <li>Added avatar/photo upload support for users, AI coaches, gear, goals, and exercises.</li>
-<li>Added preview of TabPFN ML-powered predictions feature with dedicated settings and predictions pages (behind feature flag).</li>
+<li>Added preview of TabPFN ML-powered predictions feature with dedicated settings and
+  predictions pages (behind feature flag).</li>
 <li>Added sponsor link to the application layout.</li>
 <li>Added Windows binary build.</li>
-<li>Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_* constants,
-  Strava/FIT mappings, Concept2 uses AT_ROW_ERG).</li>
+<li>Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_*
+  constants, Strava/FIT mappings, Concept2 uses AT_ROW_ERG).</li>
 <li>Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
   descriptions/default weights, symptom body-part targeting) with new pytest coverage.</li>
 </ul>
 <h3 id="changed_1">Changed</h3>
 <ul>
 <li>Core data model changes:</li>
-<li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks backward compatibility.</li>
-<li>Added <code>ActivityEntity.avg_cadence</code> and <code>ActivityEntity.max_cadence</code> - consider rides, rowing, swimming, and other activities.</li>
-<li>Added <code>ActivityEntity.meta_activity_type</code> - consider <code>ski</code> aggregating DP/F roller ski, DP/F nordic ski, ...</li>
+<li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks
+    backward compatibility.</li>
+<li>Added <code>ActivityEntity.avg_cadence</code> and <code>ActivityEntity.max_cadence</code> - consider
+    rides, rowing, swimming, and other activities.</li>
+<li>Added <code>ActivityEntity.meta_activity_type</code> - consider <code>ski</code> aggregating DP/F roller
+    ski, DP/F nordic ski, ...</li>
 <li>Added <code>ActivityEntity.tags</code>.</li>
 <li>Added <code>ActivityEntity.is_plan</code>.</li>
 <li>Reworked photo UI flows (entity photo galleries, activity/exercise photo metadata
@@ -334,22 +358,30 @@ chapter - free from hacks, sensitive data and the "sins of my youth."</p>
 <h3 id="fixed_1">Fixed</h3>
 <ul>
 <li>Activity update no longer purges source attributes (ID, descriptor and URL).</li>
-<li>Blobstore exception handling in activity view/update routes now only silently ignores expected <code>BlobStoreError</code>; unexpected errors are logged and re-raised for easier debugging.</li>
-<li>GPX import rewritten to be non-blocking (except upload) and to make intensive work in the asynchronous task.</li>
+<li>Blobstore exception handling in activity view/update routes now only silently ignores
+  expected <code>BlobStoreError</code>; unexpected errors are logged and re-raised for easier
+  debugging.</li>
+<li>GPX import rewritten to be non-blocking (except upload) and to make intensive work in
+  the asynchronous task.</li>
 </ul>
 <h3 id="performance">Performance</h3>
 <ul>
-<li>Per-request total size limit is now enforced when uploading multiple photos in a single request, preventing excessive memory use.</li>
-<li>EXIF metadata stripping in image processing no longer materialises the full pixel array into a Python list; metadata is cleared in-place, reducing memory allocation significantly for large images.</li>
+<li>Per-request total size limit is now enforced when uploading multiple photos in a
+  single request, preventing excessive memory use.</li>
+<li>EXIF metadata stripping in image processing no longer materialises the full pixel
+  array into a Python list; metadata is cleared in-place, reducing memory allocation
+  significantly for large images.</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
 <li>HTML documentation is newly generated from Markdown files in this repository.</li>
-<li>Public HTML documentation for mytral.fitness is newly generated from Markdown files in this repository.</li>
+<li>Public HTML documentation for mytral.fitness is newly generated from Markdown files in
+  this repository.</li>
 </ul>
 <h3 id="tests">Tests</h3>
 <ul>
-<li>Added random attack which generates synthetic data of all MyTraL entities including attachments and recordings.</li>
+<li>Added random attack which generates synthetic data of all MyTraL entities including
+  attachments and recordings.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="180"><a href="https://github.com/dvorka-oss/my-training-log/compare/v1.7.0...v1.8.0">1.8.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
