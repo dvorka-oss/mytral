@@ -523,6 +523,10 @@ def home():
     activity_types = ds.list_activity_types(user_id=user_id)
     is_mobile = bool(flask.session.get(COOKIE_MOBILE))
 
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
     if len(ds_stats.years) > 1:
         bokeh_script, bokeh_div = charts.fig_grid_2_html(
             charts.total_km_per_year(
@@ -532,9 +536,6 @@ def home():
             )
         )
     elif len(ds_stats.years) == 1:
-        cal_heatmap = ds.activity_type_heatmap(
-            user_id=user_id, dataset_name=user_profile.dataset_name
-        )
         year = ds_stats.year_max
         x = list(range(1, 54))
         y = [
@@ -559,6 +560,17 @@ def home():
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
         ).values()
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=all_activities,
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
     )
 
     bokeh_month_cmp_script, bokeh_month_cmp_div = charts.last_vs_this_month(
@@ -659,6 +671,8 @@ def home():
         radar_script=radar_script,
         is_mobile=is_mobile,
         activity_types=activity_types,
+        # predictions & insights for dashboard cards
+        on_the_same_day=on_the_same_day,
         # warnings
         gear_requires_attention=gear_requires_attention,
         # dashboard statistics
@@ -879,6 +893,40 @@ def insight_predictions():
         user_profile=user_profile,
         insights=on_the_same_day,
         icl_predictions=icl_predictions,
+    )
+
+
+@flask_app.route("/insight/analytics")
+def insight_analytics():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
+    all_acts = ds.all_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=list(all_acts.values()),
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
+    )
+
+    return flask.render_template(
+        "analytics.html",
+        user_profile=user_profile,
+        insights=on_the_same_day,
     )
 
 
