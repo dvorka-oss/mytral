@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Manifesto - MyTraL Documentation</title>
+    <title>Feature: Sport Data Recordings datasets - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -135,7 +135,7 @@
                         <div class="dropdown-menu">
                           <div class="dropdown-menu-columns">
                             <div class="dropdown-menu-column">
-                              <a class="dropdown-item active" href="index.html">Manifesto</a>
+                              <a class="dropdown-item" href="index.html">Manifesto</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
 <div class="dropdown-divider"></div>
@@ -242,7 +242,7 @@
                 <div class="row g-2 align-items-center">
                     <div class="col">
                         <div class="page-pretitle">MyTraL Documentation</div>
-                        <h2 class="page-title">Manifesto</h2>
+                        <h2 class="page-title">Feature: Sport Data Recordings datasets</h2>
                     </div>
                 </div>
             </div>
@@ -253,42 +253,112 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><p><a href="https://mytral.fitness">MyTraL</a> is your <strong>personal</strong> training log for deeper insights and smarter progress. Your log, your data, your insights. Track, analyze, and optimize to achieve your goals.</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Reviewers</th>
+<th>Last updated</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DONE</td>
+<td>@reviewer</td>
+<td>YYYY-MM-DD</td>
+<td>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table of contents</strong></p>
 <ul>
-<li><a href="#no-silver-bullets">No Silver Bullets</a></li>
-<li><a href="#steel-and-soul">Steel and Soul</a></li>
-<li><a href="#data-ownership">Data Ownership</a></li>
-<li><a href="#perfect-software">Perfect Software</a></li>
-<li><a href="#freedom">Freedom</a></li>
-<li><a href="#gods-in-the-details">God's in the Details</a></li>
-<li><a href="#the-rhythm-of-the-spiral">The Rhythm of the Spiral</a></li>
-<li><a href="#open-data-formats">Open Data Formats</a></li>
-<li><a href="#training-knowledge">Training Knowledge</a></li>
+<li><a href="#analysis">Analysis</a><ul>
+<li><a href="#why">Why</a></li>
+<li><a href="#functional-requirements">Functional Requirements</a></li>
+<li><a href="#functional-non-requirements">Functional Non-requirements</a></li>
+<li><a href="#technical-requirements">Technical Requirements</a></li>
+<li><a href="#technical-non-requirements">Technical Non-requirements</a></li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="no-silver-bullets">No Silver Bullets</h2>
-<p>Track your activities day by day, week by week, month by month, year by year. There are <a href="https://en.wikipedia.org/wiki/Josh_Cox">no silver bullets</a> and no shortcuts -- just consistent effort over time.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="steel-and-soul">Steel and Soul</h2>
-<p>To truly understand a human being, a spreadsheet is not enough. You may be treated like a machine: input calories, output kilometers. But a machine doesn't have a "bad day", and a machine doesn't feel the "flow state". Do not trust your heart rate monitor alone -- listen to your body. By integrating Subjective Data (the "Soul") with Objective Data (the "Steel"), MyTraL captures the full spectrum of human performance. When everything is in one place, patterns emerge that isolated data would never reveal -- turning fragmented information into actionable wisdom.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="data-ownership">Data Ownership</h2>
-<p>Privacy is your right, not a privilege. Every day, people lose access to accounts containing years of personal data -- banned without explanation, locked out without recourse. Let your data live on your machine, under your control. Always accessible, always yours.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="perfect-software">Perfect Software</h2>
-<p>Software, like coffee, is a matter of personal ritual and objective taste. One athlete seeks the bitterness of a dark roast. Another, the clarity of a light pour-over. To force the same cup on everyone is not "user experience" -- it is a compromise.</p>
-<p>MyTraL is designed to be customized, not just used. <a href="https://outofdesk.netlify.app/blog/perfect-software">Perfect Software</a> is a mirror of the individual -- the version that is perfect for <em>you</em> specifically.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="freedom">Freedom</h2>
-<p>Digital sovereignty is a fundamental right, which is why MyTraL embraces <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software">FLOSS</a> principles. MyTraL provides you the four essential freedoms: to run, to study and change, to redistribute, and to distribute modified versions -- so the entire athlete community benefits.</p>
-<p>From the transparent development process to underlying algorithms, everything is open to audit. No hidden metrics, no backdoors, no proprietary secrets.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="gods-in-the-details">God's in the Details</h2>
-<p>Every lap, every set, and every rest interval is a data point with a story to tell. Why was the fourth interval slower? Was it a fade in focus, a spike in heart rate, or a heavy feeling in your legs that you noted in your diary?</p>
-<p>MyTraL uncovers these answers by moving beyond the "single block" recording style, allowing you to structure your workouts with <a href="https://en.wikipedia.org/wiki/The_devil_is_in_the_details">high-resolution granularity</a>. By capturing individual laps, work intervals, and specific rest periods, you move from merely measuring distance to understanding your potential.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="the-rhythm-of-the-spiral">The Rhythm of the Spiral</h2>
-<p>Nature operates in cycles -- the rotation of the planets, the rhythmic <a href="https://en.wikipedia.org/wiki/Sports_periodization">periodization</a> of athletic performance, the intentional ebb and flow of intensity and recovery.</p>
-<p>MyTraL lets you compare weeks, months, and years to track your true trajectory. This perspective reveals the patterns in your peaks and valleys, helping you understand when to push and when to allow your body to rebuild. Understanding your progress as a series of cycles transforms your training from a random collection of workouts into a purposeful journey of mastery.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="open-data-formats">Open Data Formats</h2>
-<p>Your training history is a lifetime asset that deserves to stand the test of time. MyTraL stores your progress using transparent, human-friendly open data format standards, ensuring your records remain accessible and readable forever.</p>
-<p>You can run your own post-processing scripts, build personal machine learning models to predict whatever you need, or visualize your progress in ways that fit your specific needs.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="training-knowledge">Training Knowledge</h2>
-<p>Stop guessing and start uncovering the "breakthrough outliers" hidden within your athletic history by identifying the precise triggers and patterns that drive your peak performance. MyTraL lets you perform deep-dive root-cause analysis to reveal why certain phases felt effortless while others stalled, turning subtle anomalies into lessons.</p>
-<p>Set your personal <a href="https://en.wikipedia.org/wiki/SMART_criteria">SMART</a> goals. Track your gear usage, service history, and costs. Maintain favourite training locations. Collect and organize your holistic training wisdom.</p>
+</li>
+<li><a href="#design">Design</a><ul>
+<li><a href="#implementation">Implementation</a></li>
+<li><a href="#tests">Tests</a></li>
+<li><a href="#benchmarks">Benchmarks</a></li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
+<li><a href="#appendices">Appendices</a></li>
+</ul>
+<h1 id="analysis">Analysis</h1>
+<p><em>[... abstract ...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why</h2>
+<p><em>[... motivation and value proposition...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-requirements">Functional Requirements</h2>
+<p><em>[... functional requirements (feature scope) and user stories...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-non-requirements">Functional Non-requirements</h2>
+<p><em>[... functional non-requirements within the scope of this feature - what we will not deliver...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-requirements">Technical Requirements</h2>
+<p><em>[... technical requirements (including security and performance) and user stories (feature scope)...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-non-requirements">Technical Non-requirements</h2>
+<p><em>[... technical non-requirements within the scope of this feature - what will not be implemented...]</em></p>
+<h1 id="design">Design</h1>
+<p><em>[... a design introduction / abstract / high-level highlights]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="goldencheetah-opendata-project">GoldenCheetah OpenData Project</h2>
+<p>From GC OSF web:</p>
+<p>From mid-2018 users of the popular sports analysis desktop application GoldenCheetah have been able to share their workout data to this repository.</p>
+<p>Each athlete’s data is shared as a single zip file that contains a summary level description (aggregates, metrics and so on) as a JSON file and additionally, all workout files are stored as CSV files.</p>
+<p>The CSV files contain second by second sample data from athlete workouts for; Heartrate, Cadence, Power, Distance and Altitude.</p>
+<ul>
+<li>The data does not contain any PII information.</li>
+<li>The unique id is anonymous, except to the original user.</li>
+<li>The data does not contain any GPS information.</li>
+<li>The data is in the raw format provided by the user.</li>
+<li>The data is shared for anyone to use.</li>
+</ul>
+<p>We are developing tools for working with these data sets, and these can be found on the GoldenCheetah OpenData Github repository.</p>
+<ul>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
+<li><a href="https://osf.io/6hfpz/files/osfstorage">Golden Cheetak dataset files</a><ul>
+<li>Use "Download As Zip" to download all the files</li>
+</ul>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="implementation">Implementation</h2>
+<p><em>[... a brief implementation description and/or diagrams...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tests">Tests</h2>
+<p><em>[... a brief description of unit, integration, load, longevity, regression, manual and smoke tests...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="benchmarks">Benchmarks</h2>
+<p><em>[... benchmark(s) and their result...]</em></p>
+<h1 id="references">References</h1>
+<p><em>[... relevant resources...]</em></p>
+<ul>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
+</ul>
+<h1 id="appendices">Appendices</h1>
+<p><em>[... appendice sections...]</em></p>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -298,16 +368,15 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#manifesto" class="nav-link">Manifesto</a>
-<a href="#no-silver-bullets" class="nav-link">No Silver Bullets</a>
-<a href="#steel-and-soul" class="nav-link">Steel and Soul</a>
-<a href="#data-ownership" class="nav-link">Data Ownership</a>
-<a href="#perfect-software" class="nav-link">Perfect Software</a>
-<a href="#freedom" class="nav-link">Freedom</a>
-<a href="#gods-in-the-details" class="nav-link">God's in the Details</a>
-<a href="#the-rhythm-of-the-spiral" class="nav-link">The Rhythm of the Spiral</a>
-<a href="#open-data-formats" class="nav-link">Open Data Formats</a>
-<a href="#training-knowledge" class="nav-link">Training Knowledge</a>
+        <a href="#why" class="nav-link">Why</a>
+<a href="#functional-requirements" class="nav-link">Functional Requirements</a>
+<a href="#functional-non-requirements" class="nav-link">Functional Non-requirements</a>
+<a href="#technical-requirements" class="nav-link">Technical Requirements</a>
+<a href="#technical-non-requirements" class="nav-link">Technical Non-requirements</a>
+<a href="#goldencheetah-opendata-project" class="nav-link">GoldenCheetah OpenData Project</a>
+<a href="#implementation" class="nav-link">Implementation</a>
+<a href="#tests" class="nav-link">Tests</a>
+<a href="#benchmarks" class="nav-link">Benchmarks</a>
     </div>
 </div>
                     </div>
@@ -325,8 +394,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/INDEX.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/INDEX.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

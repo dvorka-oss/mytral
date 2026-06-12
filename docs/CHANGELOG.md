@@ -21,6 +21,7 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, open-source 
 - Added TCX import (individual files and directory of recordings/archives).
 - Added `gender` field to the athlete profile in order to calculate metrics like TRIMP more accurately.
 - Added TRIMP calculation and chart to the `Progress` menu.
+- Added meta sport taxonomy based lifetime totals insight page.
 - Improved polyline calculation to be ~4000x faster (legacy method kept).
 
 ### Changed
