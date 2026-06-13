@@ -91,6 +91,7 @@ from mytral import commons
 from mytral import config
 from mytral import loggers
 from mytral import persistences
+from mytral import security
 from mytral import settings
 from mytral import stats
 from mytral.backends import cache
@@ -102,63 +103,6 @@ from mytral.backends import entities
 FILE_ACTIVITIES_PRE = "activities-"
 FILE_STATS_INFIX = "stats"
 EXT_JSON = "json"
-
-
-def _decrypt_strava_secrets(profile_dict: dict) -> None:
-    """Decrypt encrypted Strava client secrets in a profile dict (in-place).
-
-    Reads ``client_id_enc`` / ``client_secret_enc`` and writes the decrypted
-    values back as ``client_id`` / ``client_secret`` so the rest of the code
-    can use plain-text values transparently.  Falls back to any existing
-    plain-text values for backward-compatibility (migration path).
-    """
-    # local imports avoid circular dependencies at module load time
-    from mytral import app_config
-    from mytral import security
-
-    strava = profile_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    enc_key = app_config.encryption_key
-
-    for enc_field, plain_field in (
-        (settings.UserProfile.KEY_CLIENT_ID_ENC, settings.UserProfile.KEY_CLIENT_ID),
-        (
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-            settings.UserProfile.KEY_CLIENT_SECRET,
-        ),
-    ):
-        enc_val = strava.get(enc_field, "")
-        if enc_val:
-            try:
-                strava[plain_field] = security.decrypt(enc_val, enc_key)
-            except ValueError:
-                # key mismatch or corrupt value – fall back to whatever is stored
-                pass
-
-
-def _encrypt_strava_secrets(data_dict: dict) -> None:
-    """Encrypt Strava client secrets in a serialisation dict (in-place).
-
-    Reads plain-text ``client_id`` / ``client_secret`` from the ``strava``
-    sub-dict, writes encrypted copies under ``client_id_enc`` /
-    ``client_secret_enc``, and removes the plain-text keys so they are never
-    written to disk.
-    """
-    # local imports avoid circular dependencies at module load time
-    from mytral import app_config
-    from mytral import security
-
-    strava = data_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    enc_key = app_config.encryption_key
-
-    for plain_field, enc_field in (
-        (settings.UserProfile.KEY_CLIENT_ID, settings.UserProfile.KEY_CLIENT_ID_ENC),
-        (
-            settings.UserProfile.KEY_CLIENT_SECRET,
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-        ),
-    ):
-        plain_val = strava.pop(plain_field, "")
-        strava[enc_field] = security.encrypt(plain_val, enc_key) if plain_val else ""
 
 
 def list_activity_dataset_names(user_dir: pathlib.Path) -> list[str]:
@@ -333,10 +277,6 @@ class JSONUserActivitiesDataset:
         self, user_id: str, dataset_name: str, ext: str = persistences.EXT_JSON
     ) -> pathlib.Path:
         return self.data_dir / user_id / f"{dataset_name}-{FILE_STATS_INFIX}.{ext}"
-
-    def _list_2_ddict(self, activities: list[entities.ActivityEntity]) -> list[dict]:
-        """List of entities to list of dicts (new format)."""
-        return self._dict_2_ddict(activities={a.key: a for a in activities})
 
     def _dict_2_ddict(
         self, activities: dict[str, entities.ActivityEntity]
@@ -777,15 +717,80 @@ class JSONUserActivitiesDataset:
     def update_activities(
         self, user_id: str, dataset_name: str, activities: list[entities.ActivityEntity]
     ):
+        """Bulk update of activities:
+
+        - activities are evaluated to calculate duration and other transient fields
+        - activities are clustered by year
+        - activities w/ the same year are routed to their target dataset files for year
+
+        """
         # evaluate activities to calculate duration and other transient fields
         for activity in activities:
             entities.evaluate_activity(activity)
 
-        self._save(
-            ds=self._list_2_ddict(activities=activities),
-            user_id=user_id,
-            dataset_name=dataset_name,
-        )
+        today = datetime.datetime.now()
+
+        # STEP: cluster activities by year
+        a2year: dict[int, list[entities.ActivityEntity]] = {}
+        for e in activities:
+            when_year = e.when_year if isinstance(e.when_year, int) else today.year
+            upper_year_limit = datetime.date.today().year + 50
+            if not (1900 < when_year < upper_year_limit):
+                raise RuntimeError(
+                    f"Activity's year is out of range: '{when_year}', most "
+                    f"probably an error and therefore the activity cannot be saved, "
+                    f"because such dataset file does NOT exist and will not be created."
+                )
+
+            if when_year not in a2year:
+                a2year[when_year] = []
+            a2year[when_year].append(e)
+
+        # STEP: get datasets for years > save clusters
+        for y in a2year:
+            pivot_a = a2year[y][0]
+            target_dataset_name = self._ds_name_for_activity(
+                dataset_name=dataset_name,
+                entity=pivot_a,
+            )
+            # load YEAR datasets from filesystem to cache, refresh LIFELONG/CUSTOM
+            self._load(user_id=user_id, dataset_name=dataset_name)
+            # get YEAR dataset from cache
+            year_ds = self._cache.user(user_id=user_id).activities_year(
+                target_dataset_name
+            )
+
+            # STEP: add ALL activities of the year to the YEAR dataset
+            for a in a2year[y]:
+                year_ds[a.key] = a
+
+            # STEP: exactly 1 write per YEAR dataset to filesystem || CUSTOM ds file
+            self._save(
+                ds=self._dict_2_ddict(activities=year_ds),
+                user_id=user_id,
+                dataset_name=target_dataset_name,
+            )
+            # LIFELONG (in-memory only)
+            lifelong_ds = self._cache.user(user_id=user_id).activities(
+                dataset_name=dataset_name
+            )
+            for a in a2year[y]:
+                lifelong_ds[a.key] = a  # add/set, do not re-merge all YEARS - faster
+
+                # STEP: update gear / component usage
+                if a.gears:
+                    for gear_key in a.gears:
+                        self._update_gear_component_usage(
+                            user_id=user_id,
+                            dataset_name=dataset_name,
+                            gear_key=gear_key,
+                            activity_distance_meters=a.distance or 0,
+                            activity_time_seconds=a.duration_seconds or 0,
+                            activity_timestamp=a.when or "",
+                        )
+
+            # STEP: on behalf of ALL years - update YEAR caches -> evict indices
+            self._cache.user(user_id).evict_on_activity_cud()
 
     def delete_activity(self, user_id: str, dataset_name: str, key: str) -> None:
         # load YEAR datasets from filesystem to cache, refresh LIFELONG/CUSTOM
@@ -1120,7 +1125,10 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         profile_dict[settings.UserProfile.KEY_DATASET_NAMES] = (
             list_activity_dataset_names(self.user_dir(user_id=user_id))
         )
-        _decrypt_strava_secrets(profile_dict)
+        security.decrypt_strava_secrets(
+            profile_dict=profile_dict,
+            enc_key=self.config.encryption_key,
+        )
         return settings.UserProfile.from_dict(profile_dict)
 
     def create_profile(
@@ -1130,7 +1138,9 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         user_profile.user_id = user_profile.user_id or str(uuid.uuid4())
 
         data_dict = user_profile.to_dict()
-        _encrypt_strava_secrets(data_dict)
+        security.encrypt_strava_secrets(
+            data_dict=data_dict, enc_key=self.config.encryption_key
+        )
 
         # save profile to filesystem
         persistences.save_json(
@@ -2001,10 +2011,8 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     # tasks
     #
 
-    FILE_TASKS_DIR = "tasks"
-
     def user_tasks_dir(self, user_id: str) -> pathlib.Path:
-        tasks_dir = self.user_dir(user_id) / JsonUsersDataset.FILE_TASKS_DIR
+        tasks_dir = self.user_dir(user_id) / config.MytralPersistenceFsConfig.DIR_TASKS
         tasks_dir.mkdir(parents=True, exist_ok=True)
         return tasks_dir
 

@@ -523,6 +523,10 @@ def home():
     activity_types = ds.list_activity_types(user_id=user_id)
     is_mobile = bool(flask.session.get(COOKIE_MOBILE))
 
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
     if len(ds_stats.years) > 1:
         bokeh_script, bokeh_div = charts.fig_grid_2_html(
             charts.total_km_per_year(
@@ -532,9 +536,6 @@ def home():
             )
         )
     elif len(ds_stats.years) == 1:
-        cal_heatmap = ds.activity_type_heatmap(
-            user_id=user_id, dataset_name=user_profile.dataset_name
-        )
         year = ds_stats.year_max
         x = list(range(1, 54))
         y = [
@@ -559,6 +560,17 @@ def home():
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
         ).values()
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=all_activities,
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
     )
 
     bokeh_month_cmp_script, bokeh_month_cmp_div = charts.last_vs_this_month(
@@ -659,6 +671,8 @@ def home():
         radar_script=radar_script,
         is_mobile=is_mobile,
         activity_types=activity_types,
+        # predictions & insights for dashboard cards
+        on_the_same_day=on_the_same_day,
         # warnings
         gear_requires_attention=gear_requires_attention,
         # dashboard statistics
@@ -882,6 +896,40 @@ def insight_predictions():
     )
 
 
+@flask_app.route("/insight/analytics")
+def insight_analytics():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
+    all_acts = ds.all_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=list(all_acts.values()),
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
+    )
+
+    return flask.render_template(
+        "analytics.html",
+        user_profile=user_profile,
+        insights=on_the_same_day,
+    )
+
+
 def _compute_icl_predictions(user_profile, all_acts: dict) -> dict | None:
     """Compute ICL predictions when the feature is enabled.
 
@@ -962,12 +1010,52 @@ def insight_lifetime_totals():
         user_id=user_id, dataset_name=user_profile.dataset_name
     )
 
-    return flask.render_template(
-        "lifetime-totals.html",
-        user_profile=user_profile,
-        stats=ds_stats,
-        activity_types=ds.list_activity_types(user_id=user_id),
-    )
+    aspect = flask.request.args.get(commons.URL_ARG_ASPECT, "sports")
+
+    template_vars: dict = {
+        "user_profile": user_profile,
+        "stats": ds_stats,
+        "activity_types": ds.list_activity_types(user_id=user_id),
+        "aspect": aspect,
+    }
+
+    if aspect == "meta":
+        # aggregate top-level totals by meta sport
+        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
+            ds_stats.total_m_per_activity_type,
+            ds_stats.total_seconds_per_activity_type,
+        )
+        template_vars["total_m_per_meta"] = m_per_meta
+        template_vars["total_km_per_meta"] = {
+            mk: int(meters / 1000.0) for mk, meters in m_per_meta.items()
+        }
+        template_vars["total_time_per_meta"] = {
+            mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
+        }
+
+        # aggregate per-year totals by meta sport
+        per_year_meta: dict[int, dict] = {}
+        for y, year_stats in ds_stats.year.items():
+            ym_m, ym_s = commons.aggregate_by_meta_sport(
+                year_stats.total_m_per_activity_type,
+                year_stats.total_seconds_per_activity_type,
+            )
+            per_year_meta[y] = {
+                "total_m_per_meta": ym_m,
+                "total_km_per_meta": {
+                    mk: int(meters / 1000.0) for mk, meters in ym_m.items()
+                },
+                "total_time_per_meta": {
+                    mk: cals.seconds_to_str_time(seconds)
+                    for mk, seconds in ym_s.items()
+                },
+            }
+        template_vars["per_year_meta"] = per_year_meta
+
+        # pass display names for column headers
+        template_vars["meta_display_names"] = commons.M_AT_DISPLAY_NAMES
+
+    return flask.render_template("lifetime-totals.html", **template_vars)
 
 
 @flask_app.route("/insight/yoy-performance")

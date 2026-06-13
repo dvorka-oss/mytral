@@ -39,6 +39,7 @@ from mytral.integrations import google_sheets
 from mytral.integrations import imytral
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
+from mytral.tasks.do import fit_directory_import
 from mytral.tasks.do import fit_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
@@ -93,6 +94,13 @@ def _build_gpx_directory_import_form(user_id: str) -> forms.ImportGpxDirectoryFo
 def _build_tcx_directory_import_form(user_id: str) -> forms.ImportTcxDirectoryForm:
     """Instantiate TCX directory import form with dynamic activity type choices."""
     form = forms.ImportTcxDirectoryForm()
+    form.sport_type.choices = _recording_import_activity_type_choices(user_id)
+    return form
+
+
+def _build_fit_directory_import_form(user_id: str) -> forms.ImportFitDirectoryForm:
+    """Instantiate FIT directory import form with dynamic activity type choices."""
+    form = forms.ImportFitDirectoryForm()
     form.sport_type.choices = _recording_import_activity_type_choices(user_id)
     return form
 
@@ -493,6 +501,7 @@ def tool_import():
         import_tcx_form=_build_tcx_import_form(user_id),
         import_gpx_directory_form=_build_gpx_directory_import_form(user_id),
         import_tcx_directory_form=_build_tcx_directory_import_form(user_id),
+        import_fit_directory_form=_build_fit_directory_import_form(user_id),
         is_desktop=app_config.incarnation == _config_mod.MytralIncarnation.DESKTOP,
     )
 
@@ -1293,23 +1302,7 @@ def tool_import_gpx_directory():
                 flask.flash(error, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
-    data_dir = form.data_dir.data.strip()
-    if not data_dir:
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="GPX directory path cannot be empty or whitespace-only.",
-            back_endpoint="tool_import",
-        )
-    if not os.path.isabs(data_dir):
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="GPX directory path must be absolute (e.g. /home/user/gpx).",
-            back_endpoint="tool_import",
-        )
+    data_dir = form.data_dir.data
     if not os.path.isdir(data_dir):
         return flask.render_template(
             "mytral-error.html",
@@ -1383,23 +1376,7 @@ def tool_import_tcx_directory():
                 flask.flash(error, "warning")
         return flask.redirect(flask.url_for("tool_import"))
 
-    data_dir = form.data_dir.data.strip()
-    if not data_dir:
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="TCX directory path cannot be empty or whitespace-only.",
-            back_endpoint="tool_import",
-        )
-    if not os.path.isabs(data_dir):
-        return flask.render_template(
-            "mytral-error.html",
-            user_profile=ds.profile(user_id),
-            title="Import Error",
-            message="TCX directory path must be absolute (e.g. /home/user/tcx).",
-            back_endpoint="tool_import",
-        )
+    data_dir = form.data_dir.data
     if not os.path.isdir(data_dir):
         return flask.render_template(
             "mytral-error.html",
@@ -1447,4 +1424,82 @@ def tool_import_tcx_directory():
             "Failed to submit TCX directory import task", error=str(exc)
         )
         flask.flash(f"Failed to start TCX directory import: {exc}", "error")
+        return flask.redirect(flask.url_for("tool_import"))
+
+
+@flask_app.route("/app/tools/import/fit/directory", methods=["POST"])
+def tool_import_fit_directory():
+    """Submit an async FIT directory import task.
+
+    Desktop-only: requires a local filesystem path.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    # desktop-only guard
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+        flask.flash(
+            "FIT directory import is only available in the desktop version.",
+            "warning",
+        )
+        return flask.redirect(flask.url_for("tool_import"))
+
+    form = _build_fit_directory_import_form(user_id)
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    data_dir = form.data_dir.data
+    if not os.path.isdir(data_dir):
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message=f"The specified FIT directory does not exist: {data_dir}",
+            back_endpoint="tool_import",
+        )
+
+    correlation_id = str(uuid.uuid4())
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=fit_directory_import.FitDirectoryImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": ds.profile(user_id).dataset_name,
+            "data_dir": data_dir,
+            "sport_type": form.sport_type.data,
+            "on_conflict": form.on_conflict.data,
+            "correlation_id": correlation_id,
+        },
+        is_cancelled=False,
+    )
+
+    try:
+        task_id = app_task_manager.executor.submit(task_entity)
+        flask.flash(
+            f"FIT directory import started (task {task_id}). "
+            "Check the Tasks page for progress.",
+            "success",
+        )
+        return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+    except Exception as exc:
+        app_logger.exception(
+            "Failed to submit FIT directory import task", error=str(exc)
+        )
+        flask.flash(f"Failed to start FIT directory import: {exc}", "error")
         return flask.redirect(flask.url_for("tool_import"))

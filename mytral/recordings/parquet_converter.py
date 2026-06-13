@@ -537,7 +537,7 @@ def load_parquet(parquet_data: bytes) -> RecordingData:
         )
 
     timestamps: list[datetime.datetime] = [
-        datetime.datetime.fromtimestamp(ts_ms / 1000.0)
+        datetime.datetime.fromtimestamp(ts_ms / 1000.0, tz=datetime.timezone.utc)
         for ts_ms in df["ts_unix_ms"].to_list()
     ]
 

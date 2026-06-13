@@ -14,7 +14,66 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-"""Blob store package for MyTraL activity attachments (GPX files and photos)."""
+
+"""Blob store package for MyTraL activity attachmentsL photos, TCX/GPX/* recordings,...
+
+$MYTRAL_DATA_DIR/data/[user UUID]/
+  blobs/
+
+    acoaches/
+      ...
+
+    activities/
+      [UUID]/                    ... BLOBs for activity
+        parquet/
+          [UUID]/
+            metadata.json
+              ... blob key, user ID, filename, ext, size, SHA, name, descr, ...
+            normalized.parquet
+        recordings/
+          [UUID]/
+            metadata.json
+            data.gpx
+        photos/
+          [UUID]/
+            metadata.json
+            normalized.jpg
+            thumbnail.jpg
+
+    exercises/
+      ...
+
+    gear/
+      ...
+
+    goals/
+      ...
+
+    profile/
+      [UUID]/                    ... avatar BLOBs for user profile
+        metadata.json            ... same as metadata above
+        normalized.jpg
+        thumbnail.jpg
+
+    misc/                        ... FALLBACK
+        [UUID]/
+            [BLOB metadata kind like activity_parquet, photo, ...]
+              ...
+
+    ...
+
+    parquet/                     ... TODO possibly misplaced for 3D IR model
+      [UUID]/
+        metadata.json
+        normalized.parquet
+
+    photos/
+      [UUID]/                    ... avatar BLOBs for user profile
+        metadata.json            ... same as metadata above
+        normalized.jpg
+        thumbnail.jpg
+
+"""
 
 from mytral.blobstore.abc import BlobStoreAbc
 from mytral.blobstore.avatar_service import AvatarBlobService
@@ -31,6 +90,7 @@ from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobMetadata
 from mytral.blobstore.models import BlobOwnerKind
 from mytral.blobstore.models import BlobRecord
+from mytral.config import BlobStoreType
 
 
 def create_blobstore(config) -> BlobStoreAbc:
@@ -49,10 +109,9 @@ def create_blobstore(config) -> BlobStoreAbc:
     Raises
     ------
     BlobConfigurationError
-        If the configured backend cannot be initialised (e.g. missing
+        If the configured backend cannot be initialized (e.g. missing
         dependencies or connection failure).
     """
-    from mytral.config import BlobStoreType
 
     if config.blobstore_type == BlobStoreType.FILESYSTEM:
         from mytral.blobstore.filesystem import FilesystemBlobStore

@@ -17,12 +17,13 @@
 """TCX file activity-level summary extractor."""
 
 import datetime
-import math
 import statistics
 
 import defusedxml.ElementTree
 
 from mytral import commons
+from mytral.recordings import _geo_utils
+from mytral.recordings import _xml_utils
 from mytral.recordings.models import RecordingSummary
 
 _NS_TCX = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"
@@ -39,12 +40,6 @@ def _parse_tcx_root(tcx_data: bytes):
         return defusedxml.ElementTree.fromstring(cleaned)
     except Exception as exc:
         raise ValueError(f"Invalid TCX XML payload: {exc}") from exc
-
-
-def _extract_namespace(root) -> str:
-    if "}" in root.tag:
-        return root.tag.split("}")[0] + "}"
-    return ""
 
 
 def _parse_iso_datetime(value: str) -> datetime.datetime | None:
@@ -93,24 +88,10 @@ def _sport_to_activity_type(sport: str) -> str:
     return sport_map.get(normalized, commons.AT_WORKOUT)
 
 
-def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    radius_m = 6371000.0
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    d_phi = math.radians(lat2 - lat1)
-    d_lambda = math.radians(lon2 - lon1)
-    a = (
-        math.sin(d_phi / 2.0) ** 2
-        + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2.0) ** 2
-    )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return radius_m * c
-
-
 def parse_tcx(tcx_data: bytes) -> tuple[int, int]:
     """Return track and trackpoint counts from a TCX payload."""
     root = _parse_tcx_root(tcx_data)
-    ns = _extract_namespace(root)
+    ns = _xml_utils._extract_namespace(root)
     track_count = 0
     track_point_count = 0
 
@@ -128,7 +109,7 @@ def parse_tcx(tcx_data: bytes) -> tuple[int, int]:
 def extract_gps_points(tcx_data: bytes) -> list[tuple[float, float]]:
     """Extract ordered latitude/longitude pairs from TCX trackpoints."""
     root = _parse_tcx_root(tcx_data)
-    ns = _extract_namespace(root)
+    ns = _xml_utils._extract_namespace(root)
     points: list[tuple[float, float]] = []
 
     for trackpoint in root.iter(f"{ns}Trackpoint"):
@@ -147,7 +128,7 @@ def extract_gps_points(tcx_data: bytes) -> list[tuple[float, float]]:
 def extract_elevation_profile(tcx_data: bytes) -> list[tuple[float, float]]:
     """Extract distance/elevation samples for rendering a gradient profile."""
     root = _parse_tcx_root(tcx_data)
-    ns = _extract_namespace(root)
+    ns = _xml_utils._extract_namespace(root)
     profile: list[tuple[float, float]] = []
     total_distance_m = 0.0
     prev_lat: float | None = None
@@ -167,7 +148,7 @@ def extract_elevation_profile(tcx_data: bytes) -> list[tuple[float, float]]:
             continue
 
         if prev_lat is not None and prev_lon is not None:
-            total_distance_m += _haversine_m(prev_lat, prev_lon, lat, lon)
+            total_distance_m += _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
 
         if ele_el is not None and ele_el.text:
             ele = _safe_float(ele_el.text)
@@ -180,6 +161,70 @@ def extract_elevation_profile(tcx_data: bytes) -> list[tuple[float, float]]:
     return profile
 
 
+def extract_all_from_tcx(
+    tcx_data: bytes,
+) -> tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]:
+    """Parse TCX once and extract track counts, GPS points, and elevation profile.
+
+    Avoids the triple-parse overhead of calling ``parse_tcx``,
+    ``extract_gps_points``, and ``extract_elevation_profile`` separately.
+
+    Parameters
+    ----------
+    tcx_data : bytes
+        Raw TCX file content.
+
+    Returns
+    -------
+    tuple[int, int, list[tuple[float, float]], list[tuple[float, float]]]
+        ``(track_count, track_point_count, gps_points, elevation_profile)``
+    """
+    root = _parse_tcx_root(tcx_data)
+    ns = _xml_utils._extract_namespace(root)
+
+    track_count = 0
+    track_point_count = 0
+    gps_points: list[tuple[float, float]] = []
+    profile: list[tuple[float, float]] = []
+
+    total_distance_m = 0.0
+    prev_lat: float | None = None
+    prev_lon: float | None = None
+
+    for track in root.iter(f"{ns}Track"):
+        track_count += 1
+        for trackpoint in track.iter(f"{ns}Trackpoint"):
+            lat_el = trackpoint.find(f"{ns}Position/{ns}LatitudeDegrees")
+            lon_el = trackpoint.find(f"{ns}Position/{ns}LongitudeDegrees")
+            if lat_el is None or lon_el is None or not lat_el.text or not lon_el.text:
+                continue
+
+            try:
+                lat = float(lat_el.text)
+                lon = float(lon_el.text)
+            except ValueError:
+                continue
+
+            gps_points.append((lat, lon))
+            track_point_count += 1
+
+            if prev_lat is not None and prev_lon is not None:
+                total_distance_m += _geo_utils._haversine_m(
+                    prev_lat, prev_lon, lat, lon
+                )
+
+            ele_el = trackpoint.find(f"{ns}AltitudeMeters")
+            if ele_el is not None and ele_el.text:
+                ele = _safe_float(ele_el.text)
+                if ele is not None:
+                    profile.append((float(total_distance_m), ele))
+
+            prev_lat = lat
+            prev_lon = lon
+
+    return track_count, track_point_count, gps_points, profile
+
+
 def extract_tcx_summary(tcx_data: bytes) -> RecordingSummary:
     """Parse a TCX file and derive an activity-level summary."""
     summary = RecordingSummary()
@@ -189,7 +234,7 @@ def extract_tcx_summary(tcx_data: bytes) -> RecordingSummary:
     except ValueError:
         return summary
 
-    ns = _extract_namespace(root)
+    ns = _xml_utils._extract_namespace(root)
     activity_el = root.find(f"{ns}Activities/{ns}Activity")
     if activity_el is None:
         return summary

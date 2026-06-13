@@ -450,21 +450,18 @@
                           >
                             Predictions
                           </a>
-                          {% if ff.can("INSIGHTS_ANALYTICS") %}
                           <a class="dropdown-item"
                             title="Analytics."
-                            href="{{ url_for('insight_predictions') }}"
+                            href="{{ url_for('insight_analytics') }}"
                           >
                             Analytics
-                            <span class="badge badge-sm bg-yellow-lt text-uppercase ms-auto">TODO</span>
                           </a>
-                          {% endif %}
 
                           <div class="dropdown-divider"></div>
 
                           <a class="dropdown-item"
                             title="Tabuler overview of activity types per year."
-                            href="{{ url_for('insight_lifetime_totals') }}"
+                            href="{{ url_for('insight_lifetime_totals') }}?aspect=meta"
                           >
                             Lifetime totals
                           </a>

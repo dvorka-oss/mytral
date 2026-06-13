@@ -141,7 +141,9 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
         start_ts = message.start_time
         if start_ts is not None:
             try:
-                summary.when = datetime.datetime.fromtimestamp(start_ts / 1000.0)
+                summary.when = datetime.datetime.fromtimestamp(
+                    start_ts / 1000.0, tz=datetime.timezone.utc
+                )
             except (ValueError, OSError):
                 pass
 

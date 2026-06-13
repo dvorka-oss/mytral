@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>MyTraL Architecture - MyTraL Documentation</title>
+    <title>Feature: Sport Data Recordings datasets - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -164,7 +164,7 @@
                         <div class="dropdown-menu">
                           <div class="dropdown-menu-columns">
                             <div class="dropdown-menu-column">
-                              <a class="dropdown-item active" href="architecture.html">Architecture</a>
+                              <a class="dropdown-item" href="architecture.html">Architecture</a>
 <a class="dropdown-item" href="normalization.html">Activity Normalization</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
@@ -241,8 +241,8 @@
             <div class="container-xl">
                 <div class="row g-2 align-items-center">
                     <div class="col">
-                        <div class="page-pretitle">Technical Documentation</div>
-                        <h2 class="page-title">MyTraL Architecture</h2>
+                        <div class="page-pretitle">MyTraL Documentation</div>
+                        <h2 class="page-title">Feature: Sport Data Recordings datasets</h2>
                     </div>
                 </div>
             </div>
@@ -253,95 +253,112 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><p>This page describes the actual runtime architecture of MyTraL based on the current Python modules and wiring.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="uml-component-diagram-nested-ascii">UML Component Diagram (Nested ASCII)</h2>
-<div class="codehilite"><pre><span></span><code>+-------------------+                     +----------------------------------------+
-|       User        |                     |                Browser                 |
-| &lt;&lt;actor&gt;&gt; Athlete |--------------------&gt;| &lt;&lt;component&gt;&gt; Tabler UI + JS + Bokeh   |
-+-------------------+                     | + Leaflet + forms in HTML templates    |
-                                          +-------------------+--------------------+
-                                                              |
-                                                              | HTTP request/response
-                                                              v
-  +-------------------------------------------------------------------------------------+
-  |                           MyTraL Server (Python process)                            |
-  |                                &lt;&lt;component&gt;&gt;                                        |
-  |                                                                                     |
-  |   +-------------------------------------------------------------------------+       |
-  |   | Flask Web Layer                                                         |       |
-  |   | &lt;&lt;component&gt;&gt; routes.py + blueprints/* + middleware/sync_guard.py       |       |
-  |   +-----------------------------+---------------------------+---------------+       |
-  |                                 |                           |                       |
-  |                    +------------v-----------+     +---------v----------------+      |
-  |                    | Jinja Template Layer   |     | Async Task Subsystem     |      |
-  |                    | &lt;&lt;component&gt;&gt;          |     | &lt;&lt;component&gt;&gt;            |      |
-  |                    | templates/*.html       |     | TaskManager              |      |
-  |                    +------------------------+     | ThreadTaskExecutor       |      |
-  |                                                   | TaskStorage + tasks/do/* |      |
-  |                                                   +---------------+----------+      |
-  |                                                                   |                 |
-  |   +-------------------------------+                               |                 |
-  |   | Domain &amp; Analytics Layer      |                               |                 |
-  |   | &lt;&lt;component&gt;&gt;                 |                               |                 |
-  |   | stats.py athlete_metrics.py   |                               |                 |
-  |   | charts.py insights.py plugins |                               |                 |
-  |   +---------------+---------------+                               |                 |
-  |                   |                                               |                 |
-  |   +---------------v-----------------------------------------------v--------------+  |
-  |   | Dataset Facade: MyTraLDataset / UserDataset interface                        |  |
-  |   | &lt;&lt;component&gt;&gt; backends/dataset.py                                            |  |
-  |   +--------------------------+------------------------------+--------------------+  |
-  |                              |                              |                       |
-  |      +-----------------------v----------------+   +---------v------------------+    |
-  |      | JSON Persistence + Cache               |   | Blob Service Layer         |    |
-  |      | &lt;&lt;component&gt;&gt;                          |   | &lt;&lt;component&gt;&gt;              |    |
-  |      | JsonUsersDataset + JSONUserActivities  |   | Activity/Avatar/Entity svc |    |
-  |      | InMemory/Passthrough cache             |   | validation + image process |    |
-  |      +-----------------------+----------------+   +-------------+--------------+    |
-  +------------------------------|----------------------------------|-------------------+
-                                 |                                  |
-                                 v                                  v
-              +------------------+-------------------+   +----------+-------------------+
-              | Filesystem Structured Store          |   | Blob Store Backend           |
-              | &lt;&lt;component&gt;&gt; data/&lt;user&gt;/           |   | &lt;&lt;component&gt;&gt; filesystem     |
-              | activities-*.json, user-*.json,      |   | (default), optional MinIO/S3 |
-              | tasks/task-*.json + task-*.log       |   +------------------------------+
-              +------------------+-------------------+
-                                 |
-                                 v
-              +------------------+--------------------+
-              | External Integrations                 |
-              | &lt;&lt;component&gt;&gt; Strava / Google / Polar |
-              | via plugins and integrations modules  |
-              +---------------------------------------+
-</code></pre></div>
-
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="user">User</h2>
-<p>The user is the primary actor who drives all use cases: training logging, profile maintenance, synchronization, and analytics consumption. In architecture terms, the user is external to the software system but initiates every flow by interacting with the browser client.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="browser">Browser</h2>
-<p>The browser renders server-generated HTML from Jinja templates, loads static assets (Tabler CSS/JS, Bokeh JavaScript bundles, Leaflet), executes UI behavior, and sends authenticated HTTP requests back to the Flask server. It also hosts runtime UX elements like task status polling and chart interactivity.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="server">Server</h2>
-<p>The server is a single Python runtime where application singletons are created (<code>app_config</code>, dataset facade, blob store, task manager) and then shared across route handlers and services. It is the orchestration boundary that composes web handling, domain logic, storage, and asynchronous processing into one coherent request lifecycle.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="flask-web-layer">Flask Web Layer</h2>
-<p>Flask provides the request router and HTTP execution model through <code>routes.py</code> plus URI-space modules in <code>mytral/blueprints/</code>, with middleware hooks such as the sync guard that enforces read-only mode during running tasks. This layer binds sessions, forms, task APIs, and template rendering to specific endpoints.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="jinja-template-layer">Jinja Template Layer</h2>
-<p>Jinja templates in <code>mytral/templates/</code> define the web UI structure and receive route-prepared view models, form instances, and chart embeds. It is responsible for consistent page composition (layout, navigation, flash messaging, task indicators) while keeping route modules focused on orchestration and data preparation.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="domain-analytics-layer">Domain &amp; Analytics Layer</h2>
-<p>The domain layer is implemented by modules such as <code>stats.py</code>, <code>athlete_metrics.py</code>, <code>insights.py</code>, and <code>charts.py</code>, and turns raw persisted activity/profile data into derived metrics, health/training summaries, and Bokeh visualizations. It is consumed by both synchronous web requests and background task flows.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="async-task-subsystem">Async Task Subsystem</h2>
-<p>The task subsystem consists of <code>TaskManager</code>, <code>ThreadTaskExecutor</code>, <code>TaskStorage</code>, per-user locking, and concrete task implementations in <code>tasks/do/*</code>. It executes long-running operations (imports, sync, conversion) in worker threads, persists task state/logs, supports cancellation and watchdog timeout handling, and integrates with UI status endpoints.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="dataset-facade">Dataset Facade</h2>
-<p><code>MyTraLDataset</code> in <code>backends/dataset.py</code> is the persistence-agnostic application facade that exposes user-centric operations while selecting the configured implementation. It decouples web/domain code from concrete storage details and provides a stable API for activities, profile entities, stats, and task-file persistence methods.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="json-persistence-cache">JSON Persistence + Cache</h2>
-<p><code>JsonUsersDataset</code> and <code>JSONUserActivitiesDataset</code> implement the default filesystem persistence model where structured data is stored as JSON files under per-user directories. This layer owns cache strategy (in-memory or passthrough), on-demand loading, serialization, dataset sharding by activity-year files, and user/task file path management.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="blob-service-layer">Blob Service Layer</h2>
-<p>The blob service layer (<code>activity_service.py</code>, <code>avatar_service.py</code>, <code>entity_photo_service.py</code>) contains business rules for binary attachments: validation, metadata handling, GPX/parquet linkage, photo normalization, and thumbnail generation. It bridges domain entities and the lower-level blob backend interface.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="blob-store-backend">Blob Store Backend</h2>
-<p>The blob backend is selected by configuration via <code>create_blobstore()</code> and uses a <code>BlobStoreAbc</code> contract with implementations for filesystem and optional object storage providers (MinIO/S3). This component persists binary payloads and metadata records independently of JSON entity storage.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="filesystem-structured-store">Filesystem Structured Store</h2>
-<p>The filesystem store is the durable substrate for the JSON persistence implementation and task metadata/log files, typically under <code>data/&lt;user_id&gt;/</code>. It holds structured files like <code>activities-*.json</code>, <code>user-*.json</code>, and <code>tasks/task-*.{json,log}</code> that are treated as the source of truth for non-blob entities.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="external-integrations-plugins">External Integrations &amp; Plugins</h2>
-<p>MyTraL integrates with external ecosystems through <code>integrations/*</code> and <code>plugins.py</code>, including Strava and other import/sync sources used by both direct import routes and background tasks. This component adapts third-party payloads to internal entities so downstream analytics and UI features remain consistent.</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Reviewers</th>
+<th>Last updated</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DONE</td>
+<td>@reviewer</td>
+<td>YYYY-MM-DD</td>
+<td>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Table of contents</strong></p>
+<ul>
+<li><a href="#analysis">Analysis</a><ul>
+<li><a href="#why">Why</a></li>
+<li><a href="#functional-requirements">Functional Requirements</a></li>
+<li><a href="#functional-non-requirements">Functional Non-requirements</a></li>
+<li><a href="#technical-requirements">Technical Requirements</a></li>
+<li><a href="#technical-non-requirements">Technical Non-requirements</a></li>
+</ul>
+</li>
+<li><a href="#design">Design</a><ul>
+<li><a href="#implementation">Implementation</a></li>
+<li><a href="#tests">Tests</a></li>
+<li><a href="#benchmarks">Benchmarks</a></li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
+<li><a href="#appendices">Appendices</a></li>
+</ul>
+<h1 id="analysis">Analysis</h1>
+<p><em>[... abstract ...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why</h2>
+<p><em>[... motivation and value proposition...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-requirements">Functional Requirements</h2>
+<p><em>[... functional requirements (feature scope) and user stories...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li>Acceptance criteria:<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-non-requirements">Functional Non-requirements</h2>
+<p><em>[... functional non-requirements within the scope of this feature - what we will not deliver...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-requirements">Technical Requirements</h2>
+<p><em>[... technical requirements (including security and performance) and user stories (feature scope)...]</em></p>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<ul>
+<li><em>[... optional acceptance criteria...]</em></li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-non-requirements">Technical Non-requirements</h2>
+<p><em>[... technical non-requirements within the scope of this feature - what will not be implemented...]</em></p>
+<h1 id="design">Design</h1>
+<p><em>[... a design introduction / abstract / high-level highlights]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="goldencheetah-opendata-project">GoldenCheetah OpenData Project</h2>
+<p>From GC OSF web:</p>
+<p>From mid-2018 users of the popular sports analysis desktop application GoldenCheetah have been able to share their workout data to this repository.</p>
+<p>Each athlete’s data is shared as a single zip file that contains a summary level description (aggregates, metrics and so on) as a JSON file and additionally, all workout files are stored as CSV files.</p>
+<p>The CSV files contain second by second sample data from athlete workouts for; Heartrate, Cadence, Power, Distance and Altitude.</p>
+<ul>
+<li>The data does not contain any PII information.</li>
+<li>The unique id is anonymous, except to the original user.</li>
+<li>The data does not contain any GPS information.</li>
+<li>The data is in the raw format provided by the user.</li>
+<li>The data is shared for anyone to use.</li>
+</ul>
+<p>We are developing tools for working with these data sets, and these can be found on the GoldenCheetah OpenData Github repository.</p>
+<ul>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
+<li><a href="https://osf.io/6hfpz/files/osfstorage">Golden Cheetak dataset files</a><ul>
+<li>Use "Download As Zip" to download all the files</li>
+</ul>
+</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="implementation">Implementation</h2>
+<p><em>[... a brief implementation description and/or diagrams...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tests">Tests</h2>
+<p><em>[... a brief description of unit, integration, load, longevity, regression, manual and smoke tests...]</em></p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="benchmarks">Benchmarks</h2>
+<p><em>[... benchmark(s) and their result...]</em></p>
+<h1 id="references">References</h1>
+<p><em>[... relevant resources...]</em></p>
+<ul>
+<li><a href="https://osf.io/6hfpz/overview">Golde Cheetah OSF dataset Overview</a></li>
+</ul>
+<h1 id="appendices">Appendices</h1>
+<p><em>[... appendice sections...]</em></p>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -351,20 +368,15 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#uml-component-diagram-nested-ascii" class="nav-link">UML Component Diagram (Nested ASCII)</a>
-<a href="#user" class="nav-link">User</a>
-<a href="#browser" class="nav-link">Browser</a>
-<a href="#server" class="nav-link">Server</a>
-<a href="#flask-web-layer" class="nav-link">Flask Web Layer</a>
-<a href="#jinja-template-layer" class="nav-link">Jinja Template Layer</a>
-<a href="#domain-analytics-layer" class="nav-link">Domain &amp; Analytics Layer</a>
-<a href="#async-task-subsystem" class="nav-link">Async Task Subsystem</a>
-<a href="#dataset-facade" class="nav-link">Dataset Facade</a>
-<a href="#json-persistence-cache" class="nav-link">JSON Persistence + Cache</a>
-<a href="#blob-service-layer" class="nav-link">Blob Service Layer</a>
-<a href="#blob-store-backend" class="nav-link">Blob Store Backend</a>
-<a href="#filesystem-structured-store" class="nav-link">Filesystem Structured Store</a>
-<a href="#external-integrations-plugins" class="nav-link">External Integrations &amp; Plugins</a>
+        <a href="#why" class="nav-link">Why</a>
+<a href="#functional-requirements" class="nav-link">Functional Requirements</a>
+<a href="#functional-non-requirements" class="nav-link">Functional Non-requirements</a>
+<a href="#technical-requirements" class="nav-link">Technical Requirements</a>
+<a href="#technical-non-requirements" class="nav-link">Technical Non-requirements</a>
+<a href="#goldencheetah-opendata-project" class="nav-link">GoldenCheetah OpenData Project</a>
+<a href="#implementation" class="nav-link">Implementation</a>
+<a href="#tests" class="nav-link">Tests</a>
+<a href="#benchmarks" class="nav-link">Benchmarks</a>
     </div>
 </div>
                     </div>
@@ -382,8 +394,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_DATASETS.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
