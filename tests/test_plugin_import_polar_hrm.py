@@ -247,7 +247,7 @@ def test_parse_pdd_real_file():
 
 
 #
-# build_fit — verify output parses with fitparse
+# build_fit - verify output parses with fitparse
 #
 
 
@@ -411,6 +411,79 @@ def test_compute_elevation_gain_from_rows():
     print("DONE: compute_elevation_gain sums positive altitude deltas only")
 
 
+@pytest.mark.mytral
+def test_compute_elevation_gain_skips_none_altitudes():
+    """compute_elevation_gain should skip rows where altitude_m is None/absent."""
+    #
+    # GIVEN
+    #
+    rows: list[dict] = [
+        {"hr": 120, "altitude_m": 100},
+        {"hr": 130},  # altitude_m key absent (parse failure)
+        {"hr": 140, "altitude_m": 110},
+        {"hr": 135, "altitude_m": None},  # explicit None
+        {"hr": 125, "altitude_m": 115},
+    ]
+
+    #
+    # WHEN
+    #
+    gain = polar_hrm.compute_elevation_gain(rows, True)
+
+    #
+    # THEN
+    #
+    # 100→110 = +10 (row 1 skipped, row 2→3: None skipped), 110→115 = +5
+    assert gain == 15, f"Expected 15 m (skipping None/absent), got {gain}"
+    print("DONE: compute_elevation_gain skips None and absent altitude_m keys")
+
+
+@pytest.mark.mytral
+def test_compute_elevation_gain_single_row_returns_zero():
+    """compute_elevation_gain with a single row should return 0 (no deltas)."""
+    #
+    # GIVEN
+    #
+    rows: list[dict] = [{"hr": 120, "altitude_m": 100}]
+
+    #
+    # WHEN
+    #
+    gain = polar_hrm.compute_elevation_gain(rows, True)
+
+    #
+    # THEN
+    #
+    assert gain == 0, f"Expected 0 for single row, got {gain}"
+    print("DONE: compute_elevation_gain single row returns 0")
+
+
+@pytest.mark.mytral
+def test_compute_max_speed_kmh_skips_missing_speed_keys():
+    """compute_max_speed_kmh should skip rows where speed_01kmh is absent."""
+    #
+    # GIVEN
+    #
+    rows: list[dict] = [
+        {"hr": 120, "speed_01kmh": 100},
+        {"hr": 130},  # speed_01kmh key absent (parse failure)
+        {"hr": 140, "speed_01kmh": 350},
+        {"hr": 135, "speed_01kmh": 200},
+    ]
+
+    #
+    # WHEN
+    #
+    max_speed = polar_hrm.compute_max_speed_kmh(rows, True)
+
+    #
+    # THEN
+    #
+    # max of [100, 0 (default), 350, 200] = 350 → 35.0 km/h
+    assert max_speed == 35.0, f"Expected 35.0 km/h (max=350/10), got {max_speed}"
+    print("DONE: compute_max_speed_kmh skips absent speed_01kmh keys")
+
+
 #
 # _build_activity — uses HRData, not the broken [Trip] section
 #
@@ -423,12 +496,19 @@ _ROMAN_DATA_DIR = (
     / "Polar Precision Performance"
     / "Roman"
 )
-_ROMAN_HAS_DATA = _ROMAN_DATA_DIR.is_dir()
 # A known-bad file from Roman's 2003-11-08 run where the GPS was just
 # acquiring a fix; the [Trip] section reports elevation_gain=3280m and
 # max_speed=9.0 km/h but the HRData has the correct values.
 _ROMAN_2003_11_08_HRM = _ROMAN_DATA_DIR / "2003" / "03110803.hrm"
 _ROMAN_2003_11_08_PDD = _ROMAN_DATA_DIR / "2003" / "20031108.pdd"
+
+# Synthetic HRM/PDD pair that reproduces the S720i broken-[Trip] scenario
+# in a minimal form — committed to the repo so the fix is tested in CI.
+_SYNTHETIC_DATA_DIR = (
+    pathlib.Path(__file__).parent / "data" / "import" / "polar" / "synthetic"
+)
+_SYNTHETIC_HRM = _SYNTHETIC_DATA_DIR / "03110803.hrm"
+_SYNTHETIC_PDD = _SYNTHETIC_DATA_DIR / "20031108.pdd"
 
 
 @pytest.mark.mytral
@@ -468,7 +548,7 @@ def test_build_activity_uses_hrdata_not_trip_for_speed_elevation():
     # WHEN
     #
     activity = plugin._build_activity(
-        ex=ex,
+        exercise=ex,
         year_dir=_ROMAN_2003_11_08_HRM.parent,
         user_profile=profile,
         correlation_id="test-correlation",
@@ -504,6 +584,77 @@ def test_build_activity_uses_hrdata_not_trip_for_speed_elevation():
         "DONE: _build_activity uses HRData for max_speed/elevation_gain "
         f"and leaves min_hr at 0 (max_speed={activity.max_speed}, "
         f"elevation_gain={activity.elevation_gain})"
+    )
+
+
+@pytest.mark.mytral
+def test_build_activity_uses_hrdata_not_trip_ci():
+    """_build_activity must use HRData-derived speed/elevation (CI-safe).
+
+    Uses a synthetic .hrm/.pdd pair committed to the repo that reproduces
+    the S720i broken-[Trip] scenario: Trip reports max_speed=9.0 km/h and
+    elevation_gain=3280 m while the HRData time series has the correct
+    values (max_speed=35.0 km/h, elevation_gain=24 m).  The synthetic
+    files are minimal — just enough rows to exercise the fix.
+    """
+    #
+    # GIVEN
+    #
+    hrm_data = polar_hrm.parse_hrm(_SYNTHETIC_HRM)
+    pdd_exercises = polar_hrm.parse_pdd(_SYNTHETIC_PDD)
+    ex = next(
+        (e for e in pdd_exercises if e.get("hrm_filename") == "03110803.hrm"),
+        None,
+    )
+    assert ex is not None, "Expected PDD exercise for 03110803.hrm"
+
+    plugin: PolarPlugin = PolarPlugin()
+    plugin._hrm_data_cache["03110803.hrm"] = hrm_data
+    profile = _make_minimal_user_profile()
+
+    #
+    # WHEN
+    #
+    activity = plugin._build_activity(
+        exercise=ex,
+        year_dir=_SYNTHETIC_DATA_DIR,
+        user_profile=profile,
+        correlation_id="test-correlation-ci",
+    )
+
+    #
+    # THEN
+    #
+    assert activity is not None
+    # max_speed comes from HRData (35.0 km/h), NOT Trip (9.0 km/h)
+    assert activity.max_speed == 35.0, (
+        f"max_speed should be 35.0 (HRData-derived), got {activity.max_speed}"
+    )
+    # elevation_gain comes from HRData (24 m), NOT Trip (3280 m)
+    assert activity.elevation_gain == 24, (
+        f"elevation_gain should be 24 (HRData-derived), got {activity.elevation_gain}"
+    )
+    # elevation_max comes from HRData (120 m), NOT Trip (3280 m)
+    assert activity.elevation_max == 120, (
+        f"elevation_max should be 120 (HRData-preferred), got {activity.elevation_max}"
+    )
+    # min_hr is a day-level metric — must not be set from per-activity HR
+    assert activity.min_hr == 0.0, (
+        f"min_hr must be 0 (day-level metric), got {activity.min_hr}"
+    )
+    # avg_speed computed from PDD distance/duration: 16000m / 2292s * 3.6 ≈ 25.13
+    assert 25.0 < activity.avg_speed < 26.0, (
+        f"avg_speed should be ~25.1 km/h, got {activity.avg_speed}"
+    )
+    # validation invariant: avg_speed <= max_speed
+    assert activity.avg_speed <= activity.max_speed, (
+        f"avg_speed ({activity.avg_speed}) should not exceed max_speed "
+        f"({activity.max_speed})"
+    )
+    print(
+        "DONE: _build_activity uses HRData for max_speed/elevation_gain/elevation_max "
+        f"(max_speed={activity.max_speed}, elevation_gain={activity.elevation_gain}, "
+        f"elevation_max={activity.elevation_max})"
     )
 
 

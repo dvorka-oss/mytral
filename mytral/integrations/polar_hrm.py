@@ -284,14 +284,14 @@ def parse_hrdata(
             try:
                 row["speed_01kmh"] = int(parts[col])
             except ValueError:
-                row["speed_01kmh"] = 0
+                pass  # omit key - let downstream treat it as absent
             col += 1
 
         if has_cadence and col < len(parts):
             try:
                 row["cadence_rpm"] = int(parts[col])
             except ValueError:
-                row["cadence_rpm"] = 0
+                pass  # omit key - let downstream treat it as absent
             col += 1
 
         if has_altitude and col < len(parts):
@@ -299,7 +299,7 @@ def parse_hrdata(
                 row["altitude_m"] = int(parts[col])
                 altitude_values.append(row["altitude_m"])
             except ValueError:
-                row["altitude_m"] = 0
+                pass  # omit key - compute_elevation_gain skips None alt
             col += 1
 
         rows.append(row)
@@ -463,13 +463,17 @@ def parse_hrm(path: pathlib.Path) -> dict:
         result["max_hr"] = hr_dict["max_hr"]
         result["min_hr"] = hr_dict["min_hr"]
         result["elevation_min"] = hr_dict["elevation_min"]
-        # prefer trip max altitude; fall back to HRData max
-        result["elevation_max"] = elevation_max_trip or hr_dict["elevation_max"]
+        # prefer HRData max altitude (always meters); fall back to Trip max
+        # (Trip elevation may be in cm for some devices → 100× inflation)
+        result["elevation_max"] = hr_dict["elevation_max"] or elevation_max_trip
         # HRData-derived speed/elevation: the [Trip] section values for
         # ``max_speed_kmh`` and ``elevation_gain`` are unreliable for S720i
         # exports, so derive these from the per-row HRData time series.
-        # ``max_speed_kmh``/``elevation_gain`` above remain for backwards
-        # compatibility — consumers should prefer the new ``*_hrdata`` fields.
+        # The raw Trip values (``max_speed_kmh``, ``elevation_gain``) are
+        # kept above — they are still used by the cm-detection heuristic in
+        # ``_build_activity`` (gradient check needs the raw Trip elevation_gain
+        # to detect 100× cm inflation).  Consumers should use the ``*_hrdata``
+        # fields for display and validation.
         # preserve HRData elevation max for cross-reference (always meters)
         result["elevation_max_hrmdata"] = hr_dict["elevation_max"]
         result["max_speed_kmh_hrdata"] = compute_max_speed_kmh(
@@ -1006,9 +1010,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         entities.evaluate_activity(entity=a, user_profile=user_profile)
 
         # cap avg_speed when it exceeds max_speed (PDD distance/duration vs HRM
-        # Trip max_speed may disagree due to different measurement sources)
+        # max_speed may disagree due to different measurement sources)
         if a.max_speed > 0 and a.avg_speed > a.max_speed:
             a.avg_speed = a.max_speed
+            a.pace = entities.kmh_to_pace(a.avg_speed)
 
         return a
 
