@@ -277,10 +277,10 @@ data-sync:: ## synchronize ~ pull data in MyTraL data repository
 
 .PHONY: run
 run: .venv ## run MyTraL server w/ ENV var specified data directory
-	MYTRAL_DEBUG=true \
+	vibe
 	uv run python -m mytral.run
 
-.PHONY: run-dev
+.PHONY: runvdev
 ifeq ($(OS),Windows_NT)
 run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_INCARNATION=DESKTOP \
@@ -408,12 +408,16 @@ vibe-cc-deepseek:
 # - run vibe coding Anthropic Claude CODE harness w/ Ollama hosted models
 # ollama models:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
-# - kimi-k2.5:cloud / kimi-k2.6:cloud
+# - kimi-k2.7:cloud
 # - qwen3.5:cloud
 .PHONY: vibe-cc-ollama-deepseek
 vibe-cc-ollama-deepseek:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
 	ollama launch claude --model deepseek-v4-pro:cloud -- --dangerously-skip-permissions
+
+vibe-cc-ollama-kimi:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model kimi-k2.7:cloud -- --dangerously-skip-permissions
 
 .PHONY: vibe-cc-ollama-minimax
 vibe-cc-ollama-minimax:
