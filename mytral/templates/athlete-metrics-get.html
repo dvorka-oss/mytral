@@ -105,14 +105,28 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="subheader">Resting HR
-                                <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Resting Heart Rate (RHR) — beats per minute at complete rest, measured upon waking. Source: (1) Measured — from the most recent activity that recorded min HR. (2) Estimated — from age using a trained-athlete heuristic: 50 + (age − 30) × 0.15, clamped to 40–60 BPM. (3) Default — hardcoded fallback of 60 BPM."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
+                                {% if stats.resting_hr_source == 'measured' %}
+                                <span class="badge bg-green text-green-fg ms-1">Measured</span>
+                                {% elif stats.resting_hr_source == 'estimated' %}
+                                <span class="badge bg-yellow text-yellow-fg ms-1">Estimated</span>
+                                {% else %}
+                                <span class="badge bg-gray text-gray-fg ms-1">Default</span>
+                                {% endif %}
                             </div>
                             <div class="h3 mb-0">
                                 <a href="{{ url_for('insight_resting_hr') }}" class="text-reset">
                                     {{ stats.resting_hr }} <small class="text-muted">BPM</small>
                                 </a>
                             </div>
+                            {% if stats.resting_hr_source == 'measured' %}
                             <div class="text-muted small">From last activity</div>
+                            {% elif stats.resting_hr_source == 'estimated' %}
+                            <div class="text-muted small">Estimated from age (trained athlete range)</div>
+                            {% else %}
+                            <div class="text-muted small">Default value</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -138,6 +152,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="subheader">Base Metabolic Rate
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top"
+                                     title="Base Metabolic Rate (BMR) — calories your body burns at complete rest each day. Estimated using the Mifflin-St Jeor equation: 10 × weight(kg) + 6.25 × height(cm) − 5 × age + 5 (male)."><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
                                 <span class="badge bg-gray text-gray-fg ms-1">Derived</span>
                             </div>
                             <div class="h3 mb-0">{{ "%.0f"|format(stats.bmr) }} <small class="text-muted">kcal/day</small></div>

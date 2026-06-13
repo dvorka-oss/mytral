@@ -294,6 +294,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 else
 run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_USER_REGISTRATION=true \
 	MYTRAL_DEBUG=true \
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/development \
 	MYTRAL_SECRET_KEY=no-secret-for-development \

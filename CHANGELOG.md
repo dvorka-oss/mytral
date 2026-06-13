@@ -36,6 +36,7 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execut
 - Added meta sport taxonomy based lifetime totals insight page.
 - Added new cards on the homepage indicating the risk of injury, gear needed service,
   suggested activity and weight balance.
+- Added resting HR estimate to the athlete metrics page.
 
 ### Changed
 - Strava API import is not hidden behing feature flag (just inverse condition on FE).
@@ -55,6 +56,9 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execut
 - Polar HRM import conflict resolution no longer fails on missing year-cache entries.
 - `fit_tool` monkeypatch tolerates non-UTF8 bytes in FIT string fields (Garmin
   developer fields), preventing silent parse failures.
+- Fixed many problems in the Polar PPP import - from user forgetting to switch
+  the activity type, to the source of data (HRM vs. PDD) and the right units.
+- Fixed notifications decorator - it's newly tightly coupled w/ the icon.
 
 
 

@@ -45,6 +45,11 @@ class UserProfileStats:
     THRESHOLD_BMI_MIN = 18.5  # lower healthy BMI threshold
     THRESHOLD_BMI_MAX = 25.0  # upper healthy BMI threshold
 
+    # labels for resting_hr_source
+    RHR_SOURCE_MEASURED = "measured"  # from activity min_hr
+    RHR_SOURCE_ESTIMATED = "estimated"  # from age-based formula
+    RHR_SOURCE_DEFAULT = "default"  # hardcoded fallback
+
     def __init__(self) -> None:
         self.weight: float = 0.0  # kg ... last weight from activities
         # Body Mass Index
@@ -54,6 +59,35 @@ class UserProfileStats:
         # Base Metabolic Rate: base metabolism in kCal
         self.bmr: float = 0.0
         self.resting_hr: int = 0  # last Resting HR from activities
+        self.resting_hr_source: str = ""  # measured | estimated | default
+
+    @staticmethod
+    def _estimate_resting_hr(age: int) -> int:
+        """Estimate resting HR for a trained athlete based on age.
+
+        There is no gold-standard formula — RHR reflects training adaptation,
+        not a fixed mathematical output of age/weight.  This heuristic returns
+        a value in the 40–60 bpm range typical of trained athletes, with a
+        mild age correlation (older athletes tend to have slightly higher RHR).
+
+        Parameters
+        ----------
+        age : int
+            Athlete age in years.
+
+        Returns
+        -------
+        int
+            Estimated resting HR in BPM (clamped to 40–60).
+        """
+        # base 50 bpm at age 30, ±0.15 bpm per year of age
+        estimated = round(50 + (age - 30) * 0.15)
+        # clamp to the trained-athlete range
+        if estimated < 40:
+            return 40
+        if estimated > 60:
+            return 60
+        return estimated
 
     @staticmethod
     def from_entity(
@@ -73,9 +107,22 @@ class UserProfileStats:
             if not user_profile_stats.resting_hr and a.min_hr:
                 logger.info(f"    USING {a.when}: resting_hr {a.min_hr}")
                 user_profile_stats.resting_hr = a.min_hr
+                user_profile_stats.resting_hr_source = (
+                    UserProfileStats.RHR_SOURCE_MEASURED
+                )
 
             if user_profile_stats.weight and user_profile_stats.resting_hr:
                 break
+
+        # when no activity carries a measured resting HR, estimate from age
+        if not user_profile_stats.resting_hr:
+            age = user_profile.age or settings.UserProfile.DEFAULT_AGE
+            user_profile_stats.resting_hr = UserProfileStats._estimate_resting_hr(age)
+            user_profile_stats.resting_hr_source = UserProfileStats.RHR_SOURCE_ESTIMATED
+            logger.info(
+                f"    ESTIMATED resting_hr={user_profile_stats.resting_hr} "
+                f"from age={age}"
+            )
 
         if user_profile.height and user_profile_stats.weight:
             # BMI
@@ -106,6 +153,7 @@ class UserProfileStats:
             user_profile=user_profile,
             activities=activities,
             weight_kg=user_profile_stats.weight,
+            rest_hr=user_profile_stats.resting_hr,
         )
 
         return user_profile_stats

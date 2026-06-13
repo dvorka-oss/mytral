@@ -961,6 +961,19 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
         sport_str = map_activity_type_index(exercise.get("sport_index", 0))
 
+        # auto-reclassify when the declared activity type contradicts the
+        # measured speed/distance data (user may have forgotten to switch
+        # sport profile on the watch, or the Polar sport index is unknown).
+        duration_s = act_hours * 3600 + act_minutes * 60 + act_seconds
+        if duration_s > 0 and distance_m > 0:
+            prelim_avg_speed = (distance_m / duration_s) * 3.6
+            if sport_str == commons.AT_RUN and prelim_avg_speed > 25.0:
+                # running at > 25 km/h is world-record pace — this is a ride
+                sport_str = commons.guess_activity_type(prelim_avg_speed)
+            elif sport_str == commons.AT_GYM and prelim_avg_speed > 0:
+                # "exercise" with distance/time/speed data — guess real type
+                sport_str = commons.guess_activity_type(prelim_avg_speed)
+
         # determine src_key — prefer hrm filename; fall back to synthetic key
         src_key = (
             hrm_filename
