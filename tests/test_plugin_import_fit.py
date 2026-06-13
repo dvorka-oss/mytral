@@ -82,11 +82,15 @@ def test_fit_summary_hiking():
     assert summary.max_hr == 135
     assert summary.elevation_gain == 566
 
-    # the next-gen device emits uint16-max (65535) for power and
-    # implausibly high speed values — the parser faithfully returns
-    # whatever the FIT session message contains
-    assert summary.avg_watts == 65535.0
-    assert summary.max_watts == 65535.0
+    # the next-gen device emits uint16-max (65535) for power — the FIT
+    # protocol sentinel for "invalid / not set".  The extractor must
+    # filter these out and leave the fields at None.
+    assert summary.avg_watts is None, (
+        f"avg_power sentinel 65535 should be filtered, got {summary.avg_watts}"
+    )
+    assert summary.max_watts is None, (
+        f"max_power sentinel 65535 should be filtered, got {summary.max_watts}"
+    )
 
     print("DONE: FIT hiking summary extracted")
 
