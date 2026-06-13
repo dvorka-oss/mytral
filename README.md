@@ -1,5 +1,6 @@
 # MyTraL: My Training Log
 
+[![Support on Open Collective](https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective)](https://opencollective.com/dvorka-floss-lab)
 <!--
 [![GitHub Actions CI for Ubuntu](https://github.com/dvorka/hstr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/dvorka/my-training-log/actions)
 [![Current release](https://img.shields.io/github/release/dvorka/my-training-log.svg)](https://github.com/dvorka/my-training-log/releases)

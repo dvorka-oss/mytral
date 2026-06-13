@@ -21,6 +21,8 @@ class FeatureFlags:
     """Control which features are enabled in the application."""
 
     # particular features
+    TRIMP = "TRIMP"
+    PFN_PREDICTIONS = "PFN_PREDICTIONS"
     GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"
     STRAVA_API_IMPORT = "STRAVA_API_IMPORT"
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
@@ -28,6 +30,8 @@ class FeatureFlags:
 
     # env variables
     ENV_FF_PREFIX = "MYTRAL_FF"
+    ENV_TRIMP = f"{ENV_FF_PREFIX}_{TRIMP}"
+    ENV_PFN_PREDICTIONS = f"{ENV_FF_PREFIX}_{PFN_PREDICTIONS}"
     ENV_GSHEETS_DVORKA_IMPORT = f"{ENV_FF_PREFIX}_{GSHEETS_DVORKA_IMPORT}"
     ENV_STRAVA_API_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_API_IMPORT}"
     ENV_TASKS_DEV = f"{ENV_FF_PREFIX}_{TASKS_DEV}"
@@ -40,6 +44,10 @@ class FeatureFlags:
 
     def __init__(self) -> None:
         self._flags: dict = {
+            FeatureFlags.TRIMP: utils.getenv_bool(FeatureFlags.ENV_TRIMP),
+            FeatureFlags.PFN_PREDICTIONS: utils.getenv_bool(
+                FeatureFlags.ENV_PFN_PREDICTIONS
+            ),
             FeatureFlags.GSHEETS_DVORKA_IMPORT: utils.getenv_bool(
                 FeatureFlags.ENV_GSHEETS_DVORKA_IMPORT
             ),

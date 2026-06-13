@@ -104,7 +104,7 @@
                     </thead>
                     <tbody>
                         {% for week_number in data.heatmap[year] %}
-                        <tr data-week="{{ week_number }}" data-week-index="{{ loop.index0 }}" {% if year == current_year and week_number == current_week-1 %}id="current-week"{% endif %}>
+                        <tr data-week="{{ week_number }}" data-week-index="{{ loop.index0 }}" {% if year == current_year and week_number == current_week %}id="current-week"{% endif %}>
                             {% if compact_view %}
                             <td class="text-center">
                                 <a name="week-{{ week_number }}"></a>

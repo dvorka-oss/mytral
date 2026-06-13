@@ -44,7 +44,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <p class="text-muted">
-                MyTraL is a personal training log for deeper insights and smarter progress.
+                MyTraL is a Sovereign athlete training log for deeper insights and smarter progress.
             </p>
         </div>
 
@@ -154,6 +154,120 @@
                 </div>
             </div>
         </div>
+
+    </div>
+
+    {# Row: Predictions & notifications #}
+    <div class="row row-deck row-cards mb-2">
+        {# Health Prediction card #}
+        {% if on_the_same_day and on_the_same_day.health_preds %}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Health Prediction
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Predicted health status for today based on historical patterns from the same weekday in previous years.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    {% if on_the_same_day.health_preds[0][0] == "Healthy" %}
+                    <div class="h1 mb-1 text-success">{{ on_the_same_day.health_preds[0][1] }}%</div>
+                    <div class="text-muted small">Healthy</div>
+                    {% elif on_the_same_day.health_preds[0][0] == "Sick" %}
+                    <div class="h1 mb-1 text-danger">{{ on_the_same_day.health_preds[0][1] }}%</div>
+                    <div class="text-muted small">Sick risk</div>
+                    {% else %}
+                    <div class="h1 mb-1 text-warning">{{ on_the_same_day.health_preds[0][1] }}%</div>
+                    <div class="text-muted small">{{ on_the_same_day.health_preds[0][0] }}</div>
+                    {% endif %}
+                    <a href="{{ url_for('insight_predictions') }}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Gear Requiring Attention card #}
+        {% if gear_requires_attention %}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader text-warning">
+                            Gear Requiring Attention
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Gear whose component(s) require attention and/or service.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1 text-warning">{{ gear_requires_attention }}</div>
+                    <div class="text-muted small">Item{% if gear_requires_attention > 1 %}s{% endif %} need service</div>
+                    <a href="{{ url_for('settings_gear_list') }}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Suggested Activity card #}
+        {% if on_the_same_day and on_the_same_day.activity_preds %}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Suggested Activity
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Top suggested activity for today based on machine learning analysis of your past training patterns on this weekday.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="h1 mb-1">{{ on_the_same_day.activity_preds[0][0] }}</div>
+                    <div class="text-muted small">{{ on_the_same_day.activity_preds[0][1] }}% probability</div>
+                    <a href="{{ url_for('insight_predictions') }}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Average Weight card #}
+        {% if on_the_same_day and on_the_same_day.weight_preds and on_the_same_day.weight_preds|length >= 2 %}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Average Weight
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Your average body weight based on historical measurements from the same weekday in previous years. Red if your current weight is above the historical average, green if below.">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                <path d="M12 9h.01"></path>
+                                <path d="M11 12h1v4h1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    {% set avg_weight = on_the_same_day.weight_preds[0][2] %}
+                    {% set current_weight = on_the_same_day.weight_preds[0][3] %}
+                    {% if current_weight > avg_weight %}
+                    <div class="h1 mb-1 text-danger">{{ on_the_same_day.weight_preds[0][1] }} kg</div>
+                    {% else %}
+                    <div class="h1 mb-1 text-success">{{ on_the_same_day.weight_preds[0][1] }} kg</div>
+                    {% endif %}
+                    <div class="text-muted small">Current: {{ current_weight }} kg</div>
+                    <a href="{{ url_for('insight_weight') }}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     {# Chart: lifetime training volume #}

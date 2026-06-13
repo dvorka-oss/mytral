@@ -18,7 +18,15 @@
 """MyTraL multiprocessing-based subtask framework."""
 
 from mytral.tasks.bulldozer._base import SubtaskBulldozer
+from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
+from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
+from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
+from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
 
 __all__ = [
     "SubtaskBulldozer",
+    "_make_blob_metadata",
+    "_PathEncoder",
+    "_sandbox_blobs_dir",
+    "_split_evenly",
 ]

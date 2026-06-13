@@ -25,7 +25,6 @@ import json
 import os
 import pathlib
 import traceback
-import uuid
 
 from mytral import config as mytral_config
 from mytral import plugins
@@ -36,78 +35,16 @@ from mytral.blobstore import image_processing
 from mytral.blobstore.filesystem import FilesystemBlobStore
 from mytral.blobstore.models import BLOB_VARIANT_THUMBNAIL
 from mytral.blobstore.models import BlobKind
-from mytral.blobstore.models import BlobMetadata
-from mytral.blobstore.models import BlobOwnerKind
-from mytral.blobstore.validation import parse_gpx
 from mytral.integrations import strava_user_archive
 from mytral.recordings import gpx_extractor
 from mytral.recordings import parquet_converter
 from mytral.recordings import tcx_extractor
 from mytral.tasks import bulldozer
+from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
+from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
+from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
+from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
 from mytral.tasks.do import strava_commons
-
-
-class _PathEncoder(json.JSONEncoder):
-    """JSON encoder that converts pathlib.Path objects to strings."""
-
-    def default(self, o):
-        if isinstance(o, pathlib.PurePath):
-            return str(o)
-        return super().default(o)
-
-
-def _sandbox_blobs_dir(job_dir: pathlib.Path, user_id: str) -> pathlib.Path:
-    """Return the sandbox blobstore root directory for a given job.
-
-    Matches the internal layout of ``FilesystemBlobStore`` constructed with
-    ``base_dir=MytralConfig(persistence_data_dir=job_dir/"work").user_data_dir``
-    and ``blobs_subdir="blobs"``::
-
-        job_dir / "work" / "data" / <user_id> / "blobs"
-    """
-    return job_dir / "work" / "data" / user_id / "blobs"
-
-
-def _make_blob_metadata(
-    user_id: str,
-    activity_key: str,
-    kind: str,
-    file_name: str,
-    original_file_name: str,
-    extension: str,
-    size_bytes: int,
-    sha256: str,
-    content_type: str = "application/octet-stream",
-    name: str = "",
-    description: str = "",
-    keywords: list[str] | None = None,
-    created_at: str = "",
-    width: int = 0,
-    height: int = 0,
-    thumbnail_available: bool = False,
-) -> BlobMetadata:
-    """Create a ``BlobMetadata`` with consistent defaults for Strava imports."""
-    return BlobMetadata(
-        blob_key=str(uuid.uuid4()),
-        user_id=user_id,
-        owner_kind=BlobOwnerKind.ACTIVITY.value,
-        owner_key=activity_key,
-        kind=kind,
-        file_name=file_name,
-        original_file_name=original_file_name,
-        extension=extension,
-        content_type=content_type,
-        size_bytes=size_bytes,
-        sha256=sha256,
-        name=name,
-        description=description,
-        keywords=keywords or [],
-        created_at=created_at,
-        updated_at=created_at,
-        width=width,
-        height=height,
-        thumbnail_available=thumbnail_available,
-    )
 
 
 def _recording_summary_to_dict(summary) -> dict:
@@ -208,16 +145,6 @@ def _apply_summary_dict(activity: entities.ActivityEntity, summary_dict: dict) -
         activity.elevation_gain = summary_dict["elevation_gain"]
     if summary_dict.get("name_hint") and not activity.name:
         activity.name = summary_dict["name_hint"]
-
-
-def _split_evenly(items: list, num_chunks: int) -> list[list]:
-    """Split *items* into *num_chunks* chunks using round-robin distribution."""
-    if not items or num_chunks <= 1:
-        return [items]
-    chunks: list[list] = [[] for _ in range(num_chunks)]
-    for i, item in enumerate(items):
-        chunks[i % num_chunks].append(item)
-    return [c for c in chunks if c]
 
 
 def _strava_blob_job(job_key: int, job_dir: pathlib.Path) -> None:
@@ -536,17 +463,14 @@ def _strava_gpx_map_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
 
         try:
             if extension == ".tcx":
-                track_count, track_point_count = tcx_extractor.parse_tcx(gpx_data)
-                gps_points = tcx_extractor.extract_gps_points(gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    tcx_extractor.extract_elevation_profile(gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    tcx_extractor.extract_all_from_tcx(gpx_data)
                 )
             else:
-                track_count, track_point_count = parse_gpx(data=gpx_data)
-                gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    gpx_extractor.extract_all_from_gpx(gpx_data)
                 )
+            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
         except Exception:
             results[blob_uuid] = {"skipped": True, "error": "parse/extract failed"}
             continue
@@ -707,13 +631,14 @@ class StravaArchiveImportTask(tasks.TaskBase):
             return
 
         # PHASE 1: create activities in dataset
+        self.update_progress(12)
         self._dataset.create_activities(
             user_id=user_id,
             dataset_name=dataset_name,
             entity_list=activities,
         )
         self.log(f"Created {total} activities in dataset '{dataset_name}'")
-        self.update_progress(25)
+        self.update_progress(18)
         self.check_cancellation()
 
         # PHASE 2: clear blobs for overridden activities
@@ -733,10 +658,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     "  WARNING: failed to clear existing blobs for overridden "
                     f"activity {overridden_key}: {exc}"
                 )
-        self.update_progress(15)
+        self.update_progress(20)
 
         # PHASE 3: Bulldozer-parallelized photo + recording import
-        self.log("BEGIN: Uploading photos & recordings (parallel)...")
+        self.log("Uploading photos & recordings...")
 
         # split activities evenly across workers
         workers = max(1, (os.cpu_count() or 1) // 2)
@@ -784,9 +709,12 @@ class StravaArchiveImportTask(tasks.TaskBase):
             f"Split {total} activities into {len(chunks)} chunks "
             f"({len(chunks)} workers)"
         )
+        self.update_progress(22)
+        self.check_cancellation()
 
         # run Bulldozer
         bzz.run(job_dirs=job_dirs, job_function=_strava_blob_job)
+        self.check_cancellation()
 
         # detect and report failed jobs
         failed_jobs = []
@@ -801,11 +729,11 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 )
         if failed_jobs:
             raise RuntimeError(
-                f"Bulldozer jobs {failed_jobs} failed — see log for details"
+                f"Bulldozer jobs {failed_jobs} failed - see log for details"
             )
 
-        self.log("All Bulldozer jobs DONE — merging blobstores...")
-        self.update_progress(40)
+        self.log("All photo and recordings Bulldozer jobs DONE - merging blobstores...")
+        self.update_progress(50)
 
         # PHASE 4: merge sandbox blobstores into main blobstore
         main_blobs_dir = persistence_root / "data" / user_id / "blobs"
@@ -815,7 +743,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
             main_blobs_dir=main_blobs_dir,
         )
         self.log(f"Merged {merged} blob directories from sandboxes into main store")
-        self.update_progress(50)
+        self.update_progress(55)
+        self.check_cancellation()
 
         # PHASE 5: collect activities + summaries, apply, batch update
         self.log("Collecting activities from sandbox outputs...")
@@ -848,6 +777,8 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 f"WARNING: collected {len(all_activities)} activities, expected {total}"
             )
 
+        self.update_progress(60)
+
         # apply summaries and count statistics
         photos_before = 0
         recordings_before = 0
@@ -869,19 +800,20 @@ class StravaArchiveImportTask(tasks.TaskBase):
         recordings_imported = recordings_after
         recordings_failed = max(0, recordings_before - recordings_after)
 
+        self.update_progress(70)
+
         # batch-update all activities with new blob keys + summaries
         self.log(f"Applying updates to {len(all_activities)} activities in dataset...")
-        # TODO rewrite to bulk
-        for activity in all_activities:
-            self._dataset.update_activity(
-                user_id=user_id,
-                dataset_name=dataset_name,
-                entity=activity,
-            )
-        self.update_progress(90)
+        self._dataset.update_activities(
+            user_id=user_id,
+            dataset_name=dataset_name,
+            activities=all_activities,
+        )
+        self.update_progress(80)
+        self.check_cancellation()
 
         # PHASE 6: Bulldozer-parallelized GPX map data precomputation
-        self.log("Precomputing GPX map data for recordings (parallel)...")
+        self.log("Precomputing GPX map data for recordings...")
 
         # collect recording blob references
         gpx_entries: list[dict] = []
@@ -928,8 +860,10 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 f"Split {len(gpx_entries)} recording blobs into "
                 f"{len(gpx_chunks)} GPX-map chunks ({len(gpx_chunks)} workers)"
             )
+            self.update_progress(85)
 
             gpx_bzz.run(job_dirs=gpx_job_dirs, job_function=_strava_gpx_map_job)
+            self.update_progress(86)
 
             # detect failed GPX jobs
             gpx_failed = []
@@ -950,9 +884,15 @@ class StravaArchiveImportTask(tasks.TaskBase):
                 )
 
             # collect results and update blob metadata
+            self.update_progress(90)
+            self.log(
+                f"Collecting GPX map data from {len(gpx_job_dirs)} job outputs and "
+                f"updating blob metadata..."
+            )
             gpx_map_count = 0
             gpx_skip_count = 0
             for job_dir in gpx_job_dirs:
+                self.check_cancellation()
                 output_file = job_dir / "output" / "payload.json"
                 if not output_file.exists():
                     continue
@@ -1014,22 +954,52 @@ class StravaArchiveImportTask(tasks.TaskBase):
         dataset_name: str,
         on_conflict: str,
     ) -> tuple[list, dict]:
-        """Apply import on_conflict strategy by (src, src_key)."""
+        """Apply import on_conflict strategy by (src, src_key).
+
+        Uses year-based loading to avoid pulling every activity in the dataset
+        into memory — only the years that appear in the incoming activities are
+        queried.  For a LIFELONG dataset with thousands of activities this
+        keeps memory usage proportional to the import size, not the dataset size.
+        """
         mode = on_conflict.lower().strip()
         if mode not in ("skip", "override", "new_key"):
             mode = "new_key"
         if mode == "new_key":
             return activities, {"skipped": 0, "overridden": 0, "overridden_keys": set()}
 
-        existing = {}
-        for current in self._dataset.list_activities(
-            user_id=user_id,
-            dataset_name=dataset_name,
-        ):
-            src = str(getattr(current, "src", "") or "")
-            src_key = str(getattr(current, "src_key", "") or "")
-            if src and src_key:
-                existing[(src, src_key)] = current.key
+        # collect unique years from incoming activities to limit queries
+        years: set[int] = set()
+        for activity in activities:
+            y = getattr(activity, "when_year", 0) or 0
+            if y > 0:
+                years.add(y)
+
+        existing: dict[tuple[str, str], str] = {}
+        if years:
+            for year in sorted(years):
+                try:
+                    year_activities = self._dataset.list_activities(
+                        user_id=user_id,
+                        dataset_name=dataset_name,
+                        year=year,
+                    )
+                except Exception:
+                    year_activities = []
+                for current in year_activities:
+                    src = str(getattr(current, "src", "") or "")
+                    src_key = str(getattr(current, "src_key", "") or "")
+                    if src and src_key:
+                        existing[(src, src_key)] = current.key
+        else:
+            # fallback: no year info available — load all (should be rare)
+            for current in self._dataset.list_activities(
+                user_id=user_id,
+                dataset_name=dataset_name,
+            ):
+                src = str(getattr(current, "src", "") or "")
+                src_key = str(getattr(current, "src_key", "") or "")
+                if src and src_key:
+                    existing[(src, src_key)] = current.key
 
         skipped = 0
         overridden = 0

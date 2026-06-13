@@ -46,4 +46,15 @@ def test_bulldozer(tmp_path: pathlib.Path):
     #
     # THEN
     #
-    print(f"Test finished the run in: file://{tmp_path}")
+    # verify job directories were created
+    assert len(job_dirs) >= 1, "Expected at least 1 job directory"
+    for job_dir in job_dirs:
+        assert job_dir.exists(), f"Job directory {job_dir} should exist"
+        input_dir = job_dir / "input"
+        output_dir = job_dir / "output"
+        work_dir = job_dir / "work"
+        assert input_dir.exists(), f"Input dir {input_dir} should exist"
+        assert output_dir.exists(), f"Output dir {output_dir} should exist"
+        assert work_dir.exists(), f"Work dir {work_dir} should exist"
+
+    print(f"DONE: test finished the run in: file://{tmp_path}")
