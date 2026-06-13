@@ -382,6 +382,42 @@
                                     </form>
                                 </div>
                             </div>
+                            {% if is_desktop %}
+                            <div class="card card-md mt-2">
+                                <div class="card-body">
+                                    <div class="h3">FIT Directory</div>
+                                    <p class="card-subtitle mb-3">
+                                        Import all FIT files from a directory. Each file will create a new activity.
+                                    </p>
+                                    <form method="POST" action="{{ url_for('tool_import_fit_directory') }}">
+                                        {{ import_fit_directory_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_fit_directory_form.data_dir.label(class="form-label") }}
+                                            {{ import_fit_directory_form.data_dir(class="form-control", placeholder="/path/to/fit/files/") }}
+                                            {% if import_fit_directory_form.data_dir.description %}
+                                                <div class="form-text">{{ import_fit_directory_form.data_dir.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            {{ import_fit_directory_form.sport_type.label(class="form-label") }}
+                                            {{ import_fit_directory_form.sport_type(class="form-select") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_fit_directory_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_fit_directory_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_fit_directory_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
 
                         {# ## GPX ####################################################### #}

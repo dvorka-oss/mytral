@@ -74,9 +74,6 @@
 # MyTraL CLI
 #
 # uv run mytral help
-# uv run mytral import strava
-# uv run mytral upgrade --from 1.0.0 --to 1.1.0
-# uv run mytral-web
 #
 
 .DEFAULT_GOAL := help

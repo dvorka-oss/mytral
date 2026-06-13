@@ -14,17 +14,179 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Async task: import Polar Precision Performance (.hrm + .pdd) files."""
+"""Async task: import Polar Precision Performance (.hrm + .pdd) files:
 
+PolarHrmImportTask.execute()
+ 1. BLOB store initialization & orphans cleanup
+ 2. Create activities from .hrm/.pdd files:
+    PolarHrmImportPlugin.import_activities()
+ 3. Bulldozer-parallelized blob processing:
+    - split activities evenly across workers
+    - each subprocess creates sandbox blobstore and stores recordings + parquet
+ 4. Merge sandbox blobstores into main blobstore
+ 5. Conflict-resolve and bulk persist activities to main dataset
+
+"""
+
+import datetime
+import hashlib
 import io
+import json
+import os
 import pathlib
+import traceback
 
 from mytral import app_logger
+from mytral import config as mytral_config
 from mytral import plugins
 from mytral import tasks
+from mytral.backends import entities
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.blobstore.filesystem import FilesystemBlobStore
+from mytral.blobstore.models import BlobKind
 from mytral.integrations import polar_hrm
 from mytral.recordings import parquet_converter
+from mytral.tasks import bulldozer
+from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
+from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
+from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
+from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
+
+
+def _polar_hrm_blob_job(job_key: int, job_dir: pathlib.Path) -> None:
+    """Bulldozer job: process Polar HRM recordings in a sandbox.
+
+    Reads activities from ``job_dir/input/activities.json``, creates an
+    isolated blobstore for the sandbox, uploads HRM recordings and
+    generates Parquet for each activity, then writes the updated
+    activities to ``job_dir/output/activities.json``.
+
+    On failure writes ``job_dir/output/error.json`` so the caller can
+    detect and report errors.
+
+    Parameters
+    ----------
+    job_key : int
+        Worker index (1-based).
+    job_dir : pathlib.Path
+        Sandbox directory for this job.
+    """
+    try:
+        _polar_hrm_blob_job_impl(job_key, job_dir)
+    except Exception:
+        error_file = job_dir / "output" / "error.json"
+        error_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(error_file, "w") as fh:
+            json.dump(
+                {
+                    "job_key": job_key,
+                    "job_dir": str(job_dir),
+                    "traceback": traceback.format_exc(),
+                },
+                fh,
+            )
+
+
+def _polar_hrm_blob_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
+    input_file = job_dir / "input" / "activities.json"
+    if not input_file.exists():
+        return
+
+    with open(input_file) as fh:
+        payload = json.load(fh)
+
+    activities_data = payload.get("activities", [])
+    if not activities_data:
+        return
+
+    user_id = payload.get("user_id", "")
+
+    # create isolated blobstore inside the sandbox
+    sandbox_config = mytral_config.MytralConfig(persistence_data_dir=job_dir / "work")
+    sandbox_store = FilesystemBlobStore(
+        base_dir=sandbox_config.user_data_dir,
+        blobs_subdir="blobs",
+    )
+
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    for d in activities_data:
+        raw_data = (d.get("transient_fields") or {}).get(
+            polar_hrm.PolarHrmImportPlugin.KEY_POLAR_ROW_DATA, {}
+        )
+        hrm_path_str = raw_data.get(polar_hrm.PolarHrmImportPlugin.KEY_HRM_PATH)
+        if not hrm_path_str:
+            continue
+        hrm_path = pathlib.Path(hrm_path_str)
+        if not hrm_path.is_file():
+            continue
+
+        activity_key = d["key"]
+
+        # read raw HRM bytes for the recording blob
+        with hrm_path.open("rb") as fh:
+            raw_bytes = fh.read()
+
+        sha = hashlib.sha256(raw_bytes).hexdigest()
+
+        rec_meta = _make_blob_metadata(
+            user_id=user_id,
+            activity_key=activity_key,
+            kind=BlobKind.ACTIVITY_RECORDING.value,
+            file_name="data.hrm",
+            original_file_name=hrm_path.name,
+            extension=".hrm",
+            size_bytes=len(raw_bytes),
+            sha256=sha,
+            name="Polar HRM",
+            description="Imported from Polar Precision Performance",
+            keywords=["polar", "hrm"],
+            created_at=now,
+        )
+        sandbox_store.create_blob(rec_meta, io.BytesIO(raw_bytes))
+
+        # update activity recording reference in the dict
+        recorded_keys = d.get("recorded_blob_keys") or []
+        recorded_keys.append(f"{rec_meta.blob_key}.hrm")
+        d["recorded_blob_keys"] = recorded_keys
+
+        # parse HRM and generate parquet
+        try:
+            hrm_data = polar_hrm.parse_hrm(hrm_path)
+        except Exception:
+            continue
+
+        if not hrm_data or not hrm_data.get("rows"):
+            continue
+
+        pq_bytes = parquet_converter.hrm_to_parquet(hrm_data)
+        pq_sha = hashlib.sha256(pq_bytes).hexdigest()
+
+        pq_meta = _make_blob_metadata(
+            user_id=user_id,
+            activity_key=activity_key,
+            kind=BlobKind.ACTIVITY_PARQUET.value,
+            file_name="data.parquet",
+            original_file_name="data.parquet",
+            extension=".parquet",
+            size_bytes=len(pq_bytes),
+            sha256=pq_sha,
+            name="",
+            description="",
+            keywords=[],
+            created_at=now,
+        )
+        sandbox_store.create_blob(pq_meta, io.BytesIO(pq_bytes))
+
+        # update activity parquet reference in the dict
+        recorded_pq = d.get("recorded_parquet_keys") or {}
+        recorded_pq[rec_meta.blob_key] = pq_meta.blob_key
+        d["recorded_parquet_keys"] = recorded_pq
+
+    # write processed activities to output
+    output_file = job_dir / "output" / "activities.json"
+    with open(output_file, "w") as fh:
+        json.dump(activities_data, fh)
 
 
 class PolarHrmImportTask(tasks.TaskBase):
@@ -55,8 +217,10 @@ class PolarHrmImportTask(tasks.TaskBase):
             enc_key=enc_key,
         )
 
+        self._log_name = "[Polar HRM import Task]"
+
     def execute(self) -> None:
-        """Execute Polar HRM import.
+        """Execute Polar HRM import using Bulldozer for parallel blob processing.
 
         Raises
         ------
@@ -79,7 +243,7 @@ class PolarHrmImportTask(tasks.TaskBase):
         if not data_dir.is_dir():
             raise RuntimeError(f"Data directory not found: {data_dir}")
 
-        # ---- phase 0: clean up orphan blobs from previously crashed imports ----
+        # PHASE 0: clean up orphan blobs from previously crashed imports ----
         blob_svc = blob_svc_module.ActivityBlobService(
             store=self._blobstore,
             dataset=self._dataset,
@@ -93,12 +257,14 @@ class PolarHrmImportTask(tasks.TaskBase):
                 )
         except Exception as exc:
             app_logger.warning(
-                "PolarHrmImportTask: orphan blob cleanup failed",
+                f"{self._log_name} orphan blob cleanup failed: {exc}\n"
+                f"{traceback.format_exc()}",
                 user_id=user_id,
                 error=str(exc),
+                traceback=f"{traceback.format_exc()}",
             )
 
-        # ---- phase 1: parse + build activities via plugin ----
+        # PHASE 1: parse + build activities via plugin
         plugin: polar_hrm.PolarHrmImportPlugin = plugins.registry.get_plugin(
             polar_hrm.PolarHrmImportPlugin.NAME
         )
@@ -123,20 +289,119 @@ class PolarHrmImportTask(tasks.TaskBase):
             self.update_progress(100)
             return
 
-        # ---- phase 2: upload blobs then persist activities once ----
+        # PHASE 2: Bulldozer-parallelized blob processing -------------------
+        self.log("BEGIN: Uploading HRM blobs & generating parquet (parallel)...")
+
+        # split activities evenly across workers
+        workers = max(1, (os.cpu_count() or 1) // 2)
+        chunks = _split_evenly(activities, min(workers, total))
+
+        # create Bulldozer sandbox
+        persistence_root = self._config.persistence_data_dir
+        usr_task_dir = (
+            persistence_root
+            / mytral_config.MytralPersistenceFsConfig.DIR_DATA
+            / user_id
+            / mytral_config.MytralPersistenceFsConfig.DIR_TASKS
+            / f"task-{self.task_entity.key}"
+        )
+        bzz = bulldozer.SubtaskBulldozer(
+            usr_task_dir=usr_task_dir,
+            logger=self.logger,
+        )
+        job_dirs = bzz.make_sandbox()
+
+        # ensure we don't have more job dirs than chunks
+        job_dirs = job_dirs[: len(chunks)]
+
+        # write each chunk to its job input directory
+        for i, chunk in enumerate(chunks):
+            input_file = job_dirs[i] / "input" / "activities.json"
+            with open(input_file, "w") as fh:
+                json.dump(
+                    {
+                        "user_id": user_id,
+                        "activities": [a.to_dict() for a in chunk],
+                    },
+                    fh,
+                    cls=_PathEncoder,
+                )
+
+        self.log(
+            f"Split {total} activities into {len(chunks)} chunks "
+            f"({len(chunks)} workers)"
+        )
+
+        # run Bulldozer
+        self.check_cancellation()
+        bzz.run(job_dirs=job_dirs, job_function=_polar_hrm_blob_job)
+        self.check_cancellation()
+
+        # detect and report failed jobs
+        failed_jobs = []
+        for job_dir in job_dirs:
+            error_file = job_dir / "output" / "error.json"
+            if error_file.exists():
+                with open(error_file) as fh:
+                    err = json.load(fh)
+                failed_jobs.append(err["job_key"])
+                self.log(
+                    f"ERROR: Bulldozer job {err['job_key']} failed:\n{err['traceback']}"
+                )
+        if failed_jobs:
+            raise RuntimeError(
+                f"Bulldozer jobs {failed_jobs} failed — see log for details"
+            )
+
+        self.log("All Bulldozer jobs DONE — merging blobstores...")
+        self.update_progress(50)
+
+        # PHASE 3: merge sandbox blobstores into main blobstore ------------
+        # main blobstore uses base_dir=config.user_data_dir (= persistence_root/"data")
+        main_blobs_dir = (
+            persistence_root
+            / mytral_config.MytralPersistenceFsConfig.DIR_DATA
+            / user_id
+            / "blobs"
+        )
+        sandbox_blobs_dirs = [_sandbox_blobs_dir(d, user_id) for d in job_dirs]
+        merged = blob_svc_module.ActivityBlobService.merge_sandbox_blobstores(
+            sandbox_blobs_dirs=sandbox_blobs_dirs,
+            main_blobs_dir=main_blobs_dir,
+        )
+        self.log(f"Merged {merged} blob directories from sandboxes into main store")
+        self.update_progress(60)
+
+        # PHASE 4: collect activities, conflict-resolve, bulk persist -------
+        self.log("Collecting activities from sandbox outputs...")
+
+        # collect all processed activities from job outputs
+        all_activities: list[entities.ActivityEntity] = []
+        for job_dir in job_dirs:
+            output_file = job_dir / "output" / "activities.json"
+            if output_file.exists():
+                with open(output_file) as fh:
+                    chunk_data = json.load(fh)
+                for d in chunk_data:
+                    # strip transient_fields before reconstructing entity
+                    d.pop("transient_fields", None)
+                    all_activities.append(entities.ActivityEntity(**d))
+
+        if len(all_activities) != total:
+            self.log(
+                f"WARNING: collected {len(all_activities)} activities, expected {total}"
+            )
+
+        # conflict detection and classification
+        year_cache: dict[int, list] = {}
+        activities_to_create: list[entities.ActivityEntity] = []
+        activities_to_update: list[entities.ActivityEntity] = []
         imported = 0
         skipped = 0
-        failed = 0
 
-        # year_cache: lazy per-year list of existing activities — eliminates
-        # O(n) list_activities() JSON reads (loaded once per unique year)
-        year_cache: dict[int, list] = {}
-        hrm_path_by_name = self._discover_hrm_paths(data_dir=data_dir)
-
-        self.log("BEGIN: Uploading HRM blobs & persisting activities & parquet...")
-        for i, activity in enumerate(activities):
-            self.check_cancellation()
-
+        for i, activity in enumerate(all_activities):
+            if i % 50 == 0:
+                self.check_cancellation()
             existing_key = self._find_conflict(user_id, activity, year_cache)
             if existing_key:
                 if on_conflict == "skip":
@@ -148,71 +413,38 @@ class PolarHrmImportTask(tasks.TaskBase):
                     # new_key: keep newly generated key and create as new
                     existing_key = None
 
-            # ---- step 1: upload blobs (in-memory only, no disk write) ----
-            rec_key: str | None = None
-            pq_key: str | None = None
-            try:
-                rec_key, pq_key = self._attach_hrm_recording_and_parquet(
-                    blob_svc=blob_svc,
-                    user_id=user_id,
-                    activity=activity,
-                    hrm_data=plugin._hrm_data_cache.get(activity.src_key),
-                    hrm_path=hrm_path_by_name.get(activity.src_key),
-                )
-            except Exception as exc:
-                app_logger.warning(
-                    "PolarHrmImportTask: HRM attachment failed",
-                    key=activity.key,
-                    hrm=activity.src_key,
-                    error=str(exc),
-                )
-
-            # ---- step 2: persist activity once ----
-            try:
-                if not existing_key:
-                    self._dataset.create_activity(
-                        user_id=user_id,
-                        dataset_name=dataset_name,
-                        entity=activity,
-                    )
-                else:
-                    self._dataset.update_activity(
-                        user_id=user_id,
-                        dataset_name=dataset_name,
-                        entity=activity,
-                    )
-            except Exception as exc:
-                # clean up uploaded blobs since the activity persist failed
-                if rec_key:
-                    try:
-                        blob_svc._store.delete_blob(user_id, rec_key)
-                    except Exception:
-                        pass
-                if pq_key:
-                    try:
-                        blob_svc._store.delete_blob(user_id, pq_key)
-                    except Exception:
-                        pass
-                app_logger.warning(
-                    "PolarHrmImportTask: create/update activity failed",
-                    key=activity.key,
-                    error=str(exc),
-                )
-                failed += 1
-                continue
-
+            entities.evaluate_activity(entity=activity, user_profile=user_profile)
+            if not existing_key:
+                activities_to_create.append(activity)
+            else:
+                activities_to_update.append(activity)
             imported += 1
-            progress = 10 + int(88 * (i + 1) / total)
-            self.update_progress(progress)
-            self.log(
-                f"Progress: {i + 1}/{total} processed "
-                f"(imported={imported}, skipped={skipped}, failed={failed})"
-            )
-        self.log("DONE: activities persisted & parquets created & HRM blobs uploaded")
+
         self.log(
-            f"Polar HRM import complete: {imported} imported, "
-            f"{skipped} skipped, {failed} failed"
+            f"Conflict resolution: {imported} to import, "
+            f"{skipped} skipped, "
+            f"{len(activities_to_create)} to create, "
+            f"{len(activities_to_update)} to update"
         )
+        self.update_progress(70)
+
+        # bulk persist
+        if activities_to_create:
+            self._dataset.create_activities(
+                user_id=user_id,
+                dataset_name=dataset_name,
+                entity_list=activities_to_create,
+            )
+        if activities_to_update:
+            self._dataset.update_activities(
+                user_id=user_id,
+                dataset_name=dataset_name,
+                entity_list=activities_to_update,
+            )
+            raise NotImplementedError
+
+        self.log("DONE: activities persisted & parquets created & HRM blobs uploaded")
+        self.log(f"Polar HRM import complete: {imported} imported, {skipped} skipped")
         self.update_progress(100)
 
     def _find_conflict(
@@ -228,7 +460,7 @@ class PolarHrmImportTask(tasks.TaskBase):
         ----------
         user_id : str
             User identifier.
-        activity
+        activity :
             Activity to check against existing records.
         year_cache : dict[int, list]
             Mutable cache mapping ``when_year`` to existing activity list;
@@ -254,95 +486,6 @@ class PolarHrmImportTask(tasks.TaskBase):
             if act.src == activity.src and act.src_key == activity.src_key:
                 return act.key
         return None
-
-    def _discover_hrm_paths(self, data_dir: pathlib.Path) -> dict[str, pathlib.Path]:
-        """Discover HRM files and map base filename to full path."""
-        mapping: dict[str, pathlib.Path] = {}
-        for path in data_dir.rglob("*"):
-            if not path.is_file():
-                continue
-            if path.suffix.lower() != ".hrm":
-                continue
-            mapping[path.name] = path
-        return mapping
-
-    def _attach_hrm_recording_and_parquet(
-        self,
-        blob_svc,
-        user_id: str,
-        activity,
-        hrm_data: dict | None,
-        hrm_path: pathlib.Path | None,
-    ) -> tuple[str | None, str | None]:
-        """Upload raw HRM recording, generate Parquet, update activity in-memory.
-
-        Both blob operations use ``skip_persist=True`` — the caller is
-        responsible for persisting the activity to disk afterwards.
-
-        Parameters
-        ----------
-        blob_svc : ActivityBlobService
-            Blob service for recording/parquet operations.
-        user_id : str
-            User identifier.
-        activity : ActivityEntity
-            Activity to enrich with recording references (mutated in-place).
-        hrm_data : dict or None
-            Parsed HRM structure from plugin cache.
-        hrm_path : pathlib.Path or None
-            Path to the original ``.hrm`` file.
-
-        Returns
-        -------
-        tuple[str | None, str | None]
-            (recording_blob_key, parquet_blob_key) — so the caller can
-            clean up blobs if the subsequent activity persist fails.
-        """
-        self.log(
-            f"Attaching HRM recording for activity {activity.key} "
-            f"(src_key={activity.src_key})"
-        )
-        if hrm_path is None or not hrm_path.is_file():
-            self.log(
-                "WARNING: HRM file not found for activity "
-                f"{activity.key}: {activity.src_key}"
-            )
-            return None, None
-        if not hrm_data or not hrm_data.get("rows"):
-            self.log(
-                f"WARNING: HRM parsed data missing for activity {activity.key}: "
-                f"{activity.src_key}"
-            )
-            return None, None
-
-        with hrm_path.open("rb") as fh:
-            raw_bytes = fh.read()
-
-        recording_meta = blob_svc.upload_recording(
-            user_id=user_id,
-            activity_key=activity.key,
-            uploaded_file=io.BytesIO(raw_bytes),
-            original_filename=hrm_path.name,
-            content_type="application/octet-stream",
-            name="Polar HRM",
-            description="Imported from Polar Precision Performance",
-            keywords="polar,hrm",
-            activity=activity,
-            skip_persist=True,
-        )
-        recording_blob_key = recording_meta.blob_key
-
-        parquet_bytes = parquet_converter.hrm_to_parquet(hrm_data)
-        parquet_blob_key = blob_svc.save_parquet(
-            user_id=user_id,
-            activity_key=activity.key,
-            source_blob_key=recording_meta.blob_key,
-            parquet_data=parquet_bytes,
-            activity=activity,
-            skip_persist=True,
-        )
-
-        return recording_blob_key, parquet_blob_key
 
 
 tasks.tasks_registry.register_task(PolarHrmImportTask)

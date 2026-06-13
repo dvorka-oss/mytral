@@ -14,11 +14,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 import base64
 import hashlib
 
 import bcrypt
 from cryptography.fernet import Fernet
+
+from mytral import settings
 
 # default encryption key DEVELOPMENT ONLY:
 # - MUST be overridden in production via MYTRAL_ENCRYPTION_KEY
@@ -149,3 +152,53 @@ def verify_password(plain: str, stored_hash: str) -> bool:
         return bcrypt.checkpw(plain.encode("utf-8"), stored_hash.encode("utf-8"))
     except Exception:
         return False
+
+
+#
+# Strava security
+#
+
+
+def decrypt_strava_secrets(profile_dict: dict, enc_key: str) -> None:
+    """Decrypt encrypted Strava client secrets in a profile dict (in-place).
+
+    Reads ``client_id_enc`` / ``client_secret_enc`` and writes the decrypted
+    values back as ``client_id`` / ``client_secret`` so the rest of the code
+    can use plain-text values transparently.  Falls back to any existing
+    plain-text values for backward-compatibility (migration path).
+    """
+    strava = profile_dict.get(settings.UserProfile.KEY_STRAVA, {})
+    for enc_field, plain_field in (
+        (settings.UserProfile.KEY_CLIENT_ID_ENC, settings.UserProfile.KEY_CLIENT_ID),
+        (
+            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
+            settings.UserProfile.KEY_CLIENT_SECRET,
+        ),
+    ):
+        enc_val = strava.get(enc_field, "")
+        if enc_val:
+            try:
+                strava[plain_field] = decrypt(enc_val, enc_key)
+            except ValueError:
+                # key mismatch or corrupt value – fall back to whatever is stored
+                pass
+
+
+def encrypt_strava_secrets(data_dict: dict, enc_key: str) -> None:
+    """Encrypt Strava client secrets in a serialisation dict (in-place).
+
+    Reads plain-text ``client_id`` / ``client_secret`` from the ``strava``
+    sub-dict, writes encrypted copies under ``client_id_enc`` /
+    ``client_secret_enc``, and removes the plain-text keys so they are never
+    written to disk.
+    """
+    strava = data_dict.get(settings.UserProfile.KEY_STRAVA, {})
+    for plain_field, enc_field in (
+        (settings.UserProfile.KEY_CLIENT_ID, settings.UserProfile.KEY_CLIENT_ID_ENC),
+        (
+            settings.UserProfile.KEY_CLIENT_SECRET,
+            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
+        ),
+    ):
+        plain_val = strava.pop(plain_field, "")
+        strava[enc_field] = encrypt(plain_val, enc_key) if plain_val else ""

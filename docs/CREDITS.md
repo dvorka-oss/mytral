@@ -42,6 +42,7 @@ Acknowledgements to reviewers, testers and supporters:
 Acknowledgements to athletes and projects who/which provided their data:
 
 * Roman "Marco" Vetešník - 10+ years of Polar Precision Performance data, literature, expertise.
+* Štefan "Wingman" Pacinda - 10+ years of Garmin data and vintage Garmin HW access.
 * [GoldenCheetah OpenData Project](https://osf.io/6hfpz/overview) and GoldenCheetah project test data - amazing collection of activity recordings.
 * OSF - for beging a free, open platform to support research and hosting dataset like crowd-sourced GoldenCheetah dataset for the sport science.
 
