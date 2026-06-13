@@ -669,20 +669,31 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
         problems.append(
             (
                 f"Distance {entity.distance} m recorded but duration is zero",
-                SEVERITY_ERROR,
+                SEVERITY_WARNING,
             )
         )
 
     at = entity.activity_type_key
     if entity.duration_seconds > 0 and entity.distance == 0:
         if at in _DISTANCE_ACTIVITY_TYPES:
-            problems.append(
-                (
-                    f"Duration {entity.duration} recorded but distance is zero "
-                    f"({at} activity)",
-                    SEVERITY_ERROR,
+            # when HR data is present the activity clearly happened (e.g. Polar
+            # S720i without GPS/footpod) — warn, don't error
+            if entity.avg_hr > 0:
+                problems.append(
+                    (
+                        f"Duration {entity.duration} recorded but distance is zero "
+                        f"({at} activity — HR data present, activity is real)",
+                        SEVERITY_WARNING,
+                    )
                 )
-            )
+            else:
+                problems.append(
+                    (
+                        f"Duration {entity.duration} recorded but distance is zero "
+                        f"({at} activity)",
+                        SEVERITY_ERROR,
+                    )
+                )
 
     # -- out-of-range values --
 
@@ -704,13 +715,59 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
             )
         )
 
-    if entity.max_speed > 100:
-        problems.append(
-            (
-                f"Max speed {entity.max_speed:.1f} km/h is suspiciously high",
-                SEVERITY_WARNING,
-            )
-        )
+    # max speed thresholds by activity type (line 582)
+    if entity.max_speed > 0:
+        if at in ("ride", "mtb", "cx"):
+            if entity.max_speed > 120:
+                problems.append(
+                    (
+                        f"Max speed {entity.max_speed:.1f} km/h is suspiciously high "
+                        f"for cycling",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at == "run":
+            if entity.max_speed > 40:
+                problems.append(
+                    (
+                        f"Max speed {entity.max_speed:.1f} km/h is suspiciously high "
+                        f"for running",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at in (
+            "ski",
+            "rollerski",
+            "xcski",
+            "inline",
+            "ice",
+        ):
+            if entity.max_speed > 100:
+                problems.append(
+                    (
+                        f"Max speed {entity.max_speed:.1f} km/h is suspiciously high "
+                        f"for {at}",
+                        SEVERITY_WARNING,
+                    )
+                )
+        elif at not in (
+            "swim",
+            "row",
+            "paddle",
+            "kayak",
+            "canoe",
+            "walk",
+            "hike",
+            "trek",
+        ):
+            # remaining types (exercise, gym, etc.): keep original blanket threshold
+            if entity.max_speed > 100:
+                problems.append(
+                    (
+                        f"Max speed {entity.max_speed:.1f} km/h is suspiciously high",
+                        SEVERITY_WARNING,
+                    )
+                )
 
     # speed ranges by activity type
     if entity.avg_speed > 0:
@@ -856,8 +913,9 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
                 )
             )
 
-    # elevation gain per km
-    if entity.elevation_gain > 0 and entity.distance > 0:
+    # elevation gain per km — skip when distance is tiny (< 500 m) because
+    # short distances produce meaningless m/km values (e.g. 193 m / 0.1 km).
+    if entity.elevation_gain > 0 and entity.distance >= 500:
         elev_per_km = entity.elevation_gain / (entity.distance / 1000)
         if elev_per_km > 150:
             problems.append(

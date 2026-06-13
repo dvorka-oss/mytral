@@ -160,6 +160,82 @@ def parse_smode(smode: str) -> tuple[bool, bool, bool, bool, bool]:
     return has_speed, has_cadence, has_altitude, has_power, mph
 
 
+def compute_max_speed_kmh(rows: list[dict], has_speed: bool) -> float:
+    """Compute max speed (km/h) from the HRData time series.
+
+    The Polar HRM ``[Trip]`` section's ``max_speed`` is unreliable for S720i
+    exports (often too low, e.g. when GPS lock is lost). The per-row
+    ``speed_01kmh`` values in the ``[HRData]`` section are the source of
+    truth. ``speed_01kmh`` is in 0.1 km/h units per the format spec.
+
+    Parameters
+    ----------
+    rows : list[dict]
+        The ``rows`` list returned by :func:`parse_hrdata`. Each row is a
+        dict that may contain ``"speed_01kmh"`` (int in 0.1 km/h) when
+        ``has_speed`` is True.
+    has_speed : bool
+        Whether the speed column is present in the source HRM file
+        (SMode bit 0).
+
+    Returns
+    -------
+    float
+        Max speed in km/h. Returns ``0.0`` if the speed column is absent
+        or no row contains a non-zero speed sample.
+    """
+    if not has_speed or not rows:
+        return 0.0
+    max_speed_tenths = 0
+    for row in rows:
+        s = row.get("speed_01kmh", 0)
+        if s > max_speed_tenths:
+            max_speed_tenths = s
+    return max_speed_tenths / 10.0
+
+
+def compute_elevation_gain(rows: list[dict], has_altitude: bool) -> int:
+    """Compute cumulative positive elevation gain (m) from the HRData time series.
+
+    The Polar HRM ``[Trip]`` section's ``elevation_gain`` is broken for S720i
+    exports (consistently reports ~3 000 m regardless of the actual ride
+    profile). The per-row ``altitude_m`` values in ``[HRData]`` are the
+    source of truth. Returns the sum of all positive altitude deltas
+    between consecutive samples.
+
+    Parameters
+    ----------
+    rows : list[dict]
+        The ``rows`` list returned by :func:`parse_hrdata`. Each row is a
+        dict that may contain ``"altitude_m"`` (int in metres) when
+        ``has_altitude`` is True.
+    has_altitude : bool
+        Whether the altitude column is present in the source HRM file
+        (SMode bit 2).
+
+    Returns
+    -------
+    int
+        Cumulative positive elevation gain in metres. Returns ``0`` if
+        the altitude column is absent or fewer than two altitude samples
+        are available.
+    """
+    if not has_altitude or not rows:
+        return 0
+    gain = 0
+    previous: int | None = None
+    for row in rows:
+        alt = row.get("altitude_m")
+        if alt is None:
+            continue
+        if previous is not None:
+            delta = alt - previous
+            if delta > 0:
+                gain += delta
+        previous = alt
+    return gain
+
+
 def parse_hrdata(
     lines: list[str],
     has_speed: bool,
@@ -208,14 +284,14 @@ def parse_hrdata(
             try:
                 row["speed_01kmh"] = int(parts[col])
             except ValueError:
-                row["speed_01kmh"] = 0
+                pass  # omit key - let downstream treat it as absent
             col += 1
 
         if has_cadence and col < len(parts):
             try:
                 row["cadence_rpm"] = int(parts[col])
             except ValueError:
-                row["cadence_rpm"] = 0
+                pass  # omit key - let downstream treat it as absent
             col += 1
 
         if has_altitude and col < len(parts):
@@ -223,7 +299,7 @@ def parse_hrdata(
                 row["altitude_m"] = int(parts[col])
                 altitude_values.append(row["altitude_m"])
             except ValueError:
-                row["altitude_m"] = 0
+                pass  # omit key - compute_elevation_gain skips None alt
             col += 1
 
         rows.append(row)
@@ -387,10 +463,25 @@ def parse_hrm(path: pathlib.Path) -> dict:
         result["max_hr"] = hr_dict["max_hr"]
         result["min_hr"] = hr_dict["min_hr"]
         result["elevation_min"] = hr_dict["elevation_min"]
+        # prefer HRData max altitude (always meters); fall back to Trip max
+        # (Trip elevation may be in cm for some devices → 100× inflation)
+        result["elevation_max"] = hr_dict["elevation_max"] or elevation_max_trip
+        # HRData-derived speed/elevation: the [Trip] section values for
+        # ``max_speed_kmh`` and ``elevation_gain`` are unreliable for S720i
+        # exports, so derive these from the per-row HRData time series.
+        # The raw Trip values (``max_speed_kmh``, ``elevation_gain``) are
+        # kept above — they are still used by the cm-detection heuristic in
+        # ``_build_activity`` (gradient check needs the raw Trip elevation_gain
+        # to detect 100× cm inflation).  Consumers should use the ``*_hrdata``
+        # fields for display and validation.
         # preserve HRData elevation max for cross-reference (always meters)
         result["elevation_max_hrmdata"] = hr_dict["elevation_max"]
-        # prefer trip max altitude; fall back to HRData max
-        result["elevation_max"] = elevation_max_trip or hr_dict["elevation_max"]
+        result["max_speed_kmh_hrdata"] = compute_max_speed_kmh(
+            hr_dict["rows"], has_speed
+        )
+        result["elevation_gain_hrdata"] = compute_elevation_gain(
+            hr_dict["rows"], has_altitude
+        )
     except Exception as ex:
         app_logger.error(
             f"[HRM parser] unable to parse {path}: {ex}\n{traceback.format_exc()}",
@@ -822,10 +913,12 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             note = hrm.get("note", "") or exercise.get("note", "")
             avg_hr = hrm.get("avg_hr", 0) or exercise.get("avg_hr", 0)
             max_hr = hrm.get("max_hr", 0) or exercise.get("max_hr", 0)
-            min_hr = 0  # exercise min HR from HRM, NOT resting HR
             kcal = hrm.get("kcal", 0) or exercise.get("kcal", 0)
-            max_speed_kmh = hrm.get("max_speed_kmh", 0.0)
-            elevation_gain = hrm.get("elevation_gain", 0)
+            # max_speed and elevation_gain come from the HRData time series
+            # (``*_hrdata``) because the ``[Trip]`` section values in S720i
+            # exports are unreliable (e.g. elevation_gain is always ~3000 m).
+            max_speed_kmh = hrm.get("max_speed_kmh_hrdata", 0.0)
+            elevation_gain = hrm.get("elevation_gain_hrdata", 0)
             elevation_min = hrm.get("elevation_min", 0)
             elevation_max = hrm.get("elevation_max", 0)
             weight = hrm.get("weight", 0)
@@ -839,7 +932,6 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             note = exercise.get("note", "")
             avg_hr = exercise.get("avg_hr", 0)
             max_hr = exercise.get("max_hr", 0)
-            min_hr = 0
             kcal = exercise.get("kcal", 0)
             max_speed_kmh = 0.0
             elevation_gain = 0
@@ -869,6 +961,19 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
         sport_str = map_activity_type_index(exercise.get("sport_index", 0))
 
+        # auto-reclassify when the declared activity type contradicts the
+        # measured speed/distance data (user may have forgotten to switch
+        # sport profile on the watch, or the Polar sport index is unknown).
+        duration_s = act_hours * 3600 + act_minutes * 60 + act_seconds
+        if duration_s > 0 and distance_m > 0:
+            prelim_avg_speed = (distance_m / duration_s) * 3.6
+            if sport_str == commons.AT_RUN and prelim_avg_speed > 25.0:
+                # running at > 25 km/h is world-record pace — this is a ride
+                sport_str = commons.guess_activity_type(prelim_avg_speed)
+            elif sport_str == commons.AT_GYM and prelim_avg_speed > 0:
+                # "exercise" with distance/time/speed data — guess real type
+                sport_str = commons.guess_activity_type(prelim_avg_speed)
+
         # determine src_key — prefer hrm filename; fall back to synthetic key
         src_key = (
             hrm_filename
@@ -896,7 +1001,8 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         a.distance = distance_m
         a.avg_hr = avg_hr
         a.max_hr = max_hr
-        a.min_hr = min_hr
+        # min_hr is a day-level metric (resting HR), not an in-activity
+        # minimum; do not set it from per-activity HRData.
         a.kcal = kcal
         a.max_speed = max_speed_kmh
         a.elevation_gain = elevation_gain
@@ -917,9 +1023,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         entities.evaluate_activity(entity=a, user_profile=user_profile)
 
         # cap avg_speed when it exceeds max_speed (PDD distance/duration vs HRM
-        # Trip max_speed may disagree due to different measurement sources)
+        # max_speed may disagree due to different measurement sources)
         if a.max_speed > 0 and a.avg_speed > a.max_speed:
             a.avg_speed = a.max_speed
+            a.pace = entities.kmh_to_pace(a.avg_speed)
 
         return a
 
