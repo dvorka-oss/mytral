@@ -66,7 +66,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
         Raises
         ------
         RuntimeError
-            If a pre-condition check fails (package missing, already running, …).
+            If a pre-condition check fails (package missing, already running, ...).
         Exception
             If the HuggingFace download itself fails.
         """
@@ -101,7 +101,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
         # correct state while the task is running
         icl_manager.set_downloading(True)
         self.update_progress(10)
-        self.log("Pre-flight checks passed. Starting HuggingFace weight download…")
+        self.log("Pre-flight checks passed. Starting HuggingFace weight download...")
         self.log(
             "Downloading TabPFN v2 weights (~100 MB) from HuggingFace Hub. "
             "This may take a few minutes depending on your connection speed."
@@ -113,7 +113,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
             from huggingface_hub import snapshot_download
 
             self.log(
-                "Downloading TabPFN v2 classifier weights (Prior-Labs/TabPFN-v2-clf)…"
+                "Downloading TabPFN v2 classifier weights (Prior-Labs/TabPFN-v2-clf)..."
             )
             self.update_progress(30)
             snapshot_download(icl_manager._HF_REPO_CLF)
@@ -121,7 +121,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
             self.check_cancellation()
 
             self.log(
-                "Downloading TabPFN v2 regressor weights (Prior-Labs/TabPFN-v2-reg)…"
+                "Downloading TabPFN v2 regressor weights (Prior-Labs/TabPFN-v2-reg)..."
             )
             self.update_progress(65)
             snapshot_download(icl_manager._HF_REPO_REG)

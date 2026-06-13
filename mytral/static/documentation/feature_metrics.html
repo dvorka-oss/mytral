@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MyTraL Feature: Sport Metrics - MyTraL Documentation</title>
+    <meta name="msapplication-TileColor" content="#066fd1" />
+    <meta name="theme-color" content="#066fd1" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
+    <meta
+      name="description"
+      content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL."
+    />
+
+    <!-- BEGIN GLOBAL MANDATORY STYLES -->
+    <link href="/static/tabler-dist/css/tabler.min.css" rel="stylesheet" />
+    <!-- END GLOBAL MANDATORY STYLES -->
+    <!-- BEGIN PLUGINS STYLES -->
+    <link href="/static/tabler-dist/css/tabler-flags.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-socials.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-payments.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-vendors.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-marketing.min.css" rel="stylesheet"/>
+    <link href="/static/tabler-dist/css/tabler-themes.min.css" rel="stylesheet"/>
+    <!-- END PLUGINS STYLES -->
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+      .carousel-inner img {
+        height: 300px;
+        object-fit: contain;
+        background-color: #f8f9fa;
+      }
+    </style>
+
+  </head>
+  <body>
+    <!-- BEGIN GLOBAL THEME SCRIPT -->
+    <script src="/static/tabler-dist/js/tabler-theme.min.js"></script>
+    <!-- END GLOBAL THEME SCRIPT -->
+    <div class="page">
+      <!-- BEGIN NAVBAR  -->
+      <div class="sticky-top">
+        <header class="navbar navbar-expand-md sticky-top d-print-none">
+          <div class="container-xl">
+            <!-- BEGIN NAVBAR TOGGLER -->
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbar-menu"
+              aria-controls="navbar-menu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- END NAVBAR TOGGLER -->
+            <!-- BEGIN NAVBAR LOGO -->
+            <div class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3" style="gap: 0px;">
+              <img src="/static/images/mytral-logo-transparent-bg.png" alt="MyTraL" style="width: 25px; height: 25px; margin-right: 5px;">
+                MyTra<span style="color: #aaa;">ining</span>L<span style="color: #aaa;">og</span>
+            </div>
+            <!-- END NAVBAR LOGO -->
+            <div class="navbar-nav flex-row order-md-last">
+              <div class="d-none d-md-flex">
+
+                <div class="nav-item">
+                  <a href="?theme=dark" class="nav-link px-0 hide-theme-dark" title="Enable dark mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+                    </svg>
+                  </a>
+                  <a href="?theme=light" class="nav-link px-0 hide-theme-light" title="Enable light mode" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      class="icon icon-1"
+                    >
+                      <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+                      <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <header class="navbar-expand-md">
+          <div class="collapse navbar-collapse" id="navbar-menu">
+            <div class="navbar">
+              <div class="container-xl">
+                <div class="row flex-column flex-md-row flex-fill align-items-center">
+                  <div class="col">
+                    <!-- BEGIN NAVBAR MENU -->
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> User Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="index.html">Manifesto</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="credits.html">Credits</a>
+<a class="dropdown-item" href="license.html">License</a>
+<a class="dropdown-item" href="about.html">About</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-code"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Technical Documentation </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="architecture.html">Architecture</a>
+<a class="dropdown-item" href="normalization.html">Activity Normalization</a>
+<div class="dropdown-divider"></div>
+<a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
+<a class="dropdown-item" href="changelog.html">Changelog</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+
+                      <li class="nav-item dropdown">
+                        <a
+                          class="nav-link dropdown-toggle"
+                          href="#navbar-base"
+                          data-bs-toggle="dropdown"
+                          data-bs-auto-close="outside"
+                          role="button"
+                          aria-expanded="false"
+                        >
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
+                          </span>
+                          <span class="nav-link-title"> Digitalization </span>
+                        </a>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                              <a class="dropdown-item" href="digitalization.html">Digitize, Normalize, Own!</a>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                    <!-- END NAVBAR MENU -->
+                  </div>
+                  <div class="col col-md-auto">
+                    <ul class="navbar-nav">
+                      <li class="nav-item">
+                        <a class="nav-link" href="/home">
+                          <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="icon icon-1"
+                            >
+                              <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+                              <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+                              <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+                            </svg>
+                          </span>
+                          <span class="nav-link-title"> MyTraL </span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- END NAVBAR  -->
+      <div class="page-wrapper">
+
+      <!-- BEGIN MYTRAL PAGE CONTENT -->
+
+        <div class="page-header d-print-none" aria-label="Page header">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="page-pretitle">MyTraL Documentation</div>
+                        <h2 class="page-title">MyTraL Feature: Sport Metrics</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div class="row">
+                    <!-- BEGIN MAIN CONTENT -->
+                    <div class="col-12 col-xxl-10">
+                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="metrics">Metrics</h2>
+<p>Metrics taxonomy and attributes:</p>
+<ul>
+<li>Athlete</li>
+<li>Workout</li>
+</ul>
+<p>Table of metrics:</p>
+<ul>
+<li>Base metabolic rate</li>
+<li>FATMAX</li>
+<li>FTP: functional threshold power</li>
+<li>HR max: Max heart rate</li>
+<li>HR zones</li>
+<li>HR: heart rate</li>
+<li>HRV RMSSD</li>
+<li>Power to weight ratio</li>
+<li>Power zones</li>
+<li>Resting HR</li>
+<li>TRIMP</li>
+<li>TSS</li>
+<li>VO2MAX: maximal oxygen uptake</li>
+</ul>
+<h3 id="ftp">FTP: ...</h3>
+<p><em>[brief description]</em></p>
+<p>Definition: (units)</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Purpose:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Pros:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>.</li>
+</ul>
+<h3 id="trimp">TRIMP: ...</h3>
+<p><em>[brief description]</em></p>
+<p>Purposes:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Pros:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>.</li>
+</ul>
+<h3 id="tss">TSS: ...</h3>
+<p><em>[brief description]</em></p>
+<p>Purposes:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Pros:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>.</li>
+</ul>
+<h3 id="vo2max">VO2Max: ...</h3>
+<p><em>[brief description]</em></p>
+<p>Purposes:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Pros:</p>
+<ul>
+<li>.</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>.</li>
+</ul>
+                        </div></div>
+                    </div>
+                    <!-- END MAIN CONTENT -->
+
+                    <!-- BEGIN TABLE OF CONTENTS SIDEBAR -->
+                    <div class="col-2 d-none d-xxl-block">
+                        <div class="mt-6 py-6 sticky-top">
+    <h3 class="mt-9">Table of Contents</h3>
+    <div class="nav nav-vertical" id="toc">
+        <a href="#metrics" class="nav-link">Metrics</a>
+<a href="#ftp" class="nav-link ms-3">FTP: ...</a>
+<a href="#trimp" class="nav-link ms-3">TRIMP: ...</a>
+<a href="#tss" class="nav-link ms-3">TSS: ...</a>
+<a href="#vo2max" class="nav-link ms-3">VO2Max: ...</a>
+    </div>
+</div>
+                    </div>
+                    <!-- END TABLE OF CONTENTS SIDEBAR -->
+                </div>
+            </div>
+        </div>
+
+        <!-- END MYTRAL PAGE CONTENT -->
+
+        <!--  BEGIN FOOTER  -->
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center flex-row-reverse">
+              <div class="col-lg-auto ms-lg-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Source</a></li>
+                </ul>
+              </div>
+              <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    Copyright &copy; 2026 MyTraL
+                  </li>
+                  <li class="list-inline-item">
+                    Your personal training log for deeper insights and smarter progress.
+                  </li>
+                  <li class="list-inline-item">
+                    Doc made with <a href="https://www.mindforger.com" target="_blank">MindForger</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
+        <!--  END FOOTER  -->
+      </div>
+    </div>
+    <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
+    <script src="/static/tabler-dist/js/tabler.min.js" defer></script>
+    <!-- END GLOBAL MANDATORY SCRIPTS -->
+</body>
+</html>

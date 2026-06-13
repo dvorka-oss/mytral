@@ -6,14 +6,14 @@
             <div class="col">
                 <div class="page-pretitle">Import</div>
                 <h2 class="page-title">
-                    Strava API (developer)
+                    Strava API (Developer Personal Access)
                 </h2>
             </div>
         </div>
 
         <div class="card mt-3 mb-3">
             <div class="card-body">
-                <p class="text-muted">
+                <p>
                     Import activities from <a href="https://www.strava.com" target="_blank">Strava</a>
                     using the <a href="{{ user_profile.strava_url }}" title="{{ user_profile.strava_url }}" target="_blank">API</a>
                     as a <b>developer</b>.
@@ -22,7 +22,7 @@
                     <span class="badge bg-red text-red-fg ms-1">WARNING</span>
                     <a href="https://www.strava.com" target="_blank" class="link-primary">Strava</a> has modified its
                     <a href="https://www.strava.com/legal/terms" target="_blank" class="link-primary">legal terms</a>
-                    multiple times without prior notice - consequently, this feature may no longer be <b>legally</b> compliant.
+                    multiple times without prior notice - consequently, please check this feature's legal compliance.
                 </p>
             </div>
         </div>
@@ -46,18 +46,26 @@
 
         <div class="card mb-3">
             <div class="card-header">
-                <h3 class="card-title"><b>New Strava Activities to Current Dataset</b></h3>
+                <h3 class="card-title"><b>New Strava Activities</b></h3>
                 <div class="card-actions">
-                    <form method="POST" action="{{ url_for('strava_sync_new_to_current') }}" style="display:inline;">
-                        <button type="submit" class="btn btn-primary" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
-                           <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
-                            Synchronize New to Current
-                        </button>
-                    </form>
+                    <button type="submit" class="btn btn-primary" form="strava-sync-form" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
+                       <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-refresh"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>
+                        Synchronize New Activities
+                    </button>
                 </div>
             </div>
             <div class="card-body">
-                <p class="text-muted">Import <b>only</b> Strava activities newer than the last activity in the current dataset.</p>
+                <p>Import <b>only</b> Strava activities newer than the last activity in the current dataset.</p>
+                <form method="POST" action="{{ url_for('strava_sync_new_to_current') }}" id="strava-sync-form">
+                    <label class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="import_recordings" value="1" checked>
+                        <span class="form-check-label">Import recordings (GPX/TCX/FIT)</span>
+                    </label>
+                    <label class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="import_photos" value="1" checked>
+                        <span class="form-check-label">Import photos</span>
+                    </label>
+                </form>
             </div>
         </div>
 
@@ -65,10 +73,10 @@
             <div class="card-status-top SKIP-bg-danger"></div>
             <div class="card-header">
                 <h3 class="card-title">
-                    <b>All Strava Activities to Current Dataset</b>
+                    <b>All Strava Activities</b>
                 </h3>
                 <div class="card-actions">
-                    <form method="POST" action="{{ url_for('strava_sync_all') }}"
+                    <form method="POST" action="{{ url_for('strava_sync_all') }}" id="strava-resync-form"
                         onsubmit="return confirm('CONFIRM: This will DELETE all Strava-sourced activities from ALL datasets and re-import from scratch. Manual edits will be lost. Continue?')">
                         <input type="hidden" name="purge_confirmed" value="1">
                         <button type="submit" class="btn btn-outline-primary" {% if sync_locked %}disabled title="Sync already in progress"{% endif %}>
@@ -85,6 +93,14 @@
                     Any manual edits to Strava-sourced activities will be permanently lost.
                     If aborted mid-operation, some activities may be deleted but not yet re-imported.
                 </p>
+                <label class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="import_recordings" value="1" checked form="strava-resync-form">
+                    <span class="form-check-label">Import recordings (GPX/TCX/FIT)</span>
+                </label>
+                <label class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="import_photos" value="1" checked form="strava-resync-form">
+                    <span class="form-check-label">Import photos</span>
+                </label>
             </div>
         </div>
 
@@ -101,7 +117,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <p class="text-muted">
+                <p>
                     Smart synchronization of the gear from Strava - matches gear by Strava ID first, then by brand &amp; model.
                     Gear is never deleted - retired Strava gear is marked as retired.
                 </p>
@@ -111,9 +127,9 @@
         {% if user_profile.expert %}
         <div class="card mb-3">
             <div class="card-header">
-                <h3 class="card-title"><b>Activities to New Dataset</b></h3>
+                <h3 class="card-title"><b>New Activities to New Dataset</b></h3>
                 <div class="card-actions">
-                    <a class="btn btn-primary"
+                    <a class="btn btn-outline-primary"
                         href="{{ url_for('strava_sync_new_to_new') }}"
                         title=""
                     >
@@ -124,7 +140,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <p class="text-muted">Synchronize Strava activities which are <b>newer than the last activity</b> in the current dataset to a brand <b>new dataset</b>.</p>
+                <p>Synchronize Strava activities which are <b>newer than the last activity</b> in the current dataset to a brand <b>new dataset</b>.</p>
             </div>
         </div>
         {% endif %}
@@ -154,7 +170,7 @@
             </div>
 
             <div class="card-body">
-                <p class="text-muted">Strava authentication status:
+                <p>Strava authentication status:
                     {% if user_profile.strava_auth_until %}
                         {% if is_auth_valid %}
                         <span class="badge bg-green text-green-fg">Authenticated</span>
@@ -201,19 +217,19 @@
             <div class="card-body">
                 <p>Your Strava API client ID and client secret are required to authenticate and synchronize data from Strava.</p>
                 <ul>
-                    <li class="text-muted">Strava API client ID:
+                    <li>Strava API client ID:
                         {% if user_profile.strava_client_id%}
-                            <span class="xtext-muted"><span class="badge bg-green text-green-fg">CONFIGURED</span>
+                            <span class="badge bg-green text-green-fg">CONFIGURED</span>
                         {% else %}
-                            <span class="xtext-muted"><span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
+                            <span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
                         {% endif %}
                     </li>
-                    <li class="text-muted">
+                    <li>
                         Strava API client secret:
                         {% if user_profile.strava_client_secret %}
-                            <span class="xtext-muted"><span class="badge bg-green text-green-fg">CONFIGURED</span>
+                            <span class="badge bg-green text-green-fg">CONFIGURED</span>
                         {% else %}
-                            <span class="xtext-muted"><span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
+                            <span class="badge bg-red text-red-fg">NOT CONFIGURED</span>
                         {% endif %}
                     </li>
                 </ul>

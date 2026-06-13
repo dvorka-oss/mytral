@@ -20,6 +20,8 @@
 import datetime
 import hashlib
 import io
+import pathlib
+import shutil
 import time
 import traceback
 import typing
@@ -33,16 +35,17 @@ from mytral.blobstore.abc import BlobStoreAbc
 from mytral.blobstore.exceptions import BlobNotFoundError
 from mytral.blobstore.exceptions import BlobStoreError
 from mytral.blobstore.exceptions import BlobValidationError
+from mytral.blobstore.filesystem import merge_blobstore_from_path
 from mytral.blobstore.models import BLOB_VARIANT_THUMBNAIL
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobMetadata
 from mytral.blobstore.models import BlobOwnerKind
-from mytral.blobstore.validation import parse_gpx
 from mytral.blobstore.validation import validate_blob_metadata
 from mytral.blobstore.validation import validate_photo
 from mytral.blobstore.validation import validate_recording
 from mytral.config import MytralConfig
 from mytral.recordings import gpx_extractor
+from mytral.recordings import tcx_extractor
 
 
 def _now_iso() -> str:
@@ -466,6 +469,54 @@ class ActivityBlobService:
             except Exception:
                 pass
 
+    def cleanup_orphan_recordings(self, user_id: str) -> int:
+        """Delete recording and parquet blobs whose activity no longer exists.
+
+        Walks the filesystem blob store under the activities directory,
+        checks each ``activity_key`` against the dataset, and removes
+        orphaned blob directories.  Returns the count of cleaned activity
+        directories.
+
+        Parameters
+        ----------
+        user_id : str
+            Owning user identifier.
+
+        Returns
+        -------
+        int
+            Number of orphan activity directories removed.
+        """
+        persistence_dir = self._config.persistence_data_dir
+        if persistence_dir is None:
+            return 0
+        activities_dir = persistence_dir / user_id / "blobs" / "activities"
+        if not activities_dir.is_dir():
+            return 0
+
+        cleaned = 0
+        for child in activities_dir.iterdir():
+            if not child.is_dir():
+                continue
+            activity_key = child.name
+            try:
+                self._get_activity(user_id, activity_key)
+            except BlobValidationError:
+                # activity no longer exists — delete orphan blobs
+                try:
+                    shutil.rmtree(child, ignore_errors=True)
+                    cleaned += 1
+                    app_logger.info(
+                        f"Cleaned orphan blobs for activity {activity_key} "
+                        f"(user {user_id})"
+                    )
+                except OSError as exc:
+                    app_logger.warning(
+                        f"Failed to clean orphan blobs for activity "
+                        f"{activity_key} (user {user_id}): {exc}"
+                    )
+        return cleaned
+
     #
     # Recording operations
     #
@@ -481,6 +532,8 @@ class ActivityBlobService:
         name: str = "",
         description: str = "",
         keywords: str | list[str] = "",
+        activity: entities.ActivityEntity | None = None,
+        skip_persist: bool = False,
     ) -> BlobMetadata:
         """Upload a recording file (FIT / GPX / HRM) for an activity.
 
@@ -502,6 +555,14 @@ class ActivityBlobService:
             Description text.
         keywords : str | list[str]
             Comma-separated string or list of keyword tags.
+        activity : ActivityEntity or None
+            Pre-loaded activity entity.  When provided, the activity is
+            mutated in memory and ``_get_activity`` is skipped.  Useful
+            with ``skip_persist`` for batched writes.
+        skip_persist : bool
+            When True, the activity JSON is not saved to disk.  The
+            in-memory ``activity`` object is still updated so the caller
+            can persist it later in a single write.
 
         Returns
         -------
@@ -511,7 +572,8 @@ class ActivityBlobService:
         Raises
         ------
         BlobValidationError
-            On validation failure or if activity does not exist.
+            On validation failure or if activity does not exist (when
+            ``activity`` is not provided).
         BlobStoreError
             On backend failure.
         """
@@ -525,7 +587,8 @@ class ActivityBlobService:
         )
         start_time = time.perf_counter()
 
-        activity = self._get_activity(user_id, activity_key)
+        if activity is None:
+            activity = self._get_activity(user_id, activity_key)
         # Ensure recorded_blob_keys is a list to avoid None errors
         if activity.recorded_blob_keys is None:
             activity.recorded_blob_keys = []
@@ -564,33 +627,39 @@ class ActivityBlobService:
         self._store.create_blob(metadata, io.BytesIO(data))
 
         # update activity JSON reference; compensate on failure
-        try:
-            entry = f"{blob_key}{ext}"
-            activity.recorded_blob_keys.append(entry)
-            self._save_activity(user_id, activity)
+        entry = f"{blob_key}{ext}"
+        activity.recorded_blob_keys.append(entry)
+        if skip_persist:
             app_logger.info(
-                f"FIT upload: activity {activity_key} cache refreshed after "
-                f"recording add"
+                f"Recording upload: activity {activity_key} recording blob appended "
+                f"(deferred persist)"
             )
-        except Exception as exc:
-            # attempt cleanup of the uploaded blob
+        else:
             try:
-                self._store.delete_blob(user_id, blob_key)
-            except BlobStoreError:
+                self._save_activity(user_id, activity)
+                app_logger.info(
+                    f"Recording upload: activity {activity_key} cache refreshed after "
+                    f"recording add"
+                )
+            except Exception as exc:
+                # attempt cleanup of the uploaded blob
+                try:
+                    self._store.delete_blob(user_id, blob_key)
+                except BlobStoreError:
+                    app_logger.error(
+                        f"Failed to delete recording blob {blob_key} after activity "
+                        f"reference update failure: {exc}",
+                        traceback=traceback.format_exc(),
+                    )
+                    pass
                 app_logger.error(
-                    f"Failed to delete recording blob {blob_key} after activity "
-                    f"reference update failure: {exc}",
+                    f"Recording upload failed to persist recording reference for "
+                    f"activity {activity_key}: {exc}",
                     traceback=traceback.format_exc(),
                 )
-                pass
-            app_logger.error(
-                f"FIT upload failed to persist recording reference for "
-                f"activity {activity_key}: {exc}",
-                traceback=traceback.format_exc(),
-            )
-            raise BlobStoreError(
-                f"Failed to persist activity recording reference: {exc}"
-            ) from exc
+                raise BlobStoreError(
+                    f"Failed to persist activity recording reference: {exc}"
+                ) from exc
 
         duration = time.perf_counter() - start_time
         self._logger.info(
@@ -611,8 +680,9 @@ class ActivityBlobService:
         blob_key: str,
         *,
         refresh_legacy: bool = False,
+        polyline_method: str = gpx_extractor.GPX_POLYLINE_METHOD,
     ) -> BlobMetadata:
-        """Ensure GPX map metadata exists for the selected recording blob.
+        """Ensure GPX/TCX map metadata exists for the selected recording blob.
 
         Parameters
         ----------
@@ -640,7 +710,7 @@ class ActivityBlobService:
             )
 
         meta = self._store.get_blob_metadata(user_id=user_id, blob_key=blob_key)
-        if meta.extension != ".gpx":
+        if meta.extension not in {".gpx", ".tcx"}:
             return meta
 
         if meta.summary_polyline and meta.summary_bbox:
@@ -672,14 +742,24 @@ class ActivityBlobService:
         track_count = meta.track_count
         track_point_count = meta.track_point_count
         try:
-            track_count, track_point_count = parse_gpx(data=gpx_data)
-            gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-            summary_polyline, summary_bbox, full_polyline = (
-                gpx_extractor.encode_gps_polylines(points=gps_points)
-            )
-            elevation_profile = gpx_extractor.simplify_elevation_profile(
-                gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
-            )
+            if meta.extension == ".tcx":
+                track_count, track_point_count, gps_points, raw_profile = (
+                    tcx_extractor.extract_all_from_tcx(gpx_data)
+                )
+            else:
+                track_count, track_point_count, gps_points, raw_profile = (
+                    gpx_extractor.extract_all_from_gpx(gpx_data)
+                )
+            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
+            if gps_points:
+                summary_polyline, summary_bbox, full_polyline = (
+                    gpx_extractor.encode_gps_polylines(
+                        points=gps_points,
+                        polyline_method=polyline_method,
+                    )
+                )
+            else:
+                summary_polyline, summary_bbox, full_polyline = "", None, ""
         except Exception as exc:
             raise BlobValidationError(
                 f"Failed to generate GPX map data for recording '{blob_key}': {exc}"
@@ -790,6 +870,8 @@ class ActivityBlobService:
 
                     hrm_dict = polar_hrm.parse_hrm(data.decode("utf-8", "ignore"))
                     parquet_bytes = parquet_converter.hrm_to_parquet(hrm_dict)
+                elif ext == ".tcx":
+                    parquet_bytes = parquet_converter.tcx_to_parquet(data)
                 else:
                     # unknown format, skip parquet generation
                     app_logger.warning(
@@ -966,6 +1048,9 @@ class ActivityBlobService:
         activity_key: str,
         source_blob_key: str,
         parquet_data: bytes,
+        *,
+        activity: entities.ActivityEntity | None = None,
+        skip_persist: bool = False,
     ) -> str:
         """Store a Parquet blob and register it against the source recording.
 
@@ -979,6 +1064,14 @@ class ActivityBlobService:
             Blob UUID of the source recording (FIT/GPX/HRM).
         parquet_data : bytes
             Parquet-encoded bytes to store.
+        activity : ActivityEntity or None
+            Pre-loaded activity entity.  When provided, the activity is
+            mutated in memory and ``_get_activity`` is skipped.  Useful
+            with ``skip_persist`` for batched writes.
+        skip_persist : bool
+            When True, the activity JSON is not saved to disk.  The
+            in-memory ``activity`` object is still updated so the caller
+            can persist it later in a single write.
 
         Returns
         -------
@@ -990,7 +1083,8 @@ class ActivityBlobService:
         BlobStoreError
             On backend failure.
         """
-        activity = self._get_activity(user_id, activity_key)
+        if activity is None:
+            activity = self._get_activity(user_id, activity_key)
         parquet_key = _new_blob_key()
         now = _now_iso()
         sha = _sha256_hex(parquet_data)
@@ -1024,14 +1118,26 @@ class ActivityBlobService:
                 pass
 
         activity.recorded_parquet_keys[source_blob_key] = parquet_key
-        try:
-            self._save_activity(user_id, activity)
-        except Exception as exc:
+        if skip_persist:
+            app_logger.info(
+                f"Parquet blob {parquet_key} linked to activity {activity_key} "
+                f"(deferred persist)"
+            )
+        else:
             try:
-                self._store.delete_blob(user_id, parquet_key)
-            except BlobStoreError:
-                pass
-            raise BlobStoreError(f"Failed to persist Parquet reference: {exc}") from exc
+                self._save_activity(user_id, activity)
+                app_logger.info(
+                    f"Parquet saved: activity {activity_key} cache refreshed after "
+                    f"parquet add"
+                )
+            except Exception as exc:
+                try:
+                    self._store.delete_blob(user_id, parquet_key)
+                except BlobStoreError:
+                    pass
+                raise BlobStoreError(
+                    f"Failed to persist Parquet reference: {exc}"
+                ) from exc
 
         return parquet_key
 
@@ -1067,3 +1173,35 @@ class ActivityBlobService:
             return stream, meta
         except BlobNotFoundError:
             return None
+
+    @staticmethod
+    def merge_sandbox_blobstores(
+        sandbox_blobs_dirs: list[pathlib.Path],
+        main_blobs_dir: pathlib.Path,
+    ) -> int:
+        """Merge blob data from Bulldozer sandbox directories into the main blobstore.
+
+        Iterates over each sandbox blobstore root and copies blob directories
+        (recordings + parquet) into the main blobstore.  Blob keys are UUIDs,
+        so collisions are not expected.  Existing directories are skipped.
+
+        Parameters
+        ----------
+        sandbox_blobs_dirs : list[pathlib.Path]
+            List of sandbox blobstore root paths
+            (e.g. ``job-N/work/blobs/``).
+        main_blobs_dir : pathlib.Path
+            Main blobstore root (e.g. ``data/<user>/blobs/``).
+
+        Returns
+        -------
+        int
+            Total number of blob directories copied across all sandboxes.
+        """
+        total = 0
+        for sandbox_dir in sandbox_blobs_dirs:
+            total += merge_blobstore_from_path(
+                src_blobs_dir=sandbox_dir,
+                dst_blobs_dir=main_blobs_dir,
+            )
+        return total

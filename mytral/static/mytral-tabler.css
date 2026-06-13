@@ -521,4 +521,6 @@ div.mytral-workouts-many {
     right: 0 !important;
     transform: translate(50%, -50%);
     z-index: 1;
+    margin-top: 1px;
+    margin-right: 1px;
 }

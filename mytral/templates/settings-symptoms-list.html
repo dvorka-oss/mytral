@@ -209,6 +209,7 @@
                         <thead>
                             <tr>
                                 <th>Symptom<br/>∑</th>
+                                <th>Description</th>
                                 <th class="w-1"></th>
                             </tr>
                         </thead>
@@ -225,6 +226,13 @@
                                         <span class="text-muted">0x</span>
                                         {% endif %}
                                     </div>
+                                </td>
+                                <td {% if not count %}class="text-muted"{% endif %}>
+                                    {% if g.description %}
+                                    <span class="text-truncate d-inline-block" style="max-width: 250px;" title="{{ g.description }}">{{ g.description }}</span>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <div class="btn-list flex-nowrap">

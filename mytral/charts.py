@@ -53,6 +53,7 @@ class ChartType(enum.Enum):
     SUM_HOUR = "sum_hour"
     WEIGHT = "weight"
     RESTING_HR = "resting_hr"
+    TRIMP = "trimp"
 
 
 #
@@ -499,13 +500,13 @@ def gear_in_time(
 
             y_labels[gear_count] = user_gear.gear_by_key[g_key].name
             y.append(gear_count)
-            t_split = stat.stat_from.split("/")
+            t_split = stat.stat_from.split("-")
             x.append(
                 datetime.datetime(int(t_split[0]), int(t_split[1]), int(t_split[2]))
             )
 
             y.append(gear_count)
-            t_split = stat.stat_to.split("/")
+            t_split = stat.stat_to.split("-")
             x.append(
                 datetime.datetime(int(t_split[0]), int(t_split[1]), int(t_split[2]))
             )
@@ -3285,6 +3286,171 @@ def resting_hr_per_week(
     )
 
 
+def trimp_composite(
+    daily_rows: list[dict],
+    is_mobile_view: bool = False,
+) -> tuple[str, Any]:
+    """Render TRIMP composite chart (TRIMP + ATRIMP + CTRIMP + TRIMPB)."""
+    if not daily_rows:
+        return "", "<div><p>Not enough heart-rate data to compute TRIMP.</p></div>"
+
+    date_values = [
+        datetime.datetime.combine(row["date"], datetime.time.min) for row in daily_rows
+    ]
+    trimp_values = [float(row["trimp"]) for row in daily_rows]
+    atrimp_values = [float(row["atrimp"]) for row in daily_rows]
+    ctrimp_values = [float(row["ctrimp"]) for row in daily_rows]
+    btrimp_values = [float(row["btrimp"]) for row in daily_rows]
+    sessions_values = [int(row["sessions"]) for row in daily_rows]
+    duration_values = [float(row["duration_min"]) for row in daily_rows]
+
+    trimp_colors = []
+    for trimp_value in trimp_values:
+        if trimp_value < 50:
+            trimp_colors.append("#2fb344")
+        elif trimp_value <= 120:
+            trimp_colors.append("#f59f00")
+        else:
+            trimp_colors.append("#d63939")
+
+    source = ColumnDataSource(
+        data={
+            "date": date_values,
+            "trimp": trimp_values,
+            "atrimp": atrimp_values,
+            "ctrimp": ctrimp_values,
+            "btrimp": btrimp_values,
+            "sessions": sessions_values,
+            "duration_min": duration_values,
+            "dot_color": trimp_colors,
+        }
+    )
+
+    fig = bokeh_plt.figure(
+        title="Training Impulse (TRIMP) — Daily Load and Balance",
+        x_axis_type="datetime",
+        x_axis_label="Date",
+        y_axis_label="TRIMP points",
+        width=VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT,
+        height=520,
+        toolbar_location="below" if not is_mobile_view else None,
+    )
+    fig.sizing_mode = "scale_width"
+    fig.toolbar.logo = None
+
+    fig.scatter(
+        x="date",
+        y="trimp",
+        source=source,
+        size=7,
+        color="dot_color",
+        alpha=0.9,
+        legend_label="Daily TRIMP",
+    )
+    fig.line(
+        x="date",
+        y="atrimp",
+        source=source,
+        line_width=2,
+        color="#2fb344",
+        legend_label="ATRIMP (7d EMA)",
+    )
+    fig.line(
+        x="date",
+        y="ctrimp",
+        source=source,
+        line_width=2,
+        color="#206bc4",
+        legend_label="CTRIMP (42d EMA)",
+    )
+    fig.line(
+        x="date",
+        y="btrimp",
+        source=source,
+        line_width=2,
+        color="#d63939",
+        line_dash="dashed",
+        legend_label="TRIMPB (CTRIMP - ATRIMP)",
+    )
+    hover_renderer = fig.scatter(
+        x="date",
+        y="ctrimp",
+        source=source,
+        size=10,
+        alpha=0.0,
+        line_alpha=0.0,
+        fill_alpha=0.0,
+    )
+
+    fig.add_layout(
+        bokeh_models.Span(
+            location=0.0,
+            dimension="width",
+            line_color="#6c757d",
+            line_width=1,
+            line_dash="dotted",
+        )
+    )
+
+    hover = bokeh_models.HoverTool(
+        tooltips=[
+            ("date", "@date{%F}"),
+            ("TRIMP", "@trimp{0.0}"),
+            ("ATRIMP", "@atrimp{0.0}"),
+            ("CTRIMP", "@ctrimp{0.0}"),
+            ("BTRIMP", "@btrimp{0.0}"),
+            ("sessions", "@sessions"),
+            ("duration", "@duration_min{0.0} min"),
+        ],
+        formatters={"@date": "datetime"},
+        mode="mouse",
+        renderers=[hover_renderer],
+    )
+    fig.add_tools(hover)
+
+    if is_mobile_view:
+        fig.legend.visible = False
+    else:
+        fig.legend.location = "top_left"
+        fig.legend.click_policy = "hide"
+
+    if is_mobile_view or len(date_values) < 30:
+        script, div = bokeh_embed.components(fig)
+        return script, div
+
+    # desktop: show latest ~26 weeks by default and allow range selection below
+    default_days = 182
+    fig.x_range.start = date_values[max(0, len(date_values) - default_days)]
+    fig.x_range.end = date_values[-1]
+
+    select = bokeh_plt.figure(
+        title="Drag the range to zoom the TRIMP timeline above",
+        height=130,
+        width=VIEW_WIDTH_DEFAULT,
+        x_axis_type="datetime",
+        y_axis_type=None,
+        tools="",
+        toolbar_location=None,
+        background_fill_color="#efefef",
+    )
+    select.sizing_mode = "scale_width"
+
+    range_tool = bokeh_models.RangeTool(x_range=fig.x_range)
+    range_tool.overlay.fill_color = "navy"
+    range_tool.overlay.fill_alpha = 0.2
+
+    select.line("date", "ctrimp", source=source, color="#206bc4", line_width=1.5)
+    select.line("date", "atrimp", source=source, color="#2fb344", line_width=1)
+    select.line("date", "trimp", source=source, color="#6c757d", line_alpha=0.35)
+    select.ygrid.grid_line_color = None
+    select.add_tools(range_tool)
+
+    script, div = bokeh_embed.components(
+        bokeh_layouts.column(fig, select, sizing_mode="scale_width")
+    )
+    return script, div
+
+
 def total_km_per_year(
     ds_stats: stats.UserDatasetStats,
     activity_types: settings.UserActivityTypes = None,
@@ -4050,6 +4216,7 @@ def activity_paces_by_distance(
             text_color="gray",
             text_align="center",
         )
+        script, div = bokeh_embed.components(fig)
     else:
         fig.add_tools(
             bokeh_models.HoverTool(
@@ -4068,10 +4235,52 @@ def activity_paces_by_distance(
         if not is_mobile_view:
             fig.legend.location = "top_left"
             fig.legend.click_policy = "hide"
+
+            # add range tool selection figure
+            select = bokeh_plt.figure(
+                title="Drag to change the range above",
+                height=130,
+                x_axis_type="datetime",
+                y_axis_type=None,
+                tools="",
+                toolbar_location=None,
+                background_fill_color="#efefef",
+            )
+            select.sizing_mode = "scale_width"
+
+            range_tool = bokeh_models.RangeTool(x_range=fig.x_range)
+            range_tool.overlay.fill_color = "navy"
+            range_tool.overlay.fill_alpha = 0.2
+
+            # draw all bin lines on the selection figure
+            for (min_dist, max_dist, bin_label), color in zip(bins, colors):
+                data_points = bin_activities[bin_label]
+                if not data_points:
+                    continue
+                data_points.sort(key=lambda x: x["date"])
+                x_data = [p["date"] for p in data_points]
+                y_data = [p["pace"] for p in data_points]
+                select.line(x_data, y_data, color=color, line_width=1, alpha=0.8)
+
+            select.ygrid.grid_line_color = None
+            select.add_tools(range_tool)
+
+            # default zoom to last 2 years
+            all_dates = []
+            for dp_list in bin_activities.values():
+                for dp in dp_list:
+                    all_dates.append(dp["date"])
+            if all_dates:
+                max_date = max(all_dates)
+                two_years_ago = max_date.replace(year=max_date.year - 2)
+                fig.x_range.start = two_years_ago
+                fig.x_range.end = max_date
+
+            layout = bokeh_layouts.column(fig, select, sizing_mode="scale_width")
+            script, div = bokeh_embed.components(layout)
         else:
             fig.legend.visible = False
-
-    script, div = bokeh_embed.components(fig)
+            script, div = bokeh_embed.components(fig)
 
     return script, div
 

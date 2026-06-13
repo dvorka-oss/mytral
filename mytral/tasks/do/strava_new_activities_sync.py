@@ -19,9 +19,10 @@
 import time
 
 from mytral import plugins
-from mytral import security
+from mytral import settings
 from mytral import tasks
 from mytral.integrations import strava
+from mytral.tasks.do import strava_commons
 from mytral.tasks.do import strava_gear_sync
 
 
@@ -70,37 +71,26 @@ class StravaNewActivitiesSyncTask(tasks.TaskBase):
         user_id = params["user_id"]
         dataset_name = params["dataset_name"]
         after_ts = int(params.get("after_ts", 0))
+        import_recordings = strava_commons._to_bool(
+            params.get("import_recordings", True)
+        )
+        import_photos = strava_commons._to_bool(params.get("import_photos", True))
 
         self.log(
             f"Strava new-activities sync started "
-            f"(after_ts={after_ts}, dataset={dataset_name})"
+            f"(after_ts={after_ts}, dataset={dataset_name}, "
+            f"recordings={import_recordings}, photos={import_photos})"
         )
         self.check_cancellation()
 
-        # build a lightweight profile-like object with decrypted credentials
-        class _StravaCredentials:
-            pass
-
-        creds = _StravaCredentials()
-        creds.strava_access_token = security.decrypt(
-            params["access_token"], self._enc_key
+        creds = strava_commons.build_strava_credentials(
+            params, self._enc_key, with_refresh=True
         )
-        creds.strava_refresh_token = security.decrypt(
-            params["refresh_token"], self._enc_key
-        )
-        creds.strava_client_id = params["client_id"]
-        creds.strava_client_secret = security.decrypt(
-            params["client_secret"], self._enc_key
-        )
-        creds.strava_url = params.get("strava_url", "https://www.strava.com/api/v3")
-        creds.strava_auth_until = int(params.get("auth_until", 0))
 
         # refresh token if expired or near expiry (< 600s remaining)
         if creds.strava_auth_until and (creds.strava_auth_until - time.time()) < 600:
             self.log("Access token near expiry, refreshing...")
             try:
-                from mytral import settings
-
                 profile = settings.UserProfile()
                 profile.strava_access_token = creds.strava_access_token
                 profile.strava_refresh_token = creds.strava_refresh_token
@@ -142,7 +132,7 @@ class StravaNewActivitiesSyncTask(tasks.TaskBase):
             return
 
         # convert Strava JSON to MyTraL entities
-        self.update_progress(20)
+        self.update_progress(10)
         t_plugin = strava.StravaActivitiesImportPlugin
         gear = self._dataset.list_gear(user_id=user_id, dataset_name=dataset_name)
         activities_plugin: t_plugin = plugins.registry.get_plugin(t_plugin.NAME)
@@ -166,14 +156,34 @@ class StravaNewActivitiesSyncTask(tasks.TaskBase):
             )
             imported += 1
             if imported % 10 == 0 or imported == total:
-                progress = 20 + int(80 * imported / total)
+                progress = 10 + int(20 * imported / total)
                 self.update_progress(progress)
                 self.log(f"Imported {imported}/{total} activities")
 
         self.log(
-            f"Sync complete: {imported} {'activities' if imported > 0 else 'activity'} "
+            f"Import phase complete: {imported} activities "
             f"imported to dataset '{dataset_name}'"
         )
+
+        # media enrichment phase: fetch detail, recordings, photos from Strava
+        if import_recordings or import_photos:
+            self.log("Starting media enrichment phase...")
+            strava_commons.enrich_strava_activities(
+                activities=new_activities,
+                creds=creds,
+                user_id=user_id,
+                dataset_name=dataset_name,
+                import_recordings=import_recordings,
+                import_photos=import_photos,
+                total=total,
+                dataset=self._dataset,
+                blobstore=self._blobstore,
+                config=self._config,
+                log_fn=self.log,
+                logger=self.logger,
+                check_cancellation=self.check_cancellation,
+                update_progress=self.update_progress,
+            )
 
         # sync gear and relink activity gear references so no separate manual
         # gear sync step is needed after an activity import

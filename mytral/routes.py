@@ -46,6 +46,7 @@ from mytral import ff
 from mytral import forms
 from mytral import insights
 from mytral import ninjas
+from mytral import notifications as notif_mod
 from mytral import onboarding
 from mytral import settings as user_settings
 from mytral import stats
@@ -131,7 +132,8 @@ def _activity_map_data(
         return None
 
     for entry in activity.recorded_blob_keys:
-        if entities_mod.recording_ext(entry) != ".gpx":
+        ext = entities_mod.recording_ext(entry)
+        if ext not in (".gpx", ".tcx"):
             continue
 
         blob_uuid = entities_mod.recording_blob_uuid(entry)
@@ -194,10 +196,10 @@ def _activity_map_data(
             "full_polyline": meta.full_polyline,
             "summary_bbox": bbox,
             "track_point_count": meta.track_point_count,
+            "profile_points": profile_points,
         }
         if include_detail:
             payload["detail_points"] = detail_points or []
-            payload["profile_points"] = profile_points
         return payload
 
     return None
@@ -263,6 +265,30 @@ sync_guard_module.inject_sync_status(flask_app)
 def zfill_filter(value, width=2):
     """Zero-fill a number to specified width."""
     return str(value).zfill(width)
+
+
+@flask_app.template_filter("ellipsis")
+def ellipsis_filter(value, threshold=35):
+    """Truncate text in the middle with ellipsis.
+
+    Parameters
+    ----------
+    value : str
+        The text to truncate.
+    threshold : int
+        Length threshold above which truncation is applied (default: 35).
+
+    Returns
+    -------
+    str
+        Original text if shorter than threshold, otherwise truncated with
+        ellipsis in the middle.
+    """
+    text = str(value)
+    if len(text) <= threshold:
+        return text
+    half_len = (threshold - 3) // 2
+    return f"{text[:half_len]}...{text[-half_len:]}"
 
 
 # logging decorators
@@ -357,14 +383,65 @@ def inject_version():
 def inject_task_info():
     """Inject running task count into all templates."""
     user_id = flask.session.get(COOKIE_USER)
-    if user_id and hasattr(flask_app, "task_manager"):
+    if user_id:
         # get running tasks from executor (in-memory) not storage (files)
-        all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+        all_tasks = app_task_manager.executor.get_all_tasks(user_id)
         running_tasks = [
             t for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
         ]
         return {"running_tasks_count": len(running_tasks)}
     return {"running_tasks_count": 0}
+
+
+@flask_app.context_processor
+def inject_notifications():
+    """Inject notifications into all templates.
+
+    Reads both persistent notifications from storage and flash messages
+    from the session, combining them into one list. Flash messages are
+    also persisted to storage so they survive across requests.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if user_id:
+        notif_storage = notif_mod.store
+        notif_list = notif_storage.list(user_id)
+
+        # consume flash messages and store them
+        flash_messages = flask.get_flashed_messages(with_categories=True)
+        for category, message in flash_messages:
+            notif_storage.add(
+                user_id=user_id,
+                category=category,
+                message=message,
+            )
+
+        # refresh list after storing flash messages
+        if flash_messages:
+            notif_list = notif_storage.list(user_id)
+
+        # compute badge color: green=info only, red=errors only, orange=mixed
+        error_count = sum(1 for n in notif_list if n.category in ("error",))
+        if notif_list and error_count == len(notif_list):
+            badge_color = "red"
+        elif notif_list and error_count == 0:
+            badge_color = "green"
+        elif notif_list:
+            badge_color = "orange"
+        else:
+            badge_color = "green"
+
+        return {
+            "notification_count": len(notif_list),
+            "notifications": notif_list,
+            "notification_badge_color": badge_color,
+            "clear_notifications_form": forms.ClearNotificationsForm(),
+        }
+    return {
+        "notification_count": 0,
+        "notifications": [],
+        "notification_badge_color": "green",
+        "clear_notifications_form": forms.ClearNotificationsForm(),
+    }
 
 
 @flask_app.context_processor
@@ -446,6 +523,10 @@ def home():
     activity_types = ds.list_activity_types(user_id=user_id)
     is_mobile = bool(flask.session.get(COOKIE_MOBILE))
 
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
     if len(ds_stats.years) > 1:
         bokeh_script, bokeh_div = charts.fig_grid_2_html(
             charts.total_km_per_year(
@@ -455,9 +536,6 @@ def home():
             )
         )
     elif len(ds_stats.years) == 1:
-        cal_heatmap = ds.activity_type_heatmap(
-            user_id=user_id, dataset_name=user_profile.dataset_name
-        )
         year = ds_stats.year_max
         x = list(range(1, 54))
         y = [
@@ -482,6 +560,17 @@ def home():
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
         ).values()
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=all_activities,
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
     )
 
     bokeh_month_cmp_script, bokeh_month_cmp_div = charts.last_vs_this_month(
@@ -539,6 +628,20 @@ def home():
         else None
     )
 
+    # warnings: gear
+    gear_requires_attention = None
+    gear = ds.list_gear(
+        user_id=user_id,
+        dataset_name=ds.profile(user_id).dataset_name,
+    )
+    if gear:
+        for g in gear.gear.values():
+            if g.requires_attention():
+                if not gear_requires_attention:
+                    gear_requires_attention = 1
+                else:
+                    gear_requires_attention += 1
+
     # onboarding
     onboarding_active = onboarding.is_onboarding_active(user_profile)
     onboarding_state = None
@@ -568,6 +671,10 @@ def home():
         radar_script=radar_script,
         is_mobile=is_mobile,
         activity_types=activity_types,
+        # predictions & insights for dashboard cards
+        on_the_same_day=on_the_same_day,
+        # warnings
+        gear_requires_attention=gear_requires_attention,
         # dashboard statistics
         dashboard_fastest_activity=dashboard_fastest_activity,
         dashboard_longest_activity=dashboard_longest_activity,
@@ -789,6 +896,40 @@ def insight_predictions():
     )
 
 
+@flask_app.route("/insight/analytics")
+def insight_analytics():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
+    all_acts = ds.all_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=list(all_acts.values()),
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
+    )
+
+    return flask.render_template(
+        "analytics.html",
+        user_profile=user_profile,
+        insights=on_the_same_day,
+    )
+
+
 def _compute_icl_predictions(user_profile, all_acts: dict) -> dict | None:
     """Compute ICL predictions when the feature is enabled.
 
@@ -869,12 +1010,52 @@ def insight_lifetime_totals():
         user_id=user_id, dataset_name=user_profile.dataset_name
     )
 
-    return flask.render_template(
-        "lifetime-totals.html",
-        user_profile=user_profile,
-        stats=ds_stats,
-        activity_types=ds.list_activity_types(user_id=user_id),
-    )
+    aspect = flask.request.args.get(commons.URL_ARG_ASPECT, "sports")
+
+    template_vars: dict = {
+        "user_profile": user_profile,
+        "stats": ds_stats,
+        "activity_types": ds.list_activity_types(user_id=user_id),
+        "aspect": aspect,
+    }
+
+    if aspect == "meta":
+        # aggregate top-level totals by meta sport
+        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
+            ds_stats.total_m_per_activity_type,
+            ds_stats.total_seconds_per_activity_type,
+        )
+        template_vars["total_m_per_meta"] = m_per_meta
+        template_vars["total_km_per_meta"] = {
+            mk: int(meters / 1000.0) for mk, meters in m_per_meta.items()
+        }
+        template_vars["total_time_per_meta"] = {
+            mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
+        }
+
+        # aggregate per-year totals by meta sport
+        per_year_meta: dict[int, dict] = {}
+        for y, year_stats in ds_stats.year.items():
+            ym_m, ym_s = commons.aggregate_by_meta_sport(
+                year_stats.total_m_per_activity_type,
+                year_stats.total_seconds_per_activity_type,
+            )
+            per_year_meta[y] = {
+                "total_m_per_meta": ym_m,
+                "total_km_per_meta": {
+                    mk: int(meters / 1000.0) for mk, meters in ym_m.items()
+                },
+                "total_time_per_meta": {
+                    mk: cals.seconds_to_str_time(seconds)
+                    for mk, seconds in ym_s.items()
+                },
+            }
+        template_vars["per_year_meta"] = per_year_meta
+
+        # pass display names for column headers
+        template_vars["meta_display_names"] = commons.M_AT_DISPLAY_NAMES
+
+    return flask.render_template("lifetime-totals.html", **template_vars)
 
 
 @flask_app.route("/insight/yoy-performance")
@@ -1004,7 +1185,7 @@ def tasks_list():
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+    all_tasks = app_task_manager.executor.get_all_tasks(user_id)
     running_tasks_count = sum(
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
@@ -1026,8 +1207,8 @@ def task_detail(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    task = flask_app.task_manager.executor.get_status(task_id, user_id)
-    logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=1000)
+    task = app_task_manager.executor.get_status(task_id, user_id)
+    logs = app_task_manager.executor.get_logs(task_id, user_id, tail=1000)
 
     return flask.render_template(
         "tasks-detail.html",
@@ -1053,7 +1234,7 @@ def task_delete(task_id):
 
     try:
         # verify task is finished before deletion
-        task = flask_app.task_manager.executor.get_status(task_id, user_id)
+        task = app_task_manager.executor.get_status(task_id, user_id)
         if task.status not in [
             task_entities.TaskStatus.COMPLETED,
             task_entities.TaskStatus.FAILED,
@@ -1061,7 +1242,7 @@ def task_delete(task_id):
             flask.flash("Cannot delete a task that is still running or queued", "error")
             return flask.redirect(flask.url_for("task_detail", task_id=task_id))
 
-        flask_app.task_manager.storage.delete_task(user_id, task_id)
+        app_task_manager.storage.delete_task(user_id, task_id)
         flask.flash("Task deleted successfully", "success")
     except Exception as e:
         flask.flash(f"Failed to delete task: {str(e)}", "error")
@@ -1076,7 +1257,7 @@ def task_download_log(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=10000)
+    logs = app_task_manager.executor.get_logs(task_id, user_id, tail=10000)
     content = "\n".join(logs)
     return flask.Response(
         content,
@@ -1092,7 +1273,7 @@ def api_tasks_status():
     if not user_id:
         return flask.jsonify({"error": "Not authenticated"}), 401
 
-    all_tasks = flask_app.task_manager.executor.get_all_tasks(user_id)
+    all_tasks = app_task_manager.executor.get_all_tasks(user_id)
     running_tasks = [
         t for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     ]
@@ -1113,7 +1294,7 @@ def api_task_status(task_id):
         return flask.jsonify({"error": "Not authenticated"}), 401
 
     try:
-        task = flask_app.task_manager.executor.get_status(task_id, user_id)
+        task = app_task_manager.executor.get_status(task_id, user_id)
         return flask.jsonify(task.to_dict())
     except Exception as e:
         return flask.jsonify({"error": str(e)}), 404
@@ -1129,7 +1310,7 @@ def api_task_logs(task_id):
     tail = flask.request.args.get("tail", default=100, type=int)
 
     try:
-        logs = flask_app.task_manager.executor.get_logs(task_id, user_id, tail=tail)
+        logs = app_task_manager.executor.get_logs(task_id, user_id, tail=tail)
         return flask.jsonify({"logs": logs})
     except Exception as e:
         return flask.jsonify({"error": str(e)}), 404
@@ -1146,7 +1327,7 @@ def task_cancel(task_id):
     if not form.validate_on_submit():
         flask.abort(403)
 
-    success = flask_app.task_manager.executor.cancel(task_id, user_id)
+    success = app_task_manager.executor.cancel(task_id, user_id)
     if success:
         flask.flash("Task cancellation requested", "info")
     else:
@@ -1187,7 +1368,7 @@ def task_submit_hello_world():
 
     # submit task
     try:
-        task_id = flask_app.task_manager.executor.submit(task_entity)
+        task_id = app_task_manager.executor.submit(task_entity)
         flask.flash(f"Hello World task submitted: {task_id}", "success")
         return flask.redirect(flask.url_for("task_detail", task_id=task_id))
     except Exception as e:
@@ -1212,12 +1393,33 @@ def tasks_cleanup():
         flask.abort(403)
 
     try:
-        deleted_count = flask_app.task_manager.storage.cleanup_finished_tasks(user_id)
+        deleted_count = app_task_manager.storage.cleanup_finished_tasks(user_id)
         flask.flash(f"Deleted {deleted_count} finished task(s)", "success")
     except Exception as e:
         flask.flash(f"Failed to cleanup tasks: {str(e)}", "error")
 
     return flask.redirect(flask.url_for("tasks_list"))
+
+
+@flask_app.route("/notifications/clear", methods=["POST"])
+def notifications_clear():
+    """Clear all notifications for the current user."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.ClearNotificationsForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
+    notif_storage = notif_mod.store
+    notif_storage.clear_all(user_id)
+
+    # redirect back to the page the user came from
+    referrer = flask.request.referrer
+    if referrer:
+        return flask.redirect(referrer)
+    return flask.redirect(flask.url_for("home"))
 
 
 def _avatar_service() -> blob_pkg.AvatarBlobService:
@@ -1630,6 +1832,21 @@ def settings():
                         category="error",
                     )
                     return flask.redirect(flask.url_for("settings"))
+
+                # delete all blobs for all activities in the dataset
+                blob_svc = _blob_service()
+                activities = ds.list_activities(
+                    user_id=user_id, dataset_name=ds_name_2_delete
+                )
+                for a in activities:
+                    try:
+                        blob_svc.delete_all_activity_blobs(
+                            user_id=user_id, activity_key=a.key
+                        )
+                    except Exception as exc:
+                        app_logger.warning(
+                            f"Failed to delete blobs for activity {a.key}: {exc}"
+                        )
 
                 ds.delete_activities_dataset(
                     user_id=user_id, dataset_name=ds_name_2_delete
@@ -2526,7 +2743,6 @@ def _update_activity(key: str, template: str):
         form.cost.data = db_entity.cost
         form.weather.data = db_entity.weather
         form.temperature.data = db_entity.temperature
-        form.suffer_score.data = db_entity.suffer_score
         form.fitness_score.data = db_entity.fitness_score
         form.src.data = db_entity.src
         form.src_descriptor.data = db_entity.src_descriptor
@@ -3379,13 +3595,14 @@ def list_activities_year(year):
             return flask.redirect(flask.url_for("home"))
 
     # load only activities for given year
-    activities = ds.list_activities(
+    all_activities = ds.list_activities(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
         filter_year=year_int,
         skip_future=True,
         sort_by_when=True,
     )
+    activities = all_activities.copy()
 
     # get filter parameters from query string
     filter_activity_type = flask.request.args.get("activity_type", "")
@@ -3486,13 +3703,6 @@ def list_activities_year(year):
         else 0
     )
 
-    # get unique values for filter dropdowns
-    all_activities = ds.list_activities(
-        user_id=user_id,
-        dataset_name=user_profile.dataset_name,
-        filter_year=int(year),
-        skip_future=True,
-    )
     unique_activity_types = sorted(
         set(a.activity_type_key for a in all_activities if a.activity_type_key)
     )
@@ -4129,6 +4339,89 @@ def list_activities_for_month_day(month, day):
     )
 
 
+@flask_app.route("/activities/validation")
+def list_activities_validation():
+    """List all activities that have data problems (suspicious/invalid values)."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # load all activities for the user across all years
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        skip_future=False,
+    )
+
+    # validate each activity and collect those with problems
+    junkyard: list[tuple[entities_mod.ActivityEntity, list[tuple[str, str]]]] = []
+    for a in activities:
+        problems = entities_mod.validate_activity(a)
+        if problems:
+            junkyard.append((a, problems))
+
+    # sort by number of problems descending (most problematic first)
+    junkyard.sort(key=lambda item: len(item[1]), reverse=True)
+
+    # compute stats
+    total_errors = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR
+    )
+    total_warnings = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_WARNING
+    )
+    total_problems = total_errors + total_warnings
+    affected_activities = len(junkyard)
+
+    # compute problem breakdown by category
+    # errors come from 2 categories: internal consistency and zero-value anomalies
+    internal_errors = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" in msg
+    )
+    zero_anomalies = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" not in msg
+    )
+    oor_warnings = total_warnings  # all warnings are out-of-range
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a, _ in junkyard
+    }
+
+    return flask.render_template(
+        "activity-validation.html",
+        user_profile=user_profile,
+        junkyard=junkyard,
+        stats={
+            "total_problems": total_problems,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "affected_activities": affected_activities,
+            "internal_errors": internal_errors,
+            "zero_anomalies": zero_anomalies,
+            "oor_warnings": oor_warnings,
+        },
+        activities_weekdays=activities_weekdays,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
+    )
+
+
 @flask_app.route("/activities/date/<year>/<month>/<day>/copy", methods=["GET", "POST"])
 def copy_day(year, month, day):
     user_id = flask.session.get(COOKIE_USER)
@@ -4756,7 +5049,7 @@ def upload_activity_recording(activity_key: str):
                         result_route="get_activity",
                         result_route_kwargs={"key": activity_key},
                     )
-                    task_id = flask_app.task_manager.executor.submit(task_entity)
+                    task_id = app_task_manager.executor.submit(task_entity)
                     flask.flash(
                         message=(
                             f"Recording uploaded and processing queued (task {task_id})"
@@ -4893,7 +5186,7 @@ def reprocess_activity_recording(activity_key: str, blob_uuid: str):
         },
         is_cancelled=False,
     )
-    task_id = flask_app.task_manager.executor.submit(task)
+    task_id = app_task_manager.executor.submit(task)
     flask.flash(
         message=f"Recording re-processing queued (task {task_id})",
         category="success",

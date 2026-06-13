@@ -512,6 +512,26 @@ class UserActivityTypes:
                 color="indigo",
                 key=commons.AT_SWIM,
             ),
+            ActivityType(
+                name="Trail run",
+                is_distance=True,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏃",
+                color="brown",
+                key=commons.AT_RUN_TRAIL,
+            ),
+            ActivityType(
+                name="Gravel bike",
+                is_distance=True,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🚴",
+                color="green",
+                key=commons.AT_RIDE_GRAVEL,
+            ),
             #
             # activity_type_key: exercise
             #
@@ -1037,6 +1057,16 @@ class UserActivityTypes:
                 key=commons.AT_YOGA,
             ),
             ActivityType(
+                name="Pilates",
+                is_distance=False,
+                is_exercise=True,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🤸",
+                color="purple",
+                key=commons.AT_PILATES,
+            ),
+            ActivityType(
                 name="Baseball",
                 is_distance=False,
                 is_exercise=False,
@@ -1155,6 +1185,56 @@ class UserActivityTypes:
                 emoji="🏐",
                 color="yellow",
                 key=commons.AT_VOLLEYBALL,
+            ),
+            ActivityType(
+                name="Badminton",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏸",
+                color="green",
+                key=commons.AT_BADMINTON,
+            ),
+            ActivityType(
+                name="Pickleball",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="yellow",
+                key=commons.AT_PICKLEBALL,
+            ),
+            ActivityType(
+                name="Racquetball",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="blue",
+                key=commons.AT_RACQUETBALL,
+            ),
+            ActivityType(
+                name="Squash",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🎾",
+                color="green",
+                key=commons.AT_SQUASH,
+            ),
+            ActivityType(
+                name="Table tennis",
+                is_distance=False,
+                is_exercise=False,
+                is_regen=False,
+                is_built_in=True,
+                emoji="🏓",
+                color="red",
+                key=commons.AT_TABLETENNIS,
             ),
             ActivityType(
                 name="Rock climb",
@@ -1768,7 +1848,11 @@ class UserGear:
     """Custom gear defined by the user is aggregated from multiple sources:
 
     - user profile: gear defined by the user in MyTraL
-    - strava: gear imported from Strava
+
+    3rd party gear import and mapping cross services like Strava/Garmin/*:
+
+    - external_ids map: service > gear ID in that service
+    - Strava: gear imported from Strava
 
     Gear is merged as follows:
 
@@ -1785,6 +1869,11 @@ class UserGear:
     - a gear which is used by 1 or more activities in ``lifelong`` cannot be deleted
 
     """
+
+    SERVICE_STRAVA = "strava"
+    SERVICE_GARMIN_CONNECT = "garmin_connect"
+    SERVICE_POLAR_FLOW = "polar_flow"
+    SERVICE_POLAR_PPP = "polar_ppp"
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":
@@ -2301,22 +2390,26 @@ class Symptom:
     KEY_COUNT = "count"
     KEY_KEY = "key"
     KEY_BODY_PARTS = "body_parts"
+    KEY_DESCRIPTION = "description"
 
     def __init__(
         self,
         name: str,
         key: str = "",
         body_parts: list[str] | None = None,
+        description: str = "",
     ) -> None:
         self.name = name
         self.key = key or str(uuid.uuid4())
         self.body_parts: list[str] = body_parts or []
+        self.description = description
 
     def to_dict(self) -> dict:
         return {
             Symptom.KEY_NAME: self.name,
             Symptom.KEY_KEY: self.key,
             Symptom.KEY_BODY_PARTS: self.body_parts,
+            Symptom.KEY_DESCRIPTION: self.description,
         }
 
     @staticmethod
@@ -2325,6 +2418,7 @@ class Symptom:
             name=symptom_dict[Symptom.KEY_NAME],
             key=symptom_dict.get(Symptom.KEY_KEY, ""),
             body_parts=symptom_dict.get(Symptom.KEY_BODY_PARTS, []),
+            description=symptom_dict.get(Symptom.KEY_DESCRIPTION, ""),
         )
 
 
@@ -4023,6 +4117,7 @@ class UserProfile:
     KEY_BORN_MONTH = "month"
     KEY_BORN_DAY = "day"
     KEY_CURRENCY = "currency"
+    KEY_GENDER = "gender"
     KEY_DATASET_NAME = "dataset_name"
     KEY_DATASET_NAMES = "dataset_names"
 
@@ -4087,6 +4182,8 @@ class UserProfile:
         athlete_metrics = AthleteMetrics.from_dict(
             profile_dict.get(UserProfile.KEY_ATHLETE_METRICS, {})
         )
+        raw_gender = profile_dict.get(UserProfile.KEY_GENDER)
+        gender = raw_gender if isinstance(raw_gender, bool) else None
 
         # fail if important keys are missing
         profile = UserProfile(
@@ -4104,6 +4201,7 @@ class UserProfile:
             born_month=born_month or 1,
             born_day=born_day or 1,
             currency=profile_dict.get(UserProfile.KEY_CURRENCY, "USD"),
+            gender=gender,
             dataset_name=profile_dict[UserProfile.KEY_DATASET_NAME],
             dataset_names=dataset_names,
             strava_url=strava_url,
@@ -4139,6 +4237,7 @@ class UserProfile:
                 UserProfile.KEY_BORN_DAY: self.born_day,
             },
             UserProfile.KEY_CURRENCY: self.currency,
+            UserProfile.KEY_GENDER: self.gender,
             UserProfile.KEY_DATASET_NAME: self.dataset_name,
             UserProfile.KEY_DATASET_NAMES: self.dataset_names,
             UserProfile.KEY_STRAVA: {
@@ -4183,6 +4282,7 @@ class UserProfile:
         born_month: int = 0,
         born_day: int = 0,
         currency: str = "USD",
+        gender: bool | None = None,
         strava_url: str = "",
         strava_client_id: str = "",
         strava_client_secret: str = "",
@@ -4243,6 +4343,8 @@ class UserProfile:
         self.born_day = born_day
         self.age = age or self.refresh_age()
         self.currency = currency  # 3-letter currency code like USD, EUR, CZK
+        # optional bool: True=man, False=woman, None=undefined
+        self.gender = gender
         self.strava_url = strava_url
         self.strava_client_id = strava_client_id
         self.strava_client_secret = strava_client_secret

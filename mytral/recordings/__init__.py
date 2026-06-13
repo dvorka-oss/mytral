@@ -15,3 +15,41 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """Data recordings to MyTraL internal representation ~ Parquet @ Polars."""
+
+
+def _patch_fit_tool_tolerant_string_decode():
+    """Monkeypatch fit_tool to tolerate non-UTF8 bytes in FIT string fields.
+
+    Garmin FIT files may contain binary data in string containers (e.g.
+    developer fields), which causes fit_tool's strict ``.decode('utf-8')``
+    to raise UnicodeDecodeError, silently killing the entire FIT parse.
+    Using ``errors='replace'`` keeps the parser running so that standard
+    fields (timestamp, HR, speed, etc.) are still extracted correctly.
+    """
+    try:
+        import fit_tool.field as _ft_field  # noqa: PLC0415
+    except ImportError:
+        return
+
+    if getattr(
+        _ft_field.Field.read_strings_from_bytes,
+        "_mytral_patched",
+        False,
+    ):
+        return  # already patched
+
+    _original = _ft_field.Field.read_strings_from_bytes
+
+    def _tolerant_read_strings_from_bytes(self, bytes_buffer: bytes) -> None:
+        string_container = bytes_buffer.decode("utf-8", errors="replace")
+        strings = string_container.split(chr(0))
+        strings = strings[:-1]
+        strings = [x for x in strings if x]
+        self.encoded_values = []
+        self.encoded_values.extend(strings)
+
+    _tolerant_read_strings_from_bytes._mytral_patched = True  # type: ignore[attr-defined]
+    _ft_field.Field.read_strings_from_bytes = _tolerant_read_strings_from_bytes
+
+
+_patch_fit_tool_tolerant_string_decode()

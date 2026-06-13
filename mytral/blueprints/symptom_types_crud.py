@@ -61,6 +61,16 @@ class CreateSymptomForm(flask_wtf.FlaskForm):
         validators=[validators.DataRequired()],
     )
 
+    description = wtforms.TextAreaField(
+        label="Description",
+        validators=[validators.Optional()],
+        description=(
+            "Symptom description. You can use this to note which medicine helps, "
+            "recommended exercises, how to cure or manage this problem, and any "
+            "other useful information."
+        ),
+    )
+
     count = wtforms.IntegerField(
         label="",
         validators=[validators.NumberRange(0, 50_000)],
@@ -208,6 +218,7 @@ def settings_symptoms_create():
             entity = user_settings.Symptom(
                 name=form.name.data,
                 body_parts=body_parts,
+                description=form.description.data or "",
             )
 
             ds.create_symptom(user_id=user_id, symptom=entity)
@@ -255,6 +266,7 @@ def settings_symptoms_update(key: str):
     if flask.request.method == "GET":
         form = UpdateSymptomForm()
         form.name.data = entity.name
+        form.description.data = entity.description
 
         return flask.render_template(
             JinjaTemplates.UPDATE,
@@ -270,6 +282,7 @@ def settings_symptoms_update(key: str):
         if form.validate_on_submit():
             body_parts_csv = flask.request.form.get("body_parts", "")
             entity.name = form.name.data or ""
+            entity.description = form.description.data or ""
             entity.body_parts = [p for p in body_parts_csv.split(",") if p.strip()]
 
             ds.update_symptom(user_id=user_id, symptom=entity)

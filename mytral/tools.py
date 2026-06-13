@@ -20,6 +20,7 @@ import uuid
 
 from mytral import app_logger
 from mytral import commons
+from mytral import settings
 from mytral import utils
 from mytral.backends import dataset
 from mytral.backends import entities
@@ -191,7 +192,7 @@ def fix_gear_keys(user_id: str, dataset_name: str, ds: dataset.UserDataset):
     if activities:
         gear = ds.list_gear(user_id=user_id, dataset_name=dataset_name)
         name2gear = gear.to_dict_by_name()
-        strava2gear = gear.to_dict_by_external_id("strava")
+        strava2gear = gear.to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
 
         for a in activities:
             activity_gears = (
@@ -349,7 +350,6 @@ def join_datasets(
                         a_dst.avg_hr = a_src.avg_hr
                         a_dst.max_hr = a_src.max_hr
                         a_dst.min_hr = a_src.min_hr
-                        a_dst.suffer_score = a_src.suffer_score
                         a_dst.fitness_score = a_src.fitness_score
                         a_dst.src_key = a_src.key
                         a_dst.src_descriptor = a_src.src_descriptor
@@ -464,6 +464,8 @@ def filter_date_range_dataset(
     src_dataset_name: str,
     dst_dataset_name: str = "",
     do_extract: bool = False,
+    *,
+    blob_service=None,
 ):
     """Filter activities of the source dataset from the given date range. Source dataset
     is either kept intact or its matching activities are deleted. New filtered dataset
@@ -488,6 +490,9 @@ def filter_date_range_dataset(
         Name of the filtered dataset.
     do_extract : bool
         Whether to delete matching entities in the source dataset.
+    blob_service : ActivityBlobService or None
+        If provided, deletes all blobs for each activity before removing
+        the activity record (only when ``do_extract`` is True).
 
     """
     app_logger.info(
@@ -551,6 +556,15 @@ def filter_date_range_dataset(
     # if requested, delete matching entities in the source dataset
     if do_extract:
         for key in matching_keys:
+            if blob_service:
+                try:
+                    blob_service.delete_all_activity_blobs(
+                        user_id=user_id, activity_key=key
+                    )
+                except Exception as exc:
+                    app_logger.warning(
+                        f"  Failed to delete blobs for activity {key}: {exc}"
+                    )
             ds.delete_activity(user_id=user_id, dataset_name=src_dataset_name, key=key)
 
         app_logger.info(
@@ -578,6 +592,8 @@ def prune_activities(
     filter_src: str = PRUNE_FILTER_ALL,
     filter_src_key: str = PRUNE_FILTER_ALL,
     filter_src_descriptor: str = PRUNE_FILTER_ALL,
+    *,
+    blob_service=None,
 ) -> int:
     """Remove activities from the current dataset that match **all** given filter
     criteria. A filter set to ``PRUNE_FILTER_ALL`` matches any value.
@@ -598,6 +614,9 @@ def prune_activities(
         Source key to match, or ``PRUNE_FILTER_ALL`` to skip source key filtering.
     filter_src_descriptor : str
         Source descriptor to match, or ``PRUNE_FILTER_ALL`` to skip filtering.
+    blob_service : ActivityBlobService or None
+        If provided, deletes all blobs for each activity before removing
+        the activity record.
 
     Returns
     -------
@@ -632,6 +651,15 @@ def prune_activities(
         keys_to_delete.append(a.key)
 
     for key in keys_to_delete:
+        if blob_service:
+            try:
+                blob_service.delete_all_activity_blobs(
+                    user_id=user_id, activity_key=key
+                )
+            except Exception as exc:
+                app_logger.warning(
+                    f"  Failed to delete blobs for activity {key}: {exc}"
+                )
         ds.delete_activity(user_id=user_id, dataset_name=dataset_name, key=key)
 
     app_logger.info(f"  Pruned {len(keys_to_delete)} activities")

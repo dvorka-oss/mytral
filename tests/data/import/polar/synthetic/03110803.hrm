@@ -1,0 +1,34 @@
+[Params]
+Date=20031108
+StartTime=8:50:18.0
+Length=0:38:12.0
+Interval=5
+SMode=10100000
+MaxHR=190
+Weight=80
+
+[Note]
+Test run with GPS lock issue
+
+[Summary-TH]
+0	0	0	0	0	450
+
+[Trip]
+0	0	0	0	0	0
+260
+0
+90
+3280
+3280
+
+[HRData]
+120 0 100
+130 200 105
+140 350 110
+135 280 108
+125 100 112
+145 150 115
+150 300 113
+142 250 118
+138 180 120
+128 50 116

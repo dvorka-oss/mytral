@@ -95,6 +95,7 @@ from mytral.blueprints import strava_api_uri_space
 from mytral.blueprints import symptom_types_crud
 from mytral.blueprints import tabpfn_uri_space
 from mytral.blueprints import tools_uri_space
+from mytral.blueprints import trimp_uri_space
 
 
 def configure_pyinstaller_paths():
@@ -192,6 +193,7 @@ MyTraL: My Trailing Log - Desktop Edition
         symptom_types_crud,
         tabpfn_uri_space,
         tools_uri_space,
+        trimp_uri_space,
     ]
 
     app_logger.info(

@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+"""Strava API import plugin."""
+
 import enum
 import json
 import pathlib
@@ -41,6 +44,7 @@ URL_ACTIVITIES = "https://www.strava.com/api/v3/activities"
 URL_GEARS = "https://www.strava.com/api/v3/gear"
 # entity sources
 SRC_STRAVA = "strava"
+SRC_STRAVA_BASE_URL = "https://www.strava.com/activities/"
 
 #
 # PLUGIN: Strava JSON data import from raw to MyTraL format
@@ -48,7 +52,7 @@ SRC_STRAVA = "strava"
 
 
 class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
-    NAME = "Strava activity import"
+    NAME = "Strava API activity import"
     DESCRIPTION = (
         "Imports activity from the proprietary strava.com JSON format. "
         "See: https://developers.strava.com/"
@@ -136,7 +140,7 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         if not strava_gear_dict:
             strava_gear_dict = app_user_ds.list_gear(
                 user_id=user_profile.user_id
-            ).to_dict_by_external_id("strava")
+            ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
 
         # - safely handle Unicode chars in activity data to prevent UnicodeEncodeError
         activity_str = str(dataset_item)[:110]
@@ -177,7 +181,6 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         else:
             entity.activity_type_key = strava_sport
 
-        # TODO suffer score to easy/medium/hard
         entity.intensity = commons.INTENSITY_EASY
         strava_gear_id = dataset_item.get("gear_id", "")
         if strava_gear_id:
@@ -228,15 +231,13 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
         entity.weather = ""
         entity.temperature = 0
 
-        entity.suffer_score = float(dataset_item.get("suffer_score", 0.0))
         entity.fitness_score = 0.0
 
         # src ~ import
         entity.src = SRC_STRAVA
         entity.src_key = str(dataset_item.get("id", ""))
-        entity.src_descriptor = correlation_id
-        entity.src_url = f"https://www.strava.com/activities/{entity.src_key}"
-        # TODO to be added: entity.src_map = "summary_google_polyline_available=1"
+        entity.src_descriptor = f"api:{correlation_id}"
+        entity.src_url = f"{SRC_STRAVA_BASE_URL}{entity.src_key}"
 
         # entity creation & validation
         imported_entity = entities.evaluate_activity(entity)
@@ -252,7 +253,7 @@ class StravaActivityImportPlugin(plugins.ActivityImportPlugin):
 
 
 class StravaActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
-    NAME = "Strava activities import"
+    NAME = "Strava API activities import"
     DESCRIPTION = (
         "Imports activities from the proprietary strava.com JSON format."
         "See: https://developers.strava.com/"
@@ -349,7 +350,7 @@ class StravaActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         # gear: Strava -> MyTraL mapping - map: strava ID -> MyTraL ID
         strava_gear_dict = app_user_ds.list_gear(
             user_id=user_profile.user_id
-        ).to_dict_by_external_id("strava")
+        ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
 
         self.logger.info(
             f"{self.log_name} importing {len(raw_activities)} Strava activities..."
@@ -714,6 +715,251 @@ def export_json_from_strava_service(
     logger.info(f"Export DONE: {len(exported_activities)} activities")
 
     return exported_activities
+
+
+def _strava_get(url: str, access_token: str, logger) -> dict | list | None:
+    """Make an authenticated GET request to the Strava API.
+
+    Parameters
+    ----------
+    url : str
+        Full Strava API URL.
+    access_token : str
+        Valid Strava access token.
+    logger :
+        Logger instance.
+
+    Returns
+    -------
+    dict | list | None
+        Parsed JSON response, or None on failure.
+    """
+    logger.info(f"  GET {url}")
+    response = requests.get(
+        url,
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    if not response or response.status_code != 200:
+        logger.warning(
+            f"  Strava API returned "
+            f"{response.status_code if response else 'no response'}"
+        )
+        return None
+    return response.json()
+
+
+def fetch_activity_detail(
+    activity_id: int | str,
+    access_token: str,
+    logger,
+) -> dict | None:
+    """Fetch detailed activity metadata from Strava.
+
+    Calls ``GET /api/v3/activities/{id}`` which returns the full activity
+    object including ``description``, ``calories``, and other fields not
+    present in the list endpoint response.
+
+    Parameters
+    ----------
+    activity_id : int | str
+        Strava activity identifier.
+    access_token : str
+        Valid Strava access token.
+    logger :
+        Logger instance.
+
+    Returns
+    -------
+    dict | None
+        Activity detail dict, or None on failure.
+    """
+    url = f"{URL_ACTIVITIES}/{activity_id}"
+    return _strava_get(url, access_token, logger)
+
+
+def fetch_activity_streams(
+    activity_id: int | str,
+    access_token: str,
+    logger,
+) -> dict | None:
+    """Fetch time-series stream data for a Strava activity.
+
+    Calls ``GET /api/v3/activities/{id}/streams`` with keys: time, latlng,
+    distance, altitude, velocity_smooth, heartrate, cadence, watts, temp,
+    moving, grade_smooth.
+
+    Parameters
+    ----------
+    activity_id : int | str
+        Strava activity identifier.
+    access_token : str
+        Valid Strava access token.
+    logger :
+        Logger instance.
+
+    Returns
+    -------
+    dict | None
+        Stream dict keyed by stream type, or None on failure.
+    """
+    stream_keys = (
+        "time,latlng,distance,altitude,velocity_smooth,"
+        "heartrate,cadence,watts,temp,moving,grade_smooth"
+    )
+    url = f"{URL_ACTIVITIES}/{activity_id}/streams?keys={stream_keys}&key_by_type=true"
+    return _strava_get(url, access_token, logger)
+
+
+def streams_to_gpx(
+    streams: dict,
+    activity_name: str = "",
+) -> bytes:
+    """Convert Strava stream data to a GPX XML payload.
+
+    Parameters
+    ----------
+    streams : dict
+        Strava stream dict keyed by stream type (e.g. ``latlng``, ``time``,
+        ``altitude``, ``heartrate``, ``cadence``).
+    activity_name : str
+        Activity name for the GPX track name.
+
+    Returns
+    -------
+    bytes
+        GPX XML as UTF-8 bytes.
+    """
+    latlng_stream = streams.get("latlng", {})
+    time_stream = streams.get("time", {})
+    altitude_stream = streams.get("altitude", {})
+    hr_stream = streams.get("heartrate", {})
+    cadence_stream = streams.get("cadence", {})
+
+    latlng_data = latlng_stream.get("data") if latlng_stream else None
+    if not latlng_data:
+        raise ValueError("Strava streams contain no latlng data")
+
+    time_data = time_stream.get("data") if time_stream else None
+    alt_data = altitude_stream.get("data") if altitude_stream else None
+    hr_data = hr_stream.get("data") if hr_stream else None
+    cad_data = cadence_stream.get("data") if cadence_stream else None
+
+    import xml.etree.ElementTree as ET
+    from xml.dom import minidom
+
+    gpx_ns = "http://www.topografix.com/GPX/1/1"
+    gpxtpx_ns = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
+
+    ET.register_namespace("", gpx_ns)
+    ET.register_namespace("gpxtpx", gpxtpx_ns)
+
+    gpx = ET.Element(
+        "gpx",
+        {
+            "version": "1.1",
+            "creator": "mytral-strava-import",
+            "xmlns": gpx_ns,
+            "xmlns:gpxtpx": gpxtpx_ns,
+        },
+    )
+
+    if activity_name:
+        metadata = ET.SubElement(gpx, "metadata")
+        name_el = ET.SubElement(metadata, "name")
+        name_el.text = activity_name
+
+    trk = ET.SubElement(gpx, "trk")
+    trk_name = ET.SubElement(trk, "name")
+    trk_name.text = activity_name or "Strava Activity"
+    trkseg = ET.SubElement(trk, "trkseg")
+
+    for i, coord in enumerate(latlng_data):
+        trkpt = ET.SubElement(
+            trkseg,
+            "trkpt",
+            {"lat": str(coord[0]), "lon": str(coord[1])},
+        )
+        if alt_data and i < len(alt_data):
+            ele = ET.SubElement(trkpt, "ele")
+            ele.text = str(alt_data[i])
+        if time_data and i < len(time_data):
+            from datetime import datetime as _dt
+
+            ts = _dt.utcfromtimestamp(time_data[i])
+            time_el = ET.SubElement(trkpt, "time")
+            time_el.text = ts.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if hr_data and i < len(hr_data) or cad_data and i < len(cad_data):
+            extensions = ET.SubElement(trkpt, "extensions")
+            tpe = ET.SubElement(extensions, f"{{{gpxtpx_ns}}}TrackPointExtension")
+            if hr_data and i < len(hr_data):
+                hr_el = ET.SubElement(tpe, f"{{{gpxtpx_ns}}}hr")
+                hr_el.text = str(int(hr_data[i]))
+            if cad_data and i < len(cad_data):
+                cad_el = ET.SubElement(tpe, f"{{{gpxtpx_ns}}}cad")
+                cad_el.text = str(int(cad_data[i]))
+
+    rough_string = ET.tostring(gpx, encoding="utf-8")
+    reparsed = minidom.parseString(rough_string)
+    declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    gpx_xml = declaration + reparsed.documentElement.toprettyxml(indent="  ")
+    return gpx_xml.encode("utf-8")
+
+
+def fetch_activity_photos(
+    activity_id: int | str,
+    access_token: str,
+    logger,
+) -> list[dict] | None:
+    """Fetch photo metadata for a Strava activity.
+
+    Calls ``GET /api/v3/activities/{id}/photos``. The ``urls`` field in each
+    photo entry contains download links keyed by size (e.g. ``1024``, ``2048``).
+
+    Parameters
+    ----------
+    activity_id : int | str
+        Strava activity identifier.
+    access_token : str
+        Valid Strava access token.
+    logger :
+        Logger instance.
+
+    Returns
+    -------
+    list[dict] | None
+        List of photo metadata dicts, or None on failure.
+    """
+    url = f"{URL_ACTIVITIES}/{activity_id}/photos?size=2048"
+    return _strava_get(url, access_token, logger)
+
+
+def download_photo(
+    photo_url: str,
+    logger,
+) -> bytes | None:
+    """Download a photo from a Strava photo URL.
+
+    Parameters
+    ----------
+    photo_url : str
+        The photo download URL (e.g. ``1024``-size URL from photo metadata).
+    logger :
+        Logger instance.
+
+    Returns
+    -------
+    bytes | None
+        Photo data as bytes, or None on failure.
+    """
+    logger.info(f"  Downloading photo: {photo_url}")
+    response = requests.get(photo_url)
+    if not response or response.status_code != 200:
+        logger.warning(
+            f"  Photo download failed: "
+            f"{response.status_code if response else 'no response'}"
+        )
+        return None
+    return response.content
 
 
 def _sync_gear(strava_user_gear: settings.StravaUserGear, gear_id: str) -> dict:

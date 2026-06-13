@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Progress</span>
+                <h2 class="page-title">
+                    TRIMP: TRaining IMPulse
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3 mb-3">
+        <div class="card-body">
+            <p>
+                Training Impulse (TRIMP) quantifies internal training load from session duration and heart-rate reserve.
+            </p>
+            <p>
+                Dots show daily TRIMP -
+                <span class="badge bg-green text-green-fg">&lt; 50 recovery/easy</span>
+                <span class="badge bg-orange text-orange-fg">50 - 120 moderate</span>
+                <span class="badge bg-red text-red-fg">&gt; 120 hard</span> -
+                while ATRIMP (Acute TRIMP, 7-day exponential moving average),
+                CTRIMP (Chronic TRIMP, 42-day exponential moving average) and
+                TRIMPB (TRIMP balance CTRIMP - ATRIMP)
+                shows balance between short-term load, long-term load i.e. delta between fitness and fatigue.
+            </p>
+        </div>
+    </div>
+
+    {% if latest_row %}
+    <div class="row row-cards mb-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">Latest TRIMP</div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_row.trimp) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">
+                        ATRIMP
+                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="ATRIMP is a 7-day exponentially weighted moving average of your daily TRIMP scores.">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                <path d="M12 8l0 4"></path>
+                                <path d="M12 16l.01 0"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_row.atrimp) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">
+                        CTRIMP
+                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="CTRIMP is a 42-day exponentially weighted moving average of your daily TRIMP scores.">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                <path d="M12 8l0 4"></path>
+                                <path d="M12 16l.01 0"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_row.ctrimp) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="subheader">
+                        TRIMPB
+                        <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="TRIMPB is the clean delta between your fitness and your fatigue.">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                <path d="M12 8l0 4"></path>
+                                <path d="M12 16l.01 0"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="h2 mb-0">{{ "%.1f"|format(latest_row.btrimp) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                Daily TRIMP with ATRIMP, CTRIMP and TRIMPB
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="bokeh d-flex justify-content-center">
+                {{ div|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

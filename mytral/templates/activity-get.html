@@ -545,21 +545,9 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
-                                    <div class="subheader">Energy</div>
+                                    <div class="subheader">Energy (kcal)</div>
                                 </div>
                                 <div class="h1 mb-3">{{ activity_entity.kcal }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% if activity_entity.suffer_score %}
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="subheader">Suffer Score</div>
-                                </div>
-                                <div class="h1 mb-3">{{ '{:.2f}'.format(activity_entity.suffer_score|float) }}</div>
                             </div>
                         </div>
                     </div>
@@ -613,27 +601,6 @@
                         <h3 class="card-title">Activity Source</h3>
                     </div>
                     <div class="card-body">
-                        {#
-                        {% if activity_entity.src == "strava" %}
-                        <div class="row g-3">
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="subheader">Source</div>
-                                {% if activity_entity.src_url %}
-                                <a href="{{ activity_entity.src_url }}"
-                                       target="_blank"
-                                       rel="noopener"
-                                       class="strava-view-link">
-                                {% endif %}
-                                <div class="h3">
-                                    <img src="{{ url_for('static', filename='images/strava-logo-20x20.png') }}" width="16" height="16" alt="Strava" class="me-1">Strava
-                                </div>
-                                {% if activity_entity.src_url %}
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% else %}
-                        #}
                         <div class="row g-3">
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">Source</div>
@@ -642,7 +609,7 @@
                             {% if activity_entity.src_descriptor %}
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">Descriptor</div>
-                                <div class="h3">{{ activity_entity.src_descriptor }}</div>
+                                <div class="h3" title="{{ activity_entity.src_descriptor }}">{{ activity_entity.src_descriptor | ellipsis }}</div>
                             </div>
                             {% endif %}
                             {% if activity_entity.src_key %}
@@ -651,14 +618,13 @@
                                 <div class="h3">{{ activity_entity.src_key }}</div>
                             </div>
                             {% endif %}
-                            {% if activity_entity.src_descriptor %}
+                            {% if activity_entity.src_url %}
                             <div class="col-sm-6 col-lg-3">
                                 <div class="subheader">URL</div>
-                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank">{{ activity_entity.src_url }}</a>
+                                <a href="{{ activity_entity.src_url }}" class="h3" target="_blank" title="{{ activity_entity.src_url }}">{{ activity_entity.src_url | ellipsis }}</a>
                             </div>
                             {% endif %}
                         </div>
-                        {# endif #}
                     </div>
                 </div>
                 {% endif %}
@@ -850,6 +816,25 @@
     .mytral-map-detail {
         height: 420px;
         width: 100%;
+    }
+
+    .mytral-map-card.map-fullscreen {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 1055;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    .mytral-map-card.map-fullscreen .mytral-map-detail {
+        height: calc(100vh - 56px) !important;
+    }
+
+    .mytral-map-card.map-fullscreen .mytral-elevation-profile {
+        display: none;
     }
 
     .mytral-elevation-profile {
@@ -1173,6 +1158,32 @@
             }
         }
         mapElement.dataset.mapReady = "1";
+
+        // fullscreen map toggle
+        const fullscreenBtn = document.querySelector(".mytral-map-fullscreen-btn");
+        const mapCard = document.querySelector(".mytral-map-card");
+        if (fullscreenBtn && mapCard) {
+            const maximizeSvg = fullscreenBtn.querySelector("svg").outerHTML;
+            const minimizeSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrows-minimize" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M5 9l4 0l0 -4" /><path d="M3 3l6 6" /><path d="M5 15l4 0l0 4" /><path d="M3 21l6 -6" /><path d="M19 9l-4 0l0 -4" /><path d="M15 9l6 -6" /><path d="M19 15l-4 0l0 4" /><path d="M15 15l6 6" /></svg>`;
+
+            fullscreenBtn.addEventListener("click", (event) => {
+                event.preventDefault();
+                mapCard.classList.toggle("map-fullscreen");
+                const isFullscreen = mapCard.classList.contains("map-fullscreen");
+                fullscreenBtn.innerHTML = isFullscreen ? minimizeSvg : maximizeSvg;
+                fullscreenBtn.title = isFullscreen ? "Exit fullscreen" : "Fullscreen";
+                setTimeout(() => map.invalidateSize(), 100);
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && mapCard.classList.contains("map-fullscreen")) {
+                    mapCard.classList.remove("map-fullscreen");
+                    fullscreenBtn.innerHTML = maximizeSvg;
+                    fullscreenBtn.title = "Fullscreen";
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}

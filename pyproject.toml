@@ -137,6 +137,7 @@ dev = [
     "types-Flask~=1.1",
     "types-WTForms~=3.2",
     "types-requests~=2.32",
+    "ty>=0.0.48",
 ]
 test = [
     "pytest~=8.4",

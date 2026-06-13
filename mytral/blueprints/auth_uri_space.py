@@ -154,6 +154,7 @@ def signup():
                 born_month=commons.BOOTSTRAP_BORN_MONTH,
                 born_day=commons.BOOTSTRAP_BORN_DAY,
                 height=commons.BOOTSTRAP_HEIGHT_CM,
+                gender=True,
                 auto_login=app_config.incarnation == config.MytralIncarnation.DESKTOP,
             )
             ds.create_profile(user_profile=new_profile)
@@ -424,6 +425,7 @@ def profile_update():
         else:
             update_form.auto_login.data = False
         update_form.currency.data = user_profile.currency
+        update_form.gender.data = "false" if user_profile.gender is False else "true"
 
         # TODO location
         # TODO bio
@@ -460,6 +462,7 @@ def profile_update():
                 else:
                     user_profile.auto_login = False
                 user_profile.currency = update_form.currency.data.upper()[:3]
+                user_profile.gender = update_form.gender.data != "false"
                 user_profile.display_name = update_form.display_name.data.strip()
             except Exception as ex:
                 flask.flash(

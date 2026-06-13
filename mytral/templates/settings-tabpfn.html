@@ -64,7 +64,7 @@
                             {% elif model_status == STATUS_NOT_DOWNLOADED %}
                             <span class="badge bg-warning text-warning-fg">Not downloaded</span>
                             {% elif model_status == STATUS_DOWNLOADING %}
-                            <span class="badge bg-blue text-blue-fg">Downloading…</span>
+                            <span class="badge bg-blue text-blue-fg">Downloading...</span>
                             {% elif model_status == STATUS_DOWNLOADED %}
                             <span class="badge bg-success text-success-fg">Ready</span>
                             {% elif model_status == STATUS_FAILED %}
@@ -121,7 +121,7 @@
                                 {% elif model_status == STATUS_DOWNLOADING %}
                                 <button class="btn btn-primary" disabled>
                                     <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                    Downloading…
+                                    Downloading...
                                 </button>
                                 {% endif %}
                                 {% if model_status == STATUS_DOWNLOADED %}
@@ -146,7 +146,7 @@
                                 <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
                             </div>
                             <p class="text-muted small mt-1 mb-0" id="status-hint">
-                                Downloading model weights…
+                                Downloading model weights...
                                 <a href="{{ url_for('tasks_list') }}">View progress in Tasks</a>.
                             </p>
                         </div>

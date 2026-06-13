@@ -255,6 +255,13 @@ class UpdateProfileForm(flask_wtf.FlaskForm):
         default="USD",
     )
 
+    gender = wtforms.SelectField(
+        label="Gender",
+        validators=[validators.Optional()],
+        choices=[("true", "Man"), ("false", "Woman")],
+        default="true",
+    )
+
     bio = wtforms.TextAreaField(
         label="",
         validators=[],
@@ -906,13 +913,6 @@ class CreateActivityForm(flask_wtf.FlaskForm):
 
     ###
 
-    suffer_score = wtforms.FloatField(
-        render_kw={"placeholder": "0.0"},
-        label="Suffer score",
-        description="Subjective difficulty score indicating how hard the workout felt",
-        validators=[],
-        default=0.0,
-    )
     fitness_score = wtforms.FloatField(
         render_kw={"placeholder": "0.0"},
         label="Fitness score",
@@ -1111,6 +1111,30 @@ class ImportGpxForm(flask_wtf.FlaskForm):
     submit = wtforms.SubmitField("Import GPX")
 
 
+class ImportTcxForm(flask_wtf.FlaskForm):
+    """Form for importing a TCX recording as a new activity."""
+
+    recording_file = flask_wtf.file.FileField(
+        label="TCX file",
+        validators=[flask_wtf.file.FileRequired()],
+        description="Supported format: .tcx — max 64 MiB.",
+    )
+    activity_name = wtforms.StringField(
+        label="Name",
+        validators=[validators.Optional(), validators.Length(max=120)],
+        description="Optional activity name override.",
+    )
+    activity_type = wtforms.SelectField(
+        label="Activity type",
+        choices=[],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional activity_type_key override.",
+    )
+    submit = wtforms.SubmitField("Import TCX")
+
+
 class ImportGpxDirectoryForm(flask_wtf.FlaskForm):
     """Form for importing multiple GPX files from a directory.
 
@@ -1156,6 +1180,100 @@ class ImportGpxDirectoryForm(flask_wtf.FlaskForm):
                 "GPX directory path must be an absolute path (e.g. /home/user/gpx)."
             )
         # update field data with stripped value
+        field.data = value
+
+
+class ImportTcxDirectoryForm(flask_wtf.FlaskForm):
+    """Form for importing multiple TCX files from a directory.
+
+    Desktop-only: requires a local filesystem path.
+    """
+
+    data_dir = wtforms.StringField(
+        label="TCX directory",
+        description=(
+            "Absolute path to the directory containing .tcx files "
+            "(e.g. /path/to/tcx/files/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    sport_type = wtforms.SelectField(
+        label="Sport",
+        choices=[("", "Auto / unspecified")],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional sport override for all imported activities.",
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import TCX Directory")
+
+    def validate_data_dir(self, field):
+        """Validate data_dir is not empty after stripping and is absolute."""
+        value = field.data.strip() if field.data else ""
+        if not value:
+            raise validators.ValidationError(
+                "TCX directory path cannot be empty or whitespace-only."
+            )
+        if not os.path.isabs(value):
+            raise validators.ValidationError(
+                "TCX directory path must be an absolute path (e.g. /home/user/tcx)."
+            )
+        field.data = value
+
+
+class ImportFitDirectoryForm(flask_wtf.FlaskForm):
+    """Form for importing multiple FIT files from a directory.
+
+    Desktop-only: requires a local filesystem path.
+    """
+
+    data_dir = wtforms.StringField(
+        label="FIT directory",
+        description=(
+            "Absolute path to the directory containing .fit files "
+            "(e.g. /path/to/fit/files/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    sport_type = wtforms.SelectField(
+        label="Sport",
+        choices=[("", "Auto / unspecified")],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional sport override for all imported activities.",
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import FIT Directory")
+
+    def validate_data_dir(self, field):
+        """Validate data_dir is not empty after stripping and is absolute."""
+        value = field.data.strip() if field.data else ""
+        if not value:
+            raise validators.ValidationError(
+                "FIT directory path cannot be empty or whitespace-only."
+            )
+        if not os.path.isabs(value):
+            raise validators.ValidationError(
+                "FIT directory path must be an absolute path (e.g. /home/user/fit)."
+            )
         field.data = value
 
 
@@ -1270,7 +1388,6 @@ def from_activity_form(
     entity.cost = form.cost.data or 0.0
     entity.weather = form.weather.data
     entity.temperature = form.temperature.data or 0
-    entity.suffer_score = form.suffer_score.data or 0.0
     entity.fitness_score = form.fitness_score.data or 0.0
     entity.src = form.src.data or ""
     entity.src_descriptor = form.src_descriptor.data or ""
@@ -1296,6 +1413,10 @@ class CancelTaskForm(flask_wtf.FlaskForm):
 
 class CleanupTasksForm(flask_wtf.FlaskForm):
     """CSRF-protected form for cleaning up finished tasks."""
+
+
+class ClearNotificationsForm(flask_wtf.FlaskForm):
+    """CSRF-protected form for clearing all notifications."""
 
 
 class SubmitHelloWorldForm(flask_wtf.FlaskForm):
@@ -1732,3 +1853,89 @@ class ImportPolarHrmForm(flask_wtf.FlaskForm):
         default="skip",
     )
     submit = wtforms.SubmitField("Import Polar HRM")
+
+
+class ImportStravaArchiveForm(flask_wtf.FlaskForm):
+    """Form for importing activities from a Strava user archive
+    data directory.
+
+    """
+
+    data_dir = wtforms.StringField(
+        label="Data directory",
+        description=(
+            "Absolute path to the directory with extracted Strava user "
+            "ZIP archive contents (e.g. /path/to/extracted/strava_archive/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    import_photos = wtforms.BooleanField(
+        label="Import photos",
+        default=True,
+    )
+    import_recordings = wtforms.BooleanField(
+        label="Import recordings (GPX/TCX)",
+        default=True,
+    )
+    import_from_date = wtforms.StringField(
+        label="Import from",
+        validators=[validators.Optional(), validators.Length(min=10, max=10)],
+        default="",
+        render_kw={"type": "date"},
+    )
+    import_to_date = wtforms.StringField(
+        label="Import to",
+        validators=[validators.Optional(), validators.Length(min=10, max=10)],
+        default="",
+        render_kw={"type": "date"},
+    )
+    submit = wtforms.SubmitField("Import Strava Archive")
+
+    def _parse_iso_date_or_raise(self, field, label: str) -> None:
+        """Parse optional ISO date and raise a field-specific validation error."""
+        value = (field.data or "").strip()
+        if not value:
+            field.data = ""
+            return
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+        except ValueError as exc:
+            raise validators.ValidationError(
+                f"{label} must be in YYYY-MM-DD format."
+            ) from exc
+        field.data = value
+
+    def validate_import_from_date(self, field):
+        """Validate import_from_date when provided."""
+        self._parse_iso_date_or_raise(field, "Import from date")
+
+    def validate_import_to_date(self, field):
+        """Validate import_to_date when provided."""
+        self._parse_iso_date_or_raise(field, "Import to date")
+
+    def validate(self, extra_validators=None):
+        """Validate full form and enforce import date range order."""
+        is_valid = super().validate(extra_validators=extra_validators)
+        if not is_valid:
+            return False
+
+        from_date = self.import_from_date.data or ""
+        to_date = self.import_to_date.data or ""
+        if from_date and to_date:
+            if datetime.strptime(from_date, "%Y-%m-%d") > datetime.strptime(
+                to_date, "%Y-%m-%d"
+            ):
+                self.import_to_date.errors.append(
+                    "Import to date must be on or after import from date."
+                )
+                return False
+        return True

@@ -71,7 +71,7 @@ app_user_ds = app_ds.user()
 # blob store for activity attachments (GPX files and photos)
 app_blobstore = _blobstore_pkg.create_blobstore(app_config)
 
-# MyTraL task manager: async task execution
+# MyTraL task manager - self registers itself in Flask app as executor
 app_task_manager = task_manager.TaskManager(
     dataset=app_user_ds,
     enc_key=app_config.encryption_key,

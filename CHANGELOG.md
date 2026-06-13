@@ -1,14 +1,78 @@
 # Changelog
 
-## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.50.0)
+## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+
+This MyTraL release is very **special** to me. After years of coding and hacking
+together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
+birthday.
+
+Sports have been my main hobby for 40 years - I have 30 years of training data scattered
+across everything from paper logs to MyTraL. Today, I’m starting a fresh chapter - free
+from hacks, sensitive data and the "sins of my youth."
+
+Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execution!
+
+### Added
+- Added polyline with map background to the activity feed.
+- Added rainbow polyline w/ running dot to the activity feed.
+- Added elevation chart to the activity feed.
+- Added "maximize map" action to the activity view page.
+- Added description field to symptoms so that user can specify how to cure such injury
+  or illness.
+- Added import of Strava bulk user export ZIP archive (activities, GPX/TCX recordings,
+  photos).
+- Added TCX import (individual files and directory of recordings/archives).
+- Added `gender` field to the athlete profile in order to calculate metrics like TRIMP
+  more accurately.
+- Added TRIMP calculation and chart to the `Progress` menu.
+- Added FIT directory import - import all FIT files from a local directory in one go,
+  with automatic conflict detection and parquet generation.
+- Bulldozer framework - a multiprocessing-based sandboxed job runner for
+  parallelizing CPU-bound import workloads across multiple cores.
+- GPX polyline encoding with 2 selectable methods: fast distance-based sampling
+  (default) and legacy RDP-based simplification for preview rendering. New GPX polyline
+  encoding is ~4000× faster with the new distance-based sampling method - the default
+  for all recording import paths.
+- Added meta sport taxonomy based lifetime totals insight page.
+- Added new cards on the homepage indicating the risk of injury, gear needed service,
+  suggested activity and weight balance.
+- Added resting HR estimate to the athlete metrics page.
+
+### Changed
+- Strava API import is not hidden behing feature flag (just inverse condition on FE).
+- Refactored Predictions insight page to two pages - Predictions and Analytics.
+- Rewritten task manager, tasks and tasks invocation - removed duplicated task manager
+  definitions, converged to MyTraL's task manager, typed tasks are used from now on.
+- Strava bulk ZIP archive import rewritten with Bulldozer framework for parallel
+  photo & recording upload, parquet conversion, and GPX map-data precomputation.
+- Polar Precision Performance import rewritten with Bulldozer framework - HRM blob
+  upload and parquet generation now run in .
+
+### Removed
+- Removed `Suffer Score` from the ActivityEntity and related forms and HTML code.
+
+### Fixed
+- Fixed blobstore logging message which no longer specifies wrong blob type.
+- Polar HRM import conflict resolution no longer fails on missing year-cache entries.
+- `fit_tool` monkeypatch tolerates non-UTF8 bytes in FIT string fields (Garmin
+  developer fields), preventing silent parse failures.
+- Fixed many problems in the Polar PPP import - from user forgetting to switch
+  the activity type, to the source of data (HRM vs. PDD) and the right units.
+- Fixed notifications decorator - it's newly tightly coupled w/ the icon.
+
+
+
+## [1.9.0](https://github.com/dvorka-oss/my-training-log/compare/v1.8.0...v1.9.0)
 
 This MyTraL **minor** release brings:
 
 ### Added
 - Added import from FIT.
 - Added import from GPX - file or directory.
-- Added GPX recording management: upload, view metadata, edit name/description/keywords, download, and delete.
-- Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based loading/saving.
+- Added GPX recording management: upload, view metadata, edit name/description/keywords,
+  download, and delete.
+- Added storing of recorded data (FIT, GPX, Polar HRM) to Parquet and Polars-based
+  loading/saving.
 - Added power zones.
 - Added HR zones.
 - Added 2D maps rendering for GPX recordings.
@@ -21,19 +85,23 @@ This MyTraL **minor** release brings:
 - Added day-based navigation to the activity feed.
 - Added week-based navigation to the caledar activity view.
 - Added avatar/photo upload support for users, AI coaches, gear, goals, and exercises.
-- Added preview of TabPFN ML-powered predictions feature with dedicated settings and predictions pages (behind feature flag).
+- Added preview of TabPFN ML-powered predictions feature with dedicated settings and
+  predictions pages (behind feature flag).
 - Added sponsor link to the application layout.
 - Added Windows binary build.
-- Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_* constants,
-  Strava/FIT mappings, Concept2 uses AT_ROW_ERG).
+- Added and expanded sport taxonomy and mappings (new meta_activity_type, many new AT_*
+  constants, Strava/FIT mappings, Concept2 uses AT_ROW_ERG).
 - Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
   descriptions/default weights, symptom body-part targeting) with new pytest coverage.
 
-## Changed
+### Changed
 - Core data model changes:
-  - `ActivityEntity.sport` renamed to `ActivityEntity.activity_type_key` - breaks backward compatibility.
-  - Added `ActivityEntity.avg_cadence` and `ActivityEntity.max_cadence` - consider rides, rowing, swimming, and other activities.
-  - Added `ActivityEntity.meta_activity_type` - consider `ski` aggregating DP/F roller ski, DP/F nordic ski, ...
+  - `ActivityEntity.sport` renamed to `ActivityEntity.activity_type_key` - breaks
+    backward compatibility.
+  - Added `ActivityEntity.avg_cadence` and `ActivityEntity.max_cadence` - consider
+    rides, rowing, swimming, and other activities.
+  - Added `ActivityEntity.meta_activity_type` - consider `ski` aggregating DP/F roller
+    ski, DP/F nordic ski, ...
   - Added `ActivityEntity.tags`.
   - Added `ActivityEntity.is_plan`.
 - Reworked photo UI flows (entity photo galleries, activity/exercise photo metadata
@@ -46,23 +114,31 @@ This MyTraL **minor** release brings:
 
 ### Fixed
 - Activity update no longer purges source attributes (ID, descriptor and URL).
-- Blobstore exception handling in activity view/update routes now only silently ignores expected `BlobStoreError`; unexpected errors are logged and re-raised for easier debugging.
-- GPX import rewritten to be non-blocking (except upload) and to make intensive work in the asynchronous task.
+- Blobstore exception handling in activity view/update routes now only silently ignores
+  expected `BlobStoreError`; unexpected errors are logged and re-raised for easier
+  debugging.
+- GPX import rewritten to be non-blocking (except upload) and to make intensive work in
+  the asynchronous task.
 
 ### Performance
-- Per-request total size limit is now enforced when uploading multiple photos in a single request, preventing excessive memory use.
-- EXIF metadata stripping in image processing no longer materialises the full pixel array into a Python list; metadata is cleared in-place, reducing memory allocation significantly for large images.
+- Per-request total size limit is now enforced when uploading multiple photos in a
+  single request, preventing excessive memory use.
+- EXIF metadata stripping in image processing no longer materialises the full pixel
+  array into a Python list; metadata is cleared in-place, reducing memory allocation
+  significantly for large images.
 
 ### Documentation
 - HTML documentation is newly generated from Markdown files in this repository.
-- Public HTML documentation for mytral.fitness is newly generated from Markdown files in this repository.
+- Public HTML documentation for mytral.fitness is newly generated from Markdown files in
+  this repository.
 
 ### Tests
-- Added random attack which generates synthetic data of all MyTraL entities including attachments and recordings.
+- Added random attack which generates synthetic data of all MyTraL entities including
+  attachments and recordings.
 
 
 
-## [1.8.0](https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0)
+## [1.8.0](https://github.com/dvorka-oss/my-training-log/compare/v1.7.0...v1.8.0)
 
 This MyTraL **minor** release brings:
 
@@ -102,7 +178,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.7.0](https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0)
+## [1.7.0](https://github.com/dvorka-oss/my-training-log/compare/v1.6.0...v1.7.0)
 
 This MyTraL **minor** release brings:
 
@@ -124,7 +200,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.6.0](https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0)
+## [1.6.0](https://github.com/dvorka-oss/my-training-log/compare/v1.5.0...v1.6.0)
 
 This MyTraL **minor** release brings:
 
@@ -186,7 +262,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.5.0](https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0)
+## [1.5.0](https://github.com/dvorka-oss/my-training-log/compare/v1.4.0...v1.5.0)
 
 This MyTraL **minor** release brings:
 
@@ -222,7 +298,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.4.0](https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0)
+## [1.4.0](https://github.com/dvorka-oss/my-training-log/compare/v1.3.0...v1.4.0)
 
 This MyTraL **minor** release brings:
 
@@ -232,7 +308,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.2]
+## 1.3.2
 
 This MyTraL **minor** release brings:
 
@@ -242,7 +318,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.3.0]
+## 1.3.0
 
 This MyTraL **minor** release brings:
 
@@ -259,7 +335,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.2.0]
+## 1.2.0
 
 This MyTraL **minor** release brings:
 
@@ -292,7 +368,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.1.0]
+## 1.1.0
 
 This MyTraL **minor** release brings:
 
@@ -320,7 +396,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.0.0]
+## 1.0.0
 
 This MyTraL **major** release brings:
 
@@ -363,7 +439,7 @@ This MyTraL **major** release brings:
 
 
 
-## [0.0.1]
+## 0.0.1
 
 This MyTraL **patch** release brings:
 
@@ -373,7 +449,7 @@ This MyTraL **patch** release brings:
 
 
 
-## [0.0.0] - 2014-09-12
+## 0.0.0 - 2014-09-12
 
 The first MyTraL commit - YAML based datasets with Python based scripts.
 
@@ -420,5 +496,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka/my-training-log/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka/my-training-log/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka-oss/my-training-log/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka-oss/my-training-log/releases/tag/v0.9.0...v1.0.0

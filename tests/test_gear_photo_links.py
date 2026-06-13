@@ -134,9 +134,14 @@ def test_settings_gear_get_renders_lightbox_photo_gallery(monkeypatch):
     if hasattr(html, "get_data"):
         html = html.get_data(as_text=True)
     normalized = " ".join(html.split())
+    # highlight photo hero triggers lightbox
+    assert 'id="highlight-gear-photo-fslightbox"' in normalized
+    # the hero image link uses fslightbox
+    assert 'data-fslightbox="gear-photos" data-type="image" ' in normalized
+    # highlight photo thumbnail delegates to hero's lightbox trigger
     assert (
-        'data-fslightbox="gear-photos" data-type="image" '
-        'href="/settings/gears/gear-1/photos/blob-1" class="d-block"'
+        "onclick=\"document.getElementById('highlight-gear-photo-fslightbox').click();"
+        ' return false;"'
     ) in normalized
     assert 'src="/settings/gears/gear-1/photos/blob-1/thumbnail"' in normalized
     assert 'href="/settings/gears/gear-1/photos/upload"' in normalized

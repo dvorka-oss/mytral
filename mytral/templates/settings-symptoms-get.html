@@ -47,12 +47,17 @@
                         <div class="h3 mb-0">{{ entity.name }}</div>
                     </div>
                 </div>
+            </div>
+            {% if entity.description or count %}
+            <div class="card-body">
+                {% if entity.description %}
+                <div class="text-muted mb-3">{{ entity.description | markdown }}</div>
+                {% endif %}
                 {% if count %}
-                <div class="card-actions">
-                    <span class="badge bg-secondary text-secondary-fg">{{ count }}x recorded</span>
-                </div>
+                <span class="badge bg-secondary text-secondary-fg">{{ count }}x recorded</span>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
 
         {# ── Body parts card ───────────────────────────────────────────── #}

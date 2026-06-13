@@ -15,6 +15,12 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### ---
 
+### Credits
+* [source](CREDITS.md)
+
+### License
+* [source](LICENSE.md)
+
 ### About
 * [source](ABOUT.md)
 
@@ -27,9 +33,6 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 * [source](NORMALIZATION.md)
 
 ### ---
-
-### License
-* [source](LICENSE.md)
 
 ### 3rd Party Licenses
 * [source](LICENSES.md)

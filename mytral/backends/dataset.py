@@ -223,6 +223,15 @@ class UserDataset(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def create_activities(
+        self,
+        user_id: str,
+        dataset_name: str,
+        entity_list: list[entities.ActivityEntity],
+    ) -> list[entities.ActivityEntity]:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def update_activity(
         self, user_id: str, dataset_name: str, entity: entities.ActivityEntity
     ) -> entities.ActivityEntity:
@@ -232,7 +241,12 @@ class UserDataset(abc.ABC):
     def update_activities(
         self, user_id: str, dataset_name: str, activities: list[entities.ActivityEntity]
     ):
-        """Update (rewrite) all dataset activities."""
+        """Bulk update of activities:
+
+        - activities are clustered by year
+        - activities w/ the same year are routed to their target dataset files for year
+
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
