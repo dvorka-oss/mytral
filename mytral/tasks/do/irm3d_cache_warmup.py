@@ -103,7 +103,7 @@ class Irm3dCacheWarmupTask(tasks.TaskBase):
         )
 
         total = len(activities)
-        self.log(f"Loaded {total} activities — scanning for power recordings …")
+        self.log(f"Loaded {total} activities — scanning for power recording...")
 
         # compute strain rows (populates the file cache on the way)
         user_data_dir = str(ds.user_dir(user_id))
