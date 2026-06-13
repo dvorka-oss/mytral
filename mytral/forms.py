@@ -1230,6 +1230,53 @@ class ImportTcxDirectoryForm(flask_wtf.FlaskForm):
         field.data = value
 
 
+class ImportFitDirectoryForm(flask_wtf.FlaskForm):
+    """Form for importing multiple FIT files from a directory.
+
+    Desktop-only: requires a local filesystem path.
+    """
+
+    data_dir = wtforms.StringField(
+        label="FIT directory",
+        description=(
+            "Absolute path to the directory containing .fit files "
+            "(e.g. /path/to/fit/files/)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    sport_type = wtforms.SelectField(
+        label="Sport",
+        choices=[("", "Auto / unspecified")],
+        default="",
+        validators=[validators.Optional()],
+        validate_choice=False,
+        description="Optional sport override for all imported activities.",
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import FIT Directory")
+
+    def validate_data_dir(self, field):
+        """Validate data_dir is not empty after stripping and is absolute."""
+        value = field.data.strip() if field.data else ""
+        if not value:
+            raise validators.ValidationError(
+                "FIT directory path cannot be empty or whitespace-only."
+            )
+        if not os.path.isabs(value):
+            raise validators.ValidationError(
+                "FIT directory path must be an absolute path (e.g. /home/user/fit)."
+            )
+        field.data = value
+
+
 class UploadActivityPhotosForm(flask_wtf.FlaskForm):
     """Form for uploading one or more activity photos."""
 
@@ -1366,6 +1413,10 @@ class CancelTaskForm(flask_wtf.FlaskForm):
 
 class CleanupTasksForm(flask_wtf.FlaskForm):
     """CSRF-protected form for cleaning up finished tasks."""
+
+
+class ClearNotificationsForm(flask_wtf.FlaskForm):
+    """CSRF-protected form for clearing all notifications."""
 
 
 class SubmitHelloWorldForm(flask_wtf.FlaskForm):

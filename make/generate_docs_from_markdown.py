@@ -306,16 +306,28 @@ def extract_headings(html_content: str) -> list[tuple[int, str, str]]:
     """
     headings = []
 
-    # Match h2 and h3 tags
-    pattern = r'<h([23])[^>]*>([^<]+)</h\1>'
+    # Match h2, h3 tags including those with child elements (e.g. links)
+    pattern = r'<h([23])([^>]*)>(.*?)</h\1>'
     matches = re.finditer(pattern, html_content)
 
     for match in matches:
         level = int(match.group(1))
-        text = match.group(2).strip()
-        # Generate ID from text
-        heading_id = text.lower().replace(' ', '-').replace("'", "").replace('"', '')
-        heading_id = re.sub(r'[^a-z0-9-]', '', heading_id)
+        attrs = match.group(2)
+        content = match.group(3).strip()
+
+        # prefer id from tag attributes (set by markdown toc extension)
+        id_match = re.search(r'id="([^"]+)"', attrs)
+        if id_match:
+            heading_id = id_match.group(1)
+        else:
+            # fallback: generate id from stripped text
+            heading_id = re.sub(r'<[^>]+>', '', content)
+            heading_id = heading_id.lower().replace(' ', '-').replace("'", "")
+            heading_id = heading_id.replace('"', '')
+            heading_id = re.sub(r'[^a-z0-9-]', '', heading_id)
+
+        # strip HTML tags for TOC display text
+        text = re.sub(r'<[^>]+>', '', content)
 
         headings.append((level, text, heading_id))
 

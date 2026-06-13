@@ -21,19 +21,23 @@ class FeatureFlags:
     """Control which features are enabled in the application."""
 
     # features to enable / disable
+    ACOACHES = "ACOACHES"  # AI coaches
     GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"  # Dvorka's own GSheets import
+    IRM3D = "IRM3D"  # 3D inpulse response model
+    PFN_PREDICTIONS = "PFN_PREDICTIONS"
     STRAVA_API_IMPORT = "STRAVA_API_IMPORT"  # Strava API import
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
-    ACOACHES = "ACOACHES"  # AI coaches
-    IRM3D = "IRM3D"  # 3D inpulse response model
+    TRIMP = "TRIMP"
 
     # env variables
     ENV_FF_PREFIX = "MYTRAL_FF"
+    ENV_ACOACHES = f"{ENV_FF_PREFIX}_{ACOACHES}"
     ENV_GSHEETS_DVORKA_IMPORT = f"{ENV_FF_PREFIX}_{GSHEETS_DVORKA_IMPORT}"
+    ENV_IRM3D = f"{ENV_FF_PREFIX}_{IRM3D}"
+    ENV_PFN_PREDICTIONS = f"{ENV_FF_PREFIX}_{PFN_PREDICTIONS}"
     ENV_STRAVA_API_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_API_IMPORT}"
     ENV_TASKS_DEV = f"{ENV_FF_PREFIX}_{TASKS_DEV}"
-    ENV_ACOACHES = f"{ENV_FF_PREFIX}_{ACOACHES}"
-    ENV_IRM3D = f"{ENV_FF_PREFIX}_{IRM3D}"
+    ENV_TRIMP = f"{ENV_FF_PREFIX}_{TRIMP}"
 
     # switch MyTraL to DEVELOPMENT / WIP / PRODUCTION mode
     MODE_GA = "ga"  # production quality features only
@@ -42,15 +46,19 @@ class FeatureFlags:
 
     def __init__(self) -> None:
         self._flags: dict = {
+            FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),
             FeatureFlags.GSHEETS_DVORKA_IMPORT: utils.getenv_bool(
                 FeatureFlags.ENV_GSHEETS_DVORKA_IMPORT
+            ),
+            FeatureFlags.IRM3D: utils.getenv_bool(name=FeatureFlags.ENV_IRM3D),
+            FeatureFlags.PFN_PREDICTIONS: utils.getenv_bool(
+                FeatureFlags.ENV_PFN_PREDICTIONS
             ),
             FeatureFlags.STRAVA_API_IMPORT: utils.getenv_bool(
                 name=FeatureFlags.ENV_STRAVA_API_IMPORT, default=True
             ),
             FeatureFlags.TASKS_DEV: utils.getenv_bool(FeatureFlags.ENV_TASKS_DEV),
-            FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),
-            FeatureFlags.IRM3D: utils.getenv_bool(name=FeatureFlags.ENV_IRM3D),
+            FeatureFlags.TRIMP: utils.getenv_bool(FeatureFlags.ENV_TRIMP),
         }
         self._mode = FeatureFlags.MODE_GA  # MyTraL is in GA mode by default
 

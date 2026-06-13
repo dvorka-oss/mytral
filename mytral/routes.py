@@ -46,6 +46,7 @@ from mytral import ff
 from mytral import forms
 from mytral import insights
 from mytral import ninjas
+from mytral import notifications as notif_mod
 from mytral import onboarding
 from mytral import settings as user_settings
 from mytral import stats
@@ -394,6 +395,57 @@ def inject_task_info():
 
 
 @flask_app.context_processor
+def inject_notifications():
+    """Inject notifications into all templates.
+
+    Reads both persistent notifications from storage and flash messages
+    from the session, combining them into one list. Flash messages are
+    also persisted to storage so they survive across requests.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if user_id:
+        notif_storage = notif_mod.store
+        notif_list = notif_storage.list(user_id)
+
+        # consume flash messages and store them
+        flash_messages = flask.get_flashed_messages(with_categories=True)
+        for category, message in flash_messages:
+            notif_storage.add(
+                user_id=user_id,
+                category=category,
+                message=message,
+            )
+
+        # refresh list after storing flash messages
+        if flash_messages:
+            notif_list = notif_storage.list(user_id)
+
+        # compute badge color: green=info only, red=errors only, orange=mixed
+        error_count = sum(1 for n in notif_list if n.category in ("error",))
+        if notif_list and error_count == len(notif_list):
+            badge_color = "red"
+        elif notif_list and error_count == 0:
+            badge_color = "green"
+        elif notif_list:
+            badge_color = "orange"
+        else:
+            badge_color = "green"
+
+        return {
+            "notification_count": len(notif_list),
+            "notifications": notif_list,
+            "notification_badge_color": badge_color,
+            "clear_notifications_form": forms.ClearNotificationsForm(),
+        }
+    return {
+        "notification_count": 0,
+        "notifications": [],
+        "notification_badge_color": "green",
+        "clear_notifications_form": forms.ClearNotificationsForm(),
+    }
+
+
+@flask_app.context_processor
 def inject_feature_flags():
     """Inject feature flags into all templates."""
     return dict(ff=ff)
@@ -472,6 +524,10 @@ def home():
     activity_types = ds.list_activity_types(user_id=user_id)
     is_mobile = bool(flask.session.get(COOKIE_MOBILE))
 
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
     if len(ds_stats.years) > 1:
         bokeh_script, bokeh_div = charts.fig_grid_2_html(
             charts.total_km_per_year(
@@ -481,9 +537,6 @@ def home():
             )
         )
     elif len(ds_stats.years) == 1:
-        cal_heatmap = ds.activity_type_heatmap(
-            user_id=user_id, dataset_name=user_profile.dataset_name
-        )
         year = ds_stats.year_max
         x = list(range(1, 54))
         y = [
@@ -508,6 +561,17 @@ def home():
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
         ).values()
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=all_activities,
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
     )
 
     bokeh_month_cmp_script, bokeh_month_cmp_div = charts.last_vs_this_month(
@@ -608,6 +672,8 @@ def home():
         radar_script=radar_script,
         is_mobile=is_mobile,
         activity_types=activity_types,
+        # predictions & insights for dashboard cards
+        on_the_same_day=on_the_same_day,
         # warnings
         gear_requires_attention=gear_requires_attention,
         # dashboard statistics
@@ -831,6 +897,40 @@ def insight_predictions():
     )
 
 
+@flask_app.route("/insight/analytics")
+def insight_analytics():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    cal_heatmap = ds.activity_type_heatmap(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+
+    all_acts = ds.all_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+
+    on_the_same_day = insights.OnTheSameDay(
+        today=datetime.date.today(),
+        heatmap=cal_heatmap,
+        profile_stats=stats.UserProfileStats.from_entity(
+            user_profile=user_profile,
+            activities=list(all_acts.values()),
+            logger=app_logger,
+        ),
+        symptoms=ds.list_symptoms(user_id=user_id),
+    )
+
+    return flask.render_template(
+        "analytics.html",
+        user_profile=user_profile,
+        insights=on_the_same_day,
+    )
+
+
 def _compute_icl_predictions(user_profile, all_acts: dict) -> dict | None:
     """Compute ICL predictions when the feature is enabled.
 
@@ -911,12 +1011,52 @@ def insight_lifetime_totals():
         user_id=user_id, dataset_name=user_profile.dataset_name
     )
 
-    return flask.render_template(
-        "lifetime-totals.html",
-        user_profile=user_profile,
-        stats=ds_stats,
-        activity_types=ds.list_activity_types(user_id=user_id),
-    )
+    aspect = flask.request.args.get(commons.URL_ARG_ASPECT, "sports")
+
+    template_vars: dict = {
+        "user_profile": user_profile,
+        "stats": ds_stats,
+        "activity_types": ds.list_activity_types(user_id=user_id),
+        "aspect": aspect,
+    }
+
+    if aspect == "meta":
+        # aggregate top-level totals by meta sport
+        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
+            ds_stats.total_m_per_activity_type,
+            ds_stats.total_seconds_per_activity_type,
+        )
+        template_vars["total_m_per_meta"] = m_per_meta
+        template_vars["total_km_per_meta"] = {
+            mk: int(meters / 1000.0) for mk, meters in m_per_meta.items()
+        }
+        template_vars["total_time_per_meta"] = {
+            mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
+        }
+
+        # aggregate per-year totals by meta sport
+        per_year_meta: dict[int, dict] = {}
+        for y, year_stats in ds_stats.year.items():
+            ym_m, ym_s = commons.aggregate_by_meta_sport(
+                year_stats.total_m_per_activity_type,
+                year_stats.total_seconds_per_activity_type,
+            )
+            per_year_meta[y] = {
+                "total_m_per_meta": ym_m,
+                "total_km_per_meta": {
+                    mk: int(meters / 1000.0) for mk, meters in ym_m.items()
+                },
+                "total_time_per_meta": {
+                    mk: cals.seconds_to_str_time(seconds)
+                    for mk, seconds in ym_s.items()
+                },
+            }
+        template_vars["per_year_meta"] = per_year_meta
+
+        # pass display names for column headers
+        template_vars["meta_display_names"] = commons.M_AT_DISPLAY_NAMES
+
+    return flask.render_template("lifetime-totals.html", **template_vars)
 
 
 @flask_app.route("/insight/yoy-performance")
@@ -1260,6 +1400,27 @@ def tasks_cleanup():
         flask.flash(f"Failed to cleanup tasks: {str(e)}", "error")
 
     return flask.redirect(flask.url_for("tasks_list"))
+
+
+@flask_app.route("/notifications/clear", methods=["POST"])
+def notifications_clear():
+    """Clear all notifications for the current user."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.ClearNotificationsForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
+    notif_storage = notif_mod.store
+    notif_storage.clear_all(user_id)
+
+    # redirect back to the page the user came from
+    referrer = flask.request.referrer
+    if referrer:
+        return flask.redirect(referrer)
+    return flask.redirect(flask.url_for("home"))
 
 
 def _avatar_service() -> blob_pkg.AvatarBlobService:
@@ -4341,6 +4502,89 @@ def list_activities_for_month_day(month, day):
         ),
         month=month,
         day=day,
+    )
+
+
+@flask_app.route("/activities/validation")
+def list_activities_validation():
+    """List all activities that have data problems (suspicious/invalid values)."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # load all activities for the user across all years
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        skip_future=False,
+    )
+
+    # validate each activity and collect those with problems
+    junkyard: list[tuple[entities_mod.ActivityEntity, list[tuple[str, str]]]] = []
+    for a in activities:
+        problems = entities_mod.validate_activity(a)
+        if problems:
+            junkyard.append((a, problems))
+
+    # sort by number of problems descending (most problematic first)
+    junkyard.sort(key=lambda item: len(item[1]), reverse=True)
+
+    # compute stats
+    total_errors = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR
+    )
+    total_warnings = sum(
+        1
+        for _, problems in junkyard
+        for _, severity in problems
+        if severity == entities_mod.SEVERITY_WARNING
+    )
+    total_problems = total_errors + total_warnings
+    affected_activities = len(junkyard)
+
+    # compute problem breakdown by category
+    # errors come from 2 categories: internal consistency and zero-value anomalies
+    internal_errors = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" in msg
+    )
+    zero_anomalies = sum(
+        1
+        for _, problems in junkyard
+        for msg, severity in problems
+        if severity == entities_mod.SEVERITY_ERROR and ">" not in msg
+    )
+    oor_warnings = total_warnings  # all warnings are out-of-range
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a, _ in junkyard
+    }
+
+    return flask.render_template(
+        "activity-validation.html",
+        user_profile=user_profile,
+        junkyard=junkyard,
+        stats={
+            "total_problems": total_problems,
+            "total_errors": total_errors,
+            "total_warnings": total_warnings,
+            "affected_activities": affected_activities,
+            "internal_errors": internal_errors,
+            "zero_anomalies": zero_anomalies,
+            "oor_warnings": oor_warnings,
+        },
+        activities_weekdays=activities_weekdays,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
     )
 
 

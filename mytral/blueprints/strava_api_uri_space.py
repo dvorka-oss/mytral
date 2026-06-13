@@ -32,6 +32,9 @@ from mytral import tasks
 from mytral.integrations import strava
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
+from mytral.tasks.do import strava_gear_sync
+from mytral.tasks.do import strava_new_activities_sync
+from mytral.tasks.do import strava_resync_all
 
 
 def _build_strava_task_params(
@@ -378,7 +381,7 @@ def strava_sync_new_to_current():
     task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=str(user_id),
-        task_type="strava_sync_new_to_current",
+        task_type=strava_new_activities_sync.StravaNewActivitiesSyncTask.TASK_TYPE,
         status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
@@ -433,7 +436,7 @@ def strava_sync_gear():
     task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=str(user_id),
-        task_type="strava_sync_gear",
+        task_type=strava_gear_sync.StravaGearSyncTask.TASK_TYPE,
         status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,
@@ -491,7 +494,7 @@ def strava_sync_all():
     task = tasks.TaskEntity(
         key=str(uuid.uuid4()),
         user_id=str(user_id),
-        task_type="strava_resync_all",
+        task_type=strava_resync_all.StravaResyncAllTask.TASK_TYPE,
         status=tasks.TaskStatus.QUEUED,
         created_at=datetime.datetime.now(),
         started_at=None,

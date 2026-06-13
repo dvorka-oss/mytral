@@ -469,6 +469,7 @@ def resolve(
     user_profile: "app_settings.UserProfile",
     activities: list[entities.ActivityEntity],
     weight_kg: float = 0.0,
+    rest_hr: int = 0,
 ) -> None:
     """Resolve all e_* fields on AthleteMetrics in-place.
 
@@ -485,6 +486,10 @@ def resolve(
         All athlete activities for FTP estimation.
     weight_kg : float
         Current athlete body weight in kg (from last activity or profile).
+    rest_hr : int
+        Resting heart rate in BPM (0 if unknown).  Passed through to
+        :func:`estimate_vo2max` for the Uth-Sorensen-Overgaard-Pedersen
+        formula; falls back to :data:`REST_HR_DEFAULT` when 0.
 
     """
     age = user_profile.age or app_settings.UserProfile.DEFAULT_AGE
@@ -550,7 +555,7 @@ def resolve(
     athlete_metrics.e_vo2max = (
         athlete_metrics.vo2max
         if athlete_metrics.vo2max > 0
-        else estimate_vo2max(athlete_metrics.e_max_hr)
+        else estimate_vo2max(athlete_metrics.e_max_hr, rest_hr)
     )
 
     # --- HRV RMSSD ---

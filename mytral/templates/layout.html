@@ -180,9 +180,6 @@
                 </div>
                 <div class="nav-item dropdown d-none d-md-flex">
                   {# notifications #}
-                  {% with messages = get_flashed_messages(with_categories=true) %}
-                  {% set messages_has_error = messages | rejectattr('0', 'in', ['success', 'info', 'message']) | list | length > 0 %}
-
                   <a
                     href="#"
                     title="Notifications"
@@ -193,79 +190,69 @@
                     data-bs-auto-close="outside"
                     aria-expanded="false"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="icon icon-1"
-                    >
-                      <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
-                      <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
-                    </svg>
-                    {# notification green / red dot #}
-                    {% if messages %}
-                        {% if messages_has_error %}
-                        <span class="badge bg-red"></span>
-                        {% else %}
-                        <span class="badge bg-green"></span>
-                        {% endif %}
-                    {% endif %}
+                    <span class="position-relative">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="icon icon-1"
+                      >
+                        <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+                        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+                      </svg>
+                      {# notification count badge #}
+                      {% if notification_count > 0 %}
+                        <span class="badge badge-dot bg-{{ notification_badge_color }} badge-notification"></span>
+                      {% endif %}
+                    </span>
                   </a>
                   <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-end dropdown-menu-card">
                     <div class="card">
                       <div class="card-header d-flex">
                         <div class="btn-close ms-auto" data-bs-dismiss="dropdown"></div>
                       </div>
-                      {# list notifications #}
-                      {% if messages %}
-                          <div class="list-group list-group-flush list-group-hoverable">
-                          {% for category, message in messages %}
-                              {% if category in ['success', 'info', 'message'] %}
-
-                                <div class="list-group-item">
-                                  <div class="row align-items-center">
-                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
-                                    <div class="col text-truncate">
-                                      {# <a href="#" class="text-body d-block">Example 4</a> #}
-                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
-                                    </div>
+                      {# list persistent notifications #}
+                      {% if notifications %}
+                        <div class="list-group list-group-flush list-group-hoverable">
+                        {% for notif in notifications %}
+                            {% if notif.category in ['success', 'info', 'message'] %}
+                              <div class="list-group-item">
+                                <div class="row align-items-center">
+                                  <div class="col-auto"><span class="status-dot status-dot-animated bg-green d-block"></span></div>
+                                  <div class="col text-truncate">
+                                    <div class="d-block text-secondary text-truncate mt-n1">{{ notif.message }}</div>
                                   </div>
                                 </div>
-                              {% else %}
-                                <div class="list-group-item">
-                                  <div class="row align-items-center">
-                                    <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
-                                    <div class="col text-truncate">
-                                      {# <a href="#" class="text-body d-block">Example 1</a> #}
-                                      <div class="d-block text-secondary text-truncate mt-n1">{{ message }}</div>
-                                    </div>
+                              </div>
+                            {% else %}
+                              <div class="list-group-item">
+                                <div class="row align-items-center">
+                                  <div class="col-auto"><span class="status-dot status-dot-animated bg-red d-block"></span></div>
+                                  <div class="col text-truncate">
+                                    <div class="d-block text-secondary text-truncate mt-n1">{{ notif.message }}</div>
                                   </div>
                                 </div>
-                              {% endif %}
-                          {% endfor %}
+                              </div>
+                            {% endif %}
+                        {% endfor %}
                         </div>
                       {% endif %}
-                    {# ^ with messages #}
-                    {% endwith %}
-                    {# clear notifications
-                      <div class="card-body">
-                        <div class="row">
-                          <div class="col">
-                            <a href="#" class="btn btn-2 w-100"> Archive all </a>
-                          </div>
-                          <div class="col">
-                            <a href="#" class="btn btn-2 w-100"> Mark all as read </a>
-                          </div>
+                      {# clear notifications button #}
+                      {% if notifications %}
+                        <div class="card-body">
+                          <form method="POST" action="{{ url_for('notifications_clear') }}">
+                            <input type="hidden" name="csrf_token" value="{{ clear_notifications_form.csrf_token._value() }}" />
+                            <button type="submit" class="btn btn-2 w-100">Clear</button>
+                          </form>
                         </div>
-                      </div>
+                      {% endif %}
                     </div>
-                    #}
                   </div>
                 </div>
               </div>
@@ -414,7 +401,7 @@
                               </a>
                               <a class="dropdown-item"
                                 title="Calendar"
-                                href="{{ url_for('calendar_year',year=0) }}#current-week"
+                                href="{{ url_for('calendar_year',year=0) }}"
                               > Calendar
                                 <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
                               </a>
@@ -431,6 +418,14 @@
                               >
                                 Diary
                                 <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
+                              </a>
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item"
+                                title="Validate activities for data problems"
+                                href="{{ url_for('list_activities_validation') }}"
+                              >
+                                Validation
+                                <span class="badge badge-sm bg-red-lt text-uppercase ms-auto">Problem</span>
                               </a>
                             </div>
                           </div>
@@ -457,18 +452,18 @@
                           >
                             Predictions
                           </a>
-                          {% if user_profile.expert %}
                           <a class="dropdown-item"
                             title="Analytics."
-                            href="{{ url_for('insight_predictions') }}"
+                            href="{{ url_for('insight_analytics') }}"
                           >
                             Analytics
-                            <span class="badge badge-sm bg-yellow-lt text-uppercase ms-auto">TODO</span>
                           </a>
-                          {% endif %}
+
+                          <div class="dropdown-divider"></div>
+
                           <a class="dropdown-item"
                             title="Tabuler overview of activity types per year."
-                            href="{{ url_for('insight_lifetime_totals') }}"
+                            href="{{ url_for('insight_lifetime_totals') }}?aspect=meta"
                           >
                             Lifetime totals
                           </a>
@@ -479,17 +474,31 @@
                             Top sports
                           </a>
                           <a class="dropdown-item"
+                            title="Year-over-year performance trends chart and table."
+                            href="{{ url_for('insight_yoy_performance') }}"
+                          >
+                            Performance trends
+                          </a>
+
+                          <div class="dropdown-divider"></div>
+
+                          <a class="dropdown-item"
                             title="Weekday/sport heatmap"
                             href="{{ url_for('heatmap_weekday_to_activity') }}"
                           >
                             Weekday sport heatmap
                           </a>
                           <a class="dropdown-item"
-                            title="Year-over-year performance trends chart and table."
-                            href="{{ url_for('insight_yoy_performance') }}"
+                            title="Monday to Sunday 0-24 by hour when active within the day"
+                            href="{{ url_for('insight_active_in_week') }}"
                           >
-                            YoY performance trends
+                            Active in week
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
+
+                          <div class="dropdown-divider"></div>
+
+
                           <a class="dropdown-item"
                             title="Chart to compare this vs. last week, month, year."
                             href="{{ url_for('this_vs_last') }}"
@@ -503,13 +512,6 @@
                           >
                             This vs. previous years
                             <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
-                          </a>
-                          <a class="dropdown-item"
-                            title="Monday to Sunday 0-24 by hour when active within the day"
-                            href="{{ url_for('insight_active_in_week') }}"
-                          >
-                            Active in week
-                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Hour</span>
                           </a>
                         </div>
                       </li>
@@ -586,6 +588,7 @@
                             <span class="badge badge-sm bg-blue-lt text-uppercase ms-auto">3D IRM</span>
                           </a>
                           {% endif %}
+                          {% if ff.can("TRIMP") %}
                           <a class="dropdown-item"
                             title="TRaining IMPulse model"
                             href="{{ url_for('insight_trimp') }}"
@@ -593,6 +596,7 @@
                             HR-based
                             <span class="badge badge-sm bg-blue-lt text-uppercase ms-auto">TRIMP</span>
                           </a>
+                          {% endif %}
 
                           <div class="dropdown-divider"></div>
 
@@ -1698,6 +1702,43 @@
                 }
             }, 100);
         }, { passive: true });
+
+        // scroll to current week on page load, accounting for sticky
+        // navbar + chart wrapper that the browser's native #anchor scroll ignores.
+        // use a short delay to ensure the DOM layout is fully settled before
+        // calculating element positions.
+        setTimeout(() => {
+            const todayBar = document.querySelector('.bar-day.today');
+            if (todayBar) {
+                const weekIndex = todayBar.dataset.navWeekIndex;
+                if (weekIndex !== undefined) {
+                    const allRows = document.querySelectorAll('tr[data-week-index]');
+                    const targetRow = allRows[weekIndex];
+                    if (targetRow) {
+                        const navWrapper = document.getElementById('week-bar-chart-container');
+                        const stickyOffset = navWrapper ? navWrapper.getBoundingClientRect().bottom : 0;
+                        const targetY = targetRow.getBoundingClientRect().top + window.scrollY - stickyOffset;
+                        window.scrollTo({ top: targetY, behavior: 'auto' });
+
+                        // highlight the current week bar
+                        if (currentVisibleIndex !== null) {
+                            const prevBar = document.querySelector(`.bar-day[data-nav-week-index="${currentVisibleIndex}"]`);
+                            if (prevBar) prevBar.classList.remove('in-viewport');
+                        }
+                        todayBar.classList.add('in-viewport');
+                        currentVisibleIndex = weekIndex;
+
+                        // suppress observer updates while the scroll settles,
+                        // otherwise the observer picks a row further down the viewport
+                        observerSuppressed = true;
+                        clearTimeout(observerSuppressTimeout);
+                        observerSuppressTimeout = setTimeout(() => {
+                            observerSuppressed = false;
+                        }, 800);
+                    }
+                }
+            }
+        }, 50);
     });
 </script>
 

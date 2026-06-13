@@ -46,7 +46,33 @@
     </div>
 </div>
 
-<div class="page-body">
+{# highlight photo hero #}
+{% if gear.highlight_photo_blob_key and photos %}
+    {% set highlight_photo = photos | selectattr('blob_key', 'equalto', gear.highlight_photo_blob_key) | first %}
+    {% if highlight_photo %}
+<div class="page-body mt-2 mb-3">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body p-0">
+                <a data-fslightbox="gear-photos" data-type="image" id="highlight-gear-photo-fslightbox" href="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}">
+                <img src="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}"
+                     alt="{{ highlight_photo.name or highlight_photo.original_file_name }}"
+                     class="img-fluid rounded" style="max-height:480px;object-fit:cover;width:100%;cursor:pointer">
+                </a>
+            </div>
+            {% if highlight_photo.name or highlight_photo.description %}
+            <div class="card-footer text-muted">
+                {% if highlight_photo.name %}<strong>{{ highlight_photo.name }}</strong>{% endif %}
+                {% if highlight_photo.description %} — {{ highlight_photo.description }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+    {% endif %}
+{% endif %}
+
+<div class="page-body mt-0">
     <div class="container-xl">
         <div class="card">
             <div class="card-header">
@@ -489,7 +515,11 @@
                                 </div>
                             </div>
                             <div class="card-body p-1 text-center">
+                                {% if gear.highlight_photo_blob_key == photo.blob_key %}
+                                <a href="{{ url_for('settings_gear_photo', key=key, blob_key=photo.blob_key) }}" class="d-block" onclick="document.getElementById('highlight-gear-photo-fslightbox').click(); return false;">
+                                {% else %}
                                 <a data-fslightbox="gear-photos" data-type="image" href="{{ url_for('settings_gear_photo', key=key, blob_key=photo.blob_key) }}" class="d-block">
+                                {% endif %}
                                     <img src="{{ url_for('settings_gear_photo_thumbnail', key=key, blob_key=photo.blob_key) }}"
                                          alt="{{ photo.name or photo.original_file_name }}"
                                          class="img-fluid rounded"

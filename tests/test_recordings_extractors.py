@@ -110,6 +110,69 @@ def test_extract_fit_summary_all_files():
 
 
 @pytest.mark.mytral
+def test_extract_fit_summary_filters_sentinel_values():
+    """Test that FIT protocol invalid-sentinel values are filtered out.
+
+    The FIT protocol uses max-uint values (0xFF for uint8, 0xFFFF for uint16,
+    0xFFFFFFFF for uint32) to signal "invalid / not set".  The extractor must
+    treat these as missing data and leave the corresponding summary fields at
+    None.
+
+    The test file ``920xt-triathlon.fit`` has four sentinel fields in its
+    session message:
+
+    - avg_power  = 65535 (0xFFFF, uint16 sentinel)
+    - max_power  = 65535 (0xFFFF, uint16 sentinel)
+    - avg_hr     = 255   (0xFF,   uint8  sentinel)
+    - max_hr     = 255   (0xFF,   uint8  sentinel)
+
+    Valid fields (total_calories=148, total_distance=681.67, avg_speed=0.773,
+    avg_cadence=32, max_cadence=42) must still be extracted correctly.
+    """
+    # GIVEN
+    fit_path = _given.TEST_DATA_FIT_DIR / "920xt-triathlon.fit"
+    fit_data = fit_path.read_bytes()
+
+    # WHEN
+    summary = extract_fit_summary(fit_data)
+
+    # THEN — sentinel fields must be None (filtered out)
+    assert summary.avg_watts is None, (
+        f"avg_power sentinel 65535 should be filtered, got {summary.avg_watts}"
+    )
+    assert summary.max_watts is None, (
+        f"max_power sentinel 65535 should be filtered, got {summary.max_watts}"
+    )
+    assert summary.avg_hr is None, (
+        f"avg_hr sentinel 255 should be filtered, got {summary.avg_hr}"
+    )
+    assert summary.max_hr is None, (
+        f"max_hr sentinel 255 should be filtered, got {summary.max_hr}"
+    )
+
+    # THEN — valid fields must still be extracted
+    assert summary.kcal == 148, f"expected kcal=148, got {summary.kcal}"
+    assert summary.distance == 681, f"expected distance=681 m, got {summary.distance}"
+    assert summary.avg_speed == pytest.approx(2.78, abs=0.1), (
+        f"expected avg_speed ~2.78 km/h (0.773 m/s), got {summary.avg_speed}"
+    )
+    assert summary.avg_cadence == 32, (
+        f"expected avg_cadence=32, got {summary.avg_cadence}"
+    )
+    assert summary.max_cadence == 42, (
+        f"expected max_cadence=42, got {summary.max_cadence}"
+    )
+    assert summary.activity_type_key is not None
+    assert summary.when is not None
+
+    print(
+        f"FIT sentinel filtering: avg_power={summary.avg_watts}, "
+        f"max_power={summary.max_watts}, avg_hr={summary.avg_hr}, "
+        f"max_hr={summary.max_hr} all None: DONE"
+    )
+
+
+@pytest.mark.mytral
 def test_extract_gpx_summary_minimal_gpx():
     """Test extract_gpx_summary with a minimal GPX file."""
     # GIVEN

@@ -20,6 +20,7 @@
 import datetime
 import hashlib
 import io
+import pathlib
 import shutil
 import time
 import traceback
@@ -34,11 +35,11 @@ from mytral.blobstore.abc import BlobStoreAbc
 from mytral.blobstore.exceptions import BlobNotFoundError
 from mytral.blobstore.exceptions import BlobStoreError
 from mytral.blobstore.exceptions import BlobValidationError
+from mytral.blobstore.filesystem import merge_blobstore_from_path
 from mytral.blobstore.models import BLOB_VARIANT_THUMBNAIL
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobMetadata
 from mytral.blobstore.models import BlobOwnerKind
-from mytral.blobstore.validation import parse_gpx
 from mytral.blobstore.validation import validate_blob_metadata
 from mytral.blobstore.validation import validate_photo
 from mytral.blobstore.validation import validate_recording
@@ -742,17 +743,14 @@ class ActivityBlobService:
         track_point_count = meta.track_point_count
         try:
             if meta.extension == ".tcx":
-                track_count, track_point_count = tcx_extractor.parse_tcx(gpx_data)
-                gps_points = tcx_extractor.extract_gps_points(gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    tcx_extractor.extract_elevation_profile(gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    tcx_extractor.extract_all_from_tcx(gpx_data)
                 )
             else:
-                track_count, track_point_count = parse_gpx(data=gpx_data)
-                gps_points = gpx_extractor.extract_gps_points(gpx_data=gpx_data)
-                elevation_profile = gpx_extractor.simplify_elevation_profile(
-                    gpx_extractor.extract_elevation_profile(gpx_data=gpx_data)
+                track_count, track_point_count, gps_points, raw_profile = (
+                    gpx_extractor.extract_all_from_gpx(gpx_data)
                 )
+            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
             if gps_points:
                 summary_polyline, summary_bbox, full_polyline = (
                     gpx_extractor.encode_gps_polylines(
@@ -1175,3 +1173,35 @@ class ActivityBlobService:
             return stream, meta
         except BlobNotFoundError:
             return None
+
+    @staticmethod
+    def merge_sandbox_blobstores(
+        sandbox_blobs_dirs: list[pathlib.Path],
+        main_blobs_dir: pathlib.Path,
+    ) -> int:
+        """Merge blob data from Bulldozer sandbox directories into the main blobstore.
+
+        Iterates over each sandbox blobstore root and copies blob directories
+        (recordings + parquet) into the main blobstore.  Blob keys are UUIDs,
+        so collisions are not expected.  Existing directories are skipped.
+
+        Parameters
+        ----------
+        sandbox_blobs_dirs : list[pathlib.Path]
+            List of sandbox blobstore root paths
+            (e.g. ``job-N/work/blobs/``).
+        main_blobs_dir : pathlib.Path
+            Main blobstore root (e.g. ``data/<user>/blobs/``).
+
+        Returns
+        -------
+        int
+            Total number of blob directories copied across all sandboxes.
+        """
+        total = 0
+        for sandbox_dir in sandbox_blobs_dirs:
+            total += merge_blobstore_from_path(
+                src_blobs_dir=sandbox_dir,
+                dst_blobs_dir=main_blobs_dir,
+            )
+        return total

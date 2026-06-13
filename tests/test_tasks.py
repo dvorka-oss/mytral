@@ -24,6 +24,7 @@ import uuid
 
 import pytest
 
+from mytral import config
 from mytral import tasks
 from mytral.tasks import executors
 from mytral.tasks.do.hello_world import HelloWorldTask
@@ -34,7 +35,7 @@ class MockDataset:
 
     def __init__(self, base_dir: pathlib.Path):
         self.base_dir = base_dir
-        self.tasks_dir = base_dir / "tasks"
+        self.tasks_dir = base_dir / config.MytralPersistenceFsConfig.DIR_TASKS
         self.tasks_dir.mkdir(parents=True, exist_ok=True)
 
     def user_task_json_path(self, user_id: str, task_id: str) -> pathlib.Path:

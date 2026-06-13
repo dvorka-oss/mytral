@@ -74,9 +74,6 @@
 # MyTraL CLI
 #
 # uv run mytral help
-# uv run mytral import strava
-# uv run mytral upgrade --from 1.0.0 --to 1.1.0
-# uv run mytral-web
 #
 
 .DEFAULT_GOAL := help
@@ -184,6 +181,12 @@ py-lint-mypy: .venv py-install-dev-deps ## mypy type checking
 	uv tool run mypy --install-types --non-interactive
 	uv tool run mypy mytral
 
+# TY static type checker:
+# - https://pydevtools.com/handbook/reference/ty/
+.PHONY: py-lint-ty
+py-lint-ty: .venv py-install-dev-deps ## ty type checking
+	uv run ty check --python-version 3.11 mytral
+
 # check Bokeh version: Python Bokeh package and JavaScript Bokeh versions MUST MATCH
 .PHONY: py-check-bokeh
 py-check-bokeh: .venv py-install-dev-deps
@@ -271,10 +274,10 @@ data-sync:: ## synchronize ~ pull data in MyTraL data repository
 
 .PHONY: run
 run: .venv ## run MyTraL server w/ ENV var specified data directory
-	MYTRAL_DEBUG=true \
+	vibe
 	uv run python -m mytral.run
 
-.PHONY: run-dev
+.PHONY: runvdev
 ifeq ($(OS),Windows_NT)
 run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_INCARNATION=DESKTOP \
@@ -291,6 +294,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 else
 run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_USER_REGISTRATION=true \
 	MYTRAL_DEBUG=true \
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/development \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
@@ -307,6 +311,11 @@ run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data
 	MYTRAL_INCARNATION=DESKTOP \
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/pre-production \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
+	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
+	MYTRAL_FF_STRAVA_API_IMPORT=true \
+	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-production
@@ -372,9 +381,9 @@ vibe-copilot-ollama-deepseek:
 vibe-copilot-deepseek:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./DEEPSEEK.md
 	COPILOT_PROVIDER_TYPE=anthropic \
- 	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
+	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
 	COPILOT_PROVIDER_API_KEY=$(DEEPSEEK_API_KEY) \
- 	COPILOT_MODEL=deepseek-v4-pro \
+	COPILOT_MODEL=deepseek-v4-pro \
 	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
 	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	copilot --allow-all-tools --banner
@@ -397,12 +406,26 @@ vibe-cc-deepseek:
 # - run vibe coding Anthropic Claude CODE harness w/ Ollama hosted models
 # ollama models:
 # - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
-# - kimi-k2.5:cloud / kimi-k2.6:cloud
+# - kimi-k2.7:cloud
 # - qwen3.5:cloud
-.PHONY: vibe-cc
-vibe-cc:
+.PHONY: vibe-cc-ollama-deepseek
+vibe-cc-ollama-deepseek:
 	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
 	ollama launch claude --model deepseek-v4-pro:cloud -- --dangerously-skip-permissions
+
+vibe-cc-ollama-kimi:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model kimi-k2.7:cloud -- --dangerously-skip-permissions
+
+.PHONY: vibe-cc-ollama-minimax
+vibe-cc-ollama-minimax:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model minimax-m3:cloud -- --dangerously-skip-permissions
+
+.PHONY: vibe-cc-ollama-gemma4
+vibe-cc-ollama-gemma4:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	ollama launch claude --model gemma4:31b-cloud -- --dangerously-skip-permissions
 
 # Pi CLI
 # - run vibe coding w/ Mario's Pi CLI
@@ -697,3 +720,25 @@ tool-parquet-viewer: ## run Squey - Parquet viewer
 
 tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 	python3 -c "import tomllib, json, sys; print(json.dumps(tomllib.loads(sys.stdin.read()), indent=2))" < pyproject.toml
+
+#
+# USER SPECIFIC PRODUCTION DATA MANAGEMENT
+#
+
+# pull production data from Git repository & sync blobs from the shared drive
+PHONY: my-data-pull
+my-data-pull:
+	cd make && ./d_production_data_pull.sh
+
+# push production data to Git repository & sync blobs to the shared drive
+.PHONY: my-data-push
+my-data-push:
+	cd make && ./d_production_data_push.sh
+
+.PHONY: my-data-zip
+my-data-zip-snapshot:
+	@timestamp=$$(date +%Y%m%d-%H%M%S); \
+	archive=$(USER_HOME)/mytral-snapshot-$${timestamp}.tgz; \
+	echo "Zipping production data to $${archive} ..."; \
+	tar czf "$${archive}" -C $(USER_HOME)/.local/share mytral; \
+	echo "DONE Archive created: $${archive}"

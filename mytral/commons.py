@@ -262,6 +262,26 @@ M_AT_SWIM = "swim"  # swimming
 M_AT_RELAX = "relax"  # wellness
 
 #
+# META ACTIVITY TYPE DISPLAY NAMES
+#
+
+M_AT_DISPLAY_NAMES = {
+    M_AT_RUN: "Run",
+    M_AT_SKI: "Nordic Ski",
+    M_AT_RIDE: "Ride",
+    M_AT_ROW: "Row",
+    M_AT_CANOEING: "Canoeing",
+    M_AT_SWIM: "Swim",
+    M_AT_GYM: "Gym",
+    M_AT_HIKE: "Hike",
+    M_AT_ALPINE_SKI: "Alpine Ski",
+    M_AT_PHYSIO: "Physio",
+    M_AT_MULTISPORT: "Multisport",
+    M_AT_GAMES: "Games",
+    M_AT_RELAX: "Relax",
+}
+
+#
 # ACTIVITY TYPE TAXONOMY
 #
 # - NOT all ATs are in the taxonomy
@@ -362,6 +382,42 @@ AT_TAXONOMY = {
         AT_STEAM,
     ],
 }
+
+
+def aggregate_by_meta_sport(
+    total_m_per_activity_type: dict[str, int],
+    total_seconds_per_activity_type: dict[str, int],
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Aggregate per-activity-type stats into per-meta-sport totals.
+
+    Parameters
+    ----------
+    total_m_per_activity_type : dict[str, int]
+        Meters per activity type key.
+    total_seconds_per_activity_type : dict[str, int]
+        Seconds per activity type key.
+
+    Returns
+    -------
+    tuple[dict[str, int], dict[str, int]]
+        (meters_per_meta_sport, seconds_per_meta_sport) both keyed by
+        M_AT_* keys. Meta sports with zero total meters are included
+        (value 0).
+    """
+    m_per_meta: dict[str, int] = {}
+    s_per_meta: dict[str, int] = {}
+
+    for meta_key, at_keys in AT_TAXONOMY.items():
+        total_m = 0
+        total_s = 0
+        for at_key in at_keys:
+            total_m += total_m_per_activity_type.get(at_key, 0)
+            total_s += total_seconds_per_activity_type.get(at_key, 0)
+        m_per_meta[meta_key] = total_m
+        s_per_meta[meta_key] = total_s
+
+    return m_per_meta, s_per_meta
+
 
 #
 # UNIVERSAL KM COEFFICIENTS
