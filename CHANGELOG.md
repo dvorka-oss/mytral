@@ -1,6 +1,21 @@
 # Changelog
 
-## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- .
+
+### Changed
+- .
+
+### Fixed
+- .
+
+
+
+## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.9.0...v1.50.0)
 
 This MyTraL release is very **special** to me. After years of coding and hacking
 together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
