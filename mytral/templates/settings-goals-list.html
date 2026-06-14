@@ -251,14 +251,16 @@
                                 {% if (goal_type == "DONE" and g.done) or (goal_type == "" and not g.done) %}
                                 <tr>
                                     <td>
-                                        <a href="{{ url_for('settings_goal_get', key=g.key) }}" class="text-reset">
-                                            {% if g.done %}
-                                            <span>🟢</span>
-                                            {% else %}
-                                            <span>🎯</span>
-                                            {% endif %}
-                                            <b>{{ g.name }}</b>
-                                        </a>
+                                        <div class="ps-2 mytral-{{ activity_types.color(g.activity_type) }}-border">
+                                            <a href="{{ url_for('settings_goal_get', key=g.key) }}" class="text-reset">
+                                                {% if g.done %}
+                                                <span>🟢</span>
+                                                {% else %}
+                                                <span>🎯</span>
+                                                {% endif %}
+                                                <b>{{ g.name }}</b>
+                                            </a>
+                                        </div>
                                     </td>
                                     <td>
                                         {% set activity = activity_types.activity_types_by_key.get(g.activity_type) %}

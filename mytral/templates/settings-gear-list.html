@@ -217,58 +217,60 @@
                             {% set requires_attention = g.requires_attention() if g.components else false %}
                             <tr{% if requires_attention %} class="table-warning"{% endif %}>
                                 <td{% if g.retired %} class="text-muted"{% endif %}>
-                                    <b{% if g.retired %} style="text-decoration: line-through;"{% endif %}>
-                                        <a href="{{ url_for('settings_gear_get', key=g.key) }}">{{ g.name }}</a>
-                                        {% if g.has_external_id("strava") %}
-                                        <span title="Strava ID: {{ g.get_external_id('strava') }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circles-relation">
-                                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                                <path d="M9.183 6.117a6 6 0 1 0 4.511 3.986" />
-                                                <path d="M14.813 17.883a6 6 0 1 0 -4.496 -3.954" />
-                                            </svg>
+                                    <div class="ps-2 mytral-{{ activity_types.color(g.activity_type_key) }}-border">
+                                        <b{% if g.retired %} style="text-decoration: line-through;"{% endif %}>
+                                            <a href="{{ url_for('settings_gear_get', key=g.key) }}">{{ g.name }}</a>
+                                            {% if g.has_external_id("strava") %}
+                                            <span title="Strava ID: {{ g.get_external_id('strava') }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circles-relation">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                    <path d="M9.183 6.117a6 6 0 1 0 4.511 3.986" />
+                                                    <path d="M14.813 17.883a6 6 0 1 0 -4.496 -3.954" />
+                                                </svg>
+                                            </span>
+                                            {% endif %}
+                                        </b>
+
+
+                                        {% set active_components = g.get_components() %}
+                                        {% if active_components %}
+                                        <br/>
+                                        <span class="badge bg-secondary text-secondary-fg" title="Active components">
+                                            {{ active_components|length }} component{% if active_components|length > 1 %}s{% endif %}
                                         </span>
                                         {% endif %}
-                                    </b>
+                                        {% if requires_attention %}
+                                        <br/>
+                                        <span class="badge bg-warning text-orange-fg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                <path d="M12 9v2m0 4v.01"/>
+                                                <path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75"/>
+                                            </svg>
+                                            {% set comps_needing_service = g.components_requiring_service() %}
+                                            {{ comps_needing_service|length }} need{% if comps_needing_service|length > 1 %}{% else %}s{% endif %} service
+                                        </span>
+                                        {% endif %}
 
+                                        <br/>
+                                        {% if stat and stat.stat_use %}
+                                        <span class="badge bg-black text-blue-fg">{{ stat.stat_use }}x</span>
+                                        {% else %}
+                                        0x
+                                        {% endif %}
 
-                                    {% set active_components = g.get_components() %}
-                                    {% if active_components %}
-                                    <br/>
-                                    <span class="badge bg-secondary text-secondary-fg" title="Active components">
-                                        {{ active_components|length }} component{% if active_components|length > 1 %}s{% endif %}
-                                    </span>
-                                    {% endif %}
-                                    {% if requires_attention %}
-                                    <br/>
-                                    <span class="badge bg-warning text-orange-fg">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                            <path d="M12 9v2m0 4v.01"/>
-                                            <path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75"/>
-                                        </svg>
-                                        {% set comps_needing_service = g.components_requiring_service() %}
-                                        {{ comps_needing_service|length }} need{% if comps_needing_service|length > 1 %}{% else %}s{% endif %} service
-                                    </span>
-                                    {% endif %}
-
-                                    <br/>
-                                    {% if stat and stat.stat_use %}
-                                    <span class="badge bg-black text-blue-fg">{{ stat.stat_use }}x</span>
-                                    {% else %}
-                                    0x
-                                    {% endif %}
-
-                                    {% if g.url %}
-                                    <br/>
-                                    <a href="{{ g.url }}" target="_blank" rel="noopener noreferrer" title="Open product URL">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-external-link" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                            <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path>
-                                            <path d="M11 13l9 -9"></path>
-                                            <path d="M15 4h5v5"></path>
-                                        </svg>
-                                    </a>
-                                    {% endif %}
+                                        {% if g.url %}
+                                        <br/>
+                                        <a href="{{ g.url }}" target="_blank" rel="noopener noreferrer" title="Open product URL">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-external-link" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path>
+                                                <path d="M11 13l9 -9"></path>
+                                                <path d="M15 4h5v5"></path>
+                                            </svg>
+                                        </a>
+                                        {% endif %}
+                                    </div>
                                 </td>
                                 <td>
                                     {{ g.vendor }}<br/>

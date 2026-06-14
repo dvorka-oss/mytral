@@ -4711,6 +4711,7 @@ def heatmap_weekday_to_activity():
             avg_per_weekday=avg_per_weekday,
             chart_script=chart_script,
             chart_div=chart_div,
+            activity_types=activity_types,
         )
 
     return flask.redirect(flask.url_for("home"))

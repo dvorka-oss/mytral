@@ -121,6 +121,7 @@ def settings_outfits_list():
         dataset_name = ds.profile(user_id).dataset_name
 
         entities = ds.list_outfits(user_id=user_id, dataset_name=dataset_name)
+        activity_types = ds.list_activity_types(user_id)
 
         # sort outfits_by_key by count (descending)
         sorted_items = sorted(
@@ -152,6 +153,7 @@ def settings_outfits_list():
                 ff=ff,
                 user_profile=ds.profile(user_id),
                 outfits=entities,
+                activity_types=activity_types,
                 script=script,
                 div=div,
             )
@@ -161,6 +163,7 @@ def settings_outfits_list():
                 ff=ff,
                 user_profile=ds.profile(user_id),
                 outfits=entities,
+                activity_types=activity_types,
             )
 
     else:
