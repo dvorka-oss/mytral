@@ -11,7 +11,7 @@ This MyTraL **minor** release brings:
 - .
 
 ### Fixed
-- .
+- Removing color from Strava links on the day activities view.
 
 
 

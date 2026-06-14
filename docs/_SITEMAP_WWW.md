@@ -1,4 +1,4 @@
-# MyTraL User Documentation Sitemap
+# MyTraL WWW User Documentation Sitemap
 
 This document describes structure of MyTraL HTML documentation.
 It is used to generate MyTraL's documentation to `mytral/static/documentation/*.html`.
@@ -12,6 +12,9 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### Athlete Metrics
 * [source](METRICS.md)
+
+### Sharing
+* [source](SHARING.md)
 
 ### ---
 

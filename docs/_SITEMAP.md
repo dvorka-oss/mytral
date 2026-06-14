@@ -13,6 +13,9 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 ### Athlete Metrics
 * [source](METRICS.md)
 
+### Sharing
+* [source](SHARING.md)
+
 ### ---
 
 ### Credits
