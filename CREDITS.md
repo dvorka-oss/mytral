@@ -22,6 +22,7 @@ Big thanks to 3rd party [FLOSS](https://en.wikipedia.org/wiki/Free_and_open-sour
 * Charlie Marsh/Astral ([uv](https://docs.astral.sh/uv/) and [ruff](https://docs.astral.sh/ruff/) - fast Python dev swiss knives)
 * Wes McKinney ([Pandas](https://pandas.pydata.org/) - data frame library)
 * Kenneth Reitz ([requests](https://requests.readthedocs.io/) - HTTP anything)
+* Volodymyr Agafonkin ([Leaflet](https://leafletjs.com/) - mobile-friendly interactive maps)
 * OpenStreetMap contributors ([OpenStreetMap](https://www.openstreetmap.org/) - free geographic data under ODbL)
 * Jay Loden, Dave Daeschler, Giampaolo Rodola ([psutil](https://github.com/giampaolo/psutil) - process king)
 * Hartmut Goebel, Giovanni Bajo, David Vierra, David Cortesi, and Martin Zibricky ([PyInstaller](https://pyinstaller.org/) - desktop installer)
