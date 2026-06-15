@@ -6,6 +6,7 @@ This MyTraL **minor** release brings:
 
 ### Added
 - Added activity type color border hint to goals, gear, and several other pages.
+- Added Strava synchronization of individual activities from the activity GET page.
 
 ### Changed
 - .

@@ -48,6 +48,7 @@ from mytral import insights
 from mytral import ninjas
 from mytral import notifications as notif_mod
 from mytral import onboarding
+from mytral import security
 from mytral import settings as user_settings
 from mytral import stats
 from mytral import utils
@@ -55,6 +56,7 @@ from mytral import version
 from mytral import views
 from mytral.backends import entities as entities_mod
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.integrations import strava
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
 from mytral.tasks import _entities as task_entities
@@ -1189,6 +1191,15 @@ def tasks_list():
     running_tasks_count = sum(
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
+
+    # validate result_route endpoints — stale routes from deleted pages
+    # would cause BuildError when the template tries url_for()
+    view_functions = set(flask.current_app.view_functions.keys())
+    for t in all_tasks:
+        if t.result_route and t.result_route not in view_functions:
+            t.result_route = "home"
+            t.result_route_kwargs = {}
+
     return flask.render_template(
         "tasks-list.html",
         user_profile=ds.profile(user_id),
@@ -3428,6 +3439,93 @@ def get_activity(key):
         activity_map_data=activity_map_data,
         form=form,
     )
+
+
+@flask_app.route("/app/activities/<key>/sync-strava", methods=["POST"])
+def sync_strava_activity(key):
+    """Start async task to synchronize a single activity from Strava."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    dataset_name = user_profile.dataset_name
+    a = ds.get_activity(user_id=user_id, dataset_name=dataset_name, key=key)
+
+    if not a or a.src != strava.SRC_STRAVA:
+        flask.flash("Activity is not a Strava activity.", "warning")
+        return flask.redirect(flask.url_for("get_activity", key=key))
+
+    src_key = a.src_key
+    if not src_key:
+        flask.flash("Activity has no Strava source key.", "warning")
+        return flask.redirect(flask.url_for("get_activity", key=key))
+
+    # validate Strava authentication
+    is_auth, is_auth_valid = strava.is_access_token_valid(user_profile)
+    if not is_auth or not is_auth_valid:
+        if strava.is_refresh_token_valid(user_profile):
+            try:
+                strava.auth_get_access_for_refresh_token(user_profile, app_logger)
+                ds.update_profile(user_profile)
+            except Exception:
+                flask.flash(
+                    "Strava authentication expired. Please re-authenticate.",
+                    "danger",
+                )
+                return flask.redirect(flask.url_for("strava_auth_start"))
+        else:
+            flask.flash(
+                "Strava not authenticated. Please authenticate first.",
+                "danger",
+            )
+            return flask.redirect(flask.url_for("strava_auth_start"))
+
+    enc_key = app_config.encryption_key
+    task_params = {
+        "user_id": user_id,
+        "dataset_name": dataset_name,
+        "activity_key": key,
+        "src_key": src_key,
+        "access_token": security.encrypt(
+            user_profile.strava_access_token or "", enc_key
+        ),
+        "refresh_token": security.encrypt(
+            user_profile.strava_refresh_token or "", enc_key
+        ),
+        "client_id": user_profile.strava_client_id or "",
+        "client_secret": security.encrypt(
+            user_profile.strava_client_secret or "", enc_key
+        ),
+        "auth_until": user_profile.strava_auth_until or 0,
+    }
+
+    task = task_entities.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=str(user_id),
+        task_type="strava_sync_activity",
+        status=task_entities.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters=task_params,
+        result_route="get_activity",
+        result_route_kwargs={"key": key},
+    )
+
+    try:
+        app_task_manager.executor.submit(task)
+        flask.flash(
+            "Strava activity sync started — check Tasks for progress.", "success"
+        )
+    except Exception as exc:
+        flask.flash(f"Could not start sync: {exc}", "danger")
+
+    return flask.redirect(flask.url_for("tasks_list"))
 
 
 @flask_app.route("/app/activities/<key>/analysis", methods=["GET"])
