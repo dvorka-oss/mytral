@@ -359,7 +359,6 @@ run-blank: .venv ## run MyTraL server w/ NO data in /tmp directory
 .PHONY: vibe-copilot
 vibe-copilot:
 	@mkdir -pv ./.github
-	@cp -vf ./vibe/GH-COPILOT-INSTRUCTIONS.md ./.github/copilot-instructions.md
 	copilot --allow-all-tools --banner
 
 # Ollama (cloud) hosted GitHub Copilot CLI
@@ -370,7 +369,6 @@ vibe-copilot:
 .PHONY: vibe-copilot-ollama-deepseek
 vibe-copilot-ollama-deepseek:
 	@mkdir -pv ./.github
-	@cp -vf ./vibe/GH-COPILOT-INSTRUCTIONS.md ./.github/copilot-instructions.md
 	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
 	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	ollama launch copilot-cli --model deepseek-v4-pro:cloud -- --allow-all-tools
@@ -379,7 +377,7 @@ vibe-copilot-ollama-deepseek:
 # https://api-docs.deepseek.com/quick_start/agent_integrations/copilot_cli
 .PHONY: vibe-copilot-deepseek
 vibe-copilot-deepseek:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./DEEPSEEK.md
+	@cp -vf ./.github/copilot-instructions.md ./DEEPSEEK.md
 	COPILOT_PROVIDER_TYPE=anthropic \
 	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
 	COPILOT_PROVIDER_API_KEY=$(DEEPSEEK_API_KEY) \
@@ -392,6 +390,7 @@ vibe-copilot-deepseek:
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 .PHONY: vibe-deepseek-cc
 vibe-cc-deepseek:
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic \
 	ANTHROPIC_AUTH_TOKEN=$(DEEPSEEK_API_KEY) \
 	ANTHROPIC_MODEL=deepseek-v4-pro[1m] \
@@ -410,35 +409,35 @@ vibe-cc-deepseek:
 # - qwen3.5:cloud
 .PHONY: vibe-cc-ollama-deepseek
 vibe-cc-ollama-deepseek:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ollama launch claude --model deepseek-v4-pro:cloud -- --dangerously-skip-permissions
 
 vibe-cc-ollama-kimi:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ollama launch claude --model kimi-k2.7:cloud -- --dangerously-skip-permissions
 
 .PHONY: vibe-cc-ollama-minimax
 vibe-cc-ollama-minimax:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ollama launch claude --model minimax-m3:cloud -- --dangerously-skip-permissions
 
 .PHONY: vibe-cc-ollama-gemma4
 vibe-cc-ollama-gemma4:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ollama launch claude --model gemma4:31b-cloud -- --dangerously-skip-permissions
 
 # Pi CLI
 # - run vibe coding w/ Mario's Pi CLI
 .PHONY: vibe-pi
 vibe-pi:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./AGENT.md
+	@cp -vf ./.github/copilot-instructions.md ./AGENT.md
 	ollama launch pi --model qwen3.5:cloud
 
 # Codex CLI
 # - run vibe coding w/ OpenAI Codex CLI
 .PHONY: vibe-codex
 vibe-codex:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./AGENTS.md
+	@cp -vf ./.github/copilot-instructions.md ./AGENTS.md
 	codex
 
 # Google Antigravity CLI
@@ -446,7 +445,7 @@ vibe-codex:
 .PHONY: vibe-agy
 vibe-agy:
 	@echo "Updating Antigravity instructions..."
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md AGENTS.md
+	@cp -vf ./.github/copilot-instructions.md AGENTS.md
 	agy --dangerously-skip-permissions
 
 # Vibe coding - run a DEFAULT vibe coding CLI
