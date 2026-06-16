@@ -510,6 +510,151 @@
         .glow-animation {
             animation: glow 2s ease-in-out infinite;
         }
+
+        /* Feature card image */
+        .feature-thumb {
+            width: 100%;
+            border-radius: 0.5rem;
+            margin-bottom: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-thumb:hover {
+            transform: scale(1.02);
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
+        }
+
+        /* Lightbox overlay */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(2, 6, 23, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .lightbox-overlay.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.15);
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--light-gray);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+            padding: 0.5rem;
+            z-index: 10;
+        }
+
+        .lightbox-close:hover {
+            color: white;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            color: var(--light-gray);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.25rem;
+            z-index: 10;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(14, 165, 233, 0.2);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .lightbox-prev {
+            left: -60px;
+        }
+
+        .lightbox-next {
+            right: -60px;
+        }
+
+        .lightbox-counter {
+            color: var(--light-gray);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .lightbox-caption {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .lightbox-prev {
+                left: 0.5rem;
+            }
+
+            .lightbox-next {
+                right: 0.5rem;
+            }
+
+            .lightbox-close {
+                top: -2.5rem;
+                right: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -522,6 +667,7 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#features">features</a></li>
+                <li><a href="#manifesto">manifesto</a></li>
                 <li><a href="#story">story</a></li>
                 <li><a href="#contact">connect</a></li>
             </ul>
@@ -554,9 +700,122 @@
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <div class="section-label">Manifesto</div>
-            <!-- div class="section-label">Core Capabilities</div -->
+            <div class="section-label">Features</div>
             <h2 class="section-title">Everything You Need to Track Your Progress</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.dashboard.png"
+                         alt="MyTraL Dashboard"
+                         data-lightbox="0"
+                         data-caption="Own The Data That Tells Your Journey">
+                    <h3>Own Your Journey</h3>
+                    <p>
+                        Take control of your data - do not risk losing years of training
+                        history to changing terms and conditions, API updates, account
+                        bans, or service shutdowns. Your data tells the story of your
+                        journey, and you deserve to own it - it was your effort, your
+                        sweat, and your body that created it. MyTraL gives you <strong>a secure,
+                        private, and permanent</strong> home for your training history on your
+                        own machine. Do whatever you want with it. Don't let a third
+                        party hold your data hostage or forbid you from taking it with
+                        you when you leave. Analyze it with AI/ML models, use your own
+                        scripts, or leverage other tools to get the most out of it.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.trimp.png"
+                         alt="MyTraL Advanced Analytics"
+                         data-lightbox="1"
+                         data-caption="SOTA Power-based Metrics That Matter">
+                    <h3>SOTA Power-based Metrics</h3>
+                    <p>
+                        Vanity metrics tell you what happened. The multi-dimensional
+                        <a href="https://arxiv.org/abs/2503.14841">Impulse-Response Model (3D IRM)</a>
+                        tells you what it meant. Every workout sends a ripple through
+                        your physiology - stress, adaptation, fatigue, fitness - across
+                        intensity, duration, and recovery dimensions. MyTraL maps these
+                        interacting forces so you see not just how hard you worked, but
+                        how your body actually responded. No black boxes, no trademarks,
+                        no patents, no proprietary secrets. Just science you can inspect,
+                        understand, and trust.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.gear.png"
+                         alt="MyTraL Gear Management"
+                         data-lightbox="2"
+                         data-caption="Know Your Kit - Equipment Tracking">
+                    <h3>Gear Lifecycle Management</h3>
+                    <p>
+                        Every piece of equipment has a story. Track usage, schedule maintenance,
+                        and monitor costs for your shoes, bikes, and gear. Know exactly when it's
+                        time to replace those running shoes or service your chain — before
+                        performance suffers. Your gear, fully accounted for.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.dashboard.png"
+                         alt="MyTraL Activity Heatmap"
+                         data-lightbox="3"
+                         data-caption="Your Life in Your Palm">
+                    <h3>Your Life in Your Palm</h3>
+                    <p>
+                        Zoom out and see the full tapestry of your training life. The activity
+                        heatmap renders every session, every rest day, every peak and valley
+                        across months and years in a single, glanceable view. Patterns that hide
+                        in spreadsheets become visible - your consistency, your rhythms, your
+                        story. Your entire athletic life, right in your palm.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.trimp.png"
+                         alt="MyTraL TRIMP Training Load"
+                         data-lightbox="4"
+                         data-caption="Golden Standard - TRIMP Training Load">
+                    <h3>Standard HR-based Metric</h3>
+                    <p>
+                        Not all kilometers are created equal. <a href="https://www.researchgate.net/publication/20910238_Modeling_human_performance_in_running">TRIMP (Training Impulse)</a> -
+                        developed by Dr. Eric Banister - is the gold standard of training load
+                        quantification. It measures the true physiological cost of each session
+                        by weighing intensity against duration using heart rate data.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <img class="feature-thumb"
+                         src="images.raw/feature.dashboard.png"
+                         alt="MyTraL Goal Management"
+                         data-lightbox="5"
+                         data-caption="Goal Matrix - SMART Goal Setting">
+                    <h3>Achieve Goals With Eisenhower</h3>
+                    <p>
+                        Goals without structure are just wishes. Set SMART goals and prioritize
+                        them through the <a href="https://en.wikipedia.org/wiki/Time_management#Eisenhower_method">Eisenhower matrix</a> - urgent versus important, this
+                        month's breakthrough versus this year's ambition. Know what demands your
+                        focus today and what you are quietly building toward tomorrow. Clarity
+                        turns intention into achievement.
+                    </p>
+                </div>
+
+            </div>
+</div>
+    </section>
+
+    <!--Manifesto Section -->
+    <section id="manifesto" class="features">
+        <div class="container">
+            <div class="section-label">Manifesto</div>
+            <h2 class="section-title">The Principles We Train By</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-number">*</div>
@@ -752,6 +1011,18 @@
         </div>
     </section>
 
+    <!-- Lightbox Gallery -->
+    <div class="lightbox-overlay" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightbox-close" aria-label="Close gallery">&times;</button>
+            <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">&#10094;</button>
+            <img class="lightbox-image" id="lightbox-img" src="" alt="">
+            <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next image">&#10095;</button>
+        </div>
+        <div class="lightbox-counter" id="lightbox-counter"></div>
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+
     <!-- Rabbit
     <div style="text-align: right; padding-right: 3em;">
         <a href="https://app.mytral.fitness"><img src="matrix-rabbit.png" alt="Matrix Rabbit" style="max-width: 50px; height: auto;"></a>
@@ -820,6 +1091,91 @@
             card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
             observer.observe(card);
         });
+
+        // --- Lightbox Gallery ---
+        (function() {
+            const overlay = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            const caption = document.getElementById('lightbox-caption');
+            const closeBtn = document.getElementById('lightbox-close');
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+
+            // collect all feature thumbnails
+            const thumbs = document.querySelectorAll('.feature-thumb');
+            const slides = Array.from(thumbs).map(t => ({
+                src: t.src,
+                caption: t.dataset.caption || t.alt
+            }));
+
+            let currentIndex = 0;
+
+            function showSlide(index) {
+                if (slides.length === 0) return;
+                // wrap around
+                if (index < 0) index = slides.length - 1;
+                if (index >= slides.length) index = 0;
+                currentIndex = index;
+
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = slides[currentIndex].src;
+                    img.alt = slides[currentIndex].caption;
+                    caption.textContent = slides[currentIndex].caption;
+                    counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+                    img.style.opacity = '1';
+                }, 150);
+            }
+
+            function openLightbox(index) {
+                currentIndex = index;
+                img.src = slides[currentIndex].src;
+                img.alt = slides[currentIndex].caption;
+                img.style.opacity = '1';
+                caption.textContent = slides[currentIndex].caption;
+                counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // click on thumbnail opens lightbox
+            thumbs.forEach((thumb, i) => {
+                thumb.addEventListener('click', () => openLightbox(i));
+            });
+
+            // close button
+            closeBtn.addEventListener('click', closeLightbox);
+
+            // click outside image closes lightbox
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeLightbox();
+            });
+
+            // navigation buttons
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSlide(currentIndex - 1);
+            });
+
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSlide(currentIndex + 1);
+            });
+
+            // keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!overlay.classList.contains('active')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') showSlide(currentIndex - 1);
+                if (e.key === 'ArrowRight') showSlide(currentIndex + 1);
+            });
+        })();
     </script>
 </body>
 </html>
