@@ -337,6 +337,7 @@ run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
 	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TRIMP=true \
+	MYTRAL_FF_TRIMP_ROCKS=true \
 	MYTRAL_INCARNATION=DESKTOP \
 	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	uv run python -m mytral.run
@@ -423,6 +424,7 @@ vibe-cc-ollama-kimi:
 	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	ollama launch claude --model kimi-k2.7:cloud -- --dangerously-skip-permissions
 
+# Multimodal model good for planning which includes reading PDF papers, images, and documents.
 .PHONY: vibe-cc-ollama-minimax
 vibe-cc-ollama-minimax:
 	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
@@ -440,12 +442,13 @@ vibe-pi:
 	@cp -vf ./.github/copilot-instructions.md ./AGENT.md
 	ollama launch pi --model qwen3.5:cloud
 
-# Codex CLI
-# - run vibe coding w/ OpenAI Codex CLI
-.PHONY: vibe-codex
-vibe-codex:
-	@cp -vf ./.github/copilot-instructions.md ./AGENTS.md
-	codex
+# Qwen CLI @ openrouter
+# - run vibe coding w/ Qwen CLI
+# - use /model command to choose LLM like gpt-oss-120b
+.PHONY: vibe-qwen
+vibe-qwen-openrouter:
+	@cp -vf ./.github/copilot-instructions.md ./AGENT.md
+	qwen
 
 # Google Antigravity CLI
 # - run vibe coding w/ Google Antigravity CLI

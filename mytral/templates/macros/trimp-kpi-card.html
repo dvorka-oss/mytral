@@ -1,0 +1,44 @@
+{# MyTraL: reusable TRIMP KPI card macro
+ #
+ # Parameters:
+ #   label        - card subheader text
+ #   value        - value to display (number formatted via format_spec, or string shown as-is)
+ #   tooltip      - help text for the info icon
+ #   value_color  - optional hex color for the value (e.g. "#2fb344")
+ #   format_spec  - optional format string for numeric values (default "%.1f")
+ #   badge        - optional badge text (e.g. "legacy")
+ #   badge_color  - optional badge color (e.g. "orange")
+ #}
+{% macro trimp_kpi_card(label, value, tooltip, value_color="", format_spec="%.1f", badge="", badge_color="") %}
+<div class="col-sm-6 col-lg-2">
+    <div class="card">
+        <div class="card-body">
+            <div class="subheader">
+                {{ label }}
+                {% if tooltip %}
+                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ tooltip }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                        <path d="M12 8l0 4"></path>
+                        <path d="M12 16l.01 0"></path>
+                    </svg>
+                </span>
+                {% endif %}
+                {% if badge %}
+                <span class="badge bg-{{ badge_color }} text-{{ badge_color }}-fg ms-1">{{ badge }}</span>
+                {% endif %}
+            </div>
+            <div class="h2 mb-0"{% if value_color %} style="color: {{ value_color }}"{% endif %}>
+                {% if value is string %}
+                    {{ value }}
+                {% elif value > -0.05 and value < 0.05 %}
+                    0
+                {% else %}
+                    {{ format_spec|format(value) }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

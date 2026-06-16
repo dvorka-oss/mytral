@@ -167,6 +167,12 @@ class PassthroughUserCache(cache.MytralUserCache):
     def sick_heatmap(self) -> views.CalendarHeatmap | None:
         return None
 
+    def banister_rows(self) -> list | None:
+        return None
+
+    def set_banister_rows(self, rows: list) -> list:
+        return rows
+
     #
     # setters are pass-through (return value but don't store)
     #

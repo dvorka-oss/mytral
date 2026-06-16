@@ -3286,23 +3286,47 @@ def resting_hr_per_week(
     )
 
 
+def _extract_row_value(row, key: str, default=0.0):
+    """Extract a value from a dict row or a BanisterRow dataclass."""
+    if isinstance(row, dict):
+        return row.get(key, default)
+    return getattr(row, key, default)
+
+
 def trimp_composite(
-    daily_rows: list[dict],
+    daily_rows: list,
     is_mobile_view: bool = False,
+    params=None,
+    projection=None,
+    annotations=None,
+    highlight_date: datetime.date | None = None,
 ) -> tuple[str, Any]:
-    """Render TRIMP composite chart (TRIMP + ATRIMP + CTRIMP + TRIMPB)."""
+    """Render TRIMP composite chart (TRIMP + ATRIMP + CTRIMP + TRIMPB).
+
+    When ``params``, ``projection`` and ``annotations`` are supplied
+    (Banister model mode), a fourth performance line with zone bands
+    and event annotations is added.
+
+    ``highlight_date`` draws a vertical dashed line at the given date
+    (used by the per-activity page to mark "this activity").
+    """
     if not daily_rows:
         return "", "<div><p>Not enough heart-rate data to compute TRIMP.</p></div>"
 
     date_values = [
-        datetime.datetime.combine(row["date"], datetime.time.min) for row in daily_rows
+        datetime.datetime.combine(_extract_row_value(row, "date"), datetime.time.min)
+        for row in daily_rows
     ]
-    trimp_values = [float(row["trimp"]) for row in daily_rows]
-    atrimp_values = [float(row["atrimp"]) for row in daily_rows]
-    ctrimp_values = [float(row["ctrimp"]) for row in daily_rows]
-    btrimp_values = [float(row["btrimp"]) for row in daily_rows]
-    sessions_values = [int(row["sessions"]) for row in daily_rows]
-    duration_values = [float(row["duration_min"]) for row in daily_rows]
+    trimp_values = [float(_extract_row_value(row, "trimp")) for row in daily_rows]
+    atrimp_values = [float(_extract_row_value(row, "atrimp")) for row in daily_rows]
+    ctrimp_values = [float(_extract_row_value(row, "ctrimp")) for row in daily_rows]
+    btrimp_values = [float(_extract_row_value(row, "btrimp")) for row in daily_rows]
+    sessions_values = [
+        int(_extract_row_value(row, "sessions", 0)) for row in daily_rows
+    ]
+    duration_values = [
+        float(_extract_row_value(row, "duration_min", 0.0)) for row in daily_rows
+    ]
 
     trimp_colors = []
     for trimp_value in trimp_values:
@@ -3313,21 +3337,34 @@ def trimp_composite(
         else:
             trimp_colors.append("#d63939")
 
-    source = ColumnDataSource(
-        data={
-            "date": date_values,
-            "trimp": trimp_values,
-            "atrimp": atrimp_values,
-            "ctrimp": ctrimp_values,
-            "btrimp": btrimp_values,
-            "sessions": sessions_values,
-            "duration_min": duration_values,
-            "dot_color": trimp_colors,
-        }
-    )
+    source_data: dict = {
+        "date": date_values,
+        "trimp": trimp_values,
+        "atrimp": atrimp_values,
+        "ctrimp": ctrimp_values,
+        "btrimp": btrimp_values,
+        "sessions": sessions_values,
+        "duration_min": duration_values,
+        "dot_color": trimp_colors,
+    }
 
+    # Banister mode: add performance line data
+    banister_mode = params is not None
+    if banister_mode:
+        perf_values = [
+            float(_extract_row_value(row, "performance")) for row in daily_rows
+        ]
+        source_data["performance"] = perf_values
+
+    source = ColumnDataSource(data=source_data)
+
+    title = (
+        "Training Impulse (TRIMP) — Daily Load, Fitness, Fatigue & Performance"
+        if banister_mode
+        else "Training Impulse (TRIMP) — Daily Load and Balance"
+    )
     fig = bokeh_plt.figure(
-        title="Training Impulse (TRIMP) — Daily Load and Balance",
+        title=title,
         x_axis_type="datetime",
         x_axis_label="Date",
         y_axis_label="TRIMP points",
@@ -3372,6 +3409,50 @@ def trimp_composite(
         line_dash="dashed",
         legend_label="TRIMPB (CTRIMP - ATRIMP)",
     )
+
+    # highlight a specific date (e.g. per-activity page "this activity")
+    if highlight_date:
+        hl_dt = datetime.datetime.combine(highlight_date, datetime.time.min)
+        fig.add_layout(
+            bokeh_models.Span(
+                location=hl_dt,
+                dimension="height",
+                line_color="#6c757d",
+                line_width=2,
+                line_dash="dashed",
+            )
+        )
+
+    # Banister mode: add performance line and zone bands
+    if banister_mode:
+        fig.line(
+            x="date",
+            y="performance",
+            source=source,
+            line_width=2,
+            color="#206bc4",
+            line_dash="dotted",
+            legend_label="Performance (k1·F − k2·f)",
+        )
+        # zone background bands
+        y_min = min(perf_values) - 20 if perf_values else -100
+        y_max = max(perf_values) + 20 if perf_values else 100
+        fig.add_layout(
+            bokeh_models.BoxAnnotation(
+                bottom=20, top=y_max, fill_color="rgba(47,179,68,0.08)"
+            )
+        )
+        fig.add_layout(
+            bokeh_models.BoxAnnotation(
+                bottom=-20, top=0, fill_color="rgba(245,159,0,0.08)"
+            )
+        )
+        fig.add_layout(
+            bokeh_models.BoxAnnotation(
+                bottom=y_min, top=-20, fill_color="rgba(214,57,57,0.10)"
+            )
+        )
+
     hover_renderer = fig.scatter(
         x="date",
         y="ctrimp",
@@ -3392,21 +3473,49 @@ def trimp_composite(
         )
     )
 
+    hover_tooltips = [
+        ("date", "@date{%F}"),
+        ("TRIMP", "@trimp{0.0}"),
+        ("ATRIMP", "@atrimp{0.0}"),
+        ("CTRIMP", "@ctrimp{0.0}"),
+        ("BTRIMP", "@btrimp{0.0}"),
+        ("sessions", "@sessions"),
+        ("duration", "@duration_min{0.0} min"),
+    ]
+    if banister_mode:
+        hover_tooltips.insert(4, ("Performance", "@performance{0.0}"))
+
     hover = bokeh_models.HoverTool(
-        tooltips=[
-            ("date", "@date{%F}"),
-            ("TRIMP", "@trimp{0.0}"),
-            ("ATRIMP", "@atrimp{0.0}"),
-            ("CTRIMP", "@ctrimp{0.0}"),
-            ("BTRIMP", "@btrimp{0.0}"),
-            ("sessions", "@sessions"),
-            ("duration", "@duration_min{0.0} min"),
-        ],
+        tooltips=hover_tooltips,
         formatters={"@date": "datetime"},
         mode="mouse",
         renderers=[hover_renderer],
     )
     fig.add_tools(hover)
+
+    # annotations as labels on the chart
+    if annotations:
+        for ann in annotations:
+            ann_date = datetime.datetime.combine(ann.date, datetime.time.min)
+            color = {
+                "peak": "#fab005",
+                "fitness_pb": "#206bc4",
+                "overreach": "#d63939",
+            }.get(ann.kind, "#6c757d")
+            glyph = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}.get(
+                ann.kind, "●"
+            )
+            fig.add_layout(
+                bokeh_models.Label(
+                    x=ann_date,
+                    y=ann.value,
+                    text=f"{glyph} {ann.label}",
+                    text_color=color,
+                    text_font_size="9pt",
+                    text_align="center",
+                    y_offset=12,
+                )
+            )
 
     if is_mobile_view:
         fig.legend.visible = False
@@ -3441,6 +3550,230 @@ def trimp_composite(
 
     select.line("date", "ctrimp", source=source, color="#206bc4", line_width=1.5)
     select.line("date", "atrimp", source=source, color="#2fb344", line_width=1)
+    select.line("date", "trimp", source=source, color="#6c757d", line_alpha=0.35)
+    select.ygrid.grid_line_color = None
+    select.add_tools(range_tool)
+
+    script, div = bokeh_embed.components(
+        bokeh_layouts.column(fig, select, sizing_mode="scale_width")
+    )
+    return script, div
+
+
+def trimp_banister_trend(
+    banister_rows: list,
+    is_mobile_view: bool = False,
+    annotations: list | None = None,
+) -> tuple[str, Any]:
+    """Render Banister trend chart: fitness, fatigue, and performance over time.
+
+    A clean 3-line chart without TRIMP scatter dots — designed to answer
+    "how are my fitness, fatigue and performance changing, and how fast?"
+    """
+    if not banister_rows:
+        return "", "<div><p>No Banister data available yet.</p></div>"
+
+    date_values = [
+        datetime.datetime.combine(r.date, datetime.time.min) for r in banister_rows
+    ]
+    fit_values = [r.fitness for r in banister_rows]
+    fat_values = [r.fatigue for r in banister_rows]
+    perf_values = [r.performance for r in banister_rows]
+    trimp_values = [r.trimp for r in banister_rows]
+
+    trimp_colors = []
+    for t in trimp_values:
+        if t < 50:
+            trimp_colors.append("#2fb344")
+        elif t <= 120:
+            trimp_colors.append("#f59f00")
+        else:
+            trimp_colors.append("#d63939")
+
+    source_data = {
+        "date": date_values,
+        "fitness": fit_values,
+        "fatigue": fat_values,
+        "performance": perf_values,
+        "trimp": trimp_values,
+        "dot_color": trimp_colors,
+    }
+    source = ColumnDataSource(data=source_data)
+
+    fig = bokeh_plt.figure(
+        title="Fitness, Fatigue & Performance — How Your Body Responds to Training",
+        x_axis_type="datetime",
+        x_axis_label="Date",
+        y_axis_label="TRIMP points",
+        width=VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT,
+        height=480,
+        toolbar_location="below" if not is_mobile_view else None,
+    )
+    fig.sizing_mode = "scale_width"
+    fig.toolbar.logo = None
+
+    # daily TRIMP dots (color-coded by strain)
+    fig.scatter(
+        x="date",
+        y="trimp",
+        source=source,
+        size=7,
+        color="dot_color",
+        alpha=0.9,
+        legend_label="Daily TRIMP",
+    )
+
+    # fitness line (green, solid — slow to change)
+    fig.line(
+        x="date",
+        y="fitness",
+        source=source,
+        line_width=2.5,
+        color="#2fb344",
+        legend_label="Fitness (42d — slow to build, slow to lose)",
+    )
+    # fatigue line (red, solid — fast to change)
+    fig.line(
+        x="date",
+        y="fatigue",
+        source=source,
+        line_width=2.5,
+        color="#d63939",
+        legend_label="Fatigue (7d — rises fast, fades fast)",
+    )
+    # performance line (blue, dotted — the difference that matters)
+    fig.line(
+        x="date",
+        y="performance",
+        source=source,
+        line_width=2,
+        color="#206bc4",
+        line_dash="dotted",
+        legend_label="Performance (k1·F − k2·f)",
+    )
+
+    # performance zone background bands
+    all_y = fit_values + fat_values + perf_values
+    y_min = min(all_y) - 20 if all_y else -100
+    y_max = max(all_y) + 20 if all_y else 100
+    # fresh zone (> +20) — green tint
+    fig.add_layout(
+        bokeh_models.BoxAnnotation(
+            bottom=20, top=y_max, fill_color="rgba(47,179,68,0.08)"
+        )
+    )
+    # tired zone (-20 to 0) — orange tint
+    fig.add_layout(
+        bokeh_models.BoxAnnotation(bottom=-20, top=0, fill_color="rgba(245,159,0,0.08)")
+    )
+    # overreached zone (< -20) — red tint
+    fig.add_layout(
+        bokeh_models.BoxAnnotation(
+            bottom=y_min, top=-20, fill_color="rgba(214,57,57,0.10)"
+        )
+    )
+    # optimal zone (0 to +20) is white (implicit, no overlay)
+
+    # zero reference line
+    fig.add_layout(
+        bokeh_models.Span(
+            location=0.0,
+            dimension="width",
+            line_color="#6c757d",
+            line_width=1,
+            line_dash="dotted",
+        )
+    )
+
+    # invisible large hover target
+    hover_renderer = fig.scatter(
+        x="date",
+        y="fitness",
+        source=source,
+        size=10,
+        alpha=0.0,
+        line_alpha=0.0,
+        fill_alpha=0.0,
+    )
+    hover = bokeh_models.HoverTool(
+        tooltips=[
+            ("date", "@date{%F}"),
+            ("TRIMP", "@trimp{0.0}"),
+            ("Fitness", "@fitness{0.0}"),
+            ("Fatigue", "@fatigue{0.0}"),
+            ("Performance", "@performance{0.0}"),
+        ],
+        formatters={"@date": "datetime"},
+        mode="mouse",
+        renderers=[hover_renderer],
+    )
+    fig.add_tools(hover)
+
+    # annotation labels
+    if annotations:
+        for ann in annotations:
+            ann_date = datetime.datetime.combine(ann.date, datetime.time.min)
+            color = {
+                "peak": "#fab005",
+                "fitness_pb": "#206bc4",
+                "overreach": "#d63939",
+            }.get(ann.kind, "#6c757d")
+            glyph = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}.get(
+                ann.kind, "●"
+            )
+            fig.add_layout(
+                bokeh_models.Label(
+                    x=ann_date,
+                    y=ann.value,
+                    text=f"{glyph} {ann.label}",
+                    text_color=color,
+                    text_font_size="9pt",
+                    text_align="center",
+                    y_offset=12,
+                )
+            )
+
+    if is_mobile_view:
+        fig.legend.visible = False
+    else:
+        fig.legend.location = "top_left"
+        fig.legend.click_policy = "hide"
+
+    if is_mobile_view or len(date_values) < 30:
+        script, div = bokeh_embed.components(fig)
+        return script, div
+
+    # desktop: show latest ~26 weeks by default and allow range selection below
+    default_days = 182
+    fig.x_range.start = date_values[max(0, len(date_values) - default_days)]
+    fig.x_range.end = date_values[-1]
+
+    select = bokeh_plt.figure(
+        title="Drag the range to zoom the trend timeline above",
+        height=130,
+        width=VIEW_WIDTH_DEFAULT,
+        x_axis_type="datetime",
+        y_axis_type=None,
+        tools="",
+        toolbar_location=None,
+        background_fill_color="#efefef",
+    )
+    select.sizing_mode = "scale_width"
+
+    range_tool = bokeh_models.RangeTool(x_range=fig.x_range)
+    range_tool.overlay.fill_color = "navy"
+    range_tool.overlay.fill_alpha = 0.2
+
+    select.line("date", "fitness", source=source, color="#2fb344", line_width=1.5)
+    select.line("date", "fatigue", source=source, color="#d63939", line_width=1)
+    select.line(
+        "date",
+        "performance",
+        source=source,
+        color="#206bc4",
+        line_width=1,
+        line_dash="dotted",
+    )
     select.line("date", "trimp", source=source, color="#6c757d", line_alpha=0.35)
     select.ygrid.grid_line_color = None
     select.add_tools(range_tool)

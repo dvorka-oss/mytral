@@ -1,4 +1,6 @@
 {% extends "layout.html" %}
+{% import "macros/trimp-kpi-card.html" as kpi %}
+{% import "macros/trimp-insight-card.html" as insight %}
 {% block content %}
 <div class="container-xl">
     <div class="page-header d-print-none">
@@ -26,6 +28,14 @@
 
     {% if latest_row %}
     <div class="row row-cards mb-3">
+        {% if ff.can("TRIMP_ROCKS") and banister_rows %}
+            {{ kpi.trimp_kpi_card("Fitness", latest_row.fitness, "Fitness is your chronic training load (τ₁=42d time constant). It models long-term aerobic adaptation — builds and decays slowly. Higher = stronger aerobic base. Typical range: 30–150.", "#2fb344") }}
+            {{ kpi.trimp_kpi_card("Fatigue", latest_row.fatigue, "Fatigue is your acute training load (τ₂=7d time constant). It rises fast after hard sessions and fades fast with rest. High fatigue after hard blocks is normal; sustained elevation risks overtraining.", "#d63939") }}
+            {{ kpi.trimp_kpi_card("Performance", latest_row.performance, "Performance = k1·Fitness − k2·Fatigue. This is your predicted form right now. POSITIVE (>0) = fresh/ready to perform. NEGATIVE (<0) = tired/accumulated fatigue. Zones: >+20 Fresh, 0 to +20 Optimal, -20 to 0 Tired, < -20 Overreached. Fatigue hurts 2× more than fitness helps (k2=2.0 vs k1=1.0).", "#206bc4") }}
+            {{ kpi.trimp_kpi_card("ATRIMP", latest_row.atrimp, "7-day EMA of daily TRIMP") }}
+            {{ kpi.trimp_kpi_card("CTRIMP", latest_row.ctrimp, "42-day EMA of daily TRIMP") }}
+            {{ kpi.trimp_kpi_card("TRIMPB", latest_row.btrimp, "CTRIMP − ATRIMP balance") }}
+        {% else %}
         <div class="col-sm-6 col-lg-3">
             <div class="card">
                 <div class="card-body">
@@ -88,13 +98,18 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
     {% endif %}
 
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">
+                {% if ff.can("TRIMP_ROCKS") and banister_rows %}
+                Daily TRIMP with Fitness, Fatigue, Performance and TRIMPB
+                {% else %}
                 Daily TRIMP with ATRIMP, CTRIMP and TRIMPB
+                {% endif %}
             </h3>
         </div>
         <div class="card-body">
@@ -104,6 +119,43 @@
         </div>
     </div>
 
+    {% if ff.can("TRIMP_ROCKS") and trend_div %}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Fitness, Fatigue &amp; Performance — The Trend
+            </h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-2">
+                This chart isolates the three Banister metrics so you can see
+                <strong>how fast</strong> each changes. Fitness (green) changes slowly
+                — its decay time constant τ<sub>1</sub> is set to 42 days (long-term
+                adaptation). Fatigue (red) is ~6× faster with τ<sub>2</sub> = 7 days
+                (short-term fatigue). Performance (blue dotted) is the difference:
+                it drops when fatigue spikes and rises when you rest before a race.
+                <br><small>(Note: the Morton et al.&nbsp;1990 paper used τ<sub>1</sub>&nbsp;=&nbsp;45,&nbsp;τ<sub>2</sub>&nbsp;=&nbsp;15
+                as an illustrative example. These are individual-specific parameters
+                — v2 will fit them to your own race history.)</small>
+            </p>
+            <div class="bokeh d-flex justify-content-center">
+                {{ trend_div|safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if ff.can("TRIMP_ROCKS") and insights %}
+    <div class="container-xl mt-3">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="fs-4 fw-bold">Programmatic Insights</span>
+            <div class="flex-fill border-top ms-2"></div>
+        </div>
+        {% for card in insights %}
+            {{ insight.trimp_insight_card(card.kind, card.title, card.body_lines, card.annotation_id or "", card.zone_badge or "", card.zone_color or "") }}
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="card mt-3 mb-3">
         <div class="card-header">
@@ -112,6 +164,38 @@
             </h3>
         </div>
         <div class="card-body">
+            {% if ff.can("TRIMP_ROCKS") %}
+            <p>
+                <strong>TRIMP</strong> (Training Impulse) is a sophisticated training load analytics
+                model used to quantify the physiological stress of a workout. MyTraL implements
+                the <strong>Banister fitness-fatigue-performance model</strong> (Banister et al., 1975;
+                Busso 1997, 2002) which models your body's response to training as a system of
+                two first-order filters with different time constants.
+            </p>
+            <p>
+                The model tracks three primary metrics:
+                <ul>
+                <li><strong>Fitness</strong> (green)
+                    <ul><li>A 42-day exponentially weighted moving average of your daily TRIMP, representing long-term positive adaptation. Gains accumulate slowly and decay slowly.</li></ul>
+                </li>
+                <li><strong>Fatigue</strong> (red)
+                    <ul><li>A 7-day exponentially weighted moving average of your daily TRIMP, representing short-term negative effect. Fatigue accumulates quickly and dissipates quickly.</li></ul>
+                </li>
+                <li><strong>Performance</strong> (blue dashed)
+                    <ul><li>p(t) = k1·Fitness(t) − k2·Fatigue(t). Your predicted performance at any point in time. Positive = fresh, negative = tired.</li></ul>
+                </li>
+                </ul>
+            </p>
+            <p>
+                The model also credits recovery days: when your daily TRIMP is below the
+                recovery threshold (25), the model applies a <strong>negative training impulse</strong>
+                that actively reduces fatigue (Busso 2002 refinement).
+            </p>
+            <p>
+                Legacy metrics (ATRIMP, CTRIMP, TRIMPB) are preserved as co-equal KPI cards
+                for athletes familiar with the classic ATRIMP/CTRIMP/TRIMPB labels.
+            </p>
+            {% else %}
             <p>
                 <strong>TRIMP</strong> (Training Impulse) is a sophisticated training load analytics
                 model used to quantify the physiological stress of a workout. It is
@@ -137,6 +221,7 @@
                 </li>
                 </ul>
             </p>
+            {% endif %}
             <p>
                 Chart legend:
                 <ul>
@@ -148,14 +233,22 @@
                         <li><span class="badge bg-red text-red-fg">&nbsp;</span> ~ &gt; 120 hard</li>
                     </ul>
                 </li>
+                {% if ff.can("TRIMP_ROCKS") %}
+                <li><span class="badge bg-green text-green-fg">green line</span> ~ <strong>Fitness</strong> (42d EMA)</li>
+                <li><span class="badge bg-red text-red-fg">red line</span> ~ <strong>Fatigue</strong> (7d EMA)</li>
+                <li><span class="badge bg-blue text-blue-fg">blue dotted line</span> ~ <strong>Performance</strong> (k1·F − k2·f)</li>
+                <li><span class="badge bg-orange text-orange-fg">orange dashed line</span> ~ <strong>TRIMPB</strong> (legacy balance)</li>
+                {% else %}
                 <li><span class="badge bg-blue text-blue-fg">blue line</span> ~ <strong>ATRIMP</strong></li>
                 <li><span class="badge bg-green text-green-fg">green line</span> ~ <strong>CTRIMP</strong></li>
                 <li><span class="badge bg-orange text-orange-fg">orange line</span> ~ <strong>TRIMPB</strong></li>
+                {% endif %}
                 </ul>
             </p>
             <p>
                 Resources:
                 <ul>
+                <li>Banister, E.W., Calvert, T.W., Savage, N.V., & Bach, T. (1975). <i>A systems model of training for athletic performance.</i> Australian Journal of Sports Medicine.</li>
                 <li>Busso, T., Denis, C., Bonnefoy, R., Geyssant, A., & Lacour, J. R. (1997). <a href="https://journals.physiology.org/doi/full/10.1152/advan.00078.2011" class="link-primary" target="_blank"><i>Modeling of adaptations to physical training by using a recursive least squares algorithm.</i></a> Journal of Applied Physiology, 82(5), 1685–1693.</li>
                 </ul>
             </p>

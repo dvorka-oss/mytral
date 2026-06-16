@@ -2301,6 +2301,9 @@
     {% if script %}
     {{ script|safe }}
     {% endif %}
+    {% if trend_script %}
+    {{ trend_script|safe }}
+    {% endif %}
     {% if month_cmp_script %}
     {{ month_cmp_script|safe }}
     {% endif %}

@@ -67,6 +67,9 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
         # ALL activities sickness (sick & injured) heatmap
         self._sick_heatmap = None  # TODO type hint
 
+        # Banister / TRIMP Rocks
+        self._banister_rows: list | None = None
+
         # settings
 
         self._activity_types: settings.UserActivityTypes | None = None
@@ -299,6 +302,17 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
         return self._sick_heatmap
 
     #
+    # Banister / TRIMP Rocks
+    #
+
+    def banister_rows(self) -> list | None:
+        return self._banister_rows
+
+    def set_banister_rows(self, rows: list) -> list:
+        self._banister_rows = rows
+        return self._banister_rows
+
+    #
     # settings
     #
 
@@ -414,6 +428,7 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
     def evict_activities(self):
         self._activities_years = {}
         self._activities = None  # LIFELING ~ index
+        self._banister_rows = None
 
         self.evict_indices()
 
@@ -484,6 +499,8 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
             total_size += sys.getsizeof(self._activity_type_heatmap)
         if self._sick_heatmap:
             total_size += sys.getsizeof(self._sick_heatmap)
+        if self._banister_rows:
+            total_size += sys.getsizeof(self._banister_rows)
 
         # settings
         if self._gear:

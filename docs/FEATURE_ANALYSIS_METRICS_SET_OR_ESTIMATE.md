@@ -143,7 +143,7 @@ This is your "all-day pace"—the limit of your purely aerobic system. Below thi
 
 
 ## All metrics to add to MyTraL
-To elevate basic zone-tracking to **advanced sports analytics** (the kind used by platforms like TrainingPeaks, WKO5, intervals.icu, and professional coaches), you need metrics that measure **aerobic capacity, metabolic efficiency, fatigue tracking, and structural physical load**.
+To elevate basic zone-tracking to **advanced sports analytics** (the kind used by professional coaching platforms and exercise physiologists), you need metrics that measure **aerobic capacity, metabolic efficiency, fatigue tracking, and structural physical load**.
 
 Here is a table of the crucial missing metrics, grouped by how they supercharge an athlete's data analysis.
 

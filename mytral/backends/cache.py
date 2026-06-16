@@ -323,6 +323,18 @@ class MytralUserCache(abc.ABC):
     def evict(self):
         raise NotImplementedError
 
+    #
+    # Banister / TRIMP Rocks
+    #
+
+    @abstractmethod
+    def banister_rows(self) -> list | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_banister_rows(self, rows: list) -> list:
+        raise NotImplementedError
+
     @abstractmethod
     def memory_size(self) -> int:
         raise NotImplementedError

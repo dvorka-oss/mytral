@@ -136,6 +136,12 @@ Duration (min)| Fraction of FTP
 
 The highest FTP candidate across all qualifying activities is used. Activities shorter than 10 min or longer than 240 min are excluded.
 
+## Banister Fitness-Fatigue-Performance Model
+
+MyTraL implements the Banister systems model for predicting performance from
+training load. See the dedicated [Banister Model documentation](METRICS.banister.md)
+for the full mathematical model, performance zones, and per-activity analysis.
+
 ## Advanced Metrics
 
 ### VO2 Max

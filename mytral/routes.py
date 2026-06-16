@@ -56,8 +56,8 @@ from mytral import version
 from mytral import views
 from mytral.backends import entities as entities_mod
 from mytral.blobstore import activity_service as blob_svc_module
-from mytral.metrics import irm3d
 from mytral.integrations import strava
+from mytral.metrics import irm3d
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
 from mytral.tasks import _entities as task_entities

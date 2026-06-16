@@ -115,6 +115,16 @@ class UserDataset(abc.ABC):
         """Evict cache of the given user."""
         raise NotImplementedError
 
+    @property
+    def cache(self):
+        """Get the underlying MytralCache instance."""
+        return self._cache
+
+    @cache.setter
+    def cache(self, value):
+        """Set the underlying MytralCache instance (for testing)."""
+        self._cache = value
+
     def cache_memory_size(self, user_id):
         return self._cache.user(user_id).memory_size()
 

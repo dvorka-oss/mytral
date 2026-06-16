@@ -498,3 +498,14 @@ class StatsPeriod(enum.Enum):
     YEAR = enum.auto()
     MONTH = enum.auto()
     WEEK = enum.auto()
+
+
+#
+# Banister / TRIMP Rocks impact-analysis thresholds
+#
+
+HARD_TRIMP_THRESHOLD = 100.0
+HARD_DENSITY_DAYS = 14
+HARD_DENSITY_COUNT = 4
+OVERREACH_PERFORMANCE_FLOOR = -25.0
+OVERREACH_MIN_DAYS = 4

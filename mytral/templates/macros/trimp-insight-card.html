@@ -1,0 +1,102 @@
+{# MyTraL: reusable TRIMP insight card macro
+ #
+ # Parameters:
+ #   kind          - insight kind: state, best_form, overreaching, pbs, projection, race_window
+ #   title         - card title
+ #   body_lines    - list of lines with markup:
+ #                     "## Title" → section header
+ #                     "@@label|value|min|max|color" → gauge bar
+ #                     "" → spacer
+ #                     other → body paragraph
+ #   annotation_id - optional ID for scroll-to targeting
+ #   zone_badge    - optional badge text for a colored pill near the title
+ #   zone_color    - hex color for the zone badge
+ #}
+{% macro trimp_insight_card(kind, title, body_lines, annotation_id="", zone_badge="", zone_color="") %}
+<div class="card mt-3" {% if annotation_id %}id="insight-card-{{ annotation_id }}"{% endif %}>
+    <div class="card-header">
+        <div class="d-flex align-items-center">
+            {% if kind == "state" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-activity me-2 text-blue" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M3 12h4l3 8l4 -16l3 8h4"/>
+            </svg>
+            {% elif kind == "best_form" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star me-2 text-yellow" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/>
+            </svg>
+            {% elif kind == "overreaching" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-alert-triangle me-2 text-red" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M12 9v4"/>
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/>
+                <path d="M12 16h.01"/>
+            </svg>
+            {% elif kind == "pbs" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trophy me-2 text-yellow" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M8 21l8 0"/>
+                <path d="M12 17l0 4"/>
+                <path d="M7 4l10 0"/>
+                <path d="M17 4v8a5 5 0 0 1 -10 0v-8"/>
+                <path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>
+                <path d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>
+            </svg>
+            {% elif kind == "projection" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trending-up me-2 text-green" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M3 17l6 -6l4 4l8 -8"/>
+                <path d="M14 7l7 0l0 7"/>
+            </svg>
+            {% elif kind == "race_window" %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-event me-2 text-blue" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>
+                <path d="M16 3l0 4"/>
+                <path d="M8 3l0 4"/>
+                <path d="M4 11l16 0"/>
+                <path d="M8 15h2v2h-2z"/>
+            </svg>
+            {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bulb me-2" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7"/>
+                <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3l2 0a8 8 0 0 1 -8 0"/>
+                <path d="M9.7 17l4.6 0"/>
+            </svg>
+            {% endif %}
+            <h3 class="card-title mb-0">{{ title }}</h3>
+            {% if zone_badge %}
+            <span class="badge ms-2" style="background-color: {{ zone_color }}; color: #fff; font-size: 0.8rem;">{{ zone_badge }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        {% for line in body_lines %}
+            {% if line.startswith("## ") %}
+            <div class="hr-text hr-text-left mt-3 mb-1">
+                <span>{{ line[3:] }}</span>
+            </div>
+            {% elif line.startswith("@@") %}
+            {% set gauge_parts = line[2:].split("|") %}
+            {% if gauge_parts|length >= 4 %}
+            <div class="mb-2 mt-1">
+                <div class="d-flex justify-content-between" style="margin-bottom: 2px;">
+                    <span class="text-muted" style="font-size: 0.8rem;">{{ gauge_parts[0] }}</span>
+                    <span class="fw-bold" style="font-size: 0.8rem; color: {{ gauge_parts[3] }};">{{ gauge_parts[1] }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar" style="width: {{ gauge_parts[2] }}%; background-color: {{ gauge_parts[3] }};" role="progressbar"></div>
+                </div>
+            </div>
+            {% endif %}
+            {% elif line == "" %}
+            <div style="height: 0.3rem;"></div>
+            {% else %}
+            <p class="mb-1">{{ line }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}
