@@ -123,7 +123,7 @@
                                         </form>
                                         {% endif %}
                                         <a href="{{ url_for('task_detail', task_id=task.key) }}" class="btn btn-outline-primary" title="Task details">Details</a>
-                                        {% if task.status.value == 'completed' %}
+                                        {% if task.status.value == 'completed' and task.result_route %}
                                             <a href="{{ url_for(task.result_route, **task.result_route_kwargs) }}" class="btn btn-primary">Result</a>
                                         {% endif %}
                                     </div>

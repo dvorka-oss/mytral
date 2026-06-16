@@ -123,7 +123,11 @@
                     <tbody>
                         {% for sport in heatmap_sports %}
                         <tr>
-                            <td class="ps-3 py-1"><strong>{{ sport }}</strong></td>
+                            <td class="ps-3 py-1">
+                                <div class="ps-2 mytral-{{ activity_types.color(sport) }}-border">
+                                    <strong>{{ activity_types.name(sport) or sport }}</strong>
+                                </div>
+                            </td>
                             {% for weekday in weekday_activities_heatmap %}
                             <td class="text-center p-1">
                                 <div

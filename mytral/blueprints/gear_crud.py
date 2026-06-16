@@ -350,13 +350,15 @@ def settings_gear_create():
                 else "",
             )
 
-            ds.create_gear(
+            new_gear = ds.create_gear(
                 user_id=user_id,
                 gear=entity,
                 dataset_name=ds.profile(user_id).dataset_name,
             )
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(
+                flask.url_for(f"settings_{METHODS}_get", key=new_gear.key)
+            )
 
         flask.flash(
             message=f"{NAME_ENTITY} create error - form validation error",
@@ -497,7 +499,9 @@ def settings_gear_update(key: str):
                 dataset_name=ds.profile(user_id).dataset_name,
             )
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(
+                flask.url_for(f"settings_{METHODS}_get", key=entity.key)
+            )
 
         flask.flash(
             message=f"{NAME_ENTITY} update error - form validation error",

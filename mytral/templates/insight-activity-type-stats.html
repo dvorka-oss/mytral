@@ -56,7 +56,9 @@
                                         <span class="avatar avatar-sm">{{ loop.index }}</span>
                                     </td>
                                     <td>
-                                        <strong>{{ activity_types.name(sport) if activity_types else sport }}</strong>
+                                        <div class="ps-2 mytral-{{ activity_types.color(sport) }}-border">
+                                            <strong>{{ activity_types.name(sport) if activity_types else sport }}</strong>
+                                        </div>
                                     </td>
                                     <td class="text-end">{{ '{:,}'.format(km) }}</td>
                                     <td class="text-end">{{ time }}</td>

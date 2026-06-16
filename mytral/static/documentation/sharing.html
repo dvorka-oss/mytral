@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Feature: [feature] - MyTraL Documentation</title>
+    <title>Data Sharing - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -138,7 +138,7 @@
                               <a class="dropdown-item" href="index.html">Manifesto</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
-<a class="dropdown-item" href="sharing.html">Data Sharing</a>
+<a class="dropdown-item active" href="sharing.html">Data Sharing</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="credits.html">Credits</a>
 <a class="dropdown-item" href="license.html">License</a>
@@ -242,8 +242,8 @@
             <div class="container-xl">
                 <div class="row g-2 align-items-center">
                     <div class="col">
-                        <div class="page-pretitle">MyTraL Documentation</div>
-                        <h2 class="page-title">Feature: [feature]</h2>
+                        <div class="page-pretitle">User Documentation</div>
+                        <h2 class="page-title">Data Sharing</h2>
                     </div>
                 </div>
             </div>
@@ -254,92 +254,135 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Reviewers</th>
-<th>Last updated</th>
-<th>Comment</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>DONE</td>
-<td>@reviewer</td>
-<td>YYYY-MM-DD</td>
-<td>.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Table of contents</strong></p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><p>There are many ways how to share MyTraL data among different physical computers.
+This is just a few examples for the inspiration.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="custom-mytral-data-location">Custom MyTraL Data Location</h2>
+<p>MyTraL stores data to the following directories by <strong>default</strong>:</p>
 <ul>
-<li><a href="#analysis">Analysis</a><ul>
-<li><a href="#why">Why</a></li>
-<li><a href="#functional-requirements">Functional Requirements</a></li>
-<li><a href="#functional-non-requirements">Functional Non-requirements</a></li>
-<li><a href="#technical-requirements">Technical Requirements</a></li>
-<li><a href="#technical-non-requirements">Technical Non-requirements</a></li>
-</ul>
-</li>
-<li><a href="#design">Design</a><ul>
-<li><a href="#implementation">Implementation</a></li>
-<li><a href="#tests">Tests</a></li>
-<li><a href="#benchmarks">Benchmarks</a></li>
-</ul>
-</li>
-<li><a href="#references">References</a></li>
-<li><a href="#appendices">Appendices</a></li>
-</ul>
-<h1 id="analysis">Analysis</h1>
-<p><em>[... abstract ...]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="why">Why</h2>
-<p><em>[... motivation and value proposition...]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-requirements">Functional Requirements</h2>
-<p><em>[... functional requirements (feature scope) and user stories...]</em></p>
-<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
-<ul>
-<li>Acceptance criteria:<ul>
-<li><em>[... optional acceptance criteria...]</em></li>
+<li><strong>Linux</strong>:<ul>
+<li><code>/home/user/.local/share/mytral</code></li>
 </ul>
 </li>
 </ul>
-<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<p>You can reconfigure the path to data (or even have multiple locations) with <code>MYTRAL_DATA_DIR</code> environment variable:</p>
 <ul>
-<li>Acceptance criteria:<ul>
-<li><em>[... optional acceptance criteria...]</em></li>
+<li><strong>Linux</strong>:</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="n">MYTRAL_DATA_DIR</span><span class="o">=/</span><span class="n">my</span><span class="o">/</span><span class="n">custom</span><span class="o">/</span><span class="n">directory</span><span class="o">/</span><span class="n">with</span><span class="o">/</span><span class="n">mytral</span><span class="o">/</span><span class="n">data</span>
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="shared-drive">Shared Drive</h2>
+<p>The simplest way how to share MyTraL data is shared cloud drive like Google Drive.</p>
+<p>Method:</p>
+<ul>
+<li><strong>Step 1</strong>: Create a shared drive account.</li>
+<li><strong>Step 2</strong>: Configure your system to have a directory which is synced to shared cloud drive:<ul>
+<li>Linux: <code>/home/user/insync</code></li>
+</ul>
+</li>
+<li><strong>Step 3</strong>: Copy your existing data to the shared directory:<ul>
+<li>Linux: <code>cp -rvf /home/dvorka/.local/share/mytral /home/user/insync/mytral</code></li>
+</ul>
+</li>
+<li><strong>Step 4</strong>: Configure MyTraL to use data on the shared drive:<ul>
+<li>Linux (<code>~/.zshrc</code> or <code>~/.bashrc</code> or your shell rc file):
+  <code>export MYTRAL_DATA_DIR="/home/user/insync/mytral"</code></li>
 </ul>
 </li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="functional-non-requirements">Functional Non-requirements</h2>
-<p><em>[... functional non-requirements within the scope of this feature - what we will not deliver...]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-requirements">Technical Requirements</h2>
-<p><em>[... technical requirements (including security and performance) and user stories (feature scope)...]</em></p>
-<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+<p><strong>Final hint</strong>: make sure to regularly backup your data - do not trust MyTraL and/or share drive vendor.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="git-lfs">Git LFS</h2>
+<p>If you want to have history of changes and like Git and its workflow, then you can use Git LFS (Large File Storage).</p>
+<p>Git LFS stores MyTraL JSON files as normal text, but replaces photos, recordings and Parquet files with tiny pointer files inside Git, pushing the actual heavy binaries to a separate storage cloud.</p>
+<p>Providers (consider size of your data, mine is ~3GB):</p>
 <ul>
-<li><em>[... optional acceptance criteria...]</em></li>
+<li><strong>GitLab</strong><ul>
+<li>Free tier includes 5GB of storage per project (which includes LFS).</li>
 </ul>
-<p><strong>As</strong> ... <strong>I want to</strong> ... <strong>so that</strong> ...</p>
+</li>
+<li><strong>GitHub</strong><ul>
+<li>Free tier includes 1GB of Git LFS storage. Paid data plan ~$5/month for 50GB.</li>
+</ul>
+</li>
+<li><strong>Codeberg</strong><ul>
+<li>Regular storage 750MB, with LFS up to 1.5GB, then approval (non-profit host).</li>
+</ul>
+</li>
+</ul>
+<h3 id="git-lfs-configuration">Git LFS Configuration</h3>
+<p>Method:</p>
 <ul>
-<li><em>[... optional acceptance criteria...]</em></li>
+<li><strong>Step 1</strong>: Install Git LFS extension:<ul>
+<li>Linux (Ubuntu/Debian): <ul>
+<li><code>sudo apt-get install git-lfs</code></li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="technical-non-requirements">Technical Non-requirements</h2>
-<p><em>[... technical non-requirements within the scope of this feature - what will not be implemented...]</em></p>
-<h1 id="design">Design</h1>
-<p><em>[... a design introduction / abstract / high-level highlights]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="implementation">Implementation</h2>
-<p><em>[... a brief implementation description and/or diagrams...]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="tests">Tests</h2>
-<p><em>[... a brief description of unit, integration, load, longevity, regression, manual and smoke tests...]</em></p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="benchmarks">Benchmarks</h2>
-<p><em>[... benchmark(s) and their result...]</em></p>
-<h1 id="references">References</h1>
-<p><em>[... relevant resources...]</em></p>
+</li>
+<li>Mac (via Homebrew): <ul>
+<li><code>brew install git-lfs</code></li>
+</ul>
+</li>
+<li>Windows (via Winget): <ul>
+<li><code>winget install github.git-lfs</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Step 2</strong>: Initialize your system:<ul>
+<li><code>git lfs install</code></li>
+</ul>
+</li>
+<li><strong>Step 3</strong>: Create your new Git repository:<ul>
+<li>Go to GitLab/GitHub/* and create new (private) repository - ideally named <code>mytral</code>.</li>
+</ul>
+</li>
+<li><strong>Step 4</strong>: Migrate existing MyTraL repository or start over with new:<ul>
+<li>If you already use MyTraL and want migrate existing repository:<ul>
+<li>MyTraL stores its data by default to:<ul>
+<li>Linux: <code>/home/user/.local/share/mytral</code></li>
+</ul>
+</li>
+<li>Rename the <code>mytral</code> directory to backup the content.</li>
+<li>Clone new Git repository to your local machine and <code>mytral</code> folder:<ul>
+<li><code>git clone https://gitlab.com/your-username/mytral.git</code></li>
+</ul>
+</li>
+<li>Copy the content of original <code>mytral</code> directory from backup to the Git repo you cloned.</li>
+<li><strong>Do NOT add and push your files yet!</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Step 4</strong>: Tell Git LFS which files to track:<ul>
+<li>Run the following commands inside your Git repository folder so that Git creates <code>.gitattributes</code> file with the LFS configuration:</li>
+</ul>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="gh">#</span> track recordings
+git lfs track &quot;*.gpx&quot;
+git lfs track &quot;*.tcx&quot;
+git lfs track &quot;*.fit&quot;
+
+<span class="gh">#</span> track photos (add any other extensions you have, like .png or .jpeg)
+git lfs track &quot;*.jpg&quot;
+git lfs track &quot;*.png&quot;
+
+<span class="gh">#</span> track normalized Parquet files
+git lfs track &quot;*.parquet&quot;
+</code></pre></div>
+
 <ul>
-<li><a href="http://link.io">resource</a></li>
+<li><strong>Step 5</strong>: Push Git LFS configuration:</li>
 </ul>
-<h1 id="appendices">Appendices</h1>
-<p><em>[... appendice sections...]</em></p>
+<div class="codehilite"><pre><span></span><code>git add .gitattributes
+git commit -m &quot;chore: initialize git lfs tracking BLOBs&quot;
+</code></pre></div>
+
+<ul>
+<li><strong>Step 6</strong>: Push your data:<ul>
+<li>Now its time to add your data and push them to Git - they will be handled by Git LFS.</li>
+</ul>
+</li>
+</ul>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -349,14 +392,10 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#why" class="nav-link">Why</a>
-<a href="#functional-requirements" class="nav-link">Functional Requirements</a>
-<a href="#functional-non-requirements" class="nav-link">Functional Non-requirements</a>
-<a href="#technical-requirements" class="nav-link">Technical Requirements</a>
-<a href="#technical-non-requirements" class="nav-link">Technical Non-requirements</a>
-<a href="#implementation" class="nav-link">Implementation</a>
-<a href="#tests" class="nav-link">Tests</a>
-<a href="#benchmarks" class="nav-link">Benchmarks</a>
+        <a href="#custom-mytral-data-location" class="nav-link">Custom MyTraL Data Location</a>
+<a href="#shared-drive" class="nav-link">Shared Drive</a>
+<a href="#git-lfs" class="nav-link">Git LFS</a>
+<a href="#git-lfs-configuration" class="nav-link ms-3">Git LFS Configuration</a>
     </div>
 </div>
                     </div>
@@ -374,8 +413,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/.FEATURE_TEMPLATE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/.FEATURE_TEMPLATE.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/SHARING.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/SHARING.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
