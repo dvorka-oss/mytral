@@ -370,6 +370,11 @@ def insight_trimp():
             annotations=annotations,
         )
 
+        boxplot_script, boxplot_div = charts.trimp_banister_boxplots(
+            banister_rows=banister_rows,
+            is_mobile_view=is_mobile,
+        )
+
         latest_row = banister_rows[-1] if banister_rows else None
 
         return flask.render_template(
@@ -379,6 +384,8 @@ def insight_trimp():
             script=bokeh_script,
             trend_div=trend_div,
             trend_script=trend_script,
+            boxplot_div=boxplot_div,
+            boxplot_script=boxplot_script,
             latest_row=latest_row,
             banister_rows=banister_rows,
             projection=projection,

@@ -3784,6 +3784,206 @@ def trimp_banister_trend(
     return script, div
 
 
+def trimp_banister_boxplots(
+    banister_rows: list,
+    is_mobile_view: bool = False,
+) -> tuple[str, Any]:
+    """Render box plots showing distribution of Fitness, Fatigue, and Performance.
+
+    Each box shows min-Q1-median-Q3-max with a highlighted dot for the
+    current (latest) value — so the athlete sees their present state
+    in the context of their full history.
+    """
+    if not banister_rows:
+        return "", "<div><p>No Banister data available yet.</p></div>"
+
+    fit_vals = [r.fitness for r in banister_rows]
+    fat_vals = [r.fatigue for r in banister_rows]
+    perf_vals = [r.performance for r in banister_rows]
+    latest = banister_rows[-1]
+
+    def _quartiles(data: list[float]) -> tuple[float, float, float, float, float]:
+        s = sorted(data)
+        n = len(s)
+        return s[0], s[n // 4], s[n // 2], s[3 * n // 4], s[-1]
+
+    metrics = [
+        ("Fitness", fit_vals, latest.fitness, "#2fb344"),
+        ("Fatigue", fat_vals, latest.fatigue, "#d63939"),
+        ("Performance", perf_vals, latest.performance, "#206bc4"),
+    ]
+
+    box_width = 0.4
+
+    fig = bokeh_plt.figure(
+        title="Your Metrics in Perspective — Distribution vs Current Value",
+        x_range=(-0.6, 2.6),
+        y_axis_label="Value",
+        width=VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT,
+        height=380,
+        toolbar_location="below" if not is_mobile_view else None,
+    )
+    fig.sizing_mode = "scale_width"
+    fig.toolbar.logo = None
+
+    fig.xaxis.ticker = [0, 1, 2]
+    fig.xaxis.major_label_overrides = {
+        0: "Fitness",
+        1: "Fatigue",
+        2: "Performance",
+    }
+
+    # pre-compute stats and build hover data source
+    hover_x: list[float] = []
+    hover_y: list[float] = []
+    hover_label: list[str] = []
+    hover_min: list[str] = []
+    hover_q1: list[str] = []
+    hover_median: list[str] = []
+    hover_q3: list[str] = []
+    hover_max: list[str] = []
+    hover_current: list[str] = []
+
+    first_dot = True
+
+    for i, (name, values, current, color) in enumerate(metrics):
+        vmin, q1, med, q3, vmax = _quartiles(values)
+        x_center = float(i)
+
+        # whiskers (min–Q1 and Q3–max)
+        fig.segment(
+            x0=x_center,
+            y0=vmin,
+            x1=x_center,
+            y1=q1,
+            color=color,
+            line_width=1.5,
+        )
+        fig.segment(
+            x0=x_center,
+            y0=q3,
+            x1=x_center,
+            y1=vmax,
+            color=color,
+            line_width=1.5,
+        )
+
+        # IQR box (Q1–Q3)
+        fig.vbar(
+            x=x_center,
+            width=box_width,
+            top=q3,
+            bottom=q1,
+            fill_color=color,
+            fill_alpha=0.18,
+            line_color=color,
+            line_width=1.5,
+        )
+
+        # median line
+        fig.segment(
+            x0=x_center - box_width / 2,
+            y0=med,
+            x1=x_center + box_width / 2,
+            y1=med,
+            color=color,
+            line_width=2,
+        )
+
+        # current value dot
+        if first_dot:
+            fig.scatter(
+                x=[x_center],
+                y=[current],
+                size=14,
+                color=color,
+                line_color="white",
+                line_width=2,
+                legend_label="Current",
+            )
+            first_dot = False
+        else:
+            fig.scatter(
+                x=[x_center],
+                y=[current],
+                size=14,
+                color=color,
+                line_color="white",
+                line_width=2,
+            )
+
+        # collect hover data (one point per metric at box center)
+        hover_x.append(x_center)
+        hover_y.append(med)
+        hover_label.append(name)
+        hover_min.append(f"{vmin:.0f}")
+        hover_q1.append(f"{q1:.0f}")
+        hover_median.append(f"{med:.0f}")
+        hover_q3.append(f"{q3:.0f}")
+        hover_max.append(f"{vmax:.0f}")
+        hover_current.append(
+            f"{current:+.0f}" if name == "Performance" else f"{current:.0f}"
+        )
+
+    fig.xaxis.major_label_text_font_size = "11pt"
+    fig.xaxis.major_label_text_font_style = "bold"
+    fig.xgrid.grid_line_color = None
+
+    # invisible hover targets + tooltips
+    hover_source = ColumnDataSource(
+        data={
+            "x": hover_x,
+            "y": hover_y,
+            "label": hover_label,
+            "vmin": hover_min,
+            "q1": hover_q1,
+            "median": hover_median,
+            "q3": hover_q3,
+            "vmax": hover_max,
+            "current": hover_current,
+        }
+    )
+    hover_glyph = fig.scatter(
+        x="x",
+        y="y",
+        source=hover_source,
+        size=30,
+        alpha=0.0,
+    )
+    hover = bokeh_models.HoverTool(
+        tooltips=[
+            ("Metric", "@label"),
+            ("Current value", "@current"),
+            ("Min (all time)", "@vmin"),
+            ("Q1 (25th %ile)", "@q1"),
+            ("Median (50th %ile)", "@median"),
+            ("Q3 (75th %ile)", "@q3"),
+            ("Max (all time)", "@vmax"),
+        ],
+        mode="mouse",
+        renderers=[hover_glyph],
+    )
+    fig.add_tools(hover)
+
+    # zero reference line
+    fig.add_layout(
+        bokeh_models.Span(
+            location=0.0,
+            dimension="width",
+            line_color="#6c757d",
+            line_width=1,
+            line_dash="dotted",
+        )
+    )
+
+    if not is_mobile_view:
+        fig.legend.location = "top_right"
+        fig.legend.click_policy = "hide"
+
+    script, div = bokeh_embed.components(fig)
+    return script, div
+
+
 def irm3d_composite(
     daily_rows: list[dict],
     state_rows: list[dict],

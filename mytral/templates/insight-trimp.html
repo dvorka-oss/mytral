@@ -145,6 +145,27 @@
     </div>
     {% endif %}
 
+    {% if ff.can("TRIMP_ROCKS") and boxplot_div %}
+    <div class="card mt-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Your Metrics in Perspective — Distribution vs Current Value
+            </h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-2">
+                Each box shows the full range (whiskers), middle 50% (colored box),
+                and median (thick line) of your historical values.
+                The <strong>filled dot</strong> is your current value — see at a glance
+                whether you are in the middle of your range or near an extreme.
+            </p>
+            <div class="bokeh d-flex justify-content-center">
+                {{ boxplot_div|safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if ff.can("TRIMP_ROCKS") and insights %}
     <div class="container-xl mt-3">
         <div class="d-flex align-items-center gap-2 mb-3">

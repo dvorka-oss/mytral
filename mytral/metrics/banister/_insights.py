@@ -47,9 +47,15 @@ def _gauge_pct(value: float, vmin: float, vmax: float) -> int:
 
 
 def _gauge(label: str, value: float, vmin: float, vmax: float, color: str) -> str:
-    """Build a gauge-bar markup line."""
+    """Build a gauge-bar markup line (filled progress bar)."""
     display = f"{value:+.0f}" if vmin < 0 else f"{value:.0f}"
     return f"@@{label}|{display}|{_gauge_pct(value, vmin, vmax)}|{color}"
+
+
+def _boxplot(label: str, value: float, vmin: float, vmax: float, color: str) -> str:
+    """Build a box-plot markup line (range line + dot for current value)."""
+    display = f"{value:+.0f}" if vmin < 0 else f"{value:.0f}"
+    return f"$${label}|{display}|{_gauge_pct(value, vmin, vmax)}|{color}"
 
 
 def _describe_performance_zone(perf: float) -> tuple[str, str, str]:
@@ -108,7 +114,7 @@ def _build_state_card(
 
     lines = [
         "## Your Performance",
-        _gauge("Performance", latest.performance, perf_min, perf_max, zone_color),
+        _boxplot("Performance", latest.performance, perf_min, perf_max, zone_color),
         (
             f"Your predicted performance is {latest.performance:+.0f} — "
             f"historical range {perf_min:+.0f} to {perf_max:+.0f}. "
@@ -117,7 +123,7 @@ def _build_state_card(
         zone_explanation,
         "",
         "## Your Fitness (green)",
-        _gauge("Fitness", latest.fitness, fit_min, fit_max, "#2fb344"),
+        _boxplot("Fitness", latest.fitness, fit_min, fit_max, "#2fb344"),
         (
             f"Fitness is {latest.fitness:.0f} (range {fit_min:.0f}–{fit_max:.0f}). "
             "This is your 42-day chronic load — it builds slowly (τ≈42d) and "
@@ -125,7 +131,7 @@ def _build_state_card(
         ),
         "",
         "## Your Fatigue (red)",
-        _gauge("Fatigue", latest.fatigue, fat_min, fat_max, "#d63939"),
+        _boxplot("Fatigue", latest.fatigue, fat_min, fat_max, "#d63939"),
         (
             f"Fatigue is {latest.fatigue:.0f} (range {fat_min:.0f}–{fat_max:.0f}). "
             "This is your 7-day acute load — it rises fast after hard sessions "
@@ -180,7 +186,7 @@ def _build_best_form_card(
     perf_max = max(all_perf)
 
     lines = [
-        _gauge("Peak Performance", peak.value, perf_min, perf_max, "#fab005"),
+        _boxplot("Peak Performance", peak.value, perf_min, perf_max, "#fab005"),
         (
             f"On {peak.date.isoformat()}, your predicted performance hit "
             f"{peak.value:+.0f} — the highest in your recorded history. "
@@ -260,7 +266,7 @@ def _build_pbs_card(
         all_fit = [r.fitness for r in rows]
         lines.append("## Fitness PB")
         lines.append(
-            _gauge(
+            _boxplot(
                 "Fitness PB",
                 fitness_pb.value,
                 min(all_fit),
@@ -280,7 +286,7 @@ def _build_pbs_card(
         all_perf = [r.performance for r in rows]
         lines.append("## Best Race Form")
         lines.append(
-            _gauge(
+            _boxplot(
                 "Race Form PB",
                 peak_annotations[0].value,
                 min(all_perf),
@@ -301,7 +307,7 @@ def _build_pbs_card(
         worst = min(overreach_annotations, key=lambda a: a.value)
         lines.append("## Most Fatigued")
         lines.append(
-            _gauge(
+            _boxplot(
                 "Fatigue Trough",
                 worst.value,
                 min(all_perf),
