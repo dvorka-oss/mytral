@@ -3493,28 +3493,75 @@ def trimp_composite(
     )
     fig.add_tools(hover)
 
-    # annotations as labels on the chart
+    # annotations: short glyph labels + invisible hover targets with full detail
     if annotations:
+        ann_x: list[datetime.datetime] = []
+        ann_y: list[float] = []
+        ann_tooltip: list[str] = []
+        kind_colors = {
+            "peak": "#fab005",
+            "fitness_pb": "#206bc4",
+            "overreach": "#d63939",
+        }
+        kind_glyphs = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}
+        kind_short = {"peak": "Peak", "fitness_pb": "PB", "overreach": ""}
+
+        # align hover target y with the label's y_offset position
+        y_all_vals = trimp_values + atrimp_values + ctrimp_values + btrimp_values
+        if banister_mode:
+            y_all_vals += perf_values
+        y_span = max(y_all_vals) - min(y_all_vals) if y_all_vals else 200
+        y_hover_off = 24 * y_span / 520
+
         for ann in annotations:
             ann_date = datetime.datetime.combine(ann.date, datetime.time.min)
-            color = {
-                "peak": "#fab005",
-                "fitness_pb": "#206bc4",
-                "overreach": "#d63939",
-            }.get(ann.kind, "#6c757d")
-            glyph = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}.get(
-                ann.kind, "●"
-            )
+            color = kind_colors.get(ann.kind, "#6c757d")
+            glyph = kind_glyphs.get(ann.kind, "●")
+            short_label = f"{glyph} {kind_short[ann.kind]}".strip()
             fig.add_layout(
                 bokeh_models.Label(
                     x=ann_date,
                     y=ann.value,
-                    text=f"{glyph} {ann.label}",
+                    text=short_label,
                     text_color=color,
-                    text_font_size="9pt",
+                    text_font_size="10pt",
                     text_align="center",
+                    text_font_style="bold",
                     y_offset=12,
                 )
+            )
+            ann_x.append(ann_date)
+            ann_y.append(ann.value + y_hover_off)
+            ann_tooltip.append(ann.label)
+
+        ann_source = ColumnDataSource(
+            data={"x": ann_x, "y": ann_y, "tooltip": ann_tooltip}
+        )
+        ann_hover_glyph = fig.scatter(
+            x="x", y="y", source=ann_source, size=24, alpha=0.0
+        )
+        fig.add_tools(
+            bokeh_models.HoverTool(
+                tooltips=[("", "@tooltip")],
+                mode="mouse",
+                renderers=[ann_hover_glyph],
+            )
+        )
+
+        # legend entries for annotation glyphs
+        for kind, glyph in kind_glyphs.items():
+            label = {
+                "peak": "Best form",
+                "fitness_pb": "Fitness PB",
+                "overreach": "Overreaching",
+            }[kind]
+            fig.scatter(
+                x=[],
+                y=[],
+                size=0,
+                color=kind_colors[kind],
+                marker="circle",
+                legend_label=f"{glyph} {label}",
             )
 
     if is_mobile_view:
@@ -3709,28 +3756,73 @@ def trimp_banister_trend(
     )
     fig.add_tools(hover)
 
-    # annotation labels
+    # annotations: short glyph labels + invisible hover targets with full detail
     if annotations:
+        ann_x: list[datetime.datetime] = []
+        ann_y: list[float] = []
+        ann_tooltip: list[str] = []
+        kind_colors = {
+            "peak": "#fab005",
+            "fitness_pb": "#206bc4",
+            "overreach": "#d63939",
+        }
+        kind_glyphs = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}
+        kind_short = {"peak": "Peak", "fitness_pb": "PB", "overreach": ""}
+
+        # align hover target y with the label's y_offset position
+        y_all_vals = trimp_values + fit_values + fat_values + perf_values
+        y_span = max(y_all_vals) - min(y_all_vals) if y_all_vals else 200
+        y_hover_off = 24 * y_span / 480
+
         for ann in annotations:
             ann_date = datetime.datetime.combine(ann.date, datetime.time.min)
-            color = {
-                "peak": "#fab005",
-                "fitness_pb": "#206bc4",
-                "overreach": "#d63939",
-            }.get(ann.kind, "#6c757d")
-            glyph = {"peak": "▲", "fitness_pb": "★", "overreach": "✕"}.get(
-                ann.kind, "●"
-            )
+            color = kind_colors.get(ann.kind, "#6c757d")
+            glyph = kind_glyphs.get(ann.kind, "●")
+            short_label = f"{glyph} {kind_short[ann.kind]}".strip()
             fig.add_layout(
                 bokeh_models.Label(
                     x=ann_date,
                     y=ann.value,
-                    text=f"{glyph} {ann.label}",
+                    text=short_label,
                     text_color=color,
-                    text_font_size="9pt",
+                    text_font_size="11pt",
                     text_align="center",
+                    text_font_style="bold",
                     y_offset=12,
                 )
+            )
+            ann_x.append(ann_date)
+            ann_y.append(ann.value + y_hover_off)
+            ann_tooltip.append(ann.label)
+
+        ann_source = ColumnDataSource(
+            data={"x": ann_x, "y": ann_y, "tooltip": ann_tooltip}
+        )
+        ann_hover_glyph = fig.scatter(
+            x="x", y="y", source=ann_source, size=24, alpha=0.0
+        )
+        fig.add_tools(
+            bokeh_models.HoverTool(
+                tooltips=[("", "@tooltip")],
+                mode="mouse",
+                renderers=[ann_hover_glyph],
+            )
+        )
+
+        # legend entries for annotation glyphs
+        for kind, glyph in kind_glyphs.items():
+            label = {
+                "peak": "Best form",
+                "fitness_pb": "Fitness PB",
+                "overreach": "Overreaching",
+            }[kind]
+            fig.scatter(
+                x=[],
+                y=[],
+                size=0,
+                color=kind_colors[kind],
+                marker="circle",
+                legend_label=f"{glyph} {label}",
             )
 
     if is_mobile_view:

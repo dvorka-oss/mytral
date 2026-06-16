@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle">
+                    <a href="{{ url_for('insight_trimp') }}">TRIMP</a>
+                </div>
+                <h2 class="page-title">Banister Model Parameters</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+
+        {# Explanation card #}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">What these parameters do</h3>
+            </div>
+            <div class="card-body">
+                <p>
+                    The Banister model predicts your performance as:
+                </p>
+                <p class="text-center fs-3 my-3">
+                    <strong>p(t) = k<sub>1</sub> · fitness(t) − k<sub>2</sub> · fatigue(t)</strong>
+                </p>
+                <p>
+                    Fitness and fatigue are two exponential moving averages of your daily
+                    TRIMP, each with its own time constant (τ). The model is individual —
+                    some athletes recover quickly (fitness-dominated), others carry fatigue
+                    longer (fatigue-dominated). Tune these parameters so your performance
+                    line reflects how you <em>actually</em> feel.
+                </p>
+
+                <div class="hr-text hr-text-left mt-3 mb-2">
+                    <span>Key insight — the k<sub>1</sub>/k<sub>2</sub> ratio</span>
+                </div>
+                <p>
+                    With k<sub>1</sub>=1.0 and k<sub>2</sub>=2.0 (the defaults), fatigue counts
+                    <strong>2× more</strong> than fitness. For performance to be positive, your
+                    fitness must be <strong>twice</strong> your fatigue — a high bar that means
+                    most days will read negative. This matches the Morton et al. 1990 paper's
+                    illustrative example, but <em>your</em> ratio may differ.
+                </p>
+                <table class="table table-sm mt-2">
+                    <thead>
+                        <tr>
+                            <th>If you see this…</th>
+                            <th>Try this…</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Performance always negative, even when you feel good</td>
+                            <td>Lower k<sub>2</sub> toward 1.0 or raise k<sub>1</sub></td>
+                        </tr>
+                        <tr>
+                            <td>Performance barely moves after hard blocks</td>
+                            <td>Lower τ<sub>2</sub> (fatigue responds faster)</td>
+                        </tr>
+                        <tr>
+                            <td>Recovery days don't seem to help</td>
+                            <td>Raise γ (recovery credit) or lower the recovery threshold</td>
+                        </tr>
+                        <tr>
+                            <td>Performance peaks too late after a taper</td>
+                            <td>Lower τ<sub>2</sub> so fatigue dissipates faster</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Form card #}
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Parameters</h3>
+                    <div class="card-actions">
+                        {{ form.submit(class_="btn btn-primary") }}
+                        {{ form.reset(class_="btn btn-outline-danger") }}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>k<sub>1</sub></strong> — Fitness gain coefficient
+                            </label>
+                            {{ form.k1(class_="form-control", step="0.01") }}
+                            <small class="form-hint">
+                                How much fitness contributes to performance.
+                                Higher = you respond well to training.
+                                Default: 1.0. Range: 0.1–5.0.
+                            </small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>k<sub>2</sub></strong> — Fatigue penalty coefficient
+                            </label>
+                            {{ form.k2(class_="form-control", step="0.01") }}
+                            <small class="form-hint">
+                                How much fatigue hurts performance.
+                                Higher = you need more recovery.
+                                Default: 2.0. Range: 0.1–5.0.
+                            </small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>τ<sub>1</sub></strong> — Fitness time constant (days)
+                            </label>
+                            {{ form.tau1_days(class_="form-control", step="1") }}
+                            <small class="form-hint">
+                                How slowly fitness builds and decays.
+                                Morton et al. used 45 days. Default: 42.
+                                Range: 7–90.
+                            </small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>τ<sub>2</sub></strong> — Fatigue time constant (days)
+                            </label>
+                            {{ form.tau2_days(class_="form-control", step="1") }}
+                            <small class="form-hint">
+                                How fast fatigue rises and fades.
+                                Morton et al. used 15 days. Default: 7.
+                                Range: 1–30.
+                            </small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>γ</strong> — Recovery credit coefficient
+                            </label>
+                            {{ form.gamma(class_="form-control", step="0.01") }}
+                            <small class="form-hint">
+                                How much recovery days reduce fatigue.
+                                0 = no credit. Default: 0.5. Range: 0.0–2.0.
+                            </small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <strong>Recovery threshold</strong> (TRIMP)
+                            </label>
+                            {{ form.w_recovery_threshold(class_="form-control", step="1") }}
+                            <small class="form-hint">
+                                TRIMP below this counts as a recovery day
+                                (negative impulse). Default: 25. Range: 0–200.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex">
+                        {{ form.submit(class_="btn btn-primary me-2") }}
+                        {{ form.reset(class_="btn btn-outline-danger") }}
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

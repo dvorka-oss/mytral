@@ -1939,3 +1939,52 @@ class ImportStravaArchiveForm(flask_wtf.FlaskForm):
                 )
                 return False
         return True
+
+
+class BanisterParamsForm(flask_wtf.FlaskForm):
+    """Form for configuring the Banister fitness-fatigue-performance model."""
+
+    k1 = wtforms.DecimalField(
+        label="k₁ — Fitness gain coefficient",
+        default=1.0,
+        places=2,
+        validators=[validators.NumberRange(min=0.1, max=5.0)],
+    )
+
+    k2 = wtforms.DecimalField(
+        label="k₂ — Fatigue penalty coefficient",
+        default=2.0,
+        places=2,
+        validators=[validators.NumberRange(min=0.1, max=5.0)],
+    )
+
+    tau1_days = wtforms.DecimalField(
+        label="τ₁ — Fitness time constant (days)",
+        default=42.0,
+        places=1,
+        validators=[validators.NumberRange(min=7.0, max=90.0)],
+    )
+
+    tau2_days = wtforms.DecimalField(
+        label="τ₂ — Fatigue time constant (days)",
+        default=7.0,
+        places=1,
+        validators=[validators.NumberRange(min=1.0, max=30.0)],
+    )
+
+    gamma = wtforms.DecimalField(
+        label="γ — Recovery credit coefficient",
+        default=0.5,
+        places=2,
+        validators=[validators.NumberRange(min=0.0, max=2.0)],
+    )
+
+    w_recovery_threshold = wtforms.DecimalField(
+        label="Recovery threshold (TRIMP)",
+        default=25.0,
+        places=1,
+        validators=[validators.NumberRange(min=0.0, max=200.0)],
+    )
+
+    submit = wtforms.SubmitField("Save Parameters")
+    reset = wtforms.SubmitField("Reset to Defaults")

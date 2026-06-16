@@ -228,7 +228,7 @@ def _find_overreach_annotations(
                         kind="overreach",
                         label=(
                             f"Overreaching {mid_date.isoformat()} "
-                            f"({length}d, TSB min {min_perf:+.0f})"
+                            f"({length}d, perf min {min_perf:+.0f})"
                         ),
                         value=min_perf,
                     )

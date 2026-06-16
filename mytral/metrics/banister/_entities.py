@@ -74,6 +74,33 @@ class BanisterParams:
     gamma: float = 0.5
     w_recovery_threshold: float = 25.0
 
+    def to_dict(self) -> dict:
+        """Serialize to a plain dict for JSON persistence."""
+        return {
+            "tau1_days": self.tau1_days,
+            "tau2_days": self.tau2_days,
+            "tau1r_days": self.tau1r_days,
+            "tau2r_days": self.tau2r_days,
+            "k1": self.k1,
+            "k2": self.k2,
+            "gamma": self.gamma,
+            "w_recovery_threshold": self.w_recovery_threshold,
+        }
+
+    @staticmethod
+    def from_dict(d: dict) -> "BanisterParams":
+        """Deserialize from a plain dict with defaults for missing keys."""
+        return BanisterParams(
+            tau1_days=float(d.get("tau1_days", 42.0)),
+            tau2_days=float(d.get("tau2_days", 7.0)),
+            tau1r_days=float(d.get("tau1r_days", 14.0)),
+            tau2r_days=float(d.get("tau2r_days", 3.0)),
+            k1=float(d.get("k1", 1.0)),
+            k2=float(d.get("k2", 2.0)),
+            gamma=float(d.get("gamma", 0.5)),
+            w_recovery_threshold=float(d.get("w_recovery_threshold", 25.0)),
+        )
+
 
 @dataclasses.dataclass(frozen=True)
 class BanisterRow:

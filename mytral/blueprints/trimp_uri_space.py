@@ -23,6 +23,7 @@ from mytral import app_logger
 from mytral import app_user_ds as ds
 from mytral import charts
 from mytral import ff
+from mytral import forms
 from mytral import settings as user_settings
 from mytral import stats
 from mytral.backends import entities as entities_mod
@@ -318,7 +319,7 @@ def get_banister_rows(user_id: str) -> list[banister.BanisterRow]:
         profile_max_hr_fallback=float(user_profile.athlete_metrics.e_max_hr or 0.0),
     )
     pairs = _daily_trimp_map_to_sorted_pairs(daily_trimp_map)
-    rows = banister.run(pairs)
+    rows = banister.run(pairs, params=user_profile.banister_params)
     user_cache.set_banister_rows(rows)
     return rows
 
@@ -347,7 +348,7 @@ def insight_trimp():
 
     if ff.can("TRIMP_ROCKS"):
         banister_rows = get_banister_rows(user_id)
-        banister_params = banister.BanisterParams()
+        banister_params = user_profile.banister_params
         projection = banister.project(banister_rows, days=56, params=banister_params)
         annotations = banister.annotate(banister_rows)
         insights = banister.compute_insights(
@@ -436,7 +437,7 @@ def activity_trimp_analysis(key: str):
         return flask.redirect(flask.url_for("list_activities_year", year=0))
 
     banister_rows = get_banister_rows(user_id)
-    banister_params = banister.BanisterParams()
+    banister_params = user_profile.banister_params
     projection = banister.project(banister_rows, days=56, params=banister_params)
 
     impact = banister.analyze_activity(
@@ -487,5 +488,56 @@ def activity_trimp_analysis(key: str):
         impact=impact,
         avg_daily_trimp=avg_daily_trimp,
         vs_avg=vs_avg,
+        ff=ff,
+    )
+
+
+@flask_app.route("/settings/banister", methods=["GET", "POST"])
+def settings_banister():
+    """Configure Banister model parameters."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    user_profile = ds.profile(user_id)
+    form = forms.BanisterParamsForm()
+
+    if flask.request.method == "GET":
+        form.k1.data = user_profile.banister_params.k1
+        form.k2.data = user_profile.banister_params.k2
+        form.tau1_days.data = user_profile.banister_params.tau1_days
+        form.tau2_days.data = user_profile.banister_params.tau2_days
+        form.gamma.data = user_profile.banister_params.gamma
+        form.w_recovery_threshold.data = (
+            user_profile.banister_params.w_recovery_threshold
+        )
+
+    if form.validate_on_submit():
+        if form.reset.data:
+            user_profile.banister_params = banister.BanisterParams()
+            flask.flash("Parameters reset to defaults.", "info")
+        else:
+            user_profile.banister_params = banister.BanisterParams(
+                k1=float(form.k1.data),
+                k2=float(form.k2.data),
+                tau1_days=float(form.tau1_days.data),
+                tau2_days=float(form.tau2_days.data),
+                gamma=float(form.gamma.data),
+                w_recovery_threshold=float(form.w_recovery_threshold.data),
+            )
+            flask.flash("Banister parameters saved.", "success")
+
+        ds.update_profile(user_id, user_profile)
+
+        # invalidate cached Banister rows so they recompute with new params
+        user_cache = ds.cache.user(user_id)
+        user_cache.set_banister_rows(None)
+
+        return flask.redirect(flask.url_for("settings_banister"))
+
+    return flask.render_template(
+        "settings-banister.html",
+        user_profile=user_profile,
+        form=form,
         ff=ff,
     )

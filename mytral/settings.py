@@ -4155,6 +4155,7 @@ class UserProfile:
     KEY_ICL = "icl"
     KEY_AVATAR_BLOB_KEY = "avatar_blob_key"
     KEY_ATHLETE_METRICS = "athlete_metrics"
+    KEY_BANISTER = "banister"
 
     DEFAULT_AGE = 18
     DEFAULT_EMAIL = "firstname.lastname@email"
@@ -4200,6 +4201,12 @@ class UserProfile:
         athlete_metrics = AthleteMetrics.from_dict(
             profile_dict.get(UserProfile.KEY_ATHLETE_METRICS, {})
         )
+        # lazy import to avoid circular import via banister package __init__
+        from mytral.metrics.banister._entities import BanisterParams
+
+        banister_params = BanisterParams.from_dict(
+            profile_dict.get(UserProfile.KEY_BANISTER, {})
+        )
         raw_gender = profile_dict.get(UserProfile.KEY_GENDER)
         gender = raw_gender if isinstance(raw_gender, bool) else None
 
@@ -4233,6 +4240,7 @@ class UserProfile:
             acoach_settings=acoach_settings,
             user_icl_settings=user_icl_settings,
             athlete_metrics=athlete_metrics,
+            banister_params=banister_params,
         )
         profile.avatar_blob_key = profile_dict.get(UserProfile.KEY_AVATAR_BLOB_KEY, "")
         return profile
@@ -4276,6 +4284,9 @@ class UserProfile:
             else {},
             UserProfile.KEY_AVATAR_BLOB_KEY: self.avatar_blob_key,
             UserProfile.KEY_ATHLETE_METRICS: self.athlete_metrics.to_dict_persisted(),
+            UserProfile.KEY_BANISTER: self.banister_params.to_dict()
+            if self.banister_params
+            else {},
         }
 
     @staticmethod
@@ -4312,6 +4323,7 @@ class UserProfile:
         acoach_settings: ai_settings.ACoachSettings | None = None,
         user_icl_settings: icl_settings.IclSettings | None = None,
         athlete_metrics: "AthleteMetrics | None" = None,
+        banister_params=None,
     ) -> None:
         """User profile constructor.
 
@@ -4400,6 +4412,11 @@ class UserProfile:
         self.athlete_metrics: AthleteMetrics = (
             athlete_metrics if athlete_metrics is not None else AthleteMetrics()
         )
+
+        # banister model parameters (lazy import avoids circular import)
+        from mytral.metrics.banister._entities import BanisterParams as _BP
+
+        self.banister_params = banister_params if banister_params is not None else _BP()
 
         self.refresh()
 

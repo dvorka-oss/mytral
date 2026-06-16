@@ -464,6 +464,7 @@ def test_activity_trimp_analysis_route_renders(monkeypatch):
     profile = SimpleNamespace(
         dataset_name="main",
         athlete_metrics=SimpleNamespace(e_max_hr=182),
+        banister_params=banister.BanisterParams(),
         age=39,
         gender=True,
         user="user",
@@ -540,6 +541,7 @@ def test_insight_trimp_route_banister_mode(monkeypatch):
     profile = SimpleNamespace(
         dataset_name="main",
         athlete_metrics=SimpleNamespace(e_max_hr=182),
+        banister_params=banister.BanisterParams(),
         age=39,
         gender=True,
         user="user",
@@ -636,6 +638,7 @@ def test_get_banister_rows_cache_miss_computes(monkeypatch):
     profile = SimpleNamespace(
         dataset_name="main",
         athlete_metrics=SimpleNamespace(e_max_hr=182),
+        banister_params=banister.BanisterParams(),
         age=39,
         gender=True,
         user="user",
