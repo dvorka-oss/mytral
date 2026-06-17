@@ -2,7 +2,7 @@
 
 This page describes the actual runtime architecture of MyTraL based on the current Python modules and wiring.
 
-## UML Component Diagram (Nested ASCII)
+## UML Component Diagram
 
 ```text
 +-------------------+                     +----------------------------------------+

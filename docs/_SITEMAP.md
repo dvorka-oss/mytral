@@ -42,8 +42,3 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### Changelog
 * [source](CHANGELOG.md)
-
-## Digitalization
-
-### Digitize, Normalize, Own!
-* [source](DIGITALIZATION.md)

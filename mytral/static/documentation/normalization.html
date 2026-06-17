@@ -174,29 +174,6 @@
                           </div>
                         </div>
                       </li>
-
-                      <li class="nav-item dropdown">
-                        <a
-                          class="nav-link dropdown-toggle"
-                          href="#navbar-base"
-                          data-bs-toggle="dropdown"
-                          data-bs-auto-close="outside"
-                          role="button"
-                          aria-expanded="false"
-                        >
-                          <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
-                          </span>
-                          <span class="nav-link-title"> Digitalization </span>
-                        </a>
-                        <div class="dropdown-menu">
-                          <div class="dropdown-menu-columns">
-                            <div class="dropdown-menu-column">
-                              <a class="dropdown-item" href="digitalization.html">Digitize, Normalize, Own!</a>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
                     </ul>
                     <!-- END NAVBAR MENU -->
                   </div>
@@ -255,7 +232,7 @@
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><h2 id="activity-data-model">Activity Data Model</h2>
-<p>MyTraL normalizes all training activities from various sources (Strava, Concept2, Google Sheets, paper logs) into a unified JSON data structure. This normalization ensures consistency across different data sources and enables comprehensive analysis and visualization of your training history.</p>
+<p>MyTraL normalizes all training activities from various sources into a unified JSON data structure. This normalization ensures consistency across different data sources and enables comprehensive analysis and visualization of your training history.</p>
 <p>An <strong>Activity</strong> is the fundamental building block of a workout. A typical workout consists of multiple activities: warm-up, main workout, and cool-down. Activities are grouped into workouts using the <code>workout_sort_code</code> field.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="core-entity-fields">Core Entity Fields</h2>
 <p>All activities inherit base fields from the <code>DbEntity</code> class:</p>
@@ -290,47 +267,48 @@
 <tr>
 <td><code>when_year</code></td>
 <td>int</td>
-<td>current year</td>
+<td>0*</td>
 <td>Year when the activity occurred</td>
 </tr>
 <tr>
 <td><code>when_month</code></td>
 <td>int</td>
-<td>current month</td>
+<td>0*</td>
 <td>Month when the activity occurred (1-12)</td>
 </tr>
 <tr>
 <td><code>when_day</code></td>
 <td>int</td>
-<td>current day</td>
+<td>0*</td>
 <td>Day when the activity occurred (1-31)</td>
 </tr>
 <tr>
 <td><code>when_hour</code></td>
 <td>int</td>
-<td>current hour</td>
+<td>0*</td>
 <td>Hour when the activity started (0-23)</td>
 </tr>
 <tr>
 <td><code>when_minute</code></td>
 <td>int</td>
-<td>current minute</td>
+<td>0*</td>
 <td>Minute when the activity started (0-59)</td>
 </tr>
 <tr>
 <td><code>when_second</code></td>
 <td>int</td>
-<td>current second</td>
+<td>0*</td>
 <td>Second when the activity started (0-59)</td>
 </tr>
 <tr>
 <td><code>when</code></td>
 <td>string</td>
 <td>""</td>
-<td>ISO formatted timestamp string (auto-generated)</td>
+<td>ISO formatted timestamp string (auto-generated from the components above)</td>
 </tr>
 </tbody>
 </table>
+<p>* Default is 0, but <code>__post_init__</code> fills in the current date/time when all components are zero.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="activity-specific-fields">Activity-Specific Fields</h2>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="workout-organization">Workout Organization</h2>
 <table class="table table-bordered field-table">
@@ -355,6 +333,18 @@
 <td>1</td>
 <td>Identifier grouping activities into a workout. Morning workouts have lower codes than evening workouts</td>
 </tr>
+<tr>
+<td><code>tags</code></td>
+<td>list[str]</td>
+<td>[]</td>
+<td>User-defined tags for categorization and filtering</td>
+</tr>
+<tr>
+<td><code>is_plan</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Indicates if this is a planned (future) activity rather than a completed one</td>
+</tr>
 </tbody>
 </table>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="basic-activity-information">Basic Activity Information</h2>
@@ -375,7 +365,7 @@
 <td>Location where the activity took place</td>
 </tr>
 <tr>
-<td><code>sport</code></td>
+<td><code>activity_type_key</code></td>
 <td>string</td>
 <td>"run"</td>
 <td>Type of sport: run, ride, rowing, ski, rollerski, swim, etc. (open enum)</td>
@@ -387,10 +377,16 @@
 <td>Intensity level: easy, hard, regen, LSD, fartlek, tempo, race, etc. (open enum)</td>
 </tr>
 <tr>
-<td><code>gear</code></td>
+<td><code>gears</code></td>
+<td>list[str]</td>
+<td>[]</td>
+<td>Equipment used (e.g., bike names, shoe models)</td>
+</tr>
+<tr>
+<td><code>outfit</code></td>
 <td>string</td>
 <td>""</td>
-<td>Equipment used (e.g., bike name, shoe model)</td>
+<td>Outfit/clothing worn during the activity</td>
 </tr>
 <tr>
 <td><code>formula</code></td>
@@ -420,7 +416,7 @@
 <tr>
 <td><code>minutes</code></td>
 <td>int</td>
-<td>30</td>
+<td>0</td>
 <td>Duration minutes component (0-59)</td>
 </tr>
 <tr>
@@ -523,33 +519,45 @@
 </tr>
 <tr>
 <td><code>avg_watts</code></td>
-<td>int</td>
-<td>0</td>
+<td>float</td>
+<td>0.0</td>
 <td>Average power output in watts</td>
 </tr>
 <tr>
 <td><code>max_watts</code></td>
-<td>int</td>
-<td>0</td>
+<td>float</td>
+<td>0.0</td>
 <td>Maximum power output in watts</td>
 </tr>
 <tr>
+<td><code>avg_cadence</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Average cadence in revolutions/strokes per minute</td>
+</tr>
+<tr>
+<td><code>max_cadence</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Maximum cadence in revolutions/strokes per minute</td>
+</tr>
+<tr>
 <td><code>avg_hr</code></td>
-<td>int</td>
-<td>0</td>
+<td>float</td>
+<td>0.0</td>
 <td>Average heart rate in bpm</td>
 </tr>
 <tr>
 <td><code>max_hr</code></td>
-<td>int</td>
-<td>0</td>
+<td>float</td>
+<td>0.0</td>
 <td>Maximum heart rate in bpm</td>
 </tr>
 <tr>
 <td><code>min_hr</code></td>
-<td>int</td>
-<td>0</td>
-<td>Minimum heart rate in bpm</td>
+<td>float</td>
+<td>0.0</td>
+<td>Minimum/resting heart rate in bpm (day-level metric, not activity-specific)</td>
 </tr>
 <tr>
 <td><code>fitness_score</code></td>
@@ -575,6 +583,12 @@
 <td>float</td>
 <td>0.0</td>
 <td>Body weight in kg at time of activity</td>
+</tr>
+<tr>
+<td><code>cost</code></td>
+<td>float</td>
+<td>0.0</td>
+<td>Monetary cost of the activity (e.g., gym entry, sauna, race fee)</td>
 </tr>
 <tr>
 <td><code>weather</code></td>
@@ -624,6 +638,43 @@
 <td>string</td>
 <td>""</td>
 <td>Link to original activity (e.g., Strava activity URL)</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="recording-media-blobs">Recording &amp; Media Blobs</h2>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recorded_blob_keys</code></td>
+<td>list[str]</td>
+<td>[]</td>
+<td>Blobstore keys pointing to original recording files (.fit, .gpx, .hrm, etc.) in <code>UUID.ext</code> format</td>
+</tr>
+<tr>
+<td><code>recorded_parquet_keys</code></td>
+<td>dict[str, str]</td>
+<td>{}</td>
+<td>Map from recording blob UUID (without suffix) to Parquet blob key for efficient data querying</td>
+</tr>
+<tr>
+<td><code>photo_blob_keys</code></td>
+<td>list[str]</td>
+<td>[]</td>
+<td>Blobstore keys pointing to activity photos</td>
+</tr>
+<tr>
+<td><code>highlight_photo_blob_key</code></td>
+<td>string</td>
+<td>""</td>
+<td>Blobstore key pointing to the activity's highlight/featured photo</td>
 </tr>
 </tbody>
 </table>
@@ -740,6 +791,62 @@
 </tr>
 </tbody>
 </table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="laps">Laps</h2>
+<p>Activities can contain multiple lap entities for interval training:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>activity_key</code></td>
+<td>string</td>
+<td>""</td>
+<td>Reference to parent activity</td>
+</tr>
+<tr>
+<td><code>order</code></td>
+<td>int</td>
+<td>0</td>
+<td>Order of the lap within the activity (1, 2, 3, ...)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>""</td>
+<td>Reference to standalone lap type or custom name</td>
+</tr>
+<tr>
+<td><code>distance</code></td>
+<td>int</td>
+<td>0</td>
+<td>Distance in meters (overrides default from lap type if set)</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>int</td>
+<td>0</td>
+<td>Duration in seconds (overrides default from lap type if set)</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>string</td>
+<td>""</td>
+<td>Additional notes for this specific lap</td>
+</tr>
+<tr>
+<td><code>ranked</code></td>
+<td>bool</td>
+<td>false</td>
+<td>Ranked lap used to build personal bests/records</td>
+</tr>
+</tbody>
+</table>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="sickness-symptoms">Sickness Symptoms</h2>
 <p>Activities can track illness or injury symptoms:</p>
 <table class="table table-bordered field-table">
@@ -786,54 +893,66 @@
 </table>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="json-example">JSON Example</h2>
 <p>Example of a normalized running activity in JSON format:</p>
-<div class="codehilite"><pre><span></span><code>{
-  &quot;key&quot;: &quot;2024-01-15-123456&quot;,
-  &quot;name&quot;: &quot;Morning Run&quot;,
-  &quot;description&quot;: &quot;Easy recovery run along the river&quot;,
-  &quot;when_year&quot;: 2024,
-  &quot;when_month&quot;: 1,
-  &quot;when_day&quot;: 15,
-  &quot;when_hour&quot;: 7,
-  &quot;when_minute&quot;: 30,
-  &quot;when_second&quot;: 0,
-  &quot;when&quot;: &quot;2024-01-15T07:30:00&quot;,
-  &quot;sort_code&quot;: 1,
-  &quot;workout_sort_code&quot;: 1,
-  &quot;where&quot;: &quot;Prague riverside&quot;,
-  &quot;sport&quot;: &quot;run&quot;,
-  &quot;intensity&quot;: &quot;easy&quot;,
-  &quot;gear&quot;: &quot;Nike Pegasus 40&quot;,
-  &quot;hours&quot;: 0,
-  &quot;minutes&quot;: 45,
-  &quot;seconds&quot;: 30,
-  &quot;distance&quot;: 8500,
-  &quot;kcal&quot;: 650,
-  &quot;max_speed&quot;: 14.2,
-  &quot;elevation_gain&quot;: 85,
-  &quot;avg_hr&quot;: 145,
-  &quot;max_hr&quot;: 162,
-  &quot;weight&quot;: 75.5,
-  &quot;weather&quot;: &quot;cloudy&quot;,
-  &quot;temperature&quot;: 8,
-  &quot;src&quot;: &quot;strava-import&quot;,
-  &quot;src_key&quot;: &quot;1234567890&quot;,
-  &quot;src_url&quot;: &quot;https://www.strava.com/activities/1234567890&quot;,
-  &quot;duration&quot;: &quot;00h45m30s&quot;,
-  &quot;duration_seconds&quot;: 2730,
-  &quot;avg_speed&quot;: 11.2,
-  &quot;pace&quot;: &quot;5:21&quot;,
-  &quot;exercises&quot;: [],
-  &quot;sickness_symptoms&quot;: []
-}
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="s">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2024-01-15-123456&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Morning Run&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Easy recovery run along the river&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_year&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2024</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_month&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_day&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_hour&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_minute&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when_second&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;when&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2024-01-15 07:30:00&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;sort_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;workout_sort_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;recovery&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;aerobic&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="s">&quot;is_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;where&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Prague riverside&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;activity_type_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;run&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;intensity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;easy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;gears&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;Nike Pegasus 40&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="s">&quot;outfit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;hours&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;minutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8500</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;kcal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">650</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;max_speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">14.2</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;elevation_gain&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">85</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;avg_watts&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;avg_cadence&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;avg_hr&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">145.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;max_hr&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">162.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;min_hr&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;weight&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">75.5</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;cost&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">0.0</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;weather&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cloudy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;temperature&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;src&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;strava-import&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;src_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1234567890&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;src_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://www.strava.com/activities/1234567890&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;recorded_blob_keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="s">&quot;recorded_parquet_keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<span class="w">  </span><span class="s">&quot;photo_blob_keys&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="s">&quot;highlight_photo_blob_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;00h45m30s&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;duration_seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2730</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;avg_speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="m m-Double">11.2</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;pace&quot;</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5:21&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s">&quot;exercises&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="s">&quot;laps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="s">&quot;sickness_symptoms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
 </code></pre></div>
 
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="conventions-and-best-practices">Conventions and Best Practices</h2>
 <ul>
 <li><strong>Zero as unused value:</strong> 0 represents an unused or unset value for numeric fields</li>
 <li><strong>1-based indexing:</strong> Sort codes and workout identifiers start from 1, not 0</li>
-<li><strong>Open enums:</strong> Fields like <code>sport</code>, <code>intensity</code>, and <code>src</code> use open enumeration - new values are automatically accepted</li>
+<li><strong>Open enums:</strong> Fields like <code>activity_type_key</code>, <code>intensity</code>, and <code>src</code> use open enumeration - new values are automatically accepted</li>
 <li><strong>Sparse storage:</strong> Only non-default values are persisted to disk using <code>to_sparse_dict()</code> method</li>
-<li><strong>Transient fields:</strong> Calculated fields are marked in <code>transient_fields</code> dictionary and excluded from database storage</li>
+<li><strong>Transient fields:</strong> Calculated fields are marked in <code>ACTIVITY_TRANSIENT_FIELDS</code> set and excluded from database storage</li>
 <li><strong>Metric units:</strong> All measurements use metric units (meters, kg, Celsius, km/h)</li>
 <li><strong>Time components:</strong> Duration is stored as separate hour/minute/second components for easier querying and display</li>
 </ul>
@@ -857,9 +976,11 @@
 <a href="#performance-metrics" class="nav-link">Performance Metrics</a>
 <a href="#body-metrics-environment" class="nav-link">Body Metrics &amp; Environment</a>
 <a href="#source-tracking" class="nav-link">Source Tracking</a>
+<a href="#recording-media-blobs" class="nav-link">Recording &amp; Media Blobs</a>
 <a href="#calculated-fields-transient" class="nav-link">Calculated Fields (Transient)</a>
 <a href="#nested-entities" class="nav-link">Nested Entities</a>
 <a href="#exercises" class="nav-link">Exercises</a>
+<a href="#laps" class="nav-link">Laps</a>
 <a href="#sickness-symptoms" class="nav-link">Sickness Symptoms</a>
 <a href="#json-example" class="nav-link">JSON Example</a>
 <a href="#conventions-and-best-practices" class="nav-link">Conventions and Best Practices</a>

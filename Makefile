@@ -310,17 +310,12 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	uv run python -m mytral.run
 endif
 
-run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data
+run-preproduction: .venv ## run MyTraL server on Linux w/ DEMO data w/ production settings
 	MYTRAL_INCARNATION=DESKTOP \
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/pre-production \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
 	MYTRAL_ENABLE_CACHE=true \
-	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
-	MYTRAL_FF_STRAVA_API_IMPORT=true \
-	MYTRAL_FF_TASKS_DEV=true \
-	MYTRAL_FF_TRIMP=true \
-	MYTRAL_FF_IRM3D=true \
 	uv run python -m mytral.run
 
 .PHONY: run-production
@@ -617,7 +612,7 @@ doc-sync-data:
 doc: doc-sync-data ## generate HTML documentation from Markdown sources
 	@echo "Generating documentation from Markdown..."
 	uv run python make/generate_docs_from_markdown.py
-	@echo "DONE Documentation generated successfully"
+	@echo "DONE Documentation generated successfully to file://$(PWD)/mytral/static/documentation/index.html"
 
 .PHONY: doc-clean
 doc-clean: ## clean generated documentation
@@ -642,7 +637,7 @@ www-live-server: ## start live server for www.mytral.fitness development
 www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
 	@echo "Generating public documentation from Markdown..."
 	uv run python make/generate_public_docs.py
-	@echo "DONE Public documentation generated successfully"
+	@echo "DONE Public documentation generated successfully to file://$(PWD)/webs/www.mytral.fitness/docs/index.html"
 
 .PHONY: www-doc-clean
 www-doc-clean: ## clean generated public documentation

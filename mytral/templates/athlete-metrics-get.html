@@ -165,6 +165,7 @@
         </div>
     </div>
 
+    {% if ff.can("TRIMP") %}
     {# Performance Thresholds #}
     <div class="card mt-3">
         <div class="card-header">
@@ -545,6 +546,7 @@
             </div>
         </div>
     </div>
+    {% endif %} {# End of Performance Thresholds # #}
 
 </div>
 {% endblock %}

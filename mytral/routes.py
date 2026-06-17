@@ -1923,7 +1923,7 @@ def settings():
         )
         dataset_stats.dataset_size_mb = round(total_bytes / (1024 * 1024), 3)
 
-        app_logger.debug(f"MyTraL CACHE size: {ds.cache.memory_size():,} B")
+        app_logger.debug(f"MyTraL CACHE size: {ds.cache_memory_size(user_id):,} B")
 
         return flask.render_template(
             "settings.html",
