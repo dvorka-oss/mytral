@@ -13,6 +13,48 @@
 
 {% extends "layout.html" %}
 {% block content %}
+{% if no_data %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Insights</span>
+                <h2 class="page-title">Weekday Sport Heatmap</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-layout-grid-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 3l18 18"></path>
+                        <path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                        <path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                        <path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                        <path d="M14 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                    </svg>
+                </div>
+                <p class="empty-title">No training data available</p>
+                <p class="empty-subtitle text-muted">
+                    Start logging your activities to see weekday-to-sport heatmap patterns!
+                </p>
+                <div class="empty-action">
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Create your first activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
 <div class="page-header d-print-none">
     <div class="container-xl">
         <div class="row align-items-center">
@@ -177,4 +219,5 @@
     {% endif %}
     </div>
 </div>
+{% endif %}
 {% endblock %}

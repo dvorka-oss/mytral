@@ -145,11 +145,31 @@
     {% endif %}
 
     {% else %}
-    <div class="row row-deck row-cards mt-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-muted">
-                    No multi-year training data available yet.
+    <div class="card">
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-line-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M4 19l4 -4l4 4l4 -6l4 2"></path>
+                        <path d="M4 12v-7"></path>
+                        <path d="M4 5h16"></path>
+                        <path d="M3 3l18 18"></path>
+                    </svg>
+                </div>
+                <p class="empty-title">No performance data available</p>
+                <p class="empty-subtitle text-muted">
+                    Start logging your activities to see year-over-year performance trends!
+                </p>
+                <div class="empty-action">
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Create your first activity
+                    </a>
                 </div>
             </div>
         </div>

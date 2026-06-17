@@ -326,7 +326,7 @@
 
                       {# WHEN running_task_count > 0 avoid RACE CONDITIONS @ activities/* by HIDING tasks menu + page content if there are running tasks #}
 
-                      {# TODO make this configurable in settings as default landing page#}
+                      {# TODO make this configurable in settings as default landing page
                       <li class="nav-item">
                         <a class="nav-link {% if running_tasks_count > 0 %}disabled{% endif %}" href="{{ url_for('calendar_year',year=0) }}">
                             <svg
@@ -347,6 +347,7 @@
                             </svg>
                         </a>
                       </li>
+                      #}
                       {#
                       TODO - IDEAs - Insights:
 
