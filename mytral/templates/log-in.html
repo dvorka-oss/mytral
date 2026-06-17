@@ -46,10 +46,9 @@
                         </div>
                         <div>
                             <h4 class="alert-title mb-2">Data Migration Required</h4>
-                            <p class="text-muted mb-3">
+                            <p class="text-muted mb-3 text-center">
                                 Your training data was created with a previous version of
                                 MyTraL and needs to be upgraded before you can log in.
-                                Migration preserves all your data.
                             </p>
                             <form method="POST" action="{{ url_for('login_migrate') }}">
                                 {{ migrate_form.hidden_tag() }}

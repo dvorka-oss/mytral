@@ -257,15 +257,19 @@ def settings_gear_list():
             dataset_name=ds.profile(user_id).dataset_name,
         )
 
-        # sort gear by usage count (descending)
+        # sort gear by last used date (descending)
         sorted_items = sorted(
             gear.gear_by_key.items(),
             key=lambda item: (
-                gear_stats.stats(item[0]).stat_use if gear_stats.stats(item[0]) else 0
+                gear_stats.stats(item[0]).stat_to if gear_stats.stats(item[0]) else ""
             ),
             reverse=True,
         )
         gear.gear_by_key = dict(sorted_items)
+
+        # split gear into active and retired lists for separate tables
+        active_gear = [g for g in gear.gear_by_key.values() if not g.retired]
+        retired_gear = [g for g in gear.gear_by_key.values() if g.retired]
 
         activity_types = ds.list_activity_types(user_id)
 
@@ -284,6 +288,8 @@ def settings_gear_list():
                 gear=gear,
                 gear_stats=gear_stats,
                 activity_types=activity_types,
+                active_gear=active_gear,
+                retired_gear=retired_gear,
                 script=script,
                 div=div,
             )
@@ -295,6 +301,8 @@ def settings_gear_list():
                 gear=gear,
                 gear_stats=gear_stats,
                 activity_types=activity_types,
+                active_gear=active_gear,
+                retired_gear=retired_gear,
             )
 
     else:
