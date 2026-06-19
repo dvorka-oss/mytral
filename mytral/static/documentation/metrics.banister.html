@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>MyTraL Feature: Sport Metrics - MyTraL Documentation</title>
+    <title>Banister Fitness-Fatigue-Performance Model - MyTraL Documentation</title>
     <meta name="msapplication-TileColor" content="#066fd1" />
     <meta name="theme-color" content="#066fd1" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -138,7 +138,7 @@
                               <a class="dropdown-item" href="index.html">Manifesto</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
-<a class="dropdown-item" href="metrics.banister.html">Banister Fitness-Fatigue-Performance Model</a>
+<a class="dropdown-item active" href="metrics.banister.html">Banister Fitness-Fatigue-Performance Model</a>
 <a class="dropdown-item" href="sharing.html">Data Sharing</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="credits.html">Credits</a>
@@ -220,8 +220,8 @@
             <div class="container-xl">
                 <div class="row g-2 align-items-center">
                     <div class="col">
-                        <div class="page-pretitle">MyTraL Documentation</div>
-                        <h2 class="page-title">MyTraL Feature: Sport Metrics</h2>
+                        <div class="page-pretitle">User Documentation</div>
+                        <h2 class="page-title">Banister Fitness-Fatigue-Performance Model</h2>
                     </div>
                 </div>
             </div>
@@ -232,88 +232,102 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><h2 id="metrics">Metrics</h2>
-<p>Metrics taxonomy and attributes:</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><p>MyTraL implements the <strong>Banister systems model of training for athletic performance</strong>
+(Banister et al., 1975; Busso 1997, 2002) to quantify how your training load
+translates into fitness, fatigue, and predicted performance.</p>
+<p>Access the model at <strong>Progress -&gt; HR-based progress analytics</strong> and per-activity
+at <strong>Activity -&gt; HR-based Analysis</strong>.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="the-model">The Model</h2>
+<p>The Banister model treats your body's response to training as a system of two
+first-order low-pass filters with different time constants:</p>
+<div class="codehilite"><pre><span></span><code>fitness(t)  = fitness(t-1) · e^(-1/τ1)  +  w(t) · (1 - e^(-1/τ1))
+fatigue(t)  = fatigue(t-1) · e^(-1/τ2)  +  w(t) · (1 - e^(-1/τ2))
+performance(t) = k1 · fitness(t) - k2 · fatigue(t)
+</code></pre></div>
+
+<p>Where:
+- <strong>τ1 ≈ 42 days</strong> — fitness time constant (gains accumulate and decay slowly)
+- <strong>τ2 ≈ 7 days</strong> — fatigue time constant (accumulates and dissipates quickly)
+- <strong>k1 = 1.0</strong> — fitness gain coefficient
+- <strong>k2 = 2.0</strong> — fatigue penalty coefficient (fatigue hurts performance ~2× more than fitness helps it)
+- <strong>w(t)</strong> — daily TRIMP (Training Impulse) score</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="negative-training-impulse-busso-2002">Negative Training Impulse (Busso 2002)</h2>
+<p>The model credits recovery days: when your daily TRIMP is below the recovery
+threshold (25), the model applies a <strong>negative training impulse</strong> that actively
+reduces fatigue:</p>
+<div class="codehilite"><pre><span></span><code>w+(t) = max(0, w(t) - 25)     # positive impulse
+w-(t) = max(0, 25 - w(t))     # negative impulse (recovery credit)
+</code></pre></div>
+
+<p>Recovery has faster time constants (τ1' ≈ 14d, τ2' ≈ 3d) and a damped gain
+(γ ≈ 0.5), reflecting that rest days help you recover faster than hard days
+fatigue you.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="performance-zones">Performance Zones</h2>
+<p>Your predicted performance p(t) falls into one of four zones:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Zone</th>
+<th>Performance</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fresh</td>
+<td>&gt; +20</td>
+<td>Ready for a quality session or race</td>
+</tr>
+<tr>
+<td>Optimal</td>
+<td>0 to +20</td>
+<td>Balanced — training is working</td>
+</tr>
+<tr>
+<td>Tired</td>
+<td>-20 to 0</td>
+<td>Fatigued — a deload day would help</td>
+</tr>
+<tr>
+<td>Overreached</td>
+<td>&lt; -20</td>
+<td>Significantly fatigued — consider a recovery week</td>
+</tr>
+</tbody>
+</table>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="programmatic-insights">Programmatic Insights</h2>
+<p>The model generates six insight cards automatically:</p>
+<ol>
+<li><strong>Current State</strong> — your performance zone and what it means</li>
+<li><strong>Best Race Form Ever</strong> — the date and conditions of your peak performance</li>
+<li><strong>Overreaching Episodes</strong> — detected periods of sustained fatigue</li>
+<li><strong>Personal Bests</strong> — fitness PB, race form PB, most tired</li>
+<li><strong>Projection</strong> — 56-day forward projection assuming current load pattern</li>
+<li><strong>Optimal Race Window</strong> — when performance is projected to cross into positive</li>
+</ol>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="per-activity-analysis">Per-Activity Analysis</h2>
+<p>Each activity with heart-rate data has an <strong>HR-based Analysis</strong> page showing:</p>
 <ul>
-<li>Athlete</li>
-<li>Workout</li>
+<li>Pre- and post-activity fitness/fatigue/performance values</li>
+<li>Delta (change) in each metric caused by the activity</li>
+<li>Recovery ETA — days until performance returns to fresh (TSB &gt; 0)</li>
+<li>Benefits, risks, context, and recommendation</li>
 </ul>
-<p>Table of metrics:</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="legacy-metrics">Legacy Metrics</h2>
+<p>The classic ATRIMP (7d EMA), CTRIMP (42d EMA), and TRIMPB (balance) metrics
+are preserved as co-equal KPI cards. They are a special case of the Banister
+model with k1 = k2 = 1 and no negative impulse.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="references">References</h2>
 <ul>
-<li>Base metabolic rate</li>
-<li>FATMAX</li>
-<li>FTP: functional threshold power</li>
-<li>HR max: Max heart rate</li>
-<li>HR zones</li>
-<li>HR: heart rate</li>
-<li>HRV RMSSD</li>
-<li>Power to weight ratio</li>
-<li>Power zones</li>
-<li>Resting HR</li>
-<li>3D IRM (CP / W′ / Pmax)</li>
-<li>TRIMP</li>
-<li>TSS</li>
-<li>VO2MAX: maximal oxygen uptake</li>
-</ul>
-<h3 id="ftp">FTP: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Definition: (units)</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Purpose:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
-<h3 id="trimp">TRIMP: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
-<h3 id="tss">TSS: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
-</ul>
-<h3 id="vo2max">VO2Max: ...</h3>
-<p><em>[brief description]</em></p>
-<p>Purposes:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Pros:</p>
-<ul>
-<li>.</li>
-</ul>
-<p>Cons:</p>
-<ul>
-<li>.</li>
+<li>Banister, E.W., Calvert, T.W., Savage, N.V., &amp; Bach, T. (1975). <em>A systems
+  model of training for athletic performance.</em> Australian Journal of Sports
+  Medicine.</li>
+<li>Busso, T., Denis, C., Bonnefoy, R., Geyssant, A., &amp; Lacour, J. R. (1997).
+  <em>Modeling of adaptations to physical training by using a recursive least
+  squares algorithm.</em> Journal of Applied Physiology, 82(5), 1685–1693.</li>
+<li>Busso, T. (2002). <em>Effects of training frequency on the dynamics of
+  performance response to a single training bout.</em> Journal of Applied
+  Physiology, 92(2), 572–580.</li>
 </ul>
                         </div></div>
                     </div>
@@ -324,11 +338,13 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#metrics" class="nav-link">Metrics</a>
-<a href="#ftp" class="nav-link ms-3">FTP: ...</a>
-<a href="#trimp" class="nav-link ms-3">TRIMP: ...</a>
-<a href="#tss" class="nav-link ms-3">TSS: ...</a>
-<a href="#vo2max" class="nav-link ms-3">VO2Max: ...</a>
+        <a href="#the-model" class="nav-link">The Model</a>
+<a href="#negative-training-impulse-busso-2002" class="nav-link">Negative Training Impulse (Busso 2002)</a>
+<a href="#performance-zones" class="nav-link">Performance Zones</a>
+<a href="#programmatic-insights" class="nav-link">Programmatic Insights</a>
+<a href="#per-activity-analysis" class="nav-link">Per-Activity Analysis</a>
+<a href="#legacy-metrics" class="nav-link">Legacy Metrics</a>
+<a href="#references" class="nav-link">References</a>
     </div>
 </div>
                     </div>
@@ -346,8 +362,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/FEATURE_METRICS.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/METRICS.banister.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/METRICS.banister.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">
