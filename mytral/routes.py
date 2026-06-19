@@ -703,7 +703,11 @@ def this_vs_last():
     ).year_max
 
     if not year:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "this-vs-last.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     aspect_arg = flask.request.args.get("aspect")
     if aspect_arg is None:
@@ -780,7 +784,11 @@ def insight_active_in_week():
         user_id=user_id, dataset_name=user_profile.dataset_name
     ).year_max
     if not year:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "active-in-week.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     activities = ds.list_activities(
         user_id=user_id, dataset_name=user_profile.dataset_name, skip_future=True
@@ -815,13 +823,23 @@ def insight_weight():
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        sort_by_when=True,
+        skip_future=True,
+    )
+    has_weight_data = any(a.weight for a in activities)
+
+    if not has_weight_data:
+        return flask.render_template(
+            "weight.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
     fig = charts.weight_per_week(
-        activities=ds.list_activities(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            sort_by_when=True,
-            skip_future=True,
-        ),
+        activities=activities,
         is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
     )
 
@@ -842,13 +860,23 @@ def insight_resting_hr():
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        sort_by_when=True,
+        skip_future=True,
+    )
+    has_hr_data = any(a.min_hr for a in activities)
+
+    if not has_hr_data:
+        return flask.render_template(
+            "resting-hr.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
     fig = charts.resting_hr_per_week(
-        activities=ds.list_activities(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            sort_by_when=True,
-            skip_future=True,
-        ),
+        activities=activities,
         is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
     )
 
@@ -1924,7 +1952,7 @@ def settings():
         )
         dataset_stats.dataset_size_mb = round(total_bytes / (1024 * 1024), 3)
 
-        app_logger.debug(f"MyTraL CACHE size: {ds.cache.memory_size():,} B")
+        app_logger.debug(f"MyTraL CACHE size: {ds.cache_memory_size(user_id):,} B")
 
         return flask.render_template(
             "settings.html",
@@ -3856,7 +3884,11 @@ def list_activities_year(year):
         if year_int:
             return flask.redirect(f"/activities/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "activity-list-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     # load only activities for given year
     all_activities = ds.list_activities(
@@ -4155,7 +4187,11 @@ def list_activities_diary():
             is_mobile=flask.session.get(COOKIE_MOBILE),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "activity-list-diary.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/activities/prs")
@@ -4230,7 +4266,11 @@ def list_activities_prs():
                     )
 
     if not pr_entries:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "activity-list-prs.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     # group by activity type; within each activity_type_key handle two kinds of events:
     #   distance-based: fixed distance, varying duration → best = min duration
@@ -4320,6 +4360,13 @@ def list_activities_paces():
         ),
         reverse=True,
     )
+
+    if not unique_activity_types:
+        return flask.render_template(
+            "activity-paces.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     # generate pace chart
     chart_script, chart_div = charts.activity_paces_by_distance(
@@ -4437,7 +4484,11 @@ def list_activities_races():
             sport_count=len(unique_activity_types),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "activity-list-races.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/activities/date/<year>/<month>/<day>")
@@ -4812,6 +4863,14 @@ def y2y_month_perspective():
     referential_year = ds_stats.year_max
     this_month = int(datetime.date.today().month)
 
+    if not ds_stats.years:
+        return flask.render_template(
+            "heatmap-y2y-month-perspective.html",
+            user_profile=user_profile,
+            data=data,
+            years=[],
+        )
+
     for year in range(referential_year, ds_stats.year_min - 1, -1):
         for m in data:
             data[m][year] = [0.0, "0h00m00s", ""]
@@ -4978,7 +5037,11 @@ def heatmap_weekday_to_activity():
             activity_types=activity_types,
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "heatmap-weekday-to-activity.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/search")
@@ -5012,7 +5075,11 @@ def calendar_heatmap():
             is_mobile=flask.session.get(COOKIE_MOBILE),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "heatmap-calendar.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/calendar/year/<year>")
@@ -5037,7 +5104,11 @@ def calendar_year(year):
         if year_int:
             return flask.redirect(f"/calendar/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "calendar-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     # age at a year
     age_at_year = (
@@ -5139,7 +5210,11 @@ def charts_year(year):
         if year_int:
             return flask.redirect(f"/charts/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "charts-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     cal_heatmap = views.CalendarHeatmap(
         from_year=year_int,
@@ -5245,7 +5320,11 @@ def insight_sickness_heatmap():
             data=cal_heatmap,
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "insight-sickness-heatmap.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 #

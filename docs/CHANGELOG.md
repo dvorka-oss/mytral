@@ -7,10 +7,15 @@ This MyTraL **minor** release brings:
 ### Added
 - Added activity type color border hint to goals, gear, and several other pages.
 - Added Strava synchronization of individual activities from the activity GET page.
+<<<<<<< HEAD
 - Added Banister fitness-fatigue-performance model (TRIMP Rocks) — asymmetric k1/k2
   gains, negative training impulse for recovery days, programmatic insights,
   per-activity impact analysis, and forward projection. Feature-flagged as
   `TRIMP_ROCKS`.
+=======
+- Added card encouraging athlete to create an activity to pages which need at least one
+  activity to render.
+>>>>>>> dev/1.51.0
 
 ### Changed
 - .
