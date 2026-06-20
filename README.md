@@ -7,7 +7,7 @@
 [![All releases downloads](https://img.shields.io/github/downloads/dvorka/my-training-log/total.svg)](https://github.com/dvorka/my-training-log/releases)
 [![License](https://img.shields.io/github/license/dvorka/my-training-log?color=%23fe0000)](https://github.com/dvorka/hstr/blob/master/LICENSE)
 
-**My** **Tra**ining **L**og (MyTraL) is my sovereign athlete personal training log for deeper insights and smarter progress.
+**My** **Tra**ining **L**og (MyTraL) is my personal training log for deeper insights and smarter progress.
 
 
 
