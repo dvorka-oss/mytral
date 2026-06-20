@@ -557,6 +557,14 @@ distro-webapp-test: distro-webapp-build ## test web application distribution
 	@echo "DONE"
 
 #
+# DISTRIBUTION: upstream tarball
+#
+
+.PHONY: distro-tarball
+distro-tarball: ## build upstream tarball (.tar.gz) for Linux distribution maintainers
+	@./build/tarball/tarball-build.sh
+
+#
 # DISTRIBUTION: desktop application
 #
 
