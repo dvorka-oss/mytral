@@ -1,4 +1,4 @@
-# MyTraL User Documentation Sitemap
+# MyTraL WWW User Documentation Sitemap
 
 This document describes structure of MyTraL HTML documentation.
 It is used to generate MyTraL's documentation to `mytral/static/documentation/*.html`.
@@ -10,8 +10,24 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### ---
 
+### Athlete Metrics
+* [source](METRICS.md)
+
 ### Data Sharing
 * [source](SHARING.md)
+
+### ---
+
+### About
+* [source](ABOUT.md)
+
+## Technical Documentation
+
+### Architecture
+* [source](ARCHITECTURE.md)
+
+### Activity Normalization
+* [source](NORMALIZATION.md)
 
 ### ---
 
@@ -21,13 +37,13 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 ### License
 * [source](LICENSE.md)
 
-### About
-* [source](ABOUT.md)
-
-### ---
-
 ### 3rd Party Licenses
 * [source](LICENSES.md)
 
 ### Changelog
 * [source](CHANGELOG.md)
+
+## Digitalization
+
+### Digitize, Normalize, Own!
+* [source](DIGITALIZATION.md)
