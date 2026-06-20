@@ -3196,17 +3196,28 @@ def delete_exercise(key, index):
 
         flask.flash(message="Exercise delete error", category="error")
 
+    # Get exercise entity to retrieve its key (UUID)
+    entity = ds.get_activity(
+        user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+    )
+    exercise_entity = entity.exercises[int(index) - 1]
+
+    # Look up display name from user's exercises list
+    exercise_key = exercise_entity.name
+    exercises = ds.list_exercises(user_id)
+    exercise_name = (
+        exercises.exercise_by_key.get(exercise_key).name
+        if exercise_key in exercises.exercise_by_key
+        else exercise_key
+    )
+
     return flask.render_template(
         "exercise-delete.html",
         user_profile=user_profile,
         key=key,
         index=index,
         form=form,
-        name=ds.get_activity(
-            user_id=user_id, dataset_name=user_profile.dataset_name, key=key
-        )
-        .exercises[int(index) - 1]
-        .name,
+        name=exercise_name,
     )
 
 
@@ -3323,17 +3334,28 @@ def delete_symptom(key, index):
 
         flask.flash(message="Symptom delete error", category="error")
 
+    # Get symptom entity to retrieve its key (UUID)
+    entity = ds.get_activity(
+        user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+    )
+    symptom_entity = entity.sickness_symptoms[int(index) - 1]
+
+    # Look up display name from user's symptoms list
+    symptom_key = symptom_entity.symptom
+    symptoms = ds.list_symptoms(user_id)
+    symptom_name = (
+        symptoms.symptoms_by_key.get(symptom_key).name
+        if symptom_key in symptoms.symptoms_by_key
+        else symptom_key
+    )
+
     return flask.render_template(
         "symptom-delete.html",
         user_profile=user_profile,
         key=key,
         index=index,
         form=form,
-        name=ds.get_activity(
-            user_id=user_id, dataset_name=user_profile.dataset_name, key=key
-        )
-        .sickness_symptoms[int(index) - 1]
-        .symptom,
+        name=symptom_name,
     )
 
 

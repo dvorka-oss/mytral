@@ -399,11 +399,7 @@ vibe-copilot-deepseek:
 .PHONY: vibe-cc-glm
 vibe-cc-glm:
 	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude \
-		--model glm-5:cloud \
-		--yes \
-		-- \
-		--max-tokens 200000
+	ollama launch claude --model glm-5:cloud -- --dangerously-skip-permissions
 
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
