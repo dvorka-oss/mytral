@@ -214,15 +214,18 @@
 <li>Added Strava synchronization of individual activities from the activity GET page.</li>
 <li>Added card encouraging athlete to create an activity to pages which need at least one
   activity to render.</li>
-</ul>
-<h3 id="changed">Changed</h3>
-<ul>
-<li>.</li>
+<li>Added tarball distribution.</li>
+<li>Added Debian @ Docker distribution.</li>
+<li>Added Fedora @ Docker distribution.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed km / hour usage of retired gears with no history.</li>
 <li>Removed color from Strava links on the day activities view and search result view.</li>
+</ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation">Documentation</h2>
+<ul>
+<li>Adding the installation documentation.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1500"><a href="https://github.com/dvorka-oss/mytral/compare/v1.9.0...v1.50.0">1.50.0</a></h2>
 <p>This MyTraL release is very <strong>special</strong> to me. After years of coding and hacking
@@ -259,7 +262,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
   suggested activity and weight balance.</li>
 <li>Added resting HR estimate to the athlete metrics page.</li>
 </ul>
-<h3 id="changed_1">Changed</h3>
+<h3 id="changed">Changed</h3>
 <ul>
 <li>Strava API import is not hidden behing feature flag (just inverse condition on FE).</li>
 <li>Refactored Predictions insight page to two pages - Predictions and Analytics.</li>
@@ -315,7 +318,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
   descriptions/default weights, symptom body-part targeting) with new pytest coverage.</li>
 </ul>
-<h3 id="changed_2">Changed</h3>
+<h3 id="changed_1">Changed</h3>
 <ul>
 <li>Core data model changes:</li>
 <li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks
@@ -351,7 +354,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
   array into a Python list; metadata is cleared in-place, reducing memory allocation
   significantly for large images.</li>
 </ul>
-<h3 id="documentation">Documentation</h3>
+<h3 id="documentation_1">Documentation</h3>
 <ul>
 <li>HTML documentation is newly generated from Markdown files in this repository.</li>
 <li>Public HTML documentation for mytral.fitness is newly generated from Markdown files in
@@ -507,7 +510,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Fixed deading and writing of unicode characters, like emojis, by forcing UTF-8 encoding
   in JSON IO persistence functions.</li>
 </ul>
-<h3 id="documentation_1">Documentation</h3>
+<h3 id="documentation_2">Documentation</h3>
 <ul>
 <li>HTML documentation scripts revamp.</li>
 <li>Added "Why MyTraL?" HTML documentation page.</li>
@@ -568,7 +571,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Settings:</li>
 <li>Added 4 metrics for goals, exercises, symptoms, laps and outfits.</li>
 </ul>
-<h3 id="changed_3">Changed</h3>
+<h3 id="changed_2">Changed</h3>
 <ul>
 <li>Changed activities and settings (gear, exercises, symptoms, ...) JSON persistence from dicts to lists.</li>
 <li>Enhanced Gear class to support components and component history.</li>
@@ -591,7 +594,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Activity feed view.</li>
 <li>Body diagram with interactive injuries and sicknesses filtering.</li>
 </ul>
-<h3 id="changed_4">Changed</h3>
+<h3 id="changed_3">Changed</h3>
 <ul>
 <li>Removed <code>activity_key</code> field in the <code>activity/exercises[]</code> items.</li>
 <li>Renamed <code>activity/exercises[]/name</code> to <code>activity/exercises[]/name</code>.</li>
@@ -606,7 +609,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>Version management with the single source of truth (SSOT) approach.</li>
 </ul>
-<h3 id="documentation_2">Documentation</h3>
+<h3 id="documentation_3">Documentation</h3>
 <ul>
 <li>Scripts for building of the HTML documentation.</li>
 <li>Initial drafts of digitization, terminology and normalization documentation.</li>
@@ -639,7 +642,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Optimized JSON file operations for faster data loading.</li>
 <li>Lazy loading of chart data for improved page load times.</li>
 </ul>
-<h3 id="documentation_3">Documentation</h3>
+<h3 id="documentation_4">Documentation</h3>
 <ul>
 <li>Complete README with installation and setup instructions.</li>
 <li>API documentation for backend modules.</li>
@@ -717,19 +720,19 @@ Find conventions details and template at the bottom of this document.</p>
     <div class="nav nav-vertical" id="toc">
         <a href="#1510" class="nav-link">1.51.0</a>
 <a href="#added" class="nav-link ms-3">Added</a>
-<a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#documentation" class="nav-link">Documentation</a>
 <a href="#1500" class="nav-link">1.50.0</a>
 <a href="#added_1" class="nav-link ms-3">Added</a>
-<a href="#changed_1" class="nav-link ms-3">Changed</a>
+<a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#removed" class="nav-link ms-3">Removed</a>
 <a href="#fixed_1" class="nav-link ms-3">Fixed</a>
 <a href="#190" class="nav-link">1.9.0</a>
 <a href="#added_2" class="nav-link ms-3">Added</a>
-<a href="#changed_2" class="nav-link ms-3">Changed</a>
+<a href="#changed_1" class="nav-link ms-3">Changed</a>
 <a href="#fixed_2" class="nav-link ms-3">Fixed</a>
 <a href="#performance" class="nav-link ms-3">Performance</a>
-<a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_1" class="nav-link ms-3">Documentation</a>
 <a href="#tests" class="nav-link ms-3">Tests</a>
 <a href="#180" class="nav-link">1.8.0</a>
 <a href="#added_3" class="nav-link ms-3">Added</a>
@@ -748,7 +751,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#added_6" class="nav-link ms-3">Added</a>
 <a href="#removed_1" class="nav-link ms-3">Removed</a>
 <a href="#fixed_6" class="nav-link ms-3">Fixed</a>
-<a href="#documentation_1" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_2" class="nav-link ms-3">Documentation</a>
 <a href="#infrastructure_1" class="nav-link ms-3">Infrastructure</a>
 <a href="#140" class="nav-link">1.4.0</a>
 <a href="#added_7" class="nav-link ms-3">Added</a>
@@ -759,19 +762,19 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#fixed_7" class="nav-link ms-3">Fixed</a>
 <a href="#120" class="nav-link">1.2.0</a>
 <a href="#added_10" class="nav-link ms-3">Added</a>
-<a href="#changed_3" class="nav-link ms-3">Changed</a>
+<a href="#changed_2" class="nav-link ms-3">Changed</a>
 <a href="#infrastructure_2" class="nav-link ms-3">Infrastructure</a>
 <a href="#110" class="nav-link">1.1.0</a>
 <a href="#added_11" class="nav-link ms-3">Added</a>
-<a href="#changed_4" class="nav-link ms-3">Changed</a>
+<a href="#changed_3" class="nav-link ms-3">Changed</a>
 <a href="#removed_2" class="nav-link ms-3">Removed</a>
 <a href="#infrastructure_3" class="nav-link ms-3">Infrastructure</a>
-<a href="#documentation_2" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_3" class="nav-link ms-3">Documentation</a>
 <a href="#100" class="nav-link">1.0.0</a>
 <a href="#added_12" class="nav-link ms-3">Added</a>
 <a href="#security_1" class="nav-link ms-3">Security</a>
 <a href="#performance_3" class="nav-link ms-3">Performance</a>
-<a href="#documentation_3" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_4" class="nav-link ms-3">Documentation</a>
 <a href="#infrastructure_4" class="nav-link ms-3">Infrastructure</a>
 <a href="#001" class="nav-link">0.0.1</a>
 <a href="#added_13" class="nav-link ms-3">Added</a>

@@ -394,6 +394,17 @@ vibe-copilot-deepseek:
 	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	copilot --allow-all-tools --banner
 
+# Z.ai
+# https://ollama.com/library/glm-5
+.PHONY: vibe-cc-glm
+vibe-cc-glm:
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
+	ollama launch claude \
+		--model glm-5:cloud \
+		--yes \
+		-- \
+		--max-tokens 200000
+
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 .PHONY: vibe-deepseek-cc
