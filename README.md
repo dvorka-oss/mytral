@@ -11,7 +11,7 @@
 
 **My** **Tra**ining **L**og (MyTraL) is my sovereign athlete personal training log for deeper insights and smarter progress.
 
-![home](webs/www.mytral.fitness/images/feature.own.png)
+![home](media/screenshot/activity.png)
 
 
 ## Contribute
