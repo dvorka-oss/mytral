@@ -114,7 +114,8 @@
                                     {{ activity.laps|length }}
                                     {% endif %}
                                 </td>
-                                <td><span {% if activity.src == "strava" %}class="badge bg-orange-lt" {% endif %}>{{ activity.src }}</span></td>
+                                <!-- td><span {% if activity.src == "strava" %}class="badge bg-orange-lt" {% endif %}>{{ activity.src }}</span></td -->
+                                <td>{{ activity.src }}</td>
                                 {% endif %}
                             </tr>
                             {% endfor %}

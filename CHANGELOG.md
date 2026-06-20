@@ -14,7 +14,8 @@ This MyTraL **minor** release brings:
 - .
 
 ### Fixed
-- Removing color from Strava links on the day activities view.
+- Fixed km / hour usage of retired gears with no history.
+- Removed color from Strava links on the day activities view and search result view.
 
 
 
