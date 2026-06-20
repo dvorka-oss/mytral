@@ -514,6 +514,7 @@
         /* Feature card image */
         .feature-thumb {
             width: 100%;
+            height: auto;
             border-radius: 0.5rem;
             margin-bottom: 1.25rem;
             cursor: pointer;
@@ -655,9 +656,97 @@
                 right: 0.5rem;
             }
         }
+
+        /* Fork me on GitHub ribbon */
+        .github-ribbon {
+            position: fixed;
+            top: 2rem;
+            right: -3.5rem;
+            transform: rotate(45deg);
+            width: 15rem;
+            padding: 0.45rem 1rem 0.45rem 2.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            transition: opacity 0.3s;
+        }
+
+        .github-ribbon:hover {
+            opacity: 0.85;
+        }
+
+        @media (max-width: 768px) {
+            .github-ribbon { display: none; }
+        }
+
+        /* Download grid: 3 fixed columns so the lone Source Code card can sit centred */
+        @media (min-width: 1100px) {
+            .download-grid-3col {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .download-center {
+                grid-column: 2;
+            }
+        }
+
+        /* Download Section */
+        .download-platform-icon {
+            color: var(--primary);
+            margin-bottom: 1.25rem;
+        }
+
+        .download-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .download-links li a {
+            color: var(--light-gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        .download-links li a:hover {
+            color: white;
+        }
+
+        .dl-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: var(--primary);
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 4.5rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
+    <!-- Fork me on GitHub ribbon -->
+    <a href="https://github.com/dvorka-oss/mytral" class="github-ribbon" aria-label="Fork me on GitHub">Fork me on GitHub</a>
+
     <!-- Navigation -->
     <nav>
         <div class="container">
@@ -690,7 +779,7 @@
                     <div class="terminal-dot dot-blue"></div>
                 </div>
                 <div class="terminal-body">
-                    <img src="./screenshot-dashboard-dark.png" alt="MyTraL Screenshot" style="width: 100%; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);">
+                    <img src="./screenshot-dashboard-dark.webp" alt="MyTraL Screenshot" width="1477" height="1999" style="width: 100%; height: auto; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);" decoding="async">
                 </div>
             </div>
         </div>
@@ -705,8 +794,10 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.own.png"
+                         src="images/feature.own.webp"
                          alt="MyTraL Dashboard"
+                         width="1224" height="1240"
+                         loading="lazy" decoding="async"
                          data-lightbox="0"
                          data-caption="Own The Data That Tells Your Journey">
                     <h3>Own Your Journey</h3>
@@ -726,8 +817,10 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.me.png"
+                         src="images/feature.me.webp"
                          alt="Holistic View of Training Load"
+                         width="1156" height="1209"
+                         loading="lazy" decoding="async"
                          data-lightbox="1"
                          data-caption="Holistic View - Beyond Vanity Metrics">
                     <h3>Holistic View Beyond Metrics</h3>
@@ -748,9 +841,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.heatmap.png"
+                         src="images/feature.heatmap.webp"
                          alt="MyTraL Activity Heatmap"
-                         data-lightbox="3"
+                         width="1375" height="1390"
+                         loading="lazy" decoding="async"
+                         data-lightbox="2"
                          data-caption="Your Life in Your Palm">
                     <h3>Your Life in Your Palm</h3>
                     <p>
@@ -764,9 +859,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.gear.png"
+                         src="images/feature.gear.webp"
                          alt="MyTraL Gear Management"
-                         data-lightbox="2"
+                         width="1336" height="1244"
+                         loading="lazy" decoding="async"
+                         data-lightbox="3"
                          data-caption="Know Your Kit - Equipment Tracking">
                     <h3>Gear Lifecycle Management</h3>
                     <p>
@@ -779,9 +876,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.goals.png"
+                         src="images/feature.goals.webp"
                          alt="MyTraL Goal Management"
-                         data-lightbox="5"
+                         width="1335" height="1320"
+                         loading="lazy" decoding="async"
+                         data-lightbox="4"
                          data-caption="Goal Matrix - SMART Goal Setting">
                     <h3>Achieve Goals With Eisenhower</h3>
                     <p>
@@ -795,8 +894,10 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.holistic.png"
+                         src="images/feature.holistic.webp"
                          alt="MyTraL Customization and Extensibility"
+                         width="1382" height="1390"
+                         loading="lazy" decoding="async"
                          data-lightbox="5"
                          data-caption="Customize, Personalize, Extend - Your Training Log, Your Way">
                     <h3>Customize, Personalize, Extend</h3>
@@ -824,9 +925,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.3dirm.png"
+                         src="images/feature.3dirm.webp"
                          alt="MyTraL 3D Input-Response Model"
-                         data-lightbox="1"
+                         width="1335" height="1241"
+                         loading="lazy" decoding="async"
+                         data-lightbox="6"
                          data-caption="SOTA Power-based Metrics That Matter">
                     <h3>SOTA Power-based Metrics</h3>
                     <p>
@@ -844,9 +947,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.ai-coach.png"
+                         src="images/feature.ai-coach.webp"
                          alt="AI Coach"
-                         data-lightbox="5"
+                         width="1339" height="1228"
+                         loading="lazy" decoding="async"
+                         data-lightbox="7"
                          data-caption="Personal Coach, A-Coach, AI Coach">
                     <h3>Coach, A-Coach, AI Coach!</h3>
                     <p>
@@ -865,9 +970,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.trimp.png"
+                         src="images/feature.trimp.webp"
                          alt="MyTraL TRIMP Training Load"
-                         data-lightbox="4"
+                         width="1229" height="1150"
+                         loading="lazy" decoding="async"
+                         data-lightbox="8"
                          data-caption="Golden Standard - TRIMP Training Load">
                     <h3>Standard HR-based Metric</h3>
                     <p>
@@ -880,9 +987,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.pfn.png"
+                         src="images/feature.pfn.webp"
                          alt="PFN/ICL Performance Forecasting"
-                         data-lightbox="5"
+                         width="1290" height="1236"
+                         loading="lazy" decoding="async"
+                         data-lightbox="9"
                          data-caption="PFN/ICL Performance Forecasting - Personalized, Private, and Powerful">
                     <h3>Very Personal Predictions</h3>
                     <p>
@@ -905,9 +1014,11 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.this-vs-last.png"
+                         src="images/feature.this-vs-last.webp"
                          alt="God's in the details"
-                         data-lightbox="5"
+                         width="1261" height="1176"
+                         loading="lazy" decoding="async"
+                         data-lightbox="10"
                          data-caption="God's in the details - High-resolution granularity for every lap, set, and rest interval">
                     <h3>God’s in the details</h3>
                     <p>
@@ -926,10 +1037,12 @@
 
                 <div class="feature-card">
                     <img class="feature-thumb"
-                         src="images/feature.radar.png"
-                         alt="PFN/ICL Performance Forecasting"
-                         data-lightbox="5"
-                         data-caption="PFN/ICL Performance Forecasting - Personalized, Private, and Powerful">
+                         src="images/feature.radar.webp"
+                         alt="Training Periodization Radar"
+                         width="1404" height="1333"
+                         loading="lazy" decoding="async"
+                         data-lightbox="11"
+                         data-caption="The Rhythm of the Spiral - Training Periodization">
                     <h3>The Rhythm of the Spiral</h3>
                     <p>
                         Nature operates in cycles, from the rotation of the planets to
@@ -1095,13 +1208,109 @@
     </section>
 
     <!-- Download Section -->
-    <section id="download" class="story">
+    <section id="download" class="features">
         <div class="container">
             <div class="section-label">Get MyTraL</div>
             <h2 class="section-title">Download</h2>
-            <p style="text-align: center; margin-bottom: 2rem; color: var(--light-gray);">
-                ...
+            <p style="text-align: center; margin-bottom: 3rem; color: var(--light-gray); font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Free and open-source. No account required. No telemetry.
+                Your data on your machine.
             </p>
+
+            <div class="features-grid download-grid-3col">
+
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M4 4m0 1a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1z"/>
+                            <path d="M4 15m0 1a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1z"/>
+                            <path d="M4 11l0 4"/>
+                            <path d="M20 11l0 4"/>
+                            <path d="M8 8l0 .01"/>
+                            <path d="M8 17l0 .01"/>
+                        </svg>
+                    </div>
+                    <h3>Linux</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Native packages for major distributions.
+                        The AppImage runs on any Linux without installation.
+                    </p>
+                    <ul class="download-links">
+                        <li><a href="#"><span class="dl-badge">PPA</span> Ubuntu</a></li>
+                        <!--
+                        <li><a href="#"><span class="dl-badge">DEB</span> Ubuntu / Debian</a></li>
+                        <li><a href="#"><span class="dl-badge">RPM</span> Fedora / Red Hat</a></li>
+                        <li><a href="#"><span class="dl-badge">AppImage</span> Any Linux</a></li>
+                        <li><a href="#"><span class="dl-badge">TAR.GZ</span> Archive</a></li>
+                        -->
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M17.8 20h-11.6a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h11.6a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2z"/>
+                            <path d="M12 8v4"/>
+                            <path d="M8 12h8"/>
+                        </svg>
+                    </div>
+                    <h3>Windows</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Installer wizard for a permanent setup,
+                        or the portable ZIP that needs no installation.
+                        <br/>
+                        <br/>
+                    </p>
+                    <ul class="download-links">
+                        <!--
+                        <li><a href="#"><span class="dl-badge">EXE</span> Installer Wizard</a></li>
+                        -->
+                        <li><a href="#"><span class="dl-badge">ZIP</span> Portable</a></li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 7c-3 0 -4 3 -4 5.5c0 3 2 7.5 4 7.5c1 .023 1.424 -.55 3 -.55c1.576 0 1.924 .55 3 .55c2 0 4 -4.5 4 -7.5c0 -2.5 -1 -5.5 -4 -5.5c-1.4 0 -2.5 .6 -3 1"/>
+                            <path d="M12 4a3 3 0 0 0 -3 3"/>
+                        </svg>
+                    </div>
+                    <h3>macOS</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Drag-and-drop DMG installation,
+                        or install via the Homebrew package manager.
+                    </p>
+                    <ul class="download-links">
+                        <!--
+                        <li><a href="#"><span class="dl-badge">DMG</span> Disk Image (Intel + Apple Silicon)</a></li>
+                        <li><a href="#"><span class="dl-badge">brew</span> <code style="font-size:0.85rem;">brew install mytral</code></a></li>
+                        -->
+                    </ul>
+                </div>
+
+                <div class="feature-card download-center">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/>
+                        </svg>
+                    </div>
+                    <h3>Source Code</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Build from source, contribute patches,
+                        or audit every line — it is all open.
+                    </p>
+                    <ul class="download-links">
+                        <li><a href="#"><span class="dl-badge">TAR.GZ</span> Source Tarball</a></li>
+                        <li><a href="#"><span class="dl-badge">ZIP</span> Source Archive</a></li>
+                    </ul>
+                </div>
+
+            </div>
         </div>
     </section>
 
@@ -1196,8 +1405,11 @@
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                // bare '#' is a scroll-to-top shortcut; let it fall through to default
+                if (!href || href === '#') return;
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const target = document.querySelector(href);
                 if (target) {
                     target.scrollIntoView({
                         behavior: 'smooth',
