@@ -686,6 +686,45 @@
             .github-ribbon { display: none; }
         }
 
+        /* Skunkworks easter egg */
+        #skunkworks {
+            display: none;
+        }
+
+        #skunkworks.revealed {
+            display: block;
+            animation: revealSection 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes revealSection {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .rabbit-trigger {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem 0 2rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .rabbit-trigger img {
+            width: 56px;
+            height: 56px;
+            opacity: 0.3;
+            filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
+            transition: opacity 0.4s ease, filter 0.5s ease, transform 0.4s ease;
+        }
+
+        .rabbit-trigger:hover img,
+        .rabbit-trigger.active img {
+            opacity: 1;
+            filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.9));
+            transform: scale(1.15);
+        }
+
         /* Download grid: 3 fixed columns so the lone Source Code card can sit centred */
         @media (min-width: 1100px) {
             .download-grid-3col {
@@ -914,6 +953,11 @@
         </div>
     </section>
 
+
+    <!-- Easter egg: rabbit toggles Skunkworks section -->
+    <div class="rabbit-trigger" id="rabbit-trigger" role="button" aria-label="Follow the white rabbit" tabindex="0">
+        <img src="./matrix-rabbit.png" alt="" width="822" height="822">
+    </div>
 
     <!-- SkunkWorks Section -->
     <section id="skunkworks" class="features">
@@ -1409,15 +1453,41 @@
                 // bare '#' is a scroll-to-top shortcut; let it fall through to default
                 if (!href || href === '#') return;
                 e.preventDefault();
+                // reveal skunkworks first if the nav link targets it while hidden
+                if (href === '#skunkworks') {
+                    const sw = document.getElementById('skunkworks');
+                    const rb = document.getElementById('rabbit-trigger');
+                    if (sw && !sw.classList.contains('revealed')) {
+                        sw.classList.add('revealed');
+                        if (rb) rb.classList.add('active');
+                    }
+                }
                 const target = document.querySelector(href);
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
                 }
             });
         });
+
+        // Easter egg: rabbit toggles Skunkworks section
+        (function () {
+            const rabbit = document.getElementById('rabbit-trigger');
+            const skunkworks = document.getElementById('skunkworks');
+            if (!rabbit || !skunkworks) return;
+
+            function toggle() {
+                const visible = skunkworks.classList.toggle('revealed');
+                rabbit.classList.toggle('active', visible);
+                if (visible) {
+                    setTimeout(() => skunkworks.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                }
+            }
+
+            rabbit.addEventListener('click', toggle);
+            rabbit.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+            });
+        })();
 
         // Parallax effect for hero grid
         window.addEventListener('scroll', () => {
