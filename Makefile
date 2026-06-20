@@ -388,6 +388,12 @@ vibe-copilot-deepseek:
 	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	copilot --allow-all-tools --banner
 
+# Anthropic Claude Code: ideally @ Sonnet 1M
+.PHONE: vibe-cc
+vibe-cc:
+	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	claude --dangerously-skip-permissions
+
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
 .PHONY: vibe-deepseek-cc
@@ -629,7 +635,8 @@ doc-serve: doc ## serve documentation locally for preview
 # INSTALL live server: npm install -g live-server
 .PHONY: www-live-server
 www-live-server: ## start live server for www.mytral.fitness development
-	@cd webs/www.mytral.fitness && live-server ./
+	@echo "Serving documentation at http://localhost:8080"
+	uv run python -m http.server 8080 --directory webs/www.mytral.fitness
 
 .PHONY: www-doc
 www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
@@ -724,16 +731,6 @@ tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 #
 # USER SPECIFIC PRODUCTION DATA MANAGEMENT
 #
-
-# pull production data from Git repository & sync blobs from the shared drive
-PHONY: my-data-pull
-my-data-pull:
-	cd make && ./d_production_data_pull.sh
-
-# push production data to Git repository & sync blobs to the shared drive
-.PHONY: my-data-push
-my-data-push:
-	cd make && ./d_production_data_push.sh
 
 .PHONY: my-data-zip
 my-data-zip-snapshot:
