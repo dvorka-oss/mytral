@@ -693,6 +693,14 @@ distro-docker-debian-build: ## build Docker Debian image with MyTraL inside
 distro-docker-debian-run: ## run MyTraL Docker Debian container (http://localhost:8888)
 	@./build/docker/debian/run.sh
 
+.PHONY: distro-docker-fedora-build
+distro-docker-fedora-build: ## build Docker Fedora image with MyTraL inside
+	@./build/docker/fedora/build.sh
+
+.PHONY: distro-docker-fedora-run
+distro-docker-fedora-run: ## run MyTraL Docker Fedora container (http://localhost:8888)
+	@./build/docker/fedora/run.sh
+
 #
 # DEPLOYMENT: k8s (k3s, k9s)
 #
