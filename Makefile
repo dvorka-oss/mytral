@@ -280,42 +280,47 @@ run: .venv ## run MyTraL server w/ ENV var specified data directory
 .PHONY: runvdev
 ifeq ($(OS),Windows_NT)
 run-dev: .venv ## run MyTraL server on Windows w/ DEV data
-	MYTRAL_INCARNATION=DESKTOP \
-	MYTRAL_USER_REGISTRATION=true \
+	MYTRAL_DATA_DIR="$(subst \,/,$(USERPROFILE))/mytral-data/development" \
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR="$(subst \,/,$(USERPROFILE))/mytral-dev-data" \
-	MYTRAL_SECRET_KEY=no-secret-for-development \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_ACOACHES=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
+	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
 	MYTRAL_FF_TRIMP=true \
-	MYTRAL_FF_IRM3D=true \
+	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_SECRET_KEY=no-secret-for-development \
+	MYTRAL_USER_REGISTRATION=true \
 	uv run python -m mytral.run
 else
 run-dev: .venv ## run MyTraL server on Linux w/ DEV data
-	MYTRAL_INCARNATION=DESKTOP \
-	MYTRAL_USER_REGISTRATION=true \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/development \
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/development \
-	MYTRAL_SECRET_KEY=no-secret-for-development \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_ACOACHES=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
+	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TASKS_DEV=true \
 	MYTRAL_FF_TRIMP=true \
-	MYTRAL_FF_IRM3D=true \
+	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_SECRET_KEY=no-secret-for-development \
+	MYTRAL_USER_REGISTRATION=true \
 	uv run python -m mytral.run
 endif
 
 run-preproduction: .venv ## run MyTraL server on Linux w/ DEMO data w/ production settings
-	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/demo \
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
-	MYTRAL_SECRET_KEY=no-secret-for-development \
 	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
+	MYTRAL_FF_IRM3D=true \
+	MYTRAL_FF_STRAVA_API_IMPORT=true \
+	MYTRAL_FF_TASKS_DEV=true \
+	MYTRAL_FF_TRIMP=true \
+	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_SECRET_KEY=no-secret-for-development \
 	uv run python -m mytral.run
 
 .PHONY: run-production
@@ -326,21 +331,21 @@ run-production: .venv ## run MyTraL server w/ PRODUCTION data
 
 .PHONY: run-demo
 run-demo: .venv ## run MyTraL server on Linux w/ DEMO data
-	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/demo \
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/demo \
-	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_ACOACHES=true \
 	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
 	MYTRAL_FF_TRIMP=true \
+	MYTRAL_INCARNATION=DESKTOP \
+	MYTRAL_SECRET_KEY=no-secret-for-demo \
 	uv run python -m mytral.run
 
 .PHONY: run-digi
 run-digi: .venv ## run MyTraL server w/ DIGITALIZATION data
 	MYTRAL_DEBUG=true \
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/my-training-log-data-dev/digitalization-1996-2023 \
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/digitalization-1996-2023 \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
 	uv run python -m mytral.run
 
