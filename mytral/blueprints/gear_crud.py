@@ -102,6 +102,15 @@ class CreateGearForm(flask_wtf.FlaskForm):
         description="Size specification (e.g., '42 EU', 'Large', '56cm')",
         validators=[],
     )
+    weight = wtforms.FloatField(
+        label="Weight (kg)",
+        description=(
+            "Weight of the gear in kilograms "
+            "(e.g., 8.2 for a bike)"
+        ),
+        validators=[validators.Optional(), validators.NumberRange(min=0)],
+        default=0.0,
+    )
     since = wtforms.IntegerField(
         label="Since",
         description="Year when you started using this gear",
@@ -347,6 +356,7 @@ def settings_gear_create():
                 vendor=form.vendor.data,
                 model=form.model.data,
                 size=form.size.data,
+                weight=form.weight.data or 0.0,
                 comment=form.comment.data,
                 url=form.url.data,
                 retired=form.retired.data,
@@ -464,6 +474,7 @@ def settings_gear_update(key: str):
         form.vendor.data = entity.vendor
         form.model.data = entity.model
         form.size.data = entity.size
+        form.weight.data = entity.weight
         form.comment.data = entity.comment
         form.url.data = entity.url
         form.retired.data = entity.retired
@@ -491,6 +502,7 @@ def settings_gear_update(key: str):
             entity.vendor = form.vendor.data or ""
             entity.model = form.model.data or ""
             entity.size = form.size.data or ""
+            entity.weight = form.weight.data or 0.0
             entity.comment = form.comment.data or ""
             entity.url = form.url.data or ""
             entity.retired = form.retired.data

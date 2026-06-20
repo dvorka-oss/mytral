@@ -1524,6 +1524,7 @@ class Gear:
     KEY_VENDOR = "vendor"
     KEY_MODEL = "model"
     KEY_SIZE = "size"
+    KEY_WEIGHT = "weight"
     KEY_COMMENT = "comment"
     KEY_URL = "url"
     KEY_RETIRED = "retired"
@@ -1549,6 +1550,7 @@ class Gear:
         vendor: str = "",
         model: str = "",
         size: str = "",
+        weight: float = 0.0,
         comment: str = "",
         url: str = "",
         is_default: bool = False,
@@ -1570,6 +1572,7 @@ class Gear:
         self.vendor = vendor
         self.model = model
         self.size = size
+        self.weight = weight
         self.comment = comment
         self.url = url
         self.retired = retired
@@ -1787,6 +1790,7 @@ class Gear:
             Gear.KEY_VENDOR: self.vendor,
             Gear.KEY_MODEL: self.model,
             Gear.KEY_SIZE: self.size,
+            Gear.KEY_WEIGHT: self.weight,
             Gear.KEY_COMMENT: self.comment,
             Gear.KEY_URL: self.url,
             Gear.KEY_RETIRED: self.retired,
@@ -1824,6 +1828,7 @@ class Gear:
             vendor=gear_dict.get(Gear.KEY_VENDOR, ""),
             model=gear_dict.get(Gear.KEY_MODEL, ""),
             size=gear_dict.get(Gear.KEY_SIZE, ""),
+            weight=gear_dict.get(Gear.KEY_WEIGHT, 0.0),
             comment=gear_dict.get(Gear.KEY_COMMENT, ""),
             url=gear_dict.get(Gear.KEY_URL, ""),
             retired=gear_dict.get(Gear.KEY_RETIRED, False),
