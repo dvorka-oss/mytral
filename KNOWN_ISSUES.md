@@ -8,7 +8,7 @@ I know, I know, it's one man show for now, right? ;)
 
 ### fix(gear): 🐞 gear service intervals correctness
 
-* **Description**: Gear service intervals calculation is ~80% used and tested. Thorought testing, especially around retirement / time service intervals must be performed as don't that frequently.
+* **Description**: Gear service intervals calculation is ~80% used and tested. Thorought testing, especially around retirement / time service intervals must be performed as don't use that frequently.
 
 
 
@@ -25,6 +25,10 @@ I know, I know, it's one man show for now, right? ;)
 ### perf(import): ⚡ Polar PPP import
 
 * **Description**: I improved it from 25' to 17" on the test data, hope to make it ~9".
+
+### perf(export): ⚡ ZIP export must be task
+
+* **Description**: ZIP export is built synchronously (relic from the times where there were just JSON files) - it must be changed to the task w/ result downloadable from the task work directory.
 
 
 
@@ -44,7 +48,7 @@ I know, I know, it's one man show for now, right? ;)
 
 * **Description**: I did just initial implementation of the weight download, the predictions code which is there will be removed as I have completely different plans for predicting the activities.
 
-### feat(agent): ✨ AI Coach
+### feat(agent): ✨ AI Coaches
 
 * **Description**: I had a lot of fun experimenting with the agent-based coach - personalities in particular, however, I need to manually review & write the functions which pull the data in a smart and effient way.
 
