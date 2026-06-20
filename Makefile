@@ -685,6 +685,14 @@ docker-build-image: wheel ## build Docker image
 docker-run: ## run MyTraL Docker container on port 5500
 	docker run -p 5500:5000 --name running-mytral mytral:latest
 
+.PHONY: distro-docker-debian-build
+distro-docker-debian-build: ## build Docker Debian image with MyTraL inside
+	@./build/docker/debian/build.sh
+
+.PHONY: distro-docker-debian-run
+distro-docker-debian-run: ## run MyTraL Docker Debian container (http://localhost:8888)
+	@./build/docker/debian/run.sh
+
 #
 # DEPLOYMENT: k8s (k3s, k9s)
 #
