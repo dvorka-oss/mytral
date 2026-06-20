@@ -166,7 +166,7 @@
                             {% endfor %}
 
                             {% for comp in retired_components %}
-                            {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first)) }}
+                            {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first), csrf_token=form.csrf_token._value()) }}
                             {% endfor %}
 
                         {% else %}

@@ -221,18 +221,49 @@
 
 {# Full detail pane for a retired component.
    visible: controls whether the pane starts visible (True) or hidden (False).
-   Callers should pass visible=(not active_components and loop.first) from their for-loop. #}
-{% macro comp_retired_pane(comp, gear, key, visible=False, section_class='comp-section') %}
+   Callers should pass visible=(not active_components and loop.first) from their for-loop.
+   csrf_token: raw CSRF token string for Un-retire/Delete forms. #}
+{% macro comp_retired_pane(comp, gear, key, visible=False, section_class='comp-section', csrf_token='') %}
 <div id="comp-{{ comp.key }}" class="{{ section_class }}{% if not visible %} d-none{% endif %}">
     <div class="card-body border-bottom">
-        <div class="d-flex align-items-start justify-content-between">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
             <div>
                 <h3 class="mb-0">{{ comp.name }}</h3>
                 {% if comp.notes %}
                 <p class="text-muted small mt-1 mb-0">{{ comp.notes }}</p>
                 {% endif %}
             </div>
-            <span class="badge bg-secondary text-secondary-fg ms-3 flex-shrink-0">Retired</span>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                <a href="{{ url_for('settings_gear_component_update', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-secondary btn-md" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit component">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                        <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                        <path d="M16 5l3 3"></path>
+                    </svg>
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('settings_gear_component_unretire', gear_key=key, component_key=comp.key) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+                    <button type="submit" class="btn btn-outline-success btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Un-retire component" onclick="return confirm('Un-retire this component? It will be moved back to the Active section.')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-back-up" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 14l-4 -4l4 -4"/>
+                            <path d="M5 10h11a4 4 0 1 1 0 8h-1"/>
+                        </svg>
+                    </button>
+                </form>
+                <a href="{{ url_for('settings_gear_component_delete', gear_key=key, component_key=comp.key) }}" class="btn btn-outline-danger btn-md btn-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete component">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M4 7l16 0"></path>
+                        <path d="M10 11l0 6"></path>
+                        <path d="M14 11l0 6"></path>
+                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                    </svg>
+                </a>
+            </div>
         </div>
     </div>
     <div class="card-body">
