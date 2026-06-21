@@ -623,8 +623,8 @@ doc-clean: ## clean generated documentation
 	rm -f mytral/static/documentation/*.html
 	@echo "Documentation cleaned"
 
-.PHONY: doc-serve
-doc-serve: doc ## serve documentation locally for preview
+.PHONY: doc-live
+doc-live: doc ## serve documentation locally for preview
 	@echo "Serving documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory mytral/static/documentation
 
@@ -633,8 +633,8 @@ doc-serve: doc ## serve documentation locally for preview
 #
 
 # INSTALL live server: npm install -g live-server
-.PHONY: www-live-server
-www-live-server: ## start live server for www.mytral.fitness development
+.PHONY: www-live
+www-live: ## start live server for www.mytral.fitness development
 	@echo "Serving documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness
 
@@ -650,8 +650,8 @@ www-doc-clean: ## clean generated public documentation
 	rm -rf webs/www.mytral.fitness/docs/*.png
 	@echo "Public documentation cleaned"
 
-.PHONY: www-doc-serve
-www-doc-serve: www-doc ## serve public documentation locally for preview
+.PHONY: www-doc-live
+www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 
