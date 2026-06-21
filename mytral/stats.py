@@ -491,7 +491,7 @@ class PerYearUserDatasetStats:
 class UserDatasetStats:
     @property
     def year_min(self) -> int:
-        return min(self.years)
+        return min(self.years) if self.years else 0
 
     @property
     def year_max(self) -> int:

@@ -777,7 +777,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Parse sitemap
-    sitemap_path = source_dir / '_SITEMAP.md'
+    sitemap_path = source_dir / '_SITEMAP_WWW.md'
     sections = parse_sitemap(sitemap_path)
 
     if not sections:

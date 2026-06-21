@@ -72,6 +72,7 @@
                                 {{ field_macros.add_field(form.vendor) }}
                                 {{ field_macros.add_field(form.model) }}
                                 {{ field_macros.add_field(form.size) }}
+                                {{ field_macros.add_field(form.weight) }}
                                 {{ field_macros.add_field(form.url) }}
                                 {{ field_macros.add_field(form.purchased) }}
                                 {{ field_macros.add_field(form.tcoo_base) }}
@@ -166,7 +167,7 @@
                             {% endfor %}
 
                             {% for comp in retired_components %}
-                            {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first)) }}
+                            {{ comp_retired_pane(comp, gear, key, visible=(not active_components and loop.first), csrf_token=form.csrf_token._value()) }}
                             {% endfor %}
 
                         {% else %}

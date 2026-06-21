@@ -590,15 +590,22 @@ class UserDataset(abc.ABC):
 
         for component_dict in gear.components:
             component_key = component_dict.get("key", "")
-            install_date = component_dict.get("installed_date", "") or today_str
+            install_date = component_dict.get("installed_date", "")
             status = component_dict.get("status", "active")
 
-            # cumulative gear km/hours at component install — the zero baseline
-            prev_km, prev_h = self.gear_km_at_date(
-                user_id, dataset_name, gear.key, install_date
-            )
+            # gear km/hours at component install — the zero baseline for this component
+            if install_date:
+                install_km, install_h = self.gear_km_at_date(
+                    user_id, dataset_name, gear.key, install_date
+                )
+            else:
+                # no install date: assume component was there from gear purchase (0 km)
+                install_km, install_h = 0.0, 0.0
 
             # walk history entries in chronological order, computing each interval
+            # prev_km/prev_h track the gear odometer at the previous event (install or
+            # last service); each entry stores the delta since that previous event
+            prev_km, prev_h = install_km, install_h
             history = gear.component_history.get(component_key, [])
             for entry in sorted(history, key=lambda e: e.get("date", "")):
                 entry_date = entry.get("date", "")
@@ -612,28 +619,27 @@ class UserDataset(abc.ABC):
                 prev_km = km_at
                 prev_h = h_at
 
-            # prev_km / prev_h now hold the gear odometer at the last service
-            # (or at install if no history); store as last_service baseline
-            component_dict["last_service_km"] = prev_km
-            component_dict["last_service_hours"] = prev_h
+            # store component-relative baselines so distance_km reflects actual
+            # component usage (not the gear's absolute odometer reading)
+            component_dict["last_service_km"] = max(0.0, prev_km - install_km)
+            component_dict["last_service_hours"] = max(0.0, prev_h - install_h)
 
-            # update component odometer so km_since_service = now_km - last_service_km
             if status == "active":
-                component_dict["distance_meters"] = int(today_km * 1000)
-                component_dict["time_seconds"] = int(today_h * 3600)
+                component_dict["distance_meters"] = int((today_km - install_km) * 1000)
+                component_dict["time_seconds"] = int((today_h - install_h) * 3600)
             else:
-                # retired: use last history entry date as the retirement point
+                # retired: use last history entry date as the retirement point;
+                # if no history exists, assume retired "now" so the component
+                # gets credit for all gear km up to today
                 sorted_history = sorted(history, key=lambda e: e.get("date", ""))
                 retire_date = (
-                    sorted_history[-1].get("date", install_date)
-                    if sorted_history
-                    else install_date
+                    sorted_history[-1].get("date") if sorted_history else today_str
                 )
                 retire_km, retire_h = self.gear_km_at_date(
                     user_id, dataset_name, gear.key, retire_date
                 )
-                component_dict["distance_meters"] = int(retire_km * 1000)
-                component_dict["time_seconds"] = int(retire_h * 3600)
+                component_dict["distance_meters"] = int((retire_km - install_km) * 1000)
+                component_dict["time_seconds"] = int((retire_h - install_h) * 3600)
 
     def list_gear(self, user_id: str, dataset_name: str = "") -> settings.UserGear:
         return self._cache.user(user_id).gear() or self._cache.user(user_id).set_gear(

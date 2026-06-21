@@ -48,7 +48,7 @@ def getenv_bool(name: str, default: bool = False) -> bool:
     raw = os.getenv(name)
     if raw is None:
         return default
-    return raw.lower() in {"1", ENV_VALUE_TRUE, ENV_VALUE_FALSE}
+    return raw.lower() in {"1", ENV_VALUE_TRUE}
 
 
 def is_uuid(s: str) -> bool:

@@ -326,7 +326,7 @@
 
                       {# WHEN running_task_count > 0 avoid RACE CONDITIONS @ activities/* by HIDING tasks menu + page content if there are running tasks #}
 
-                      {# TODO make this configurable in settings as default landing page#}
+                      {# TODO make this configurable in settings as default landing page
                       <li class="nav-item">
                         <a class="nav-link {% if running_tasks_count > 0 %}disabled{% endif %}" href="{{ url_for('calendar_year',year=0) }}">
                             <svg
@@ -347,6 +347,7 @@
                             </svg>
                         </a>
                       </li>
+                      #}
                       {#
                       TODO - IDEAs - Insights:
 
@@ -587,6 +588,7 @@
                           {% endif %}
 
                           {% if ff.can("ACOACHES") %}
+                          <div class="dropdown-divider"></div>
                           <a class="dropdown-item"
                             title="AI Coaching - AI coaching of your training"
                             href="{{ url_for('acoaching') }}"
@@ -1747,6 +1749,7 @@
             <div class="row text-center align-items-center flex-row-reverse">
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item"><a href="https://mytral.fitness" target="_blank" class="link-secondary" rel="noopener">Web</a></li>
                   <li class="list-inline-item"><a href="{{ url_for('static', filename='documentation/index.html') }}" target="_blank" class="link-secondary" rel="noopener">Doc</a></li>
                   <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/issues" target="_blank" class="link-secondary">Bugs</a></li>
                   <li class="list-inline-item"><a href="{{ url_for('static', filename='documentation/license.html') }}" target="_blank" class="link-secondary">License</a></li>

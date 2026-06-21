@@ -6,12 +6,19 @@ This MyTraL **minor** release brings:
 
 ### Added
 - Added activity type color border hint to goals, gear, and several other pages.
-
-### Changed
-- .
+- Added Strava synchronization of individual activities from the activity GET page.
+- Added card encouraging athlete to create an activity to pages which need at least one
+  activity to render.
+- Added tarball distribution.
+- Added Debian @ Docker distribution.
+- Added Fedora @ Docker distribution.
 
 ### Fixed
-- Removing color from Strava links on the day activities view.
+- Fixed km / hour usage of retired gears with no history.
+- Removed color from Strava links on the day activities view and search result view.
+
+## Documentation
+- Adding the installation documentation.
 
 
 

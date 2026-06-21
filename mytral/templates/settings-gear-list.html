@@ -190,35 +190,13 @@
             {% endif %}
         </div>
 
-        {% if gear.gear|length > 0 %}
-        <div class="card">
-            <div class="card-body">
-                {% if div %}
-                <div class="bokeh d-flex justify-content-center">
-                    {{ div|safe }}
-                </div>
-                {% else %}
-                <div class="table-responsive">
-                    <table class="table table-vcenter card-table">
-                        <thead>
-                            <tr>
-                                <th>Gear<br/>∑</th>
-                                <th>Vendor<br/>Model<br/>Size</th>
-                                <th title="Purchase date and the first/last use in an activity">Purchased<br/>From<br/>To</th>
-                                <th>Distance<br/>Time</th>
-                                <th>TCoO<br/>🪙/km<br/>🪙/h</th>
-                                <th title="Activities for which is gear used e.g. shoes used for running and hiking">Activity</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for g in gear.gear.values() %}
+        {% macro gear_row(g, is_retired) %}
                             {% set stat = gear_stats.stats(g.key) %}
                             {% set requires_attention = g.requires_attention() if g.components else false %}
                             <tr{% if requires_attention %} class="table-warning"{% endif %}>
-                                <td{% if g.retired %} class="text-muted"{% endif %}>
+                                <td{% if is_retired %} class="text-muted"{% endif %}>
                                     <div class="ps-2 mytral-{{ activity_types.color(g.activity_type_key) }}-border">
-                                        <b{% if g.retired %} style="text-decoration: line-through;"{% endif %}>
+                                        <b{% if is_retired %} style="text-decoration: line-through;"{% endif %}>
                                             <a href="{{ url_for('settings_gear_get', key=g.key) }}">{{ g.name }}</a>
                                             {% if g.has_external_id("strava") %}
                                             <span title="Strava ID: {{ g.get_external_id('strava') }}">
@@ -328,11 +306,71 @@
                                     </div>
                                 </td>
                             </tr>
+        {% endmacro %}
+
+        {# Active Gear table #}
+        {% if active_gear|length > 0 %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Active Gear ({{ active_gear|length }})</h3>
+            </div>
+            <div class="card-body">
+                {% if div %}
+                <div class="bokeh d-flex justify-content-center">
+                    {{ div|safe }}
+                </div>
+                {% endif %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Gear<br/>∑</th>
+                                <th>Vendor<br/>Model<br/>Size</th>
+                                <th title="Purchase date and the first/last use in an activity">Purchased<br/>From<br/>To</th>
+                                <th>Distance<br/>Time</th>
+                                <th>TCoO<br/>🪙/km<br/>🪙/h</th>
+                                <th title="Activities for which is gear used e.g. shoes used for running and hiking">Activity</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in active_gear %}
+                            {{ gear_row(g, false) }}
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Retired Gear table — hidden when there is no retired gear #}
+        {% if retired_gear|length > 0 %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Retired Gear ({{ retired_gear|length }})</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Gear<br/>∑</th>
+                                <th>Vendor<br/>Model<br/>Size</th>
+                                <th title="Purchase date and the first/last use in an activity">Purchased<br/>From<br/>To</th>
+                                <th>Distance<br/>Time</th>
+                                <th>TCoO<br/>🪙/km<br/>🪙/h</th>
+                                <th title="Activities for which is gear used e.g. shoes used for running and hiking">Activity</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in retired_gear %}
+                            {{ gear_row(g, true) }}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}
