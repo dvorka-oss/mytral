@@ -9,12 +9,15 @@ This MyTraL **minor** release brings:
 - Added Strava synchronization of individual activities from the activity GET page.
 - Added card encouraging athlete to create an activity to pages which need at least one
   activity to render.
+- Added weight to gear.
 - Added tarball distribution.
 - Added Debian @ Docker distribution.
 - Added Fedora @ Docker distribution.
 
 ### Fixed
 - Fixed km / hour usage of retired gears with no history.
+- Fixed exercise / symptom delete message to contain display name (not UUID) when
+  removing these entities from an activity.
 - Removed color from Strava links on the day activities view and search result view.
 
 ## Documentation
