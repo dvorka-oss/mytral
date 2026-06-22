@@ -19,6 +19,10 @@ Build:
 
 * [build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
 
+Run:
+
+* [run using Python on Ubuntu](INSTALLATION.md#run-using-python-on-ubuntu)
+
 Tarball:
 
 * [download and install tarball](INSTALLATION.md#download-and-install-tarball)

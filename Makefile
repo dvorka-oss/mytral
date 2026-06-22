@@ -274,7 +274,8 @@ data-sync:: ## synchronize ~ pull data in MyTraL data repository
 
 .PHONY: run
 run: .venv ## run MyTraL server w/ ENV var specified data directory
-	vibe
+	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_INCARNATION=DESKTOP \
 	uv run python -m mytral.run
 
 .PHONY: runvdev
@@ -631,6 +632,7 @@ doc-sync-data:
 	@echo "Preparing data..."
 	cp -vf CREDITS.md docs/CREDITS.md
 	cp -vf CHANGELOG.md docs/CHANGELOG.md
+	cp -vf INSTALLATION.md docs/INSTALLATION.md
 	uv run python make/preprocess_license_to_markdown.py
 	uv run python make/preprocess_licenses_to_markdown.py
 
