@@ -1,6 +1,25 @@
 # Changelog
 
-## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added Windows 10 distribution build to GH release.
+
+### Fixed
+- Fixed Desktop binary environment variables based setup so that athletes can create
+  accounts OOTB.
+
+## Documentation
+- Added Ubuntu distribution build guide.
+- Added Python @ Ubuntu distribution guide.
+- Added Debian @ Docker distribution guide.
+- Added Fedora @ Docker distribution guide.
+
+
+
+## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...v1.51.0)
 
 This MyTraL **minor** release brings:
 

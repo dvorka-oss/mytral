@@ -73,13 +73,13 @@ echo "=== MyTraL Docker Fedora runner ==="
 echo "  Image:       ${IMAGE}"
 echo "  Container:   ${CONTAINER_NAME}"
 echo "  Host port:   8888 -> container 5000"
-echo "  Host data:   ${HOST_DATA_DIR} -> container /data"
+echo "  Host data:   ${HOST_DATA_DIR} -> container /mytral"
 echo ""
 
 docker run \
     --name "${CONTAINER_NAME}" \
     --publish 8888:5000 \
-    --volume "${HOST_DATA_DIR}:/data" \
+    --volume "${HOST_DATA_DIR}:/mytral" \
     --env MYTRAL_ENCRYPTION_KEY="${ENC_KEY}" \
     --env MYTRAL_SIGNING_KEY="${MYTRAL_SIGNING_KEY:-docker-signing-key-change-me}" \
     --restart unless-stopped \

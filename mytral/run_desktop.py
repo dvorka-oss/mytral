@@ -71,6 +71,9 @@ import time
 # because mytral/__init__.py creates app_config at import time, ENV vars must be set
 # ENSURE INCARNATION
 os.environ["MYTRAL_INCARNATION"] = "DESKTOP"
+# desktop incarnation allows user registration and auto-account creation by default
+os.environ["MYTRAL_USER_REGISTRATION"] = "true"
+os.environ["MYTRAL_AUTO_ACCOUNT_CREATE"] = "true"
 
 from mytral import app_config
 from mytral import app_logger
