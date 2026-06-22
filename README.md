@@ -15,27 +15,13 @@
 
 ## Installation
 
-Install:
-
-* [Windows](INSTALLATION.md#install-on-windows)
-
 Build:
 
 * [build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
-* [build on Windows](INSTALLATION.md#build-on-windows)
-
-Run:
-
-* [run via Python on Linux](INSTALLATION.md#run-via-python-on-linux)
-* [run via Python on Windows](INSTALLATION.md#run-via-python-on-windows)
-* [run via Python on macOS](INSTALLATION.md#run-via-python-on-macos)
-* [run on Debian in Docker](INSTALLATION.md#run-on-debian-in-docker)
-* [run on Fedora in Docker](INSTALLATION.md#run-on-fedora-in-docker)
 
 Tarball:
 
 * [download and install tarball](INSTALLATION.md#download-and-install-tarball)
-
 
 
 ## Contribute
