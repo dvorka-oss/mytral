@@ -25,8 +25,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Clone the repository:
 
 ```bash
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
+git clone https://github.com/dvorka/mytral.git
+cd mytral
 ```
 
 Install dependencies and start MyTraL:
@@ -44,7 +44,7 @@ Open `http://localhost:5000` in your browser.
 ## Download and install tarball
 
 Download the latest tarball from the
-[GitHub releases](https://github.com/dvorka/my-training-log/releases) page.
+[GitHub releases](https://github.com/dvorka/mytral/releases) page.
 
 Install uv if not already installed:
 
