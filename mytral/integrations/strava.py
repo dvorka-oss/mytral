@@ -348,9 +348,15 @@ class StravaActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         )
 
         # gear: Strava -> MyTraL mapping - map: strava ID -> MyTraL ID
-        strava_gear_dict = app_user_ds.list_gear(
-            user_id=user_profile.user_id
-        ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
+        gear = kwargs.get("gear")
+        if gear is not None:
+            strava_gear_dict = gear.to_dict_by_external_id(
+                settings.UserGear.SERVICE_STRAVA
+            )
+        else:
+            strava_gear_dict = app_user_ds.list_gear(
+                user_id=user_profile.user_id
+            ).to_dict_by_external_id(settings.UserGear.SERVICE_STRAVA)
 
         self.logger.info(
             f"{self.log_name} importing {len(raw_activities)} Strava activities..."

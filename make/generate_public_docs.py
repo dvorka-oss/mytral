@@ -19,8 +19,8 @@ import markdown
 
 
 # Configuration
-GITHUB_BASE_EDIT = "https://github.com/dvorka/my-training-log/edit/main/docs/"
-GITHUB_BASE_VIEW = "https://github.com/dvorka/my-training-log/blob/main/docs/"
+GITHUB_BASE_EDIT = "https://github.com/dvorka/mytral/edit/main/docs/"
+GITHUB_BASE_VIEW = "https://github.com/dvorka/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
 
 
@@ -777,7 +777,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Parse sitemap
-    sitemap_path = source_dir / '_SITEMAP.md'
+    sitemap_path = source_dir / '_SITEMAP_WWW.md'
     sections = parse_sitemap(sitemap_path)
 
     if not sections:

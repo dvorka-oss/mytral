@@ -10,8 +10,8 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### ---
 
-### Athlete Metrics
-* [source](METRICS.md)
+### Data Sharing
+* [source](SHARING.md)
 
 ### ---
 
@@ -24,14 +24,6 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 ### About
 * [source](ABOUT.md)
 
-## Technical Documentation
-
-### Architecture
-* [source](ARCHITECTURE.md)
-
-### Activity Normalization
-* [source](NORMALIZATION.md)
-
 ### ---
 
 ### 3rd Party Licenses
@@ -39,8 +31,3 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 
 ### Changelog
 * [source](CHANGELOG.md)
-
-## Digitalization
-
-### Digitize, Normalize, Own!
-* [source](DIGITALIZATION.md)

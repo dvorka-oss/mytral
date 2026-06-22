@@ -102,6 +102,15 @@ class CreateGearForm(flask_wtf.FlaskForm):
         description="Size specification (e.g., '42 EU', 'Large', '56cm')",
         validators=[],
     )
+    weight = wtforms.FloatField(
+        label="Weight (kg)",
+        description=(
+            "Weight of the gear in kilograms "
+            "(e.g., 8.2 for a bike)"
+        ),
+        validators=[validators.Optional(), validators.NumberRange(min=0)],
+        default=0.0,
+    )
     since = wtforms.IntegerField(
         label="Since",
         description="Year when you started using this gear",
@@ -257,15 +266,19 @@ def settings_gear_list():
             dataset_name=ds.profile(user_id).dataset_name,
         )
 
-        # sort gear by usage count (descending)
+        # sort gear by last used date (descending)
         sorted_items = sorted(
             gear.gear_by_key.items(),
             key=lambda item: (
-                gear_stats.stats(item[0]).stat_use if gear_stats.stats(item[0]) else 0
+                gear_stats.stats(item[0]).stat_to if gear_stats.stats(item[0]) else ""
             ),
             reverse=True,
         )
         gear.gear_by_key = dict(sorted_items)
+
+        # split gear into active and retired lists for separate tables
+        active_gear = [g for g in gear.gear_by_key.values() if not g.retired]
+        retired_gear = [g for g in gear.gear_by_key.values() if g.retired]
 
         activity_types = ds.list_activity_types(user_id)
 
@@ -284,6 +297,8 @@ def settings_gear_list():
                 gear=gear,
                 gear_stats=gear_stats,
                 activity_types=activity_types,
+                active_gear=active_gear,
+                retired_gear=retired_gear,
                 script=script,
                 div=div,
             )
@@ -295,6 +310,8 @@ def settings_gear_list():
                 gear=gear,
                 gear_stats=gear_stats,
                 activity_types=activity_types,
+                active_gear=active_gear,
+                retired_gear=retired_gear,
             )
 
     else:
@@ -339,6 +356,7 @@ def settings_gear_create():
                 vendor=form.vendor.data,
                 model=form.model.data,
                 size=form.size.data,
+                weight=form.weight.data or 0.0,
                 comment=form.comment.data,
                 url=form.url.data,
                 retired=form.retired.data,
@@ -350,13 +368,15 @@ def settings_gear_create():
                 else "",
             )
 
-            ds.create_gear(
+            new_gear = ds.create_gear(
                 user_id=user_id,
                 gear=entity,
                 dataset_name=ds.profile(user_id).dataset_name,
             )
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(
+                flask.url_for(f"settings_{METHODS}_get", key=new_gear.key)
+            )
 
         flask.flash(
             message=f"{NAME_ENTITY} create error - form validation error",
@@ -454,6 +474,7 @@ def settings_gear_update(key: str):
         form.vendor.data = entity.vendor
         form.model.data = entity.model
         form.size.data = entity.size
+        form.weight.data = entity.weight
         form.comment.data = entity.comment
         form.url.data = entity.url
         form.retired.data = entity.retired
@@ -481,6 +502,7 @@ def settings_gear_update(key: str):
             entity.vendor = form.vendor.data or ""
             entity.model = form.model.data or ""
             entity.size = form.size.data or ""
+            entity.weight = form.weight.data or 0.0
             entity.comment = form.comment.data or ""
             entity.url = form.url.data or ""
             entity.retired = form.retired.data
@@ -497,7 +519,9 @@ def settings_gear_update(key: str):
                 dataset_name=ds.profile(user_id).dataset_name,
             )
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(
+                flask.url_for(f"settings_{METHODS}_get", key=entity.key)
+            )
 
         flask.flash(
             message=f"{NAME_ENTITY} update error - form validation error",

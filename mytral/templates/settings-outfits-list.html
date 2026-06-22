@@ -145,7 +145,7 @@
                                 {% endif %}
                             {% endfor %}
                             {% if most_versatile.activity %}
-                            <div class="h3 mb-0 text-truncate" title="{{ most_versatile.activity }}">{{ most_versatile.activity }}</div>
+                            <div class="h3 mb-0 text-truncate" title="{{ activity_types.name(most_versatile.activity) or most_versatile.activity }}">{{ activity_types.name(most_versatile.activity) or most_versatile.activity }}</div>
                             <div class="text-muted small">{{ most_versatile.count }} outfit{% if most_versatile.count != 1 %}s{% endif %}</div>
                             {% else %}
                             <div class="h3 mb-0">—</div>
@@ -230,10 +230,12 @@
                             {% for g in outfits.outfits_by_key.values() %}
                             <tr>
                                 <td>
-                                    <div class="font-weight-medium" {% if not g.count %}style="color: gray;"{% endif %}><b>{{ g.name }}</b></div>
-                                    <div>{% if g.count %}<span class="badge bg-dark text-dark-fg">{% endif %}{{ g.count }}x{% if g.count %}</span>{% endif %}</div>
+                                    <div class="ps-2 mytral-{{ activity_types.color(g.activity_type) }}-border">
+                                        <div class="font-weight-medium" {% if not g.count %}style="color: gray;"{% endif %}><b>{{ g.name }}</b></div>
+                                        <div>{% if g.count %}<span class="badge bg-dark text-dark-fg">{% endif %}{{ g.count }}x{% if g.count %}</span>{% endif %}</div>
+                                    </div>
                                 </td>
-                                <td><a href="{{ url_for('settings_activity_types_list') }}">{{ g.activity_type }}</a></td>
+                                <td><a href="{{ url_for('settings_activity_types_list') }}">{{ activity_types.name(g.activity_type) or g.activity_type }}</a></td>
                                 <td>{{ g.description | markdown }}</td>
                                 <td>
                                     <div class="btn-list">

@@ -95,7 +95,7 @@ def test_strava_api_export_json(tmp_path: pathlib.Path):
 
         # INSERT CODE HERE
         strava_secrets["code"] = ""
-        strava_secrets["code"] = "292e47b3c52f9e8e641b03fddc6d7be292505195"
+        strava_secrets["code"] = "123457b3c52f9e8e641b03fddc6d7be292505195"
         if not strava_secrets["code"]:
             # STEP: get the code (OAuth URL):
             # 1. code below constructs URL
@@ -103,7 +103,7 @@ def test_strava_api_export_json(tmp_path: pathlib.Path):
             # 3. strava.com will REDIRECT to given URL (e.g. http://localhost)
             #    and append parameters with the code - for instance the URL is:
             #    http://localhost/
-            #      ?state=&code=292e47b3c52f9e8e641b03fddc6d7be292505195
+            #      ?state=&code=12345b3c52f9e8e641b03fddc6d7be292505195
             #       &scope=read,activity:read_all,profile:read_all
             # 4. if this redirects to MyTraL, then I will be able to handle the URL
             #    and extract the code from the URL parameter

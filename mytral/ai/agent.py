@@ -39,7 +39,7 @@ _logger = structlog.get_logger()
 
 
 #
-# NOTE: We intentionally use result_type=str (plain text / markdown) rather
+# NOTE: We intentionally use output_type=str (plain text / markdown) rather
 # than a structured Pydantic result model.
 #
 # Reason: local models (e.g. llama3.2 via Ollama) do not reliably produce
@@ -171,10 +171,10 @@ def build_agent(
     agent: pydantic_ai.Agent[CoachDeps, str] = pydantic_ai.Agent(
         model,
         deps_type=CoachDeps,
-        result_type=str,
+        output_type=str,
         system_prompt=system_prompt,
         # allow retries on transient failures (e.g. tool errors)
-        result_retries=2,
+        output_retries=2,
     )
 
     # register tools
@@ -919,9 +919,9 @@ def run_agent(
         "agent: run completed",
         coach=coach.name,
         model=model_name,
-        response_len=len(result.data),
+        response_len=len(result.output),
     )
-    return result.data
+    return result.output
 
 
 def format_response_as_markdown(response: str) -> str:

@@ -2,7 +2,7 @@
 name: New feature
 about: Propose a new MyTraL feature.
 title: "[Feature] "
-labels: ""
+labels: "feature 🚀"
 assignees: dvorka
 
 ---

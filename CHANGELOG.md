@@ -1,6 +1,31 @@
 # Changelog
 
-## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added activity type color border hint to goals, gear, and several other pages.
+- Added Strava synchronization of individual activities from the activity GET page.
+- Added card encouraging athlete to create an activity to pages which need at least one
+  activity to render.
+- Added weight to gear.
+- Added tarball distribution.
+- Added Debian @ Docker distribution.
+- Added Fedora @ Docker distribution.
+
+### Fixed
+- Fixed km / hour usage of retired gears with no history.
+- Fixed exercise / symptom delete message to contain display name (not UUID) when
+  removing these entities from an activity.
+- Removed color from Strava links on the day activities view and search result view.
+
+## Documentation
+- Adding the installation documentation.
+
+
+
+## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.9.0...v1.50.0)
 
 This MyTraL release is very **special** to me. After years of coding and hacking
 together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
@@ -496,5 +521,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka-oss/my-training-log/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka-oss/my-training-log/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka-oss/mytral/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka-oss/mytral/releases/tag/v0.9.0...v1.0.0

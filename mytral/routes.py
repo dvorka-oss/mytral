@@ -48,6 +48,7 @@ from mytral import insights
 from mytral import ninjas
 from mytral import notifications as notif_mod
 from mytral import onboarding
+from mytral import security
 from mytral import settings as user_settings
 from mytral import stats
 from mytral import utils
@@ -55,6 +56,7 @@ from mytral import version
 from mytral import views
 from mytral.backends import entities as entities_mod
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.integrations import strava
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
 from mytral.tasks import _entities as task_entities
@@ -700,7 +702,11 @@ def this_vs_last():
     ).year_max
 
     if not year:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "this-vs-last.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     aspect_arg = flask.request.args.get("aspect")
     if aspect_arg is None:
@@ -777,7 +783,11 @@ def insight_active_in_week():
         user_id=user_id, dataset_name=user_profile.dataset_name
     ).year_max
     if not year:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "active-in-week.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     activities = ds.list_activities(
         user_id=user_id, dataset_name=user_profile.dataset_name, skip_future=True
@@ -812,13 +822,23 @@ def insight_weight():
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        sort_by_when=True,
+        skip_future=True,
+    )
+    has_weight_data = any(a.weight for a in activities)
+
+    if not has_weight_data:
+        return flask.render_template(
+            "weight.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
     fig = charts.weight_per_week(
-        activities=ds.list_activities(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            sort_by_when=True,
-            skip_future=True,
-        ),
+        activities=activities,
         is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
     )
 
@@ -839,13 +859,23 @@ def insight_resting_hr():
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        sort_by_when=True,
+        skip_future=True,
+    )
+    has_hr_data = any(a.min_hr for a in activities)
+
+    if not has_hr_data:
+        return flask.render_template(
+            "resting-hr.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
     fig = charts.resting_hr_per_week(
-        activities=ds.list_activities(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            sort_by_when=True,
-            skip_future=True,
-        ),
+        activities=activities,
         is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
     )
 
@@ -1189,6 +1219,15 @@ def tasks_list():
     running_tasks_count = sum(
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
+
+    # validate result_route endpoints — stale routes from deleted pages
+    # would cause BuildError when the template tries url_for()
+    view_functions = set(flask.current_app.view_functions.keys())
+    for t in all_tasks:
+        if t.result_route and t.result_route not in view_functions:
+            t.result_route = "home"
+            t.result_route_kwargs = {}
+
     return flask.render_template(
         "tasks-list.html",
         user_profile=ds.profile(user_id),
@@ -1912,7 +1951,7 @@ def settings():
         )
         dataset_stats.dataset_size_mb = round(total_bytes / (1024 * 1024), 3)
 
-        app_logger.debug(f"MyTraL CACHE size: {ds.cache.memory_size():,} B")
+        app_logger.debug(f"MyTraL CACHE size: {ds.cache_memory_size(user_id):,} B")
 
         return flask.render_template(
             "settings.html",
@@ -3157,17 +3196,28 @@ def delete_exercise(key, index):
 
         flask.flash(message="Exercise delete error", category="error")
 
+    # Get exercise entity to retrieve its key (UUID)
+    entity = ds.get_activity(
+        user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+    )
+    exercise_entity = entity.exercises[int(index) - 1]
+
+    # Look up display name from user's exercises list
+    exercise_key = exercise_entity.name
+    exercises = ds.list_exercises(user_id)
+    exercise_name = (
+        exercises.exercise_by_key.get(exercise_key).name
+        if exercise_key in exercises.exercise_by_key
+        else exercise_key
+    )
+
     return flask.render_template(
         "exercise-delete.html",
         user_profile=user_profile,
         key=key,
         index=index,
         form=form,
-        name=ds.get_activity(
-            user_id=user_id, dataset_name=user_profile.dataset_name, key=key
-        )
-        .exercises[int(index) - 1]
-        .name,
+        name=exercise_name,
     )
 
 
@@ -3284,17 +3334,28 @@ def delete_symptom(key, index):
 
         flask.flash(message="Symptom delete error", category="error")
 
+    # Get symptom entity to retrieve its key (UUID)
+    entity = ds.get_activity(
+        user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+    )
+    symptom_entity = entity.sickness_symptoms[int(index) - 1]
+
+    # Look up display name from user's symptoms list
+    symptom_key = symptom_entity.symptom
+    symptoms = ds.list_symptoms(user_id)
+    symptom_name = (
+        symptoms.symptoms_by_key.get(symptom_key).name
+        if symptom_key in symptoms.symptoms_by_key
+        else symptom_key
+    )
+
     return flask.render_template(
         "symptom-delete.html",
         user_profile=user_profile,
         key=key,
         index=index,
         form=form,
-        name=ds.get_activity(
-            user_id=user_id, dataset_name=user_profile.dataset_name, key=key
-        )
-        .sickness_symptoms[int(index) - 1]
-        .symptom,
+        name=symptom_name,
     )
 
 
@@ -3428,6 +3489,93 @@ def get_activity(key):
         activity_map_data=activity_map_data,
         form=form,
     )
+
+
+@flask_app.route("/app/activities/<key>/sync-strava", methods=["POST"])
+def sync_strava_activity(key):
+    """Start async task to synchronize a single activity from Strava."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    dataset_name = user_profile.dataset_name
+    a = ds.get_activity(user_id=user_id, dataset_name=dataset_name, key=key)
+
+    if not a or a.src != strava.SRC_STRAVA:
+        flask.flash("Activity is not a Strava activity.", "warning")
+        return flask.redirect(flask.url_for("get_activity", key=key))
+
+    src_key = a.src_key
+    if not src_key:
+        flask.flash("Activity has no Strava source key.", "warning")
+        return flask.redirect(flask.url_for("get_activity", key=key))
+
+    # validate Strava authentication
+    is_auth, is_auth_valid = strava.is_access_token_valid(user_profile)
+    if not is_auth or not is_auth_valid:
+        if strava.is_refresh_token_valid(user_profile):
+            try:
+                strava.auth_get_access_for_refresh_token(user_profile, app_logger)
+                ds.update_profile(user_profile)
+            except Exception:
+                flask.flash(
+                    "Strava authentication expired. Please re-authenticate.",
+                    "danger",
+                )
+                return flask.redirect(flask.url_for("strava_auth_start"))
+        else:
+            flask.flash(
+                "Strava not authenticated. Please authenticate first.",
+                "danger",
+            )
+            return flask.redirect(flask.url_for("strava_auth_start"))
+
+    enc_key = app_config.encryption_key
+    task_params = {
+        "user_id": user_id,
+        "dataset_name": dataset_name,
+        "activity_key": key,
+        "src_key": src_key,
+        "access_token": security.encrypt(
+            user_profile.strava_access_token or "", enc_key
+        ),
+        "refresh_token": security.encrypt(
+            user_profile.strava_refresh_token or "", enc_key
+        ),
+        "client_id": user_profile.strava_client_id or "",
+        "client_secret": security.encrypt(
+            user_profile.strava_client_secret or "", enc_key
+        ),
+        "auth_until": user_profile.strava_auth_until or 0,
+    }
+
+    task = task_entities.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=str(user_id),
+        task_type="strava_sync_activity",
+        status=task_entities.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters=task_params,
+        result_route="get_activity",
+        result_route_kwargs={"key": key},
+    )
+
+    try:
+        app_task_manager.executor.submit(task)
+        flask.flash(
+            "Strava activity sync started — check Tasks for progress.", "success"
+        )
+    except Exception as exc:
+        flask.flash(f"Could not start sync: {exc}", "danger")
+
+    return flask.redirect(flask.url_for("tasks_list"))
 
 
 @flask_app.route("/app/activities/<key>/analysis", methods=["GET"])
@@ -3592,7 +3740,11 @@ def list_activities_year(year):
         if year_int:
             return flask.redirect(f"/activities/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "activity-list-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     # load only activities for given year
     all_activities = ds.list_activities(
@@ -3891,7 +4043,11 @@ def list_activities_diary():
             is_mobile=flask.session.get(COOKIE_MOBILE),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "activity-list-diary.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/activities/prs")
@@ -3966,7 +4122,11 @@ def list_activities_prs():
                     )
 
     if not pr_entries:
-        return flask.redirect(flask.url_for("home"))
+        return flask.render_template(
+            "activity-list-prs.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     # group by activity type; within each activity_type_key handle two kinds of events:
     #   distance-based: fixed distance, varying duration → best = min duration
@@ -4056,6 +4216,13 @@ def list_activities_paces():
         ),
         reverse=True,
     )
+
+    if not unique_activity_types:
+        return flask.render_template(
+            "activity-paces.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
 
     # generate pace chart
     chart_script, chart_div = charts.activity_paces_by_distance(
@@ -4173,7 +4340,11 @@ def list_activities_races():
             sport_count=len(unique_activity_types),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "activity-list-races.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/activities/date/<year>/<month>/<day>")
@@ -4548,6 +4719,14 @@ def y2y_month_perspective():
     referential_year = ds_stats.year_max
     this_month = int(datetime.date.today().month)
 
+    if not ds_stats.years:
+        return flask.render_template(
+            "heatmap-y2y-month-perspective.html",
+            user_profile=user_profile,
+            data=data,
+            years=[],
+        )
+
     for year in range(referential_year, ds_stats.year_min - 1, -1):
         for m in data:
             data[m][year] = [0.0, "0h00m00s", ""]
@@ -4711,9 +4890,14 @@ def heatmap_weekday_to_activity():
             avg_per_weekday=avg_per_weekday,
             chart_script=chart_script,
             chart_div=chart_div,
+            activity_types=activity_types,
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "heatmap-weekday-to-activity.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/search")
@@ -4747,7 +4931,11 @@ def calendar_heatmap():
             is_mobile=flask.session.get(COOKIE_MOBILE),
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "heatmap-calendar.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 @flask_app.route("/calendar/year/<year>")
@@ -4772,7 +4960,11 @@ def calendar_year(year):
         if year_int:
             return flask.redirect(f"/calendar/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "calendar-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     # age at a year
     age_at_year = (
@@ -4874,7 +5066,11 @@ def charts_year(year):
         if year_int:
             return flask.redirect(f"/charts/year/{year_int}")
         else:
-            return flask.redirect(flask.url_for("home"))
+            return flask.render_template(
+                "charts-year.html",
+                user_profile=user_profile,
+                no_data=True,
+            )
 
     cal_heatmap = views.CalendarHeatmap(
         from_year=year_int,
@@ -4980,7 +5176,11 @@ def insight_sickness_heatmap():
             data=cal_heatmap,
         )
 
-    return flask.redirect(flask.url_for("home"))
+    return flask.render_template(
+        "insight-sickness-heatmap.html",
+        user_profile=user_profile,
+        no_data=True,
+    )
 
 
 #

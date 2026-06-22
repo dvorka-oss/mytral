@@ -209,7 +209,7 @@
                                     .
                                     {% endif %}
                                 </td>
-                                <td><span {% if activity.src =="strava" %}class="badge bg-orange-lt" {% endif %}>{{ activity.src }}</span></td>
+                                <td><span>{{ activity.src }}</span></td>
                                 {% if activity.workout_sort_code == 2 %}
                                 <td title="Workout"><div class="mytral-workouts-few">
                                 {% elif activity.workout_sort_code == 3 %}

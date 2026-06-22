@@ -1,5 +1,45 @@
 {%extends "layout.html"%}
 {% block content %}
+{% if no_data %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Activities</span>
+                <h2 class="page-title">Diary</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-notes-off" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 3l18 18"></path>
+                        <path d="M5 5m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"></path>
+                        <path d="M9 9l6 6"></path>
+                    </svg>
+                </div>
+                <p class="empty-title">No diary entries yet</p>
+                <p class="empty-subtitle text-muted">
+                    Add comments and notes to your activities to build your training diary!
+                </p>
+                <div class="empty-action">
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Create your first activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
 <div class="page-header d-print-none" aria-label="Page header">
     <div class="container-xl">
         <div class="row g-2 align-items-center">
@@ -110,4 +150,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

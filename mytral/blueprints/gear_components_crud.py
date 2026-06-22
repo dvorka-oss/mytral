@@ -190,7 +190,6 @@ def settings_gear_component_create(gear_key: str):
         form = ComponentForm()
         if form.validate_on_submit():
             install_date_str = form.installed_date.data.isoformat()
-            dataset_name = ds.profile(user_id).dataset_name
 
             # create component
             component = settings.GearComponent(
@@ -229,23 +228,16 @@ def settings_gear_component_create(gear_key: str):
             # add component to gear
             gear.components.append(component.to_dict())
 
-            # initialize component usage from current gear stats
-            gear_stats = ds.gear_stats(
-                user_id=user_id,
-                dataset_name=dataset_name,
-            ).stats(gear.key)
-            if gear_stats:
-                gear.recalculate_component_usage_from_gear_stats(gear_stats)
-                # set last_service_km to current gear total so km_since_service
-                # starts at 0; recompute_gear_service_intervals will correct
-                # this to the activity-based value on the next page load
-                install_km = (gear_stats.stat_meters or 0) / 1000.0
-                install_h = (gear_stats.stat_seconds or 0) / 3600.0
-                for c in gear.components:
-                    if c.get("key") == component.key:
-                        c["last_service_km"] = install_km
-                        c["last_service_hours"] = install_h
-                        break
+            # initialize new component usage at 0 (component-relative baseline);
+            # recompute_gear_service_intervals will refine this from
+            # activity data on the next page load
+            for c in gear.components:
+                if c.get("key") == component.key:
+                    c["last_service_km"] = 0.0
+                    c["last_service_hours"] = 0.0
+                    c["distance_meters"] = 0
+                    c["time_seconds"] = 0
+                    break
 
             # recalculate TCoO
             gear.recalculate_tcoo()
@@ -613,6 +605,47 @@ def settings_gear_component_retire(gear_key: str, component_key: str):
         )
 
         flask.flash(message=f"Component '{component_name}' retired", category="success")
+    except Exception as e:
+        flask.flash(message=f"Component error: {e}", category="error")
+
+    return flask.redirect(flask.url_for("settings_gear_get", key=gear_key))
+
+
+@flask_app.route(
+    f"/settings/gears/<gear_key>/{ENTITIES}/<component_key>/unretire", methods=["POST"]
+)
+def settings_gear_component_unretire(gear_key: str, component_key: str):
+    """Un-retire a component (set status back to active)."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    try:
+        gear = ds.get_gear(
+            user_id=user_id, key=gear_key, dataset_name=ds.profile(user_id).dataset_name
+        )
+
+        for c in gear.components:
+            if c.get("key") == component_key:
+                c["status"] = "active"
+                component_name = c.get("name", "Component")
+                break
+        else:
+            raise ValueError(f"Component {component_key} not found")
+
+        # recalculate TCoO
+        gear.recalculate_tcoo()
+
+        # save
+        ds.update_gear(
+            user_id=user_id,
+            gear=gear,
+            dataset_name=ds.profile(user_id).dataset_name,
+        )
+
+        flask.flash(
+            message=f"Component '{component_name}' un-retired", category="success"
+        )
     except Exception as e:
         flask.flash(message=f"Component error: {e}", category="error")
 

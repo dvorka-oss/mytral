@@ -137,61 +137,14 @@
                             <div class="dropdown-menu-column">
                               <a class="dropdown-item" href="index.html">Manifesto</a>
 <div class="dropdown-divider"></div>
-<a class="dropdown-item" href="metrics.html">Athlete Metrics</a>
+<a class="dropdown-item" href="sharing.html">Data Sharing</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="credits.html">Credits</a>
 <a class="dropdown-item" href="license.html">License</a>
 <a class="dropdown-item" href="about.html">About</a>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li class="nav-item dropdown">
-                        <a
-                          class="nav-link dropdown-toggle"
-                          href="#navbar-base"
-                          data-bs-toggle="dropdown"
-                          data-bs-auto-close="outside"
-                          role="button"
-                          aria-expanded="false"
-                        >
-                          <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-code"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></svg>
-                          </span>
-                          <span class="nav-link-title"> Technical Documentation </span>
-                        </a>
-                        <div class="dropdown-menu">
-                          <div class="dropdown-menu-columns">
-                            <div class="dropdown-menu-column">
-                              <a class="dropdown-item active" href="architecture.html">Architecture</a>
-<a class="dropdown-item" href="normalization.html">Activity Normalization</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="licenses.html">3rd Party Licenses</a>
 <a class="dropdown-item" href="changelog.html">Changelog</a>
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-
-                      <li class="nav-item dropdown">
-                        <a
-                          class="nav-link dropdown-toggle"
-                          href="#navbar-base"
-                          data-bs-toggle="dropdown"
-                          data-bs-auto-close="outside"
-                          role="button"
-                          aria-expanded="false"
-                        >
-                          <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-book"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6l0 13" /><path d="M12 6l0 13" /><path d="M21 6l0 13" /></svg>
-                          </span>
-                          <span class="nav-link-title"> Digitalization </span>
-                        </a>
-                        <div class="dropdown-menu">
-                          <div class="dropdown-menu-columns">
-                            <div class="dropdown-menu-column">
-                              <a class="dropdown-item" href="digitalization.html">Digitize, Normalize, Own!</a>
                             </div>
                           </div>
                         </div>
@@ -241,7 +194,7 @@
             <div class="container-xl">
                 <div class="row g-2 align-items-center">
                     <div class="col">
-                        <div class="page-pretitle">Technical Documentation</div>
+                        <div class="page-pretitle">MyTraL Documentation</div>
                         <h2 class="page-title">MyTraL Architecture</h2>
                     </div>
                 </div>
@@ -254,7 +207,7 @@
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><p>This page describes the actual runtime architecture of MyTraL based on the current Python modules and wiring.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="uml-component-diagram-nested-ascii">UML Component Diagram (Nested ASCII)</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="uml-component-diagram">UML Component Diagram</h2>
 <div class="codehilite"><pre><span></span><code>+-------------------+                     +----------------------------------------+
 |       User        |                     |                Browser                 |
 | &lt;&lt;actor&gt;&gt; Athlete |--------------------&gt;| &lt;&lt;component&gt;&gt; Tabler UI + JS + Bokeh   |
@@ -351,7 +304,7 @@
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#uml-component-diagram-nested-ascii" class="nav-link">UML Component Diagram (Nested ASCII)</a>
+        <a href="#uml-component-diagram" class="nav-link">UML Component Diagram</a>
 <a href="#user" class="nav-link">User</a>
 <a href="#browser" class="nav-link">Browser</a>
 <a href="#server" class="nav-link">Server</a>
@@ -382,8 +335,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/edit/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/my-training-log/blob/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/edit/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/blob/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

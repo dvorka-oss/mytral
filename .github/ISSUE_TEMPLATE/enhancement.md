@@ -2,7 +2,7 @@
 name: New enhancement
 about: Propose a new MyTraL enhancement.
 title: "[Enhancement] "
-labels: ""
+labels: "enhancement :octocat:"
 assignees: dvorka
 
 ---
