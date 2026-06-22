@@ -18,6 +18,7 @@
 Build:
 
 * [Build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
+* [Build on Windows](INSTALLATION.md#build-on-windows)
 
 Run:
 
