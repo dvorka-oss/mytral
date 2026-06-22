@@ -2,15 +2,17 @@
 
 Build:
 
-* [build on Ubuntu](#build-on-ubuntu)
+* [Build on Ubuntu](#build-on-ubuntu)
 
 Run:
 
-* [run using Python on Ubuntu](#run-using-python-on-ubuntu)
+* [Run using Python on Ubuntu](#run-using-python-on-ubuntu)
+* [Run using Docker on Debian](#run-using-docker-on-debian)
+* [Run using Docker on Fedora](#run-using-docker-on-fedora)
 
 Tarball:
 
-* [download and install tarball](#download-and-install-tarball)
+* [Download and install tarball](#download-and-install-tarball)
 
 
 # Build
@@ -55,7 +57,7 @@ cd distro/desktop && ./mytral-[major.minor.patch]
 
 Start using MyTraL:
 
-* Click `Add new user` button to add new athlete.
+* Click `Add new user` button to add new athlete account.
 * `Sign in`.
 
 Optionally install MyTraL for the current user:
@@ -104,8 +106,78 @@ make run
 
 Open `http://localhost:5000` in your browser:
 
-* Click `Add new user` button to add new athlete.
+* Click `Add new user` button to add new athlete account.
 * `Sign in`.
+
+
+## Run using Docker on Debian
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Build the Debian image (requires Docker and uv in `PATH`):
+
+```bash
+make distro-docker-debian-build
+```
+
+Run the container:
+
+```bash
+make distro-docker-debian-run
+```
+
+* Serves on [http://localhost:8888](http://localhost:8888) .
+* Data is stored at `~/.local/share/mytral-docker-debian/`.
+
+Open `http://localhost:8888` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
+
+Stop the container:
+
+```bash
+docker stop mytral-debian
+```
+
+
+## Run using Docker on Fedora
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Build the Fedora image (requires Docker and uv in `PATH`):
+
+```bash
+make distro-docker-fedora-build
+```
+
+Run the container:
+
+```bash
+make distro-docker-fedora-run
+```
+
+* Serves on [http://localhost:8888](http://localhost:8888) .
+* Data is stored at `~/.local/share/mytral-docker-fedora/`.
+
+Open `http://localhost:8888` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
+
+Stop the container:
+
+```bash
+docker stop mytral-fedora
+```
 
 
 # Tarball
@@ -148,7 +220,7 @@ make run
 
 Open `http://localhost:5000` in your browser:
 
-* Click `Add new user` button to add new athlete.
+* Click `Add new user` button to add new athlete account.
 * `Sign in`.
 
 

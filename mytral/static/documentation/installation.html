@@ -208,15 +208,17 @@
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Build:</p>
 <ul>
-<li><a href="#build-on-ubuntu">build on Ubuntu</a></li>
+<li><a href="#build-on-ubuntu">Build on Ubuntu</a></li>
 </ul>
 <p>Run:</p>
 <ul>
-<li><a href="#run-using-python-on-ubuntu">run using Python on Ubuntu</a></li>
+<li><a href="#run-using-python-on-ubuntu">Run using Python on Ubuntu</a></li>
+<li><a href="#run-using-docker-on-debian">Run using Docker on Debian</a></li>
+<li><a href="#run-using-docker-on-fedora">Run using Docker on Fedora</a></li>
 </ul>
 <p>Tarball:</p>
 <ul>
-<li><a href="#download-and-install-tarball">download and install tarball</a></li>
+<li><a href="#download-and-install-tarball">Download and install tarball</a></li>
 </ul>
 <h1 id="build">Build</h1>
 <p>Build MyTraL desktop application from the source code.</p>
@@ -247,7 +249,7 @@
 
 <p>Start using MyTraL:</p>
 <ul>
-<li>Click <code>Add new user</code> button to add new athlete.</li>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
 <li><code>Sign in</code>.</li>
 </ul>
 <p>Optionally install MyTraL for the current user:</p>
@@ -280,9 +282,61 @@
 
 <p>Open <code>http://localhost:5000</code> in your browser:</p>
 <ul>
-<li>Click <code>Add new user</code> button to add new athlete.</li>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
 <li><code>Sign in</code>.</li>
 </ul>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="run-using-docker-on-debian">Run using Docker on Debian</h2>
+<p>Install <code>uv</code>:</p>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</code></pre></div>
+
+<p>Build the Debian image (requires Docker and uv in <code>PATH</code>):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-docker-debian-build
+</code></pre></div>
+
+<p>Run the container:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-docker-debian-run
+</code></pre></div>
+
+<ul>
+<li>Serves on <a href="http://localhost:8888">http://localhost:8888</a> .</li>
+<li>Data is stored at <code>~/.local/share/mytral-docker-debian/</code>.</li>
+</ul>
+<p>Open <code>http://localhost:8888</code> in your browser:</p>
+<ul>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
+<li><code>Sign in</code>.</li>
+</ul>
+<p>Stop the container:</p>
+<div class="codehilite"><pre><span></span><code>docker<span class="w"> </span>stop<span class="w"> </span>mytral-debian
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="run-using-docker-on-fedora">Run using Docker on Fedora</h2>
+<p>Install <code>uv</code>:</p>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</code></pre></div>
+
+<p>Build the Fedora image (requires Docker and uv in <code>PATH</code>):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-docker-fedora-build
+</code></pre></div>
+
+<p>Run the container:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-docker-fedora-run
+</code></pre></div>
+
+<ul>
+<li>Serves on <a href="http://localhost:8888">http://localhost:8888</a> .</li>
+<li>Data is stored at <code>~/.local/share/mytral-docker-fedora/</code>.</li>
+</ul>
+<p>Open <code>http://localhost:8888</code> in your browser:</p>
+<ul>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
+<li><code>Sign in</code>.</li>
+</ul>
+<p>Stop the container:</p>
+<div class="codehilite"><pre><span></span><code>docker<span class="w"> </span>stop<span class="w"> </span>mytral-fedora
+</code></pre></div>
+
 <h1 id="tarball">Tarball</h1>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and install tarball</h2>
 <p>Download the latest tarball from the
@@ -310,7 +364,7 @@
 
 <p>Open <code>http://localhost:5000</code> in your browser:</p>
 <ul>
-<li>Click <code>Add new user</code> button to add new athlete.</li>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
 <li><code>Sign in</code>.</li>
 </ul>
                         </div></div>
@@ -324,6 +378,8 @@
     <div class="nav nav-vertical" id="toc">
         <a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
+<a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>
+<a href="#run-using-docker-on-fedora" class="nav-link">Run using Docker on Fedora</a>
 <a href="#download-and-install-tarball" class="nav-link">Download and install tarball</a>
     </div>
 </div>

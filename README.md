@@ -17,15 +17,18 @@
 
 Build:
 
-* [build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
+* [Build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
 
 Run:
 
-* [run using Python on Ubuntu](INSTALLATION.md#run-using-python-on-ubuntu)
+* [Run using Python on Ubuntu](INSTALLATION.md#run-using-python-on-ubuntu)
+* [Run using Docker on Debian](INSTALLATION.md#run-using-docker-on-debian)
+* [Run using Docker on Fedora](INSTALLATION.md#run-using-docker-on-fedora)
 
 Tarball:
 
-* [download and install tarball](INSTALLATION.md#download-and-install-tarball)
+* [Download and install tarball](INSTALLATION.md#download-and-install-tarball)
+
 
 
 ## Contribute
