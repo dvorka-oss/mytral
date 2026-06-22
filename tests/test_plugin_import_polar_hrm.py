@@ -491,7 +491,8 @@ def test_compute_max_speed_kmh_skips_missing_speed_keys():
 # Roman's Polar dataset — only present on the local development machine,
 # used to validate the fix for the validation-page regressions.
 _ROMAN_DATA_DIR = (
-    pathlib.Path("/home/dvorka/p/mytral/datasets-COMPLETE/roman-vetesnik")
+    _given.TEST_DS_ROOT
+    / "roman"
     / "Polar 20.1.18"
     / "Polar Precision Performance"
     / "Roman"

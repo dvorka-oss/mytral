@@ -27,7 +27,7 @@ Method:
 * **Step 2**: Configure your system to have a directory which is synced to shared cloud drive:
     * Linux: `/home/user/insync`
 * **Step 3**: Copy your existing data to the shared directory:
-    * Linux: `cp -rvf /home/dvorka/.local/share/mytral /home/user/insync/mytral`
+    * Linux: `cp -rvf /home/user/.local/share/mytral /home/user/insync/mytral`
 * **Step 4**: Configure MyTraL to use data on the shared drive:
     * Linux (`~/.zshrc` or `~/.bashrc` or your shell rc file):
       `export MYTRAL_DATA_DIR="/home/user/insync/mytral"`
@@ -54,11 +54,11 @@ Providers (consider size of your data, mine is ~3GB):
 Method:
 
 * **Step 1**: Install Git LFS extension:
-    * Linux (Ubuntu/Debian): 
+    * Linux (Ubuntu/Debian):
         * `sudo apt-get install git-lfs`
-    * Mac (via Homebrew): 
+    * Mac (via Homebrew):
         * `brew install git-lfs`
-    * Windows (via Winget): 
+    * Windows (via Winget):
         * `winget install github.git-lfs`
 * **Step 2**: Initialize your system:
     * `git lfs install`

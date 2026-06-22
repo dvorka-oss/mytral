@@ -43,7 +43,8 @@ Examples:
   mytral import strava
   mytral upgrade --from 1.0.0 --to 1.1.0
 
-For more information visit: https://github.com/dvorka/my-training-log
+For more information visit: https://github.com/dvorka-oss/mytral
+
 """)
 
 

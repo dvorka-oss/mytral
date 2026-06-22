@@ -518,5 +518,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka-oss/my-training-log/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka-oss/my-training-log/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka-oss/mytral/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka-oss/mytral/releases/tag/v0.9.0...v1.0.0
