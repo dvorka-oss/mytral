@@ -15,6 +15,10 @@
 
 ## Installation
 
+Install:
+
+* [Windows](INSTALLATION.md#windows)
+
 Build:
 
 * [Build on Ubuntu](INSTALLATION.md#build-on-ubuntu)

@@ -16,6 +16,28 @@ Tarball:
 * [Download and install tarball](#download-and-install-tarball)
 
 
+# Install
+Install MyTraL desktop application.
+## Windows
+Download the latest ZIP archive with the executable:
+
+* [GitHub Releases](https://github.com/dvorka/mytral/releases)
+
+Extract `*.exe`:
+
+```bash
+unzip mytral-<version>.exe-Win*.zip
+```
+
+Start MyTraL:
+
+```
+mytral-<version>.exe
+
+# example: mytral-1.51.0.exe
+```
+
+
 # Build
 
 Build MyTraL desktop application from the source code.
@@ -50,7 +72,7 @@ make setup distro-desktop-build
 Run MyTraL desktop application:
 
 ```bash
-cd distro/desktop && ./mytral-[major.minor.patch]
+cd distro/desktop && ./mytral-<version>
 
 # example:
 # cd distro/desktop && ./mytral-1.51.0
@@ -101,7 +123,7 @@ Run MyTraL desktop application:
 cd distro\desktop
 
 # example: mytral-1.51.0.exe
-mytral-[major.minor.patch].exe
+mytral-<version>.exe
 ```
 
 Data will be stored to:
@@ -233,7 +255,7 @@ docker stop mytral-fedora
 ## Download and install tarball
 
 Download the latest tarball from the
-[GitHub releases](https://github.com/dvorka/mytral/releases) page.
+[GitHub Releases](https://github.com/dvorka/mytral/releases) page.
 
 Extract and start MyTraL:
 
