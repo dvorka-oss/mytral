@@ -209,6 +209,7 @@
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Build:</p>
 <ul>
 <li><a href="#build-on-ubuntu">Build on Ubuntu</a></li>
+<li><a href="#build-on-windows">Build on Windows</a></li>
 </ul>
 <p>Run:</p>
 <ul>
@@ -241,10 +242,10 @@
 </code></pre></div>
 
 <p>Run MyTraL desktop application:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># Example:</span>
-<span class="c1"># cd distro/desktop &amp;&amp; ./mytral-1.51.0</span>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro/desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>
 
-<span class="nb">cd</span><span class="w"> </span>distro/desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>
+<span class="c1"># example:</span>
+<span class="c1"># cd distro/desktop &amp;&amp; ./mytral-1.51.0</span>
 </code></pre></div>
 
 <p>Start using MyTraL:</p>
@@ -256,6 +257,40 @@
 <div class="codehilite"><pre><span></span><code>make distro-desktop-install
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-on-windows">Build on Windows</h2>
+<p>Install <code>uv</code> to <code>C:\Users\[user]\.local\bin</code>:</p>
+<div class="codehilite"><pre><span></span><code>powershell<span class="w"> </span>-ExecutionPolicy<span class="w"> </span>ByPass<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;irm https://astral.sh/uv/install.ps1 | iex&quot;</span>
+</code></pre></div>
+
+<p>Install <code>Python</code>:</p>
+<div class="codehilite"><pre><span></span><code>uv<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.11
+</code></pre></div>
+
+<p>Clone Git repository:</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<span class="nb">cd</span><span class="w"> </span>mytral
+</code></pre></div>
+
+<p>Install dependencies and build desktop application executable:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>setup<span class="w"> </span>distro-desktop-build-win
+</code></pre></div>
+
+<p>Run MyTraL desktop application:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro<span class="se">\d</span>esktop
+
+<span class="c1"># example: mytral-1.51.0.exe</span>
+mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>.exe
+</code></pre></div>
+
+<p>Data will be stored to:</p>
+<div class="codehilite"><pre><span></span><code><span class="nl">C</span><span class="p">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="o">[</span><span class="n">user</span><span class="o">]</span><span class="err">\</span><span class="n">Application</span><span class="w"> </span><span class="k">Data</span><span class="err">\</span><span class="n">mytral</span><span class="err">\</span><span class="k">data</span>
+</code></pre></div>
+
+<p>Start using MyTraL:</p>
+<ul>
+<li>Click <code>Add new user</code> button to add new athlete account.</li>
+<li><code>Sign in</code>.</li>
+</ul>
 <h1 id="run">Run</h1>
 <p>Run MyTraL web application.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="run-using-python-on-ubuntu">Run using Python on Ubuntu</h2>
@@ -377,6 +412,7 @@
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
+<a href="#build-on-windows" class="nav-link">Build on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>
 <a href="#run-using-docker-on-fedora" class="nav-link">Run using Docker on Fedora</a>

@@ -5,13 +5,17 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added Windows 10 distribution build to GH release.
 
 ### Fixed
-- .
+- Fixed Desktop binary environment variables based setup so that athletes can create
+  accounts OOTB.
 
 ## Documentation
-- .
+- Added Ubuntu distribution build guide.
+- Added Python @ Ubuntu distribution guide.
+- Added Debian @ Docker distribution guide.
+- Added Fedora @ Docker distribution guide.
 
 
 

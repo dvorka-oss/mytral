@@ -3,6 +3,7 @@
 Build:
 
 * [Build on Ubuntu](#build-on-ubuntu)
+* [Build on Windows](#build-on-windows)
 
 Run:
 
@@ -49,10 +50,10 @@ make setup distro-desktop-build
 Run MyTraL desktop application:
 
 ```bash
-# Example:
-# cd distro/desktop && ./mytral-1.51.0
-
 cd distro/desktop && ./mytral-[major.minor.patch]
+
+# example:
+# cd distro/desktop && ./mytral-1.51.0
 ```
 
 Start using MyTraL:
@@ -66,6 +67,53 @@ Optionally install MyTraL for the current user:
 make distro-desktop-install
 ```
 
+
+## Build on Windows
+
+Install `uv` to `C:\Users\[user]\.local\bin`:
+
+```bash
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Install `Python`:
+
+```bash
+uv python install 3.11
+```
+
+Clone Git repository:
+
+```bash
+git clone https://github.com/dvorka-oss/mytral.git
+cd mytral
+```
+
+Install dependencies and build desktop application executable:
+
+```bash
+make setup distro-desktop-build-win
+```
+
+Run MyTraL desktop application:
+
+```bash
+cd distro\desktop
+
+# example: mytral-1.51.0.exe
+mytral-[major.minor.patch].exe
+```
+
+Data will be stored to:
+
+```
+C:\Users\[user]\Application Data\mytral\data
+```
+
+Start using MyTraL:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
 
 # Run
 
