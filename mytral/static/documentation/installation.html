@@ -221,6 +221,23 @@
 <ul>
 <li><a href="#download-and-install-tarball">Download and install tarball</a></li>
 </ul>
+<h1 id="install">Install</h1>
+<p>Install MyTraL desktop application.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="windows">Windows</h2>
+<p>Download the latest ZIP archive with the executable:</p>
+<ul>
+<li><a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a></li>
+</ul>
+<p>Extract <code>*.exe</code>:</p>
+<div class="codehilite"><pre><span></span><code>unzip<span class="w"> </span>mytral-&lt;version&gt;.exe-Win*.zip
+</code></pre></div>
+
+<p>Start MyTraL:</p>
+<div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;.exe
+
+# example: mytral-1.51.0.exe
+</code></pre></div>
+
 <h1 id="build">Build</h1>
 <p>Build MyTraL desktop application from the source code.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-on-ubuntu">Build on Ubuntu</h2>
@@ -242,7 +259,7 @@
 </code></pre></div>
 
 <p>Run MyTraL desktop application:</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro/desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro/desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./mytral-&lt;version&gt;
 
 <span class="c1"># example:</span>
 <span class="c1"># cd distro/desktop &amp;&amp; ./mytral-1.51.0</span>
@@ -279,7 +296,7 @@
 <div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro<span class="se">\d</span>esktop
 
 <span class="c1"># example: mytral-1.51.0.exe</span>
-mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>.exe
+mytral-&lt;version&gt;.exe
 </code></pre></div>
 
 <p>Data will be stored to:</p>
@@ -375,7 +392,7 @@ mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>.exe
 <h1 id="tarball">Tarball</h1>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and install tarball</h2>
 <p>Download the latest tarball from the
-<a href="https://github.com/dvorka/mytral/releases">GitHub releases</a> page.</p>
+<a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a> page.</p>
 <p>Extract and start MyTraL:</p>
 <div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>xzf<span class="w"> </span>mytral-&lt;version&gt;.tar.gz
 <span class="nb">cd</span><span class="w"> </span>mytral-&lt;version&gt;
@@ -411,7 +428,8 @@ mytral-<span class="o">[</span>major.minor.patch<span class="o">]</span>.exe
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
+        <a href="#windows" class="nav-link">Windows</a>
+<a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
 <a href="#build-on-windows" class="nav-link">Build on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>
