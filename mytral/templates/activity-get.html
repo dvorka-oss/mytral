@@ -367,7 +367,7 @@
                                 <div class="d-flex align-items-center">
                                     <div class="subheader">Avg Cadence</div>
                                 </div>
-                                <div class="h1 mb-3">{{ activity_entity.avg_cadence }} rpm</div>
+                                <div class="h1 mb-3">{{ "{:.1f}".format(activity_entity.avg_cadence) }} rpm</div>
                             </div>
                         </div>
                     </div>
@@ -379,7 +379,7 @@
                                 <div class="d-flex align-items-center">
                                     <div class="subheader">Max Cadence</div>
                                 </div>
-                                <div class="h1 mb-3">{{ activity_entity.max_cadence }} rpm</div>
+                                <div class="h1 mb-3">{{ "{:.1f}".format(activity_entity.max_cadence) }} rpm</div>
                             </div>
                         </div>
                     </div>

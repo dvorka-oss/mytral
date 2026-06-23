@@ -70,6 +70,16 @@
                                 MyTraL
                             </a>
                             {% if is_desktop %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-golden-cheetah">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-bike me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M5 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                                    <path d="M19 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                                    <path d="M12 19h-3.5l-2 -9.5l4.5 -3.5l3.5 4l2.5 3.5l-5 1.5"></path>
+                                    <path d="M12 7m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
+                                </svg>
+                                GoldenCheetah
+                            </a>
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-polar">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-heartbeat me-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -539,6 +549,54 @@
                             </div>
                             {% endif %}
                         </div>
+
+                        {# ## GoldenCheetah ########################################## #}
+                        {% if is_desktop %}
+                        <div id="section-golden-cheetah" class="import-section d-none">
+                            <h2 class="mb-4">GoldenCheetah OSF</h2>
+                            <p class="card-subtitle mb-3">
+                                Import cycling activities from a
+                                <a href="https://goldencheetah.org/" class="link-primary" target="_blank">GoldenCheetah</a>
+                                Open Science Framework athlete ZIP archive.
+                            </p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Athlete Archive</div>
+                                    <p class="card-subtitle mb-3">
+                                        Point to a single athlete ZIP file from the OSF dataset.
+                                        The archive must contain a <code>{uuid}.json</code> index with a
+                                        <code>RIDES</code> array. Activity summaries (duration, distance,
+                                        HR, power, cadence, elevation) are imported; time-series CSV
+                                        files are not imported because they lack GPS coordinates.
+                                    </p>
+
+                                    <form method="POST" action="{{ url_for('tool_import_golden_cheetah_osf') }}">
+                                        {{ import_golden_cheetah_osf_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_golden_cheetah_osf_form.zip_path.label(class="form-label") }}
+                                            {{ import_golden_cheetah_osf_form.zip_path(class="form-control", placeholder="/path/to/athlete-files/abc123.zip") }}
+                                            {% if import_golden_cheetah_osf_form.zip_path.description %}
+                                                <div class="form-text">{{ import_golden_cheetah_osf_form.zip_path.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_golden_cheetah_osf_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_golden_cheetah_osf_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_golden_cheetah_osf_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         {# ## Polar ################################################## #}
                         {% if is_desktop %}

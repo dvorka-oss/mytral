@@ -41,6 +41,7 @@ from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 from mytral.tasks.do import fit_directory_import
 from mytral.tasks.do import fit_import
+from mytral.tasks.do import golden_cheetah_osf_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
 from mytral.tasks.do import polar_hrm_import
@@ -494,6 +495,7 @@ def tool_import():
         import_gsheets_year_csv_form=forms.ImportGsheetsYearCsvForm(),
         import_gsheets_all_years_csv_form=forms.ImportGsheetsAllYearsCsvForm(),
         import_mytral_json_form=forms.ImportMytralJsonForm(),
+        import_golden_cheetah_osf_form=forms.ImportGoldenCheetahOsfForm(),
         import_polar_hrm_form=forms.ImportPolarHrmForm(),
         import_strava_archive_form=forms.ImportStravaArchiveForm(),
         import_fit_form=_build_fit_import_form(user_id),
@@ -858,6 +860,83 @@ def tool_import_mytral_json():
         user_profile=ds.profile(user_id),
         **result_ctx,
     )
+
+
+@flask_app.route("/app/tools/import/golden-cheetah/osf", methods=["POST"])
+def tool_import_golden_cheetah_osf():
+    """Submit an async GoldenCheetah OSF import task.
+
+    Desktop-only: requires a local filesystem path to the athlete ZIP.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+        err_msg = "GoldenCheetah OSF import is only available in the desktop version."
+        app_logger.error(err_msg)
+        flask.flash(err_msg, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    form = forms.ImportGoldenCheetahOsfForm()
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    zip_path = form.zip_path.data.strip()
+    if not os.path.isfile(zip_path):
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message=f"The specified ZIP file does not exist: {zip_path}",
+            back_endpoint="tool_import",
+        )
+
+    correlation_id = str(uuid.uuid4())
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=golden_cheetah_osf_import.GoldenCheetahOsfImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": ds.profile(user_id).dataset_name,
+            golden_cheetah_osf_import.GoldenCheetahOsfImportTask.ZIP_PATH_KEY: zip_path,
+            "on_conflict": form.on_conflict.data,
+            "correlation_id": correlation_id,
+        },
+        is_cancelled=False,
+    )
+
+    try:
+        task_id = app_task_manager.executor.submit(task_entity)
+        flask.flash(
+            f"GoldenCheetah OSF import started (task {task_id}). "
+            "Check the Tasks page for progress.",
+            "success",
+        )
+        return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+    except Exception as exc:
+        app_logger.exception(
+            "Failed to submit GoldenCheetah OSF import task",
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
+        flask.flash(f"Failed to start GoldenCheetah OSF import: {exc}", "error")
+        return flask.redirect(flask.url_for("tool_import"))
 
 
 @flask_app.route("/app/tools/import/polar/hrm", methods=["POST"])

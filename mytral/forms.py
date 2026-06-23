@@ -1855,6 +1855,29 @@ class ImportPolarHrmForm(flask_wtf.FlaskForm):
     submit = wtforms.SubmitField("Import Polar HRM")
 
 
+class ImportGoldenCheetahOsfForm(flask_wtf.FlaskForm):
+    """Form for importing activities from a GoldenCheetah OSF athlete ZIP."""
+
+    zip_path = wtforms.StringField(
+        label="ZIP file path",
+        description=(
+            "Absolute path to the GoldenCheetah OSF athlete ZIP archive "
+            "(e.g. /path/to/athlete-files/abc123.zip)."
+        ),
+        validators=[validators.DataRequired()],
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import GoldenCheetah OSF")
+
+
 class ImportStravaArchiveForm(flask_wtf.FlaskForm):
     """Form for importing activities from a Strava user archive
     data directory.
