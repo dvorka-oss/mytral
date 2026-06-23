@@ -1,0 +1,15 @@
+Source: mytral
+Section: utils
+Priority: optional
+Maintainer: Martin Dvorak <martin.dvorak@mindforger.com>
+Build-Depends: debhelper (>= 8.0.0), build-essential
+Standards-Version: 3.9.5
+Homepage: https://github.com/dvorka-oss/mytral
+Vcs-Git: https://github.com/dvorka-oss/mytral.git
+Vcs-Browser: https://github.com/dvorka-oss/mytral
+
+Package: mytral
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Sovereign athlete training log for deeper insights and smarter progress.
+Tag: implemented-in::python, interface::graphical, role::program
