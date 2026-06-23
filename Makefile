@@ -645,7 +645,7 @@ distro-snap-install-local: distro-snap-build ## build and install Snap locally (
 		exit 1; \
 	fi; \
 	echo "Note: This command requires sudo privileges for snap install"; \
-	sudo snap install --dangerous "$$SNAP_FILE"; \
+	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
 	echo "✓ Snap installed. Run with: mytral"
 
 .PHONY: distro-snap-test

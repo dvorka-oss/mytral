@@ -90,10 +90,12 @@ printing the URL so you can open it manually in any browser.
 
 **Data storage**
 
-User data persists across snap upgrades and is stored in:
+Because MyTraL uses classic confinement it stores data in the same location as every other
+installation - your data is never locked inside the snap:
 
 ```
-~/snap/mytral/common/
+~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
 ```
 
 **Upgrade:**
@@ -108,12 +110,8 @@ sudo snap refresh mytral
 sudo snap remove mytral
 ```
 
-**IMPORTANT:** `snap remove` deletes `~/snap/mytral/` including your data. Back up first:
-
-```bash
-cp -r ~/snap/mytral/common ~/mytral-backup
-sudo snap remove mytral
-```
+`snap remove` only removes the snap package itself. Your data in `~/.local/share/mytral/`
+is **not touched**.
 
 
 

@@ -51,6 +51,11 @@ rsync -a --exclude='.git' \
          --exclude='*.snap' \
          "$PROJECT_ROOT/" "$PROJECT_BUILD_DIR/"
 
+# relax requires-python for the snap build environment (core24 ships Python 3.12,
+# not 3.11; >=3.11,<3.13 satisfies both without changing the authoritative pyproject.toml)
+sed -i 's/requires-python = "==3\.11\.\*"/requires-python = ">=3.11,<3.13"/' \
+    "$PROJECT_BUILD_DIR/pyproject.toml"
+
 # place snap config (snapcraft.yaml + gui assets) where snapcraft expects it
 echo "Setting up snap/ config directory..."
 mkdir -p "$PROJECT_BUILD_DIR/snap/gui"

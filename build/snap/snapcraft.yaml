@@ -1,7 +1,7 @@
 # MyTraL Snap Package Configuration
 #
 # Build: make distro-snap-build
-# Install: snap install --dangerous distro/snap/mytral_*.snap
+# Install: sudo snap install --dangerous --classic distro/snap/mytral_*.snap
 # Run: mytral
 
 name: mytral
@@ -35,9 +35,6 @@ platforms:
   arm64:
 
 environment:
-  MYTRAL_DATA_DIR: $SNAP_USER_COMMON
-  MYTRAL_CONFIG_DIR: $SNAP_USER_COMMON/config
-  MYTRAL_LOG_DIR: $SNAP_USER_COMMON/logs
   PYTHONPATH: $SNAP/lib/python3.12/site-packages
   MYTRAL_INCARNATION: DESKTOP
   MYTRAL_USER_REGISTRATION: "true"
@@ -47,29 +44,23 @@ apps:
   mytral:
     command: bin/mytral-wrapper
     desktop: meta/gui/mytral.desktop
-    plugs:
-      - network          # HTTP/API requests
-      - network-bind     # bind to port 5151
-      - home             # access ~/Documents, ~/Downloads
-      - removable-media  # USB drives, SD cards for GPX import
-      - desktop          # xdg-open, D-Bus portals (covers URL opening)
-      - desktop-legacy   # legacy desktop integration
-      - x11              # X11 display access for browser window
-      - wayland          # Wayland display access for browser window
 
 parts:
   mytral:
     plugin: python
     source: .
+    build-packages:
+      - python3-dev    # provides python3 interpreter + headers inside the LXD build container
     stage-packages:
       - python3-venv
       - curl
       - ca-certificates
     override-build: |
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/bin"
+      cp /usr/bin/python3.12 "$SNAPCRAFT_PART_INSTALL/usr/bin/python3.12"
       craftctl default
       mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
       echo '#!/bin/bash' > "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
-      echo 'mkdir -p "$MYTRAL_DATA_DIR" "$MYTRAL_CONFIG_DIR" "$MYTRAL_LOG_DIR"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
       echo 'exec "$SNAP/bin/mytral-desktop" "$@"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
       chmod +x "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
 
