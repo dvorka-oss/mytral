@@ -15,12 +15,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+set -euo pipefail
+
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
-# boostrap new OR refresh distribution base for pbuilder
+# bootstrap new OR refresh distribution base for pbuilder
 export DISTRO=resolute
 
-sudo pbuilder --create --distribution ${DISTRO}
-rm -vf ~/pbuilder/${DISTRO}-base.tgz
-cp /var/cache/pbuilder/base.tgz ~/pbuilder/${DISTRO}-base.tgz
+# pbuilder-dist stores the base tarball at ~/pbuilder/${DISTRO}-base.tgz automatically
+pbuilder-dist "${DISTRO}" create
 
 # eof

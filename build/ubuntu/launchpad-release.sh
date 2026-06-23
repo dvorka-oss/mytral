@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+set -euo pipefail
+
 # This script builds: upstream tarball > source deb > binary deb
 #
 # See:
@@ -30,15 +32,18 @@
 #
 # IMPORTANT INSTRUCTIONS:
 #
-# - This script cannot be run from Git repository:
+# - This script cannot be run from inside a Git repository:
 #   copy this script to ~/p/mytral/launchpad and run it from there
 # - Launchpad release directory must exist:
 #   ~/p/mytral/launchpad
-# - MYTRAL_SRC point to MyTraL source code directory which is released.
+# - MYTRAL_SRC must point to the MyTraL Git source directory to be released.
+# - Set DRY_RUN=true to build packages without uploading to Launchpad.
 
 export MYTRAL_SRC=/home/dvorka/p/mytral/git/mytral
 export MYTRAL_RELEASE_DIR=/home/dvorka/p/mytral/launchpad
-export SCRIPT_HOME=`pwd`
+
+# set to true to skip the final dput upload step
+export DRY_RUN="${DRY_RUN:-false}"
 
 # ############################################################################
 # # Check dependencies #
@@ -49,8 +54,8 @@ function checkDependencies() {
     local missing_config=()
 
     # check for required commands
-    if ! command -v bzr &> /dev/null; then
-        missing_deps+=("bzr/brz")
+    if ! command -v brz &> /dev/null; then
+        missing_deps+=("brz")
     fi
 
     if ! command -v dput &> /dev/null; then
@@ -69,18 +74,6 @@ function checkDependencies() {
         missing_deps+=("debhelper")
     fi
 
-    # check for bzr-builddeb plugin (provided by brz-debian package as "debian" plugin)
-    if command -v bzr &> /dev/null; then
-        if ! bzr plugins 2>/dev/null | grep -q "debian"; then
-            missing_deps+=("brz-debian")
-        fi
-
-        # check if bzr whoami is configured
-        if ! bzr whoami &> /dev/null; then
-            missing_config+=("bzr-whoami")
-        fi
-    fi
-
     # report missing dependencies
     if [ ${#missing_deps[@]} -gt 0 ]; then
         echo "ERROR: Missing required dependencies:"
@@ -89,8 +82,13 @@ function checkDependencies() {
         done
         echo ""
         echo "To install all required packages, run:"
-        echo "  sudo apt-get install brz bzr brz-debian dput ubuntu-dev-tools devscripts debhelper pbuilder"
+        echo "  sudo apt-get install brz dput ubuntu-dev-tools devscripts debhelper pbuilder"
         exit 1
+    fi
+
+    # check if brz whoami is configured
+    if ! brz whoami &> /dev/null; then
+        missing_config+=("brz-whoami")
     fi
 
     # report missing configuration
@@ -98,37 +96,38 @@ function checkDependencies() {
         echo "ERROR: Missing required configuration:"
         for cfg in "${missing_config[@]}"; do
             case $cfg in
-                bzr-whoami)
-                    echo "  - Bazaar identity not set"
-                    echo "    Run: bzr whoami \"Your Name <your.email@example.com>\""
+                brz-whoami)
+                    echo "  - Bazaar/Breezy identity not set"
+                    echo "    Run: brz whoami \"Your Name <your.email@example.com>\""
                     ;;
             esac
         done
         exit 1
     fi
 
-    # check for GPG key matching the debian maintainer email
-    local bzr_email=$(bzr whoami 2>/dev/null | grep -oP '<\K[^>]+')
-    if [ -n "$bzr_email" ]; then
-        if ! gpg --list-secret-keys "$bzr_email" &> /dev/null; then
+    # check for GPG key matching the maintainer email
+    local brz_email
+    brz_email=$(brz whoami 2>/dev/null | sed -n 's/.*<\([^>]*\)>.*/\1/p')
+    if [ -n "$brz_email" ]; then
+        if ! gpg --list-secret-keys "$brz_email" &> /dev/null; then
             missing_config+=("gpg-key")
         fi
     fi
 
-    # report missing configuration (second check after GPG)
+    # report missing GPG configuration
     if [ ${#missing_config[@]} -gt 0 ]; then
         echo "ERROR: Missing required configuration:"
         for cfg in "${missing_config[@]}"; do
             case $cfg in
                 gpg-key)
-                    echo "  - No GPG key found for: $bzr_email"
+                    echo "  - No GPG key found for: $brz_email"
                     echo ""
                     echo "    OPTION 1: Generate new GPG key:"
                     echo "      gpg --full-generate-key"
-                    echo "      (Use: Martin Dvorak <$bzr_email>)"
+                    echo "      (Use: Martin Dvorak <$brz_email>)"
                     echo ""
                     echo "    OPTION 2: Import key from old machine:"
-                    echo "      On old machine: gpg --export-secret-keys $bzr_email > ~/gpg-key.asc"
+                    echo "      On old machine: gpg --export-secret-keys $brz_email > ~/gpg-key.asc"
                     echo "      Transfer file securely, then: gpg --import ~/gpg-key.asc"
                     echo ""
                     echo "    After creating/importing key:"
@@ -142,35 +141,26 @@ function checkDependencies() {
 }
 
 # ############################################################################
-# # Checkout MyTraL from bazaar and make it #
+# # Prepare MyTraL sources from Git #
 # ############################################################################
 
-function checkoutMytral() {
-    echo "Checking out MyTraL from Bazaar to `pwd`"
-    # Create new branch mytral: bzr init && bzr push lp:~ultradvorka/+junk/mytral
-    bzr checkout lp:~ultradvorka/+junk/mytral
+function prepareSources() {
+    local dest_dir="${1}"
+    echo "Preparing MyTraL source from ${MYTRAL_SRC} into ${dest_dir}"
 
-    if [ ! -d "mytral" ]; then
-        echo ""
-        echo "ERROR: Bazaar checkout failed! This is usually due to:"
-        echo "  1. SSH key not configured on Launchpad"
-        echo "  2. Launchpad login not configured (run: bzr launchpad-login ultradvorka)"
-        echo ""
-        echo "To fix SSH authentication:"
-        echo "  1. Generate SSH key: ssh-keygen -t rsa -b 4096"
-        echo "  2. Add to Launchpad: https://launchpad.net/~ultradvorka/+editsshkeys"
-        echo "  3. Configure bzr: bzr launchpad-login ultradvorka"
-        echo ""
+    if [ ! -d "${MYTRAL_SRC}" ]; then
+        echo "ERROR: MYTRAL_SRC directory not found: ${MYTRAL_SRC}"
         exit 1
     fi
 
-    cd mytral && mv -v .bzr .. && rm -rvf *.* && mv -v ../.bzr .
-    cp -rvf ${MYTRAL_SRC}/* ${MYTRAL_SRC}/*.*  .
-    cd ..
+    mkdir -p "${dest_dir}"
+    # git archive exports only tracked files — no .git dir, no untracked artifacts
+    git -C "${MYTRAL_SRC}" archive HEAD | tar -x -C "${dest_dir}"
 
-    echo "Preparing *configure using Autotools"
-    mv -v mytral mytral
-    cd ./mytral/build/tarball && ./tarball-automake.sh --purge && cd ../../..
+    if [ -z "$(ls -A "${dest_dir}")" ]; then
+        echo "ERROR: git archive produced an empty directory: ${dest_dir}"
+        exit 1
+    fi
 }
 
 # ############################################################################
@@ -178,29 +168,35 @@ function checkoutMytral() {
 # ############################################################################
 
 function createChangelog() {
-    export MYTS=`date "+%a, %d %b %Y %H:%M:%S"`
-    echo "Changelog timestamp: ${MYTS}"
-    echo -e "mytral (${MYTRAL_FULL_VERSION}) ${UBUNTUVERSION}; urgency=low" > $1
-    echo -e "\n" >> $1
-    echo -e "  * ${MYTRAL_BZR_MSG}" >> $1
-    echo -e "\n" >> $1
-    echo -e " -- Martin Dvorak (Dvorka) <martin.dvorak@mindforger.com>  ${MYTS} +0100" >> $1
-    echo -e "\n" >> $1
+    local changelog_file="${1}"
+    local timestamp
+    timestamp=$(date "+%a, %d %b %Y %H:%M:%S")
+    local tz
+    tz=$(date +%z)
+    echo "Changelog timestamp: ${timestamp} ${tz}"
+    echo "mytral (${MYTRAL_FULL_VERSION}) ${UBUNTUVERSION}; urgency=low" > "${changelog_file}"
+    echo "" >> "${changelog_file}"
+    echo "  * ${MYTRAL_MSG}" >> "${changelog_file}"
+    echo "" >> "${changelog_file}"
+    echo " -- Martin Dvorak (Dvorka) <martin.dvorak@mindforger.com>  ${timestamp} ${tz}" >> "${changelog_file}"
+    echo "" >> "${changelog_file}"
 }
 
 # ############################################################################
-# # Create tar archive #
+# # Create upstream orig tarball #
 # ############################################################################
 
-function createTarArchive() {
-  cd ..
-  mkdir work && cd work
-  cp -vrf ../${MYTRAL_V_DIR} .
-  rm -rvf ${MYTRAL_V_DIR}/.bzr
-  tar zcf ../${MYTRAL_V_DIR}.tgz ${MYTRAL_V_DIR}
-  cp -vf ../${MYTRAL_V_DIR}.tgz ../${MYTRAL_V_DIR}.orig.tar.gz
-  cd ../${MYTRAL_V_DIR}
-  rm -vrf ../work
+function createOrigTarball() {
+    local src_dir_abs="${1}"   # absolute path to the source directory
+    local tarball_abs="${2}"   # absolute path for the output .orig.tar.gz
+
+    local parent_dir
+    parent_dir="$(dirname "${src_dir_abs}")"
+    local src_name
+    src_name="$(basename "${src_dir_abs}")"
+
+    tar czf "${tarball_abs}" -C "${parent_dir}" "${src_name}"
+    echo "Created orig tarball: ${tarball_abs}"
 }
 
 # ############################################################################
@@ -208,92 +204,90 @@ function createTarArchive() {
 # ############################################################################
 
 function releaseForParticularUbuntuVersion() {
-    export UBUNTUVERSION=${1}
-    export MYTRAL_VERSION=${2}
-    export MYTRAL_BZR_MSG=${3}
+    export UBUNTUVERSION="${1}"
+    export MYTRAL_VERSION="${2}"
+    export MYTRAL_MSG="${3}"
 
-    export MYTRAL_FULL_VERSION=${MYTRAL_VERSION}-0ubuntu1
-    export MYTRAL_V_DIR=mytral_${MYTRAL_VERSION}
-    export MYTRAL_RELEASE=mytral_${MYTRAL_FULL_VERSION}
-    export NOW=`date +%Y-%m-%d--%H-%M-%S`
-    export MYTRAL_BUILD=mytral-${NOW}
+    # version scheme: 1.53.0-0ubuntu1~jammy1 (standard Ubuntu PPA convention)
+    export MYTRAL_FULL_VERSION="${MYTRAL_VERSION}-0ubuntu1~${UBUNTUVERSION}1"
+    # debian source dir uses hyphen: mytral-1.53.0
+    local SRC_DIR_NAME="mytral-${MYTRAL_VERSION}"
+    # debian orig tarball uses underscore: mytral_1.53.0.orig.tar.gz
+    local ORIG_TARBALL_NAME="mytral_${MYTRAL_VERSION}.orig.tar.gz"
+    local NOW
+    NOW=$(date +%Y-%m-%d--%H-%M-%S)
+    local BUILD_DIR_NAME="mytral-build-${UBUNTUVERSION}-${NOW}"
 
-    # checkout MyTraL from Bazaar and prepare *configure using Autotools
-    mkdir ${MYTRAL_BUILD} && cd ${MYTRAL_BUILD}
-    checkoutMytral `pwd`
+    # create isolated per-distro build directory
+    mkdir "${BUILD_DIR_NAME}"
+    local BUILD_DIR_ABS
+    BUILD_DIR_ABS="$(pwd)/${BUILD_DIR_NAME}"
 
-    # commit changes to Bazaar
-    cd mytral
-    cp -rvf ${MYTRAL_SRC}/build/ubuntu/debian .
-    createChangelog ./debian/changelog
-    cd .. && mv mytral ${MYTRAL_V_DIR} && cd ${MYTRAL_V_DIR}
-    bzr add .
-    bzr commit -m "Update for ${MYTRAL_V_DIR} at ${NOW}."
+    local SRC_DIR_ABS="${BUILD_DIR_ABS}/${SRC_DIR_NAME}"
+    local ORIG_TARBALL_ABS="${BUILD_DIR_ABS}/${ORIG_TARBALL_NAME}"
 
-    # create Tar archive
-    createTarArchive
+    # prepare sources from Git (no Bazaar)
+    prepareSources "${SRC_DIR_ABS}"
 
-    # start GPG agent (if it's NOT running)
-    if [ -e "${HOME}/.gnupg/S.gpg-agent" ]
-    then
-	echo "OK: GPG agent running."
-    else
-	gpg-agent --daemon
-    fi
+    # create orig tarball BEFORE adding debian/ (upstream tarball must not contain debian/)
+    createOrigTarball "${SRC_DIR_ABS}" "${ORIG_TARBALL_ABS}"
 
-    # build .debs
-    # OPTIONAL test build w/o signing: build UNSIGNED .deb package (us uc tells that no GPG signing is needed)
-    #bzr builddeb -- -us -uc
-    # build SIGNED source .deb package
-    bzr builddeb -S
-    cd ../build-area
+    # add debian/ and generate changelog
+    cp -r "${MYTRAL_SRC}/build/ubuntu/debian" "${SRC_DIR_ABS}/"
+    createChangelog "${SRC_DIR_ABS}/debian/changelog"
 
-    # build binary from source deb on CLEAN system - no deps installed
+    # build signed source package
+    cd "${SRC_DIR_ABS}"
+    debuild -S -sa
+    cd "${BUILD_DIR_ABS}"
+
+    # build binary from source deb on clean system — no deps installed
     echo -e "\n_ mytral pbuilder-dist build  _______________________________________________\n"
-    # BEGIN: bug workaround - pbuilder's caches in /var and /home must be on same physical drive
-    export PBUILDFOLDER=/tmp/mytral-tmp
-    rm -rvf ${PBUILDFOLDER}
-    mkdir -p ${PBUILDFOLDER}
-    # copy pbuilder base tarball if it exists in ~/pbuilder/
-    if [ -f ~/pbuilder/${UBUNTUVERSION}-base.tgz ]; then
-        cp -v ~/pbuilder/${UBUNTUVERSION}-base.tgz ${PBUILDFOLDER}/
+    # workaround: pbuilder caches in /var and /home must be on the same physical drive;
+    # copy base tarball to /tmp so pbuilder-dist finds it on a single filesystem
+    export PBUILDFOLDER=/tmp/mytral-pbuilder
+    rm -rf "${PBUILDFOLDER}"
+    mkdir -p "${PBUILDFOLDER}"
+    if [ -f "${HOME}/pbuilder/${UBUNTUVERSION}-base.tgz" ]; then
+        cp -v "${HOME}/pbuilder/${UBUNTUVERSION}-base.tgz" "${PBUILDFOLDER}/"
     else
         echo "ERROR: pbuilder base tarball not found: ~/pbuilder/${UBUNTUVERSION}-base.tgz"
         echo "Please create it first by running:"
         echo "  pbuilder-dist ${UBUNTUVERSION} create"
-        echo "  mkdir -p ~/pbuilder"
-        echo "  sudo cp /var/cache/pbuilder/${UBUNTUVERSION}-base.tgz ~/pbuilder/"
-        # NON critital error: exit 1
+        exit 1
     fi
-    # END
-    pbuilder-dist ${UBUNTUVERSION} build ${MYTRAL_RELEASE}.dsc
 
-    # push .deb to Launchpad
-    cd ../${MYTRAL_V_DIR}
-    # push Bazaar changes and upload .deb to Launchpad
-    echo "Before bzr push: " `pwd`
-    bzr push lp:~ultradvorka/+junk/mytral
+    local DSC_FILE="mytral_${MYTRAL_FULL_VERSION}.dsc"
+    pbuilder-dist "${UBUNTUVERSION}" build "${DSC_FILE}"
+
+    # upload source package to Launchpad PPA
+    local CHANGES_FILE="mytral_${MYTRAL_FULL_VERSION}_source.changes"
+    echo "Before dput push: $(pwd)"
+    if [ "${DRY_RUN}" = "false" ]; then
+        dput "ppa:ultradvorka/sport" "${CHANGES_FILE}"
+    else
+        echo "DRY_RUN=true: skipping dput upload of ${CHANGES_FILE}"
+    fi
+
     cd ..
-    echo "Before dput push: " `pwd`
-    # recently added /ppa to fix the path and package rejections
-    dput ppa:ultradvorka/ppa ${MYTRAL_RELEASE}_source.changes
 }
 
 # ############################################################################
 # # Main #
 # ############################################################################
 
-echo "IMPORTANT: make sure to login to Launchpad using 'bzr launchpad-login YOUR_LAUNCHPAD_ID' before running this script!"
+echo "IMPORTANT: make sure your GPG key is configured and uploaded to Launchpad."
 echo "IMPORTANT: make sure your SSH key is configured on Launchpad: https://launchpad.net/~ultradvorka/+editsshkeys"
 echo -e "This script is expected to be copied to and run from: ~/p/mytral/launchpad\n\n"
 
-if [ -e "../../.git" ]
-then
-    echo "This script must NOT be run from Git repository - run it e.g. from ~/p/mytral/launchpad instead"
+# refuse to run from inside a Git repository
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "This script must NOT be run from inside a Git repository."
+    echo "Copy it to ~/p/mytral/launchpad and run it from there."
     exit 1
 fi
-if [ ! -e "${MYTRAL_RELEASE_DIR}" ]
-then
+
+if [ ! -d "${MYTRAL_RELEASE_DIR}" ]; then
     echo "ERROR: release directory must exist: ${MYTRAL_RELEASE_DIR}"
     exit 1
 fi
@@ -301,27 +295,38 @@ fi
 # check all required dependencies
 checkDependencies
 
-export ARG_BAZAAR_MSG="Release 3.2"
-export ARG_MAJOR_VERSION=3.2.
-export ARG_MINOR_VERSION=10 # minor version is incremented for every Ubuntu version
+# read version dynamically from the source tree — strip any trailing 'dev' suffix
+BASE_VERSION=$(python3 -c "
+import sys
+sys.path.insert(0, '${MYTRAL_SRC}/mytral')
+import version
+print(version.__version__.replace('dev', '').rstrip('.'))
+")
+echo "Releasing MyTraL version: ${BASE_VERSION}"
+
+export MYTRAL_MSG="Release ${BASE_VERSION}"
+
+# start GPG agent if not already running
+GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket 2>/dev/null || true)
+if [ -S "${GPG_AGENT_SOCK}" ]; then
+    echo "OK: GPG agent running."
+else
+    gpg-agent --daemon
+fi
 
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
 # https://wiki.ubuntu.com/Releases
 # obsolete:
-#   precise quantal saucy precise utopic vivid wily yakkety xenial artful cosmic disco eoan groovy hirsute impish oracular plucky
-# missed:
-#   oracular
-# current :
-#   trusty xenial bionic focal jammy noble . questing
+#   precise quantal saucy utopic vivid wily yakkety artful cosmic disco eoan
+#   groovy hirsute impish oracular
+# current:
+#   trusty xenial bionic focal jammy noble plucky questing
 # future:
 #   resolute
-# command :
-#   trusty xenial bionic focal jammy noble questing
-for UBUNTU_VERSION in trusty xenial bionic focal jammy plucky questing
+for UBUNTU_VERSION in trusty xenial bionic focal jammy noble plucky questing
 do
     echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION}"
-    releaseForParticularUbuntuVersion ${UBUNTU_VERSION} ${ARG_MAJOR_VERSION}${ARG_MINOR_VERSION} "${ARG_BAZAAR_MSG}"
-    ARG_MINOR_VERSION=`expr $ARG_MINOR_VERSION + 1`
+    releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${BASE_VERSION}" "${MYTRAL_MSG}"
 done
 
 # eof

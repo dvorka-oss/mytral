@@ -15,19 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+set -euo pipefail
+
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
 # obsolete:
 #    precise quantal saucy precise utopic vivid wily yakkety artful cosmic
 # current :
 #   (trusty) xenial bionic (cosmic disco eoan) focal (groovy) hirsute impish noble
-#   questing resolute
-for DISTRO in trusty xenial bionic focal jammy noble questing resolute
+#   plucky questing resolute
+for DISTRO in trusty xenial bionic focal jammy noble plucky questing resolute
 do
-
-sudo pbuilder --create --distribution ${DISTRO}
-rm -vf ~/pbuilder/${DISTRO}-base.tgz
-cp /var/cache/pbuilder/base.tgz ~/pbuilder/${DISTRO}-base.tgz
-
+    # pbuilder-dist stores the base tarball at ~/pbuilder/${DISTRO}-base.tgz automatically
+    pbuilder-dist "${DISTRO}" create
 done
 
 # eof

@@ -3,7 +3,5 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-export CCACHE_DIR=/tmp/.ccache
-
 %:
 	dh $@
