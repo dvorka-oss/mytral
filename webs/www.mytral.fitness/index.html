@@ -934,6 +934,16 @@
             }
         }
 
+        /* Features grid: centre a lone card in the middle column */
+        @media (min-width: 1100px) {
+            .features-grid-3col {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .feature-center {
+                grid-column: 2;
+            }
+        }
+
         /* Download Section */
         .download-platform-icon {
             color: var(--primary);
@@ -1099,7 +1109,7 @@
             <div class="section-label">Features</div>
             <h2 class="section-title">Everything You Need to Track Your Progress</h2>
 
-            <div class="features-grid">
+            <div class="features-grid features-grid-3col">
                 <div class="feature-flip-wrapper">
                     <div class="feature-card" data-flip="true">
                         <div class="feature-flip-front">
@@ -1276,7 +1286,7 @@
                     </div>
                 </div>
 
-                <div class="feature-flip-wrapper">
+                <div class="feature-flip-wrapper feature-center">
                     <div class="feature-card" data-flip="true">
                         <div class="feature-flip-front">
                             <img class="feature-thumb"
@@ -1296,9 +1306,15 @@
                                 MyTraL lets you import your training data from various
                                 sources, sync it across devices, aggregate it into a
                                 unified view, and normalize it for consistent analysis:
-                                <a href="#">FIT (file)</a>, <a href="#">Garmin® (bulk export)</a>, <a href="#">GoldenCheetah (OSF)</a>,
-                                <a href="#"></a>GPX (file)</a>, <a href="#">Strava® (API, bulk export)</a>, <a href="#">Polar® (PPP)</a>,
-                                <a href="#">TCX (file)</a>, and more.
+                                <a href="https://developer.garmin.com/fit/protocol/" target="_blank" rel="noopener">FIT (file)</a>,
+                                <a href="https://connect.garmin.com" target="_blank" rel="noopener">Garmin® (bulk export)</a>,
+                                <a href="https://www.goldencheetah.org/" target="_blank" rel="noopener">GoldenCheetah (OSF)</a>,
+                                <a href="https://en.wikipedia.org/wiki/GPS_Exchange_Format" target="_blank" rel="noopener">GPX (file)</a>,
+                                <a href="https://www.strava.com" target="_blank" rel="noopener">Strava® (API, bulk export)</a>,
+                                <a href="https://www.polar.com" target="_blank" rel="noopener">Polar® (HRM)</a>,
+                                <a href="https://en.wikipedia.org/wiki/Training_Center_XML" target="_blank" rel="noopener">TCX (file)</a>,
+                                <a href="https://www.concept2.com/logbook" target="_blank" rel="noopener">Concept2 Logbook</a>,
+                                and more.
                                 MyTraL ensures that all your data speaks
                                 the same language, giving you a complete picture of your
                                 training journey.
@@ -1881,9 +1897,10 @@
             </div>
             <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem; font-size: small; color: var(--gray); width: 60%; text-align: center; margin-left: auto; margin-right: auto;">
                 <i>
-                Strava is a registered trademark of Strava, Inc. Garmin is trademark or
-                registered trademarks of Garmin Ltd. or its subsidiaries. Polar is a
-                registered trademark of Polar Electro Oy. All third-party trademarks,
+                Strava&reg; is a registered trademark of Strava, Inc. Garmin&reg; is a trademark or
+                registered trademark of Garmin Ltd. or its subsidiaries. Polar&reg; is a
+                registered trademark of Polar Electro Oy. Concept2&reg; is a registered
+                trademark of Concept2, Inc. All third-party trademarks,
                 service marks, and company names are the property of their respective
                 owners. Use of them does not imply any affiliation with or endorsement
                 by them.
