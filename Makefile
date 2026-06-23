@@ -398,7 +398,7 @@ vibe-copilot-deepseek:
 # Anthropic Claude Code: ideally @ Sonnet 1M
 .PHONE: vibe-cc
 vibe-cc:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	claude --dangerously-skip-permissions
 
 # DeepSeek
