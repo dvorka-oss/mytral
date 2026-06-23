@@ -1,0 +1,81 @@
+# MyTraL Snap Package Configuration
+#
+# Build: make distro-snap-build
+# Install: snap install --dangerous distro/snap/mytral_*.snap
+# Run: mytral
+
+name: mytral
+version: '1.51.0dev'
+title: MyTraL
+summary: Sovereign athlete training log - track sport activities, gear, healt, goals and progress
+description: |
+  MyTraL is a personal sport training log that helps you track your athletic
+  activities, gear usage, and fitness progress over time. Features include:
+
+  - Activity tracking (any sport).
+  - Gear management with usage statistics.
+  - Training load analysis.
+  - Holistic tracking of goals, PRs, health, weight, trails, and outfits.
+  - Photo attachments and FIT/GPX/TCX/Strava/Polar import.
+  - Local data storage.
+
+  Perfect for athletes who value privacy and want full control over their data.
+
+grade: stable
+confinement: classic
+base: core24
+license: AGPL-3.0
+contact: martin.dvorak@mindforger.com
+issues: https://github.com/dvorka-oss/mytral/issues
+source-code: https://github.com/dvorka-oss/mytral
+website: https://mytral.fitness
+
+platforms:
+  amd64:
+  arm64:
+
+environment:
+  MYTRAL_DATA_DIR: $SNAP_USER_COMMON
+  MYTRAL_CONFIG_DIR: $SNAP_USER_COMMON/config
+  MYTRAL_LOG_DIR: $SNAP_USER_COMMON/logs
+  PYTHONPATH: $SNAP/lib/python3.12/site-packages
+  MYTRAL_INCARNATION: DESKTOP
+  MYTRAL_USER_REGISTRATION: "true"
+  MYTRAL_ENABLE_CACHE: "true"
+
+apps:
+  mytral:
+    command: bin/mytral-wrapper
+    desktop: meta/gui/mytral.desktop
+    plugs:
+      - network          # HTTP/API requests
+      - network-bind     # bind to port 5151
+      - home             # access ~/Documents, ~/Downloads
+      - removable-media  # USB drives, SD cards for GPX import
+      - desktop          # xdg-open, D-Bus portals (covers URL opening)
+      - desktop-legacy   # legacy desktop integration
+      - x11              # X11 display access for browser window
+      - wayland          # Wayland display access for browser window
+
+parts:
+  mytral:
+    plugin: python
+    source: .
+    stage-packages:
+      - python3-venv
+      - curl
+      - ca-certificates
+    override-build: |
+      craftctl default
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
+      echo '#!/bin/bash' > "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      echo 'mkdir -p "$MYTRAL_DATA_DIR" "$MYTRAL_CONFIG_DIR" "$MYTRAL_LOG_DIR"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      echo 'exec "$SNAP/bin/mytral-desktop" "$@"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      chmod +x "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+
+  desktop-assets:
+    plugin: dump
+    source: snap/gui
+    organize:
+      mytral.desktop: meta/gui/mytral.desktop
+      mytral.png: meta/gui/mytral.png

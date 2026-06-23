@@ -2,6 +2,7 @@
 
 Install:
 
+* [Linux via Snap](#install-on-linux-via-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
 * [Windows](#install-on-windows)
 
 Build:
@@ -20,6 +21,9 @@ Run:
 Tarball:
 
 * [download and install tarball](#download-and-install-tarball)
+
+
+
 # Install
 
 ## Install on Windows
@@ -32,6 +36,84 @@ Download the latest MyTraL desktop executable from the
 3. Double-click `mytral-<version>.exe` — MyTraL opens in your default browser.
 
 Data is stored in `%USERPROFILE%\.mytral\application-data\` and persists across restarts.
+
+
+
+## Install on Linux via Snap
+
+Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
+MyTraL uses **classic confinement** so it can open a native desktop window via Chrome/Chromium.
+
+**Prerequisite:** Chrome or Chromium must be installed — MyTraL opens its UI in a frameless
+Chrome window (not as a browser tab).
+
+Install `Snapd` (if not already installed):
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install snapd
+```
+
+**Fedora:**
+```bash
+sudo dnf install snapd
+sudo ln -s /var/lib/snapd/snap /snap
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S snapd
+sudo systemctl enable --now snapd.socket
+```
+
+**openSUSE:**
+```bash
+sudo zypper install snapd
+sudo systemctl enable --now snapd
+```
+
+Install MyTraL from the Snap Store (classic confinement requires the `--classic` flag):
+
+```bash
+sudo snap install mytral --classic
+```
+
+Start MyTraL from the application menu or run:
+
+```bash
+mytral
+```
+
+MyTraL opens as a native desktop window. If Chrome/Chromium is not found it falls back to
+printing the URL so you can open it manually in any browser.
+
+**Data storage**
+
+User data persists across snap upgrades and is stored in:
+
+```
+~/snap/mytral/common/
+```
+
+**Upgrade:**
+
+```bash
+sudo snap refresh mytral
+```
+
+**Uninstall:**
+
+```bash
+sudo snap remove mytral
+```
+
+**IMPORTANT:** `snap remove` deletes `~/snap/mytral/` including your data. Back up first:
+
+```bash
+cp -r ~/snap/mytral/common ~/mytral-backup
+sudo snap remove mytral
+```
 
 
 

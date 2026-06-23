@@ -104,10 +104,7 @@ class CreateGearForm(flask_wtf.FlaskForm):
     )
     weight = wtforms.FloatField(
         label="Weight (kg)",
-        description=(
-            "Weight of the gear in kilograms "
-            "(e.g., 8.2 for a bike)"
-        ),
+        description=("Weight of the gear in kilograms (e.g., 8.2 for a bike)"),
         validators=[validators.Optional(), validators.NumberRange(min=0)],
         default=0.0,
     )
