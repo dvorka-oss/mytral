@@ -252,17 +252,49 @@
             gap: 1.5rem;
         }
 
+        .feature-flip-wrapper {
+            perspective: 1400px;
+            min-height: 480px;
+        }
+
         .feature-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(226, 232, 240, 0.1);
+            background: transparent;
+            border: none;
             border-radius: 0.75rem;
-            padding: 2rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
             position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            height: 100%;
+            min-height: 480px;
+            overflow: visible;
+        }
+
+        .feature-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .feature-flip-front,
+        .feature-flip-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 0.75rem;
             overflow: hidden;
         }
 
-        .feature-card::before {
+        .feature-flip-front {
+            background: var(--card-bg);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            transform: rotateY(0deg);
+        }
+
+        .feature-flip-front::before {
             content: '';
             position: absolute;
             top: 0;
@@ -275,14 +307,111 @@
             transition: transform 0.4s;
         }
 
-        .feature-card:hover::before {
+        .feature-card:not(.flipped) .feature-flip-front:hover::before {
             transform: scaleX(1);
         }
 
-        .feature-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(14, 165, 233, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        .feature-flip-back {
+            background: var(--card-bg);
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            transform: rotateY(180deg);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-flip-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--primary), var(--secondary));
+        }
+
+        .feature-back-ghost {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.07;
+            filter: blur(3px) saturate(0);
+            pointer-events: none;
+        }
+
+        .feature-thumb {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: zoom-in;
+        }
+
+        .feature-flip-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: rgba(14, 165, 233, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.06);
+        }
+
+        .feature-flip-back h3 {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-flip-back p {
+            color: var(--light-gray);
+            line-height: 1.75;
+            position: relative;
+            z-index: 1;
+            font-size: 0.93rem;
+        }
+
+        .feature-flip-back a {
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        .feature-flip-back-hint {
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.06);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: rgba(14, 165, 233, 0.5);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .feature-card p {
+            color: var(--light-gray);
+            line-height: 1.75;
+            font-size: 0.93rem;
         }
 
         .feature-number {
@@ -291,18 +420,6 @@
             font-weight: 700;
             color: rgba(14, 165, 233, 0.2);
             margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.35rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .feature-card p {
-            color: var(--light-gray);
-            line-height: 1.75;
         }
 
         /* Story Section */
@@ -551,7 +668,7 @@
             height: auto;
             border-radius: 0.5rem;
             margin-bottom: 1.25rem;
-            cursor: pointer;
+            cursor: zoom-in;
             transition: all 0.3s ease;
             border: 1px solid rgba(226, 232, 240, 0.1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -960,10 +1077,18 @@
                     <div class="terminal-dot dot-blue" id="dot-blue" title="...to find what lies beneath the peaks."></div>
                 </div>
                 <div class="terminal-body">
-                    <img src="./screenshot-dashboard-dark.webp" alt="MyTraL Screenshot" width="1477" height="1999" style="width: 100%; height: auto; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);" decoding="async">
+                    <img src="./screenshot-dashboard-dark.webp"
+                        alt="MyTraL Screenshot"
+                        class="feature-thumb"
+                        width="1477"
+                        height="1999"
+                        style="width: 100%; height: auto; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);"
+                        decoding="async"
+
+                        data-lightbox="12"
+                        data-caption="Own The Data That Tells Your Journey"
+                    >
                 </div>
-
-
             </div>
         </div>
     </section>
@@ -975,122 +1100,212 @@
             <h2 class="section-title">Everything You Need to Track Your Progress</h2>
 
             <div class="features-grid">
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.own.webp"
-                         alt="MyTraL Dashboard"
-                         width="1224" height="1240"
-                         loading="lazy" decoding="async"
-                         data-lightbox="0"
-                         data-caption="Own The Data That Tells Your Journey">
-                    <h3>Own Your Journey</h3>
-                    <p>
-                        Take control of your data - do not risk losing years of training
-                        history to changing terms and conditions, API updates, account
-                        bans, or service shutdowns. Your data tells the story of your
-                        journey, and you deserve to own it - it was your effort, your
-                        sweat, and your body that created it. MyTraL gives you <strong>a secure,
-                        private, and permanent</strong> home for your training history on your
-                        own machine. Do whatever you want with it. Don't let a third
-                        party hold your data hostage or forbid you from taking it with
-                        you when you leave. Analyze it with AI/ML models, use your own
-                        scripts, or leverage other tools to get the most out of it.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.own.webp"
+                                 alt="MyTraL Dashboard"
+                                 width="1224" height="1240"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="0"
+                                 data-caption="Own The Data That Tells Your Journey">
+                            <h3>Own Your Journey</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.own.webp')"></div>
+                            <h3>Own Your Journey</h3>
+                            <p>
+                                Take control of your data - do not risk losing years of training
+                                history to changing terms and conditions, API updates, account
+                                bans, or service shutdowns. Your data tells the story of your
+                                journey, and you deserve to own it - it was your effort, your
+                                sweat, and your body that created it. MyTraL gives you <strong>a secure,
+                                private, and permanent</strong> home for your training history on your
+                                own machine. Do whatever you want with it. Analyze it with AI/ML models,
+                                use your own scripts, or leverage other tools to get the most out of it.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.calendar.webp"
-                         alt="Holistic View of Training Load"
-                         width="1156" height="1209"
-                         loading="lazy" decoding="async"
-                         data-lightbox="1"
-                         data-caption="Holistic View - Beyond Vanity Metrics">
-                    <h3>Holistic View Beyond Metrics</h3>
-                    <p>
-                        MyTraL goes beyond the metrics of distance and pace to capture
-                        the full context of your training life - the subjective
-                        feelings, gear usage, injury and illness symptom history, your
-                        exercises knowledge base, custom activities, favorite routes,
-                        goals you are working toward, clothes you wore, the weather you
-                        trained in, the cost and more.
-                        <br/>
-                        MyTraL reveals the hidden patterns and insights that drive
-                        your performance - the connections between load, recovery, and
-                        performance, the impact of various factors on your training
-                        outcomes.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.calendar.webp"
+                                 alt="Holistic View of Training Load"
+                                 width="1156" height="1209"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="1"
+                                 data-caption="Holistic View - Beyond Vanity Metrics">
+                            <h3 style="margin-top: 25px">Holistic View Beyond Metrics</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.calendar.webp')"></div>
+                            <h3>Holistic View Beyond Metrics</h3>
+                            <p>
+                                MyTraL goes beyond the metrics of distance and pace to capture
+                                the full context of your training life - the subjective
+                                feelings, gear usage, injury and illness symptom history, your
+                                exercises knowledge base, custom activities, favorite routes,
+                                goals you are working toward, clothes you wore, the weather you
+                                trained in, the cost and more.
+                                <br/>
+                                MyTraL reveals the hidden patterns and insights that drive
+                                your performance - the connections between load, recovery, and
+                                performance, the impact of various factors on your training
+                                outcomes.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.heatmap.webp"
-                         alt="MyTraL Activity Heatmap"
-                         width="1375" height="1390"
-                         loading="lazy" decoding="async"
-                         data-lightbox="2"
-                         data-caption="Your Life in Your Palm">
-                    <h3>Your Life in Your Palm</h3>
-                    <p>
-                        Zoom out and see the full tapestry of your training life. The activity
-                        heatmap renders every session, every rest day, every peak and valley
-                        across months and years in a single, glanceable view. Patterns that hide
-                        in spreadsheets become visible - your consistency, your rhythms, your
-                        story. Your entire athletic life, right in your palm.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.heatmap.webp"
+                                 alt="MyTraL Activity Heatmap"
+                                 width="1375" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="2"
+                                 data-caption="Your Life in Your Palm">
+                            <h3>Your Life in Your Palm</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.heatmap.webp')"></div>
+                            <h3>Your Life in Your Palm</h3>
+                            <p>
+                                Zoom out and see the full tapestry of your training life. The activity
+                                heatmap renders every session, every rest day, every peak and valley
+                                across months and years in a single, glanceable view. Patterns that hide
+                                in spreadsheets become visible - your consistency, your rhythms, your
+                                story. Your entire athletic life, right in your palm.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.gear.webp"
-                         alt="MyTraL Gear Management"
-                         width="1336" height="1244"
-                         loading="lazy" decoding="async"
-                         data-lightbox="3"
-                         data-caption="Know Your Kit - Equipment Tracking">
-                    <h3>Gear Lifecycle Management</h3>
-                    <p>
-                        Every piece of equipment has a story. Track usage, schedule maintenance,
-                        and monitor costs for your shoes, bikes, and gear. Know exactly when it's
-                        time to replace those running shoes or service your chain — before
-                        performance suffers. Your gear, fully accounted for.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.gear.webp"
+                                 alt="MyTraL Gear Management"
+                                 width="1336" height="1244"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="3"
+                                 data-caption="Know Your Kit - Equipment Tracking">
+                            <h3 style="margin-top: 15px;">Manage Your Gear Lifecycle</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.gear.webp')"></div>
+                            <h3>Manage Your Gear Lifecycle</h3>
+                            <p>
+                                Every piece of equipment has a story. Track usage, schedule maintenance,
+                                and monitor costs for your shoes, bikes, and gear. Know exactly when it's
+                                time to replace those running shoes or service your chain — before
+                                performance suffers. Your gear, fully accounted for.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.goals.webp"
-                         alt="MyTraL Goal Management"
-                         width="1335" height="1320"
-                         loading="lazy" decoding="async"
-                         data-lightbox="4"
-                         data-caption="Goal Matrix - SMART Goal Setting">
-                    <h3>Achieve Goals With Eisenhower</h3>
-                    <p>
-                        Goals without structure are just wishes. Set SMART goals and prioritize
-                        them through the <a href="https://en.wikipedia.org/wiki/Time_management#Eisenhower_method">Eisenhower matrix</a> - urgent versus important, this
-                        month's breakthrough versus this year's ambition. Know what demands your
-                        focus today and what you are quietly building toward tomorrow. Clarity
-                        turns intention into achievement.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.goals.webp"
+                                 alt="MyTraL Goal Management"
+                                 width="1335" height="1320"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="4"
+                                 data-caption="Goal Matrix - SMART Goal Setting">
+                            <h3>Achieve Goals With Eisenhower</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.goals.webp')"></div>
+                            <h3>Achieve Goals With Eisenhower</h3>
+                            <p>
+                                Goals without structure are just wishes. Set SMART goals and prioritize
+                                them through the <a href="https://en.wikipedia.org/wiki/Time_management#Eisenhower_method">Eisenhower matrix</a> - urgent versus important, this
+                                month's breakthrough versus this year's ambition. Know what demands your
+                                focus today and what you are quietly building toward tomorrow. Clarity
+                                turns intention into achievement.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.holistic.webp"
-                         alt="MyTraL Customization and Extensibility"
-                         width="1382" height="1390"
-                         loading="lazy" decoding="async"
-                         data-lightbox="5"
-                         data-caption="Customize, Personalize, Extend - Your Training Log, Your Way">
-                    <h3>Customize, Personalize, Extend</h3>
-                    <p>
-                        MyTraL is designed to be flexible and extensible. Add custom
-                        activities, exercises, and data to fit your unique training
-                        style. Integrate with your own scripts or third-party tools to
-                        analyze your data in ways that matter most to you. Your training
-                        log should adapt to you, not the other way around.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.holistic.webp"
+                                 alt="MyTraL Customization and Extensibility"
+                                 width="1382" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="5"
+                                 data-caption="Customize, Personalize, Extend - Your Training Log, Your Way">
+                            <h3>Customize, Personalize, Extend</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.holistic.webp')"></div>
+                            <h3>Customize, Personalize, Extend</h3>
+                            <p>
+                                MyTraL is designed to be flexible and extensible. Add custom
+                                activities, exercises, and data to fit your unique training
+                                style. Integrate with your own scripts or third-party tools to
+                                analyze your data in ways that matter most to you. Your training
+                                log should adapt to you, not the other way around.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.import.webp"
+                                 alt="MyTraL Import, Sync, Aggregate, Normalize"
+                                 width="1382" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="5"
+                                 data-caption="Import, Sync, Aggregate, Normalize - Your Training Data, Your Way">
+                            <h3>Import, Sync, Aggregate</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.import.webp')"></div>
+                            <h3>Import, Sync, Aggregate</h3>
+                            <p>
+                                MyTraL lets you import your training data from various
+                                sources, sync it across devices, aggregate it into a
+                                unified view, and normalize it for consistent analysis:
+                                <a href="#">FIT (file)</a>, <a href="#">Garmin® (bulk export)</a>, <a href="#">GoldenCheetah (OSF)</a>,
+                                <a href="#"></a>GPX (file)</a>, <a href="#">Strava® (API, bulk export)</a>, <a href="#">Polar® (PPP)</a>,
+                                <a href="#">TCX (file)</a>, and more.
+                                MyTraL ensures that all your data speaks
+                                the same language, giving you a complete picture of your
+                                training journey.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1111,143 +1326,203 @@
 
             <div class="features-grid">
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.3dirm.webp"
-                         alt="MyTraL 3D Input-Response Model"
-                         width="1335" height="1241"
-                         loading="lazy" decoding="async"
-                         data-lightbox="6"
-                         data-caption="SOTA Power-based Metrics That Matter">
-                    <h3>SOTA Power-based Metrics</h3>
-                    <p>
-                        Vanity metrics tell you what happened. The multi-dimensional
-                        <a href="https://arxiv.org/abs/2503.14841">Impulse-Response Model (3D IRM)</a>
-                        tells you what it meant. Every workout sends a ripple through
-                        your physiology - stress, adaptation, fatigue, fitness - across
-                        intensity, duration, and recovery dimensions. MyTraL maps these
-                        interacting forces so you see not just how hard you worked, but
-                        how your body actually responded. No black boxes, no trademarks,
-                        no patents, no proprietary secrets. Just science you can inspect,
-                        understand, and trust.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.3dirm.webp"
+                                 alt="MyTraL 3D Input-Response Model"
+                                 width="1335" height="1241"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="6"
+                                 data-caption="SOTA Power-based Metrics That Matter">
+                            <h3>SOTA Power-based Metrics</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.3dirm.webp')"></div>
+                            <h3>SOTA Power-based Metrics</h3>
+                            <p>
+                                Vanity metrics tell you what happened. The multi-dimensional
+                                <a href="https://arxiv.org/abs/2503.14841">Impulse-Response Model (3D IRM)</a>
+                                tells you what it meant. Every workout sends a ripple through
+                                your physiology - stress, adaptation, fatigue, fitness - across
+                                intensity, duration, and recovery dimensions. MyTraL maps these
+                                interacting forces so you see not just how hard you worked, but
+                                how your body actually responded. No black boxes, no trademarks,
+                                no patents, no proprietary secrets. Just science you can inspect,
+                                understand, and trust.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.ai-coach.webp"
-                         alt="AI Coach"
-                         width="1339" height="1228"
-                         loading="lazy" decoding="async"
-                         data-lightbox="7"
-                         data-caption="Personal Coach, A-Coach, AI Coach">
-                    <h3>Coach, A-Coach, AI Coach!</h3>
-                    <p>
-                        MyTraL transforms your training log into a personal coach with
-                        infinite patience and 24/7 availability. Get on-device (no
-                        cloud) personalized insights, daily workout recommendations, and
-                        advanced performance predictions tailored completely to your
-                        unique data. Built for <u>privacy-first</u> athletes, MyTraL
-                        lets you seamlessly connect your own local LLM (<a
-                        href="https://ollama.com/">Ollama</a>, <a
-                        href="https://lmstudio.com/">LM Studio</a>, etc.) to get secure,
-                        expert feedback on your training decisions without your data
-                        ever leaving your machine.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.ai-coach.webp"
+                                 alt="AI Coach"
+                                 width="1339" height="1228"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="7"
+                                 data-caption="Personal Coach, A-Coach, AI Coach">
+                            <h3>Coach, A-Coach, AI Coach!</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.ai-coach.webp')"></div>
+                            <h3>Coach, A-Coach, AI Coach!</h3>
+                            <p>
+                                MyTraL transforms your training log into a personal coach with
+                                infinite patience and 24/7 availability. Get on-device (no
+                                cloud) personalized insights, daily workout recommendations, and
+                                advanced performance predictions tailored completely to your
+                                unique data. Built for <u>privacy-first</u> athletes, MyTraL
+                                lets you seamlessly connect your own local LLM (<a
+                                href="https://ollama.com/">Ollama</a>, <a
+                                href="https://lmstudio.com/">LM Studio</a>, etc.) to get secure,
+                                expert feedback on your training decisions without your data
+                                ever leaving your machine.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.trimp.webp"
-                         alt="MyTraL TRIMP Training Load"
-                         width="1229" height="1150"
-                         loading="lazy" decoding="async"
-                         data-lightbox="8"
-                         data-caption="Golden Standard - TRIMP Training Load">
-                    <h3>Standard HR-based Metric</h3>
-                    <p>
-                        Not all kilometers are created equal. <a href="https://www.researchgate.net/publication/20910238_Modeling_human_performance_in_running">TRIMP (Training Impulse)</a> -
-                        developed by Dr. Eric Banister - is the gold standard of training load
-                        quantification. It measures the true physiological cost of each session
-                        by weighing intensity against duration using heart rate data.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.trimp.webp"
+                                 alt="MyTraL TRIMP Training Load"
+                                 width="1229" height="1150"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="8"
+                                 data-caption="Golden Standard - TRIMP Training Load">
+                            <h3>Standard HR-based Metric</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.trimp.webp')"></div>
+                            <h3>Standard HR-based Metric</h3>
+                            <p>
+                                Not all kilometers are created equal. <a href="https://www.researchgate.net/publication/20910238_Modeling_human_performance_in_running">TRIMP (Training Impulse)</a> -
+                                developed by Dr. Eric Banister - is the gold standard of training load
+                                quantification. It measures the true physiological cost of each session
+                                by weighing intensity against duration using heart rate data.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.pfn.webp"
-                         alt="PFN/ICL Performance Forecasting"
-                         width="1290" height="1236"
-                         loading="lazy" decoding="async"
-                         data-lightbox="9"
-                         data-caption="PFN/ICL Performance Forecasting - Personalized, Private, and Powerful">
-                    <h3>Very Personal Predictions</h3>
-                    <p>
-                        MyTraL utilizes a state-of-the-art
-                        <a href="https://www.lakera.ai/blog/what-is-in-context-learning">Prior Foundation Models</a>
-                        to read your training history like a chronicle. By treating your
-                        unique physiology, heart rate kinetics, and workout patterns as
-                        an <a href="https://github.com/soda-inria/tabicl">in-context
-                        learning (ICL)</a> dataset, MyTraL executes zero-shot
-                        performance forecasting in a single forward pass on your device
-                        (no cloud). Because it leverages deep-learning priors trained on
-                        millions of synthetic data arrays rather than relying on brittle
-                        local tuning, MyTraL predicts race-day outcomes and overtraining
-                        risks with individualized accuracy. No 3rd-party athlete data,
-                        no cloud servers, no privacy compromises - just your own data,
-                        your own machine, and your own edge.
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.pfn.webp"
+                                 alt="PFN/ICL Performance Forecasting"
+                                 width="1290" height="1236"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="9"
+                                 data-caption="PFN/ICL Performance Forecasting - Personalized, Private, and Powerful">
+                            <h3>Very Personal Predictions</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.pfn.webp')"></div>
+                            <h3>Very Personal Predictions</h3>
+                            <p>
+                                MyTraL utilizes a state-of-the-art
+                                <a href="https://www.lakera.ai/blog/what-is-in-context-learning">Prior Foundation Models</a>
+                                to read your training history like a chronicle. By treating your
+                                unique physiology, heart rate kinetics, and workout patterns as
+                                an <a href="https://github.com/soda-inria/tabicl">in-context
+                                learning (ICL)</a> dataset, MyTraL executes zero-shot
+                                performance forecasting in a single forward pass on your device
+                                (no cloud). Because it leverages deep-learning priors trained on
+                                millions of synthetic data arrays rather than relying on brittle
+                                local tuning, MyTraL predicts race-day outcomes and overtraining
+                                risks with individualized accuracy. No 3rd-party athlete data,
+                                no cloud servers, no privacy compromises - just your own data,
+                                your own machine, and your own edge.
 
-                    </p>
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.this-vs-last.webp"
-                         alt="God's in the details"
-                         width="1261" height="1176"
-                         loading="lazy" decoding="async"
-                         data-lightbox="10"
-                         data-caption="God's in the details - High-resolution granularity for every lap, set, and rest interval">
-                    <h3>God’s in the details</h3>
-                    <p>
-                        Every lap, every set, and every rest interval is a data point with a story to tell.
-                        Why was the fourth interval slower? Was it a fade in focus, a spike in heart rate,
-                        or a heavy feeling in your legs that you noted in your diary?
-                        <br/>
-                        MyTraL uncovers these answers by moving beyond the "single block" recording style,
-                        allowing you to structure your workouts with <a href="https://en.wikipedia.org/wiki/The_devil_is_in_the_details">high-resolution granularity</a>.
-                        By capturing individual laps, work intervals, and specific rest periods as metadata,
-                        it tracks not just the work done, but the precise rhythm of the session.
-                        Beyond the clock, when you record the structure of the workout,
-                        you move from merely measuring distance to understanding your potential.
-                    </p>
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.this-vs-last.webp"
+                                 alt="God's in the details"
+                                 width="1261" height="1176"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="10"
+                                 data-caption="God's in the details - High-resolution granularity for every lap, set, and rest interval">
+                            <h3>God's in the details</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.this-vs-last.webp')"></div>
+                            <h3>God's in the details</h3>
+                            <p>
+                                Every lap, every set, and every rest interval is a data point with a story to tell.
+                                Why was the fourth interval slower? Was it a fade in focus, a spike in heart rate,
+                                or a heavy feeling in your legs that you noted in your diary?
+                                <br/>
+                                MyTraL uncovers these answers by moving beyond the "single block" recording style,
+                                allowing you to structure your workouts with <a href="https://en.wikipedia.org/wiki/The_devil_is_in_the_details">high-resolution granularity</a>.
+                                By capturing individual laps, work intervals, and specific rest periods as metadata,
+                                it tracks not just the work done, but the precise rhythm of the session.
+                                Beyond the clock, when you record the structure of the workout,
+                                you move from merely measuring distance to understanding your potential.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="feature-card">
-                    <img class="feature-thumb"
-                         src="images/feature.radar.webp"
-                         alt="Training Periodization Radar"
-                         width="1404" height="1333"
-                         loading="lazy" decoding="async"
-                         data-lightbox="11"
-                         data-caption="The Rhythm of the Spiral - Training Periodization">
-                    <h3>The Rhythm of the Spiral</h3>
-                    <p>
-                        Nature operates in cycles, from the rotation of the planets to
-                        the rhythmic <a href="https://en.wikipedia.org/wiki/Sports_periodization">periodization</a>
-                        of athletic performance - the intentional ebb and flow of intensity and recovery.
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.radar.webp"
+                                 alt="Training Periodization Radar"
+                                 width="1404" height="1333"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="11"
+                                 data-caption="The Rhythm of the Spiral - Training Periodization">
+                            <h3>The Rhythm of the Spiral</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.radar.webp')"></div>
+                            <h3>The Rhythm of the Spiral</h3>
+                            <p>
+                                Nature operates in cycles, from the rotation of the planets to
+                                the rhythmic <a href="https://en.wikipedia.org/wiki/Sports_periodization">periodization</a>
+                                of athletic performance - the intentional ebb and flow of intensity and recovery.
 
-                        Rather than obsessing over a single day, MyTraL allows you to
-                        compare weeks, months, and years to track your true trajectory.
+                                Rather than obsessing over a single day, MyTraL allows you to
+                                compare weeks, months, and years to track your true trajectory.
 
-                        By viewing your history through these cycles, you can see how far you have come
-                        and where you are heading.
+                                By viewing your history through these cycles, you can see how far you have come
+                                and where you are heading.
 
-                        This perspective reveals the patterns in your peaks and valleys,
-                        helping you understand when to push and when to allow your body to rebuild.
-                        Understanding your progress as a series of cycles transforms your training from
-                        a random collection of workouts into a purposeful journey of mastery.
-                    </p>
+                                This perspective reveals the patterns in your peaks and valleys,
+                                helping you understand when to push and when to allow your body to rebuild.
+                                Understanding your progress as a series of cycles transforms your training from
+                                a random collection of workouts into a purposeful journey of mastery.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -1604,6 +1879,16 @@
                     </div>
                 </div>
             </div>
+            <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem; font-size: small; color: var(--gray); width: 60%; text-align: center; margin-left: auto; margin-right: auto;">
+                <i>
+                Strava is a registered trademark of Strava, Inc. Garmin is trademark or
+                registered trademarks of Garmin Ltd. or its subsidiaries. Polar is a
+                registered trademark of Polar Electro Oy. All third-party trademarks,
+                service marks, and company names are the property of their respective
+                owners. Use of them does not imply any affiliation with or endorsement
+                by them.
+                </i>
+            </P>
             <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem;">
                 &copy; MyTraL. Your personal training log for deeper insights and smarter progress.
                 <br/>
@@ -1749,11 +2034,19 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-            observer.observe(card);
+        document.querySelectorAll('.feature-flip-wrapper').forEach(wrapper => {
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(30px)';
+            wrapper.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(wrapper);
+        });
+
+        // card flip — skip if the click was on the screenshot (lightbox handles that)
+        document.querySelectorAll('.feature-card[data-flip]').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('feature-thumb')) return;
+                card.classList.toggle('flipped');
+            });
         });
 
         // --- Lightbox Gallery ---
@@ -1808,9 +2101,9 @@
                 document.body.style.overflow = '';
             }
 
-            // click on thumbnail opens lightbox
+            // click on thumbnail opens lightbox (stopPropagation prevents card flip)
             thumbs.forEach((thumb, i) => {
-                thumb.addEventListener('click', () => openLightbox(i));
+                thumb.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(i); });
             });
 
             // close button
