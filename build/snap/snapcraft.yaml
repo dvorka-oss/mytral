@@ -10,13 +10,13 @@ title: MyTraL
 summary: Sovereign athlete training log - track activities, gear, health, and progress
 description: |
   MyTraL is a personal sport training log that helps you track your athletic
-  activities, gear usage, and fitness progress over time. Features include:
+  activities, gear usage, and fitness progress:
 
   - Activity tracking (any sport).
   - Gear management with usage statistics.
   - Training load analysis.
   - Holistic tracking of goals, PRs, health, weight, trails, and outfits.
-  - Photo attachments and FIT/GPX/TCX/Strava/Polar import.
+  - Photo attachments and FIT/GPX/TCX/Strava/Polar/* import.
   - Local data storage.
 
   Perfect for athletes who value privacy and want full control over their data.
