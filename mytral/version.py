@@ -16,4 +16,4 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 # MyTraL MASTER VERSION (semantic versioning - single source of truth)
-__version__ = "1.51.0dev"
+__version__ = "1.53.0dev"

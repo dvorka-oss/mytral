@@ -2,15 +2,15 @@
 #
 # Build context: a clean copy of the MyTraL source tree (see build.sh).
 #
-# Run with MYTRAL_DATA_DIR bound to a host directory for data persistence:
-#   docker run -p 8888:5000 -v ~/.local/share/mytral-docker:/data mytral-fedora:latest
+# Run with a host directory bound for data persistence:
+#   docker run -p 8888:5000 -v ~/.local/share/mytral-docker-fedora:/mytral mytral-fedora:latest
 
 FROM fedora:41
 
 LABEL org.opencontainers.image.title="MyTraL"
 LABEL org.opencontainers.image.description="My training log — personal sport training log web application"
 LABEL org.opencontainers.image.licenses="AGPL-3.0"
-LABEL org.opencontainers.image.source="https://github.com/dvorka/my-training-log"
+LABEL org.opencontainers.image.source="https://github.com/dvorka/mytral"
 
 # ---------------------------------------------------------------------------
 # Install Python 3.11 and uv
@@ -42,20 +42,25 @@ RUN uv sync --no-dev --no-group dev --no-group test --no-group ml --no-group not
 # Bind to all interfaces so the container is reachable from the host
 ENV MYTRAL_HOST=0.0.0.0
 
-# Default data directory — mount a host volume here for persistence
-ENV MYTRAL_DATA_DIR=/data
+# Default data directory — mount a host volume at /mytral for persistence.
+# MYTRAL_DATA_DIR is the parent of the actual "data/" subdirectory, so
+# the app stores data at /mytral/data/ inside the container.
+ENV MYTRAL_DATA_DIR=/mytral
 
 # Disable debug mode by default (override for development)
 ENV MYTRAL_DEBUG=false
 
-# Disable auto account creation by default
-ENV MYTRAL_AUTO_ACCOUNT_CREATE=false
+# Set the incarnation to DESKTOP by default to make use as simple as possible
+ENV MYTRAL_INCARNATION=DESKTOP
 
-# Disable user registration by default
-ENV MYTRAL_USER_REGISTRATION=false
+# Enable user registration by default to make it easy to create an account
+ENV MYTRAL_USER_REGISTRATION=true
+
+# Enable caching by default to speed up the run
+ENV MYTRAL_ENABLE_CACHE=true
 
 # Create the data directory
-RUN mkdir -p /data
+RUN mkdir -p /mytral
 
 # Expose the default MyTraL port
 EXPOSE 5000

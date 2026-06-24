@@ -2,7 +2,7 @@
 name: Bug
 about: Report MyTraL bug.
 title: "[Bug] "
-labels: ""
+labels: "bug 🐞"
 assignees: dvorka
 
 ---

@@ -1,6 +1,45 @@
 # Changelog
 
-## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...HEAD)
+## [1.53.0](https://github.com/dvorka-oss/mytral/compare/v1.52.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added Ubuntu PPA distribution for Ubuntu via Launchpad (`ppa:ultradvorka/sport`).
+- Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally (output to `distro/deb/`).
+
+### Fixed
+- Fixed `.deb` packaging: Python dependencies are installed into an isolated virtualenv at
+  `/opt/mytral/venv/` - system Python environment is never polluted.
+- Fixed `.deb` wrapper scripts to export `MYTRAL_INCARNATION`, `MYTRAL_USER_REGISTRATION`,
+  and `MYTRAL_ENABLE_CACHE` environment variables for correct desktop startup.
+
+## Documentation
+- Added Ubuntu PPA installation guide.
+- Added Ubuntu .deb installation guide.
+
+
+
+## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added Windows 10 distribution build to GH release.
+
+### Fixed
+- Fixed Desktop binary environment variables based setup so that athletes can create
+  accounts OOTB.
+
+## Documentation
+- Added Ubuntu distribution build guide.
+- Added Python @ Ubuntu distribution guide.
+- Added Debian @ Docker distribution guide.
+- Added Fedora @ Docker distribution guide.
+
+
+
+## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...v1.51.0)
 
 This MyTraL **minor** release brings:
 
@@ -9,12 +48,15 @@ This MyTraL **minor** release brings:
 - Added Strava synchronization of individual activities from the activity GET page.
 - Added card encouraging athlete to create an activity to pages which need at least one
   activity to render.
+- Added weight to gear.
 - Added tarball distribution.
 - Added Debian @ Docker distribution.
 - Added Fedora @ Docker distribution.
 
 ### Fixed
 - Fixed km / hour usage of retired gears with no history.
+- Fixed exercise / symptom delete message to contain display name (not UUID) when
+  removing these entities from an activity.
 - Removed color from Strava links on the day activities view and search result view.
 
 ## Documentation
@@ -518,5 +560,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka-oss/my-training-log/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka-oss/my-training-log/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka-oss/mytral/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka-oss/mytral/releases/tag/v0.9.0...v1.0.0

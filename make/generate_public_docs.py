@@ -19,8 +19,8 @@ import markdown
 
 
 # Configuration
-GITHUB_BASE_EDIT = "https://github.com/dvorka/my-training-log/edit/main/docs/"
-GITHUB_BASE_VIEW = "https://github.com/dvorka/my-training-log/blob/main/docs/"
+GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
+GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
 
 

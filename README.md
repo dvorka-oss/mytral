@@ -1,14 +1,16 @@
 # MyTraL: My Training Log
 
-[![Support on Open Collective](https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective)](https://opencollective.com/dvorka-floss-lab)
-[![GitHub Actions CI for Ubuntu](https://github.com/dvorka/hstr/actions/workflows/python-tests.yml/badge.svg)](https://github.com/dvorka/my-training-log/actions)
-[![Current release](https://img.shields.io/github/release/dvorka/my-training-log.svg)](https://github.com/dvorka/my-training-log/releases)
-[![GitHub issues](https://img.shields.io/github/issues/dvorka/my-training-log.svg?maxAge=360)](https://github.com/dvorka/my-training-logs/issues)
-[![All releases downloads](https://img.shields.io/github/downloads/dvorka/my-training-log/total.svg)](https://github.com/dvorka/my-training-log/releases)
+[![Support on Open Collective](https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective)](https://opencollective.com/dvorka-floss-lab/projects/mytral)
+[![GitHub Actions CI for Ubuntu](https://github.com/dvorka-oss/mytral/actions/workflows/python-tests.yml/badge.svg)](https://github.com/dvorka-oss/mytral/actions)
+[![Current release](https://img.shields.io/github/release/dvorka-oss/mytral.svg)](https://github.com/dvorka-oss/mytral/releases)
+[![GitHub issues](https://img.shields.io/github/issues/dvorka-oss/mytral.svg?maxAge=360)](https://github.com/dvorka-oss/mytrals/issues)
+[![All releases downloads](https://img.shields.io/github/downloads/dvorka-oss/mytral/total.svg)](https://github.com/dvorka-oss/mytral/releases)
 [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral)
-[![License](https://img.shields.io/github/license/dvorka/my-training-log?color=%23fe0000)](https://github.com/dvorka/hstr/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/dvorka-oss/mytral?color=%24fe0000)](https://github.com/dvorka-oss/mytral/blob/main/LICENSE)
 
 **My** **Tra**ining **L**og (MyTraL) is my personal training log for deeper insights and smarter progress.
+
+![home](media/screenshot/activity.png)
 
 
 
@@ -16,25 +18,25 @@
 
 Install:
 
-* [Linux via Snap)](INSTALLATION.md#install-on-linux-snap)
-* [Windows](INSTALLATION.md#install-on-windows)
+* [Linux (Snap)](INSTALLATION.md#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
+* [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
+* [Windows (ZIP)](INSTALLATION.md#install-on-windows-using-zip)
 
 Build:
 
-* [build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
-* [build on Windows](INSTALLATION.md#build-on-windows)
+* [Ubuntu (binary)](INSTALLATION.md#build-binary-on-ubuntu)
+* [Ubuntu (.deb)](INSTALLATION.md#build--deb-on-ubuntu)
+* [Windows (binary)](INSTALLATION.md#build-binary-on-windows)
 
 Run:
 
-* [run via Python on Linux](INSTALLATION.md#run-via-python-on-linux)
-* [run via Python on Windows](INSTALLATION.md#run-via-python-on-windows)
-* [run via Python on macOS](INSTALLATION.md#run-via-python-on-macos)
-* [run on Debian in Docker](INSTALLATION.md#run-on-debian-in-docker)
-* [run on Fedora in Docker](INSTALLATION.md#run-on-fedora-in-docker)
+* [Run using Python on Ubuntu](INSTALLATION.md#run-using-python-on-ubuntu)
+* [Run using Docker on Debian](INSTALLATION.md#run-using-docker-on-debian)
+* [Run using Docker on Fedora](INSTALLATION.md#run-using-docker-on-fedora)
 
 Tarball:
 
-* [download and install tarball](INSTALLATION.md#download-and-install-tarball)
+* [Download and install tarball](INSTALLATION.md#download-and-install-tarball)
 
 
 
@@ -46,4 +48,4 @@ Contribute! See [CONTRIBUTE.md](./CONTRIBUTE.md). Don't hesitate to contact me -
 
 ## Bugs and Feature Requests
 
-https://github.com/dvorka/my-training-log/issues
+https://github.com/dvorka-oss/mytral/issues

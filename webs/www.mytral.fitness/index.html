@@ -6,7 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyTraL - Your Personal Training Log for Deeper Insights and Smarter Progress</title>
     <meta name="description" content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL.">
+    <link rel="canonical" href="https://mytral.fitness">
     <link rel="icon" href="./mytral-logo.png" type="image/png">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="MyTraL — Your Personal Training Log with AI Coaches">
+    <meta property="og:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs — private, open-source, runs on your machine.">
+    <meta property="og:image" content="https://mytral.fitness/screenshot-dashboard-dark.webp">
+    <meta property="og:url" content="https://mytral.fitness">
+    <meta property="og:type" content="website">
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "MyTraL",
+      "url": "https://mytral.fitness",
+      "description": "Your personal training log for deeper insights and smarter progress. Private, open-source, runs on your own machine.",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Windows, Linux",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Martin Dvorak"
+      },
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html"
+    }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -252,17 +283,49 @@
             gap: 1.5rem;
         }
 
+        .feature-flip-wrapper {
+            perspective: 1400px;
+            min-height: 480px;
+        }
+
         .feature-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(226, 232, 240, 0.1);
+            background: transparent;
+            border: none;
             border-radius: 0.75rem;
-            padding: 2rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
             position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            height: 100%;
+            min-height: 480px;
+            overflow: visible;
+        }
+
+        .feature-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .feature-flip-front,
+        .feature-flip-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 0.75rem;
             overflow: hidden;
         }
 
-        .feature-card::before {
+        .feature-flip-front {
+            background: var(--card-bg);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            transform: rotateY(0deg);
+        }
+
+        .feature-flip-front::before {
             content: '';
             position: absolute;
             top: 0;
@@ -275,14 +338,111 @@
             transition: transform 0.4s;
         }
 
-        .feature-card:hover::before {
+        .feature-card:not(.flipped) .feature-flip-front:hover::before {
             transform: scaleX(1);
         }
 
-        .feature-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(14, 165, 233, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        .feature-flip-back {
+            background: var(--card-bg);
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            transform: rotateY(180deg);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-flip-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--primary), var(--secondary));
+        }
+
+        .feature-back-ghost {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.07;
+            filter: blur(3px) saturate(0);
+            pointer-events: none;
+        }
+
+        .feature-thumb {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: zoom-in;
+        }
+
+        .feature-flip-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: rgba(14, 165, 233, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.06);
+        }
+
+        .feature-flip-back h3 {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-flip-back p {
+            color: var(--light-gray);
+            line-height: 1.75;
+            position: relative;
+            z-index: 1;
+            font-size: 0.93rem;
+        }
+
+        .feature-flip-back a {
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(14, 165, 233, 0.3);
+        }
+
+        .feature-flip-back-hint {
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.06);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: rgba(14, 165, 233, 0.5);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .feature-card p {
+            color: var(--light-gray);
+            line-height: 1.75;
+            font-size: 0.93rem;
         }
 
         .feature-number {
@@ -291,18 +451,6 @@
             font-weight: 700;
             color: rgba(14, 165, 233, 0.2);
             margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.35rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .feature-card p {
-            color: var(--light-gray);
-            line-height: 1.75;
         }
 
         /* Story Section */
@@ -448,6 +596,40 @@
             color: var(--primary);
         }
 
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .footer-heading {
+            color: white;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-col a {
+            display: block;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Content Links */
         .feature-card a,
         .story-content a,
@@ -510,9 +692,400 @@
         .glow-animation {
             animation: glow 2s ease-in-out infinite;
         }
+
+        /* Feature card image */
+        .feature-thumb {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1.25rem;
+            cursor: zoom-in;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-thumb:hover {
+            transform: scale(1.02);
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
+        }
+
+        /* Lightbox overlay */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(2, 6, 23, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .lightbox-overlay.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-image {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.15);
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--light-gray);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+            padding: 0.5rem;
+            z-index: 10;
+        }
+
+        .lightbox-close:hover {
+            color: white;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            color: var(--light-gray);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.25rem;
+            z-index: 10;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(14, 165, 233, 0.2);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .lightbox-prev {
+            left: -60px;
+        }
+
+        .lightbox-next {
+            right: -60px;
+        }
+
+        .lightbox-counter {
+            color: var(--light-gray);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .lightbox-caption {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .lightbox-prev {
+                left: 0.5rem;
+            }
+
+            .lightbox-next {
+                right: 0.5rem;
+            }
+
+            .lightbox-close {
+                top: -2.5rem;
+                right: 0.5rem;
+            }
+        }
+
+        /* Fork me on GitHub ribbon */
+        .github-ribbon {
+            position: fixed;
+            top: 2rem;
+            right: -3.5rem;
+            transform: rotate(45deg);
+            width: 15rem;
+            padding: 0.45rem 1rem 0.45rem 2.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            transition: opacity 0.3s;
+        }
+
+        .github-ribbon:hover {
+            opacity: 0.85;
+        }
+
+        @media (max-width: 768px) {
+            .github-ribbon { display: none; }
+        }
+
+        /* Skunkworks easter egg */
+        #skunkworks {
+            display: none;
+        }
+
+        #skunkworks.revealed {
+            display: block;
+            animation: revealSection 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes revealSection {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .rabbit-trigger {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem 0 2rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .rabbit-trigger img {
+            width: 56px;
+            height: 56px;
+            opacity: 0.3;
+            filter: drop-shadow(0 0 0px rgba(16, 185, 129, 0));
+            transition: opacity 0.4s ease, filter 0.5s ease, transform 0.4s ease;
+        }
+
+        .rabbit-trigger:hover img,
+        .rabbit-trigger.active img {
+            opacity: 1;
+            filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.9));
+            transform: scale(1.15);
+        }
+
+        /* Terminal dots flatline easter egg */
+        .terminal-dot {
+            transition: background 0.3s ease, box-shadow 0.3s ease, border-radius 0.4s ease,
+                        height 0.4s ease, margin-top 0.4s ease, width 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .terminal-dot.clicked-red {
+            background: #bf0709 !important;
+            box-shadow: 0 0 6px rgba(191, 7, 9, 0.6);
+        }
+
+        @keyframes flatlinePulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(191, 7, 9, 0.6); }
+            50%      { box-shadow: 0 0 18px rgba(191, 7, 9, 1); }
+        }
+
+        .terminal-dot.flatlining {
+            animation: flatlinePulse 0.5s ease-in-out 3;
+        }
+
+        @keyframes flatlineMorph {
+            0%   { border-radius: 50%; height: 12px; width: 12px; margin-top: 0; }
+            100% { border-radius: 2px;  height: 2px;  width: 24px; margin-top: 5px; }
+        }
+
+        .terminal-dot.flatlined {
+            background: #bf0709 !important;
+            animation: flatlineMorph 0.35s ease-in-out forwards;
+        }
+
+        #rest-is-training {
+            display: none;
+        }
+
+        #rest-is-training.revealed {
+            display: block;
+            animation: revealSection 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* centre the revealed card under the middle manifesto column (Freedom) */
+        @media (min-width: 1100px) {
+            #rest-is-training.revealed {
+                grid-column: 2;
+            }
+        }
+
+        /* Download grid: 3 fixed columns so the lone Source Code card can sit centred */
+        @media (min-width: 1100px) {
+            .download-grid-3col {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .download-center {
+                grid-column: 2;
+            }
+        }
+
+        /* Features grid: centre a lone card in the middle column */
+        @media (min-width: 1100px) {
+            .features-grid-3col {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .feature-center {
+                grid-column: 2;
+            }
+        }
+
+        /* Download Section */
+        .download-platform-icon {
+            color: var(--primary);
+            margin-bottom: 1.25rem;
+        }
+
+        .download-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .download-links li a {
+            color: var(--light-gray);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        .download-links li a:hover {
+            color: white;
+        }
+
+        .dl-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            color: var(--primary);
+            padding: 0.2rem 0.45rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 4.5rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* Sponsor banner */
+        .sponsor-banner {
+            margin-top: 3rem;
+            padding: 1.75rem 2rem;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(139, 92, 246, 0.06));
+            border: 1px solid rgba(226, 232, 240, 0.08);
+            border-radius: 0.75rem;
+            text-align: center;
+            transition: border-color 0.4s ease, background 0.4s ease;
+        }
+
+        .sponsor-banner:hover {
+            border-color: rgba(14, 165, 233, 0.2);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.09), rgba(139, 92, 246, 0.09));
+        }
+
+        .sponsor-text {
+            color: var(--light-gray);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .sponsor-heart {
+            color: #e11d48;
+            flex-shrink: 0;
+            animation: sponsorHeartbeat 2.2s ease-in-out infinite;
+        }
+
+        @keyframes sponsorHeartbeat {
+            0%, 100% { transform: scale(1); }
+            14%  { transform: scale(1.15); }
+            28%  { transform: scale(1); }
+            42%  { transform: scale(1.15); }
+            56%  { transform: scale(1); }
+        }
+
+        .sponsor-badge-link {
+            display: inline-block;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        .sponsor-badge-link:hover {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 4px 12px rgba(14, 165, 233, 0.35));
+        }
+
+        .sponsor-badge-img {
+            height: 28px;
+            width: auto;
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- Fork me on GitHub ribbon -->
+    <a href="https://github.com/dvorka-oss/mytral" class="github-ribbon" aria-label="Fork me on GitHub">Fork me on GitHub</a>
+
     <!-- Navigation -->
     <nav>
         <div class="container">
@@ -522,8 +1095,8 @@
             </a>
             <ul class="nav-links">
                 <li><a href="#features">features</a></li>
-                <li><a href="#story">story</a></li>
-                <li><a href="#contact">connect</a></li>
+                <li><a href="#manifesto">manifesto</a></li>
+                <li><a href="#download">download</a></li>
             </ul>
         </div>
     </nav>
@@ -540,12 +1113,22 @@
             </p>
             <div class="terminal-window float-animation">
                 <div class="terminal-header">
-                    <div class="terminal-dot dot-red"></div>
-                    <div class="terminal-dot dot-yellow"></div>
-                    <div class="terminal-dot dot-blue"></div>
+                    <div class="terminal-dot dot-red" id="dot-red" title="Click me..."></div>
+                    <div class="terminal-dot dot-yellow" id="dot-yellow" title="...in the right order..."></div>
+                    <div class="terminal-dot dot-blue" id="dot-blue" title="...to find what lies beneath the peaks."></div>
                 </div>
                 <div class="terminal-body">
-                    <img src="./screenshot-dashboard.png" alt="MyTraL Screenshot" style="width: 100%; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);">
+                    <img src="./screenshot-dashboard-dark.webp"
+                        alt="MyTraL Screenshot"
+                        class="feature-thumb"
+                        width="1477"
+                        height="1999"
+                        style="width: 100%; height: auto; border-radius: 0.5rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);"
+                        decoding="async"
+
+                        data-lightbox="12"
+                        data-caption="Own The Data That Tells Your Journey"
+                    >
                 </div>
             </div>
         </div>
@@ -554,9 +1137,456 @@
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <div class="section-label">Manifesto</div>
-            <!-- div class="section-label">Core Capabilities</div -->
+            <div class="section-label">Features</div>
             <h2 class="section-title">Everything You Need to Track Your Progress</h2>
+
+            <div class="features-grid features-grid-3col">
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.own.webp"
+                                 alt="MyTraL Dashboard"
+                                 width="1224" height="1240"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="0"
+                                 data-caption="Own The Data That Tells Your Journey">
+                            <h3>Own Your Journey</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.own.webp')"></div>
+                            <h3>Own Your Journey</h3>
+                            <p>
+                                Take control of your data - do not risk losing years of training
+                                history to changing terms and conditions, API updates, account
+                                bans, or service shutdowns. Your data tells the story of your
+                                journey, and you deserve to own it - it was your effort, your
+                                sweat, and your body that created it. MyTraL gives you <strong>a secure,
+                                private, and permanent</strong> home for your training history on your
+                                own machine. Do whatever you want with it. Analyze it with AI/ML models,
+                                use your own scripts, or leverage other tools to get the most out of it.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.calendar.webp"
+                                 alt="Holistic View of Training Load"
+                                 width="1156" height="1209"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="1"
+                                 data-caption="Holistic View - Beyond Vanity Metrics">
+                            <h3 style="margin-top: 25px">Holistic View Beyond Metrics</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.calendar.webp')"></div>
+                            <h3>Holistic View Beyond Metrics</h3>
+                            <p>
+                                MyTraL goes beyond the metrics of distance and pace to capture
+                                the full context of your training life - the subjective
+                                feelings, gear usage, injury and illness symptom history, your
+                                exercises knowledge base, custom activities, favorite routes,
+                                goals you are working toward, clothes you wore, the weather you
+                                trained in, the cost and more.
+                                <br/>
+                                MyTraL reveals the hidden patterns and insights that drive
+                                your performance - the connections between load, recovery, and
+                                performance, the impact of various factors on your training
+                                outcomes.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.heatmap.webp"
+                                 alt="MyTraL Activity Heatmap"
+                                 width="1375" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="2"
+                                 data-caption="Your Life in Your Palm">
+                            <h3>Your Life in Your Palm</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.heatmap.webp')"></div>
+                            <h3>Your Life in Your Palm</h3>
+                            <p>
+                                Zoom out and see the full tapestry of your training life. The activity
+                                heatmap renders every session, every rest day, every peak and valley
+                                across months and years in a single, glanceable view. Patterns that hide
+                                in spreadsheets become visible - your consistency, your rhythms, your
+                                story. Your entire athletic life, right in your palm.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.gear.webp"
+                                 alt="MyTraL Gear Management"
+                                 width="1336" height="1244"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="3"
+                                 data-caption="Know Your Kit - Equipment Tracking">
+                            <h3 style="margin-top: 15px;">Manage Your Gear Lifecycle</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.gear.webp')"></div>
+                            <h3>Manage Your Gear Lifecycle</h3>
+                            <p>
+                                Every piece of equipment has a story. Track usage, schedule maintenance,
+                                and monitor costs for your shoes, bikes, and gear. Know exactly when it's
+                                time to replace those running shoes or service your chain — before
+                                performance suffers. Your gear, fully accounted for.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.goals.webp"
+                                 alt="MyTraL Goal Management"
+                                 width="1335" height="1320"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="4"
+                                 data-caption="Goal Matrix - SMART Goal Setting">
+                            <h3>Achieve Goals With Eisenhower</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.goals.webp')"></div>
+                            <h3>Achieve Goals With Eisenhower</h3>
+                            <p>
+                                Goals without structure are just wishes. Set SMART goals and prioritize
+                                them through the <a href="https://en.wikipedia.org/wiki/Time_management#Eisenhower_method">Eisenhower matrix</a> - urgent versus important, this
+                                month's breakthrough versus this year's ambition. Know what demands your
+                                focus today and what you are quietly building toward tomorrow. Clarity
+                                turns intention into achievement.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.holistic.webp"
+                                 alt="MyTraL Customization and Extensibility"
+                                 width="1382" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="5"
+                                 data-caption="Customize, Personalize, Extend - Your Training Log, Your Way">
+                            <h3>Customize, Personalize, Extend</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.holistic.webp')"></div>
+                            <h3>Customize, Personalize, Extend</h3>
+                            <p>
+                                MyTraL is designed to be flexible and extensible. Add custom
+                                activities, exercises, and data to fit your unique training
+                                style. Integrate with your own scripts or third-party tools to
+                                analyze your data in ways that matter most to you. Your training
+                                log should adapt to you, not the other way around.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper feature-center">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.import.webp"
+                                 alt="MyTraL Import, Sync, Aggregate, Normalize"
+                                 width="1382" height="1390"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="5"
+                                 data-caption="Import, Sync, Aggregate, Normalize - Your Training Data, Your Way">
+                            <h3>Import, Sync, Aggregate</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.import.webp')"></div>
+                            <h3>Import, Sync, Aggregate</h3>
+                            <p>
+                                MyTraL lets you import your training data from various
+                                sources, sync it across devices, aggregate it into a
+                                unified view, and normalize it for consistent analysis:
+                                <a href="https://developer.garmin.com/fit/protocol/" target="_blank" rel="noopener">FIT (file)</a>,
+                                <a href="https://connect.garmin.com" target="_blank" rel="noopener">Garmin® (bulk export)</a>,
+                                <a href="https://www.goldencheetah.org/" target="_blank" rel="noopener">GoldenCheetah (OSF)</a>,
+                                <a href="https://en.wikipedia.org/wiki/GPS_Exchange_Format" target="_blank" rel="noopener">GPX (file)</a>,
+                                <a href="https://www.strava.com" target="_blank" rel="noopener">Strava® (API, bulk export)</a>,
+                                <a href="https://www.polar.com" target="_blank" rel="noopener">Polar® (HRM)</a>,
+                                <a href="https://en.wikipedia.org/wiki/Training_Center_XML" target="_blank" rel="noopener">TCX (file)</a>,
+                                <a href="https://www.concept2.com/logbook" target="_blank" rel="noopener">Concept2 Logbook</a>,
+                                and more.
+                                MyTraL ensures that all your data speaks
+                                the same language, giving you a complete picture of your
+                                training journey.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Easter egg: rabbit toggles Skunkworks section -->
+    <div class="rabbit-trigger" id="rabbit-trigger" role="button" aria-label="Follow the white rabbit" tabindex="0">
+        <img src="./matrix-rabbit.png" alt="" width="822" height="822">
+    </div>
+
+    <!-- SkunkWorks Section -->
+    <section id="skunkworks" class="features">
+        <div class="container">
+            <div class="section-label">skunkworks</div>
+            <h2 class="section-title">Research &amp; Prototyping to Push MyTraL Frontiers</h2>
+
+            <div class="features-grid">
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.3dirm.webp"
+                                 alt="MyTraL 3D Input-Response Model"
+                                 width="1335" height="1241"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="6"
+                                 data-caption="SOTA Power-based Metrics That Matter">
+                            <h3>SOTA Power-based Metrics</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.3dirm.webp')"></div>
+                            <h3>SOTA Power-based Metrics</h3>
+                            <p>
+                                Vanity metrics tell you what happened. The multi-dimensional
+                                <a href="https://arxiv.org/abs/2503.14841">Impulse-Response Model (3D IRM)</a>
+                                tells you what it meant. Every workout sends a ripple through
+                                your physiology - stress, adaptation, fatigue, fitness - across
+                                intensity, duration, and recovery dimensions. MyTraL maps these
+                                interacting forces so you see not just how hard you worked, but
+                                how your body actually responded. No black boxes, no trademarks,
+                                no patents, no proprietary secrets. Just science you can inspect,
+                                understand, and trust.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.ai-coach.webp"
+                                 alt="AI Coach"
+                                 width="1339" height="1228"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="7"
+                                 data-caption="Personal Coach, A-Coach, AI Coach">
+                            <h3>Coach, A-Coach, AI Coach!</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.ai-coach.webp')"></div>
+                            <h3>Coach, A-Coach, AI Coach!</h3>
+                            <p>
+                                MyTraL transforms your training log into a personal coach with
+                                infinite patience and 24/7 availability. Get on-device (no
+                                cloud) personalized insights, daily workout recommendations, and
+                                advanced performance predictions tailored completely to your
+                                unique data. Built for <u>privacy-first</u> athletes, MyTraL
+                                lets you seamlessly connect your own local LLM (<a
+                                href="https://ollama.com/">Ollama</a>, <a
+                                href="https://lmstudio.com/">LM Studio</a>, etc.) to get secure,
+                                expert feedback on your training decisions without your data
+                                ever leaving your machine.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.trimp.webp"
+                                 alt="MyTraL TRIMP Training Load"
+                                 width="1229" height="1150"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="8"
+                                 data-caption="Golden Standard - TRIMP Training Load">
+                            <h3>Standard HR-based Metric</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.trimp.webp')"></div>
+                            <h3>Standard HR-based Metric</h3>
+                            <p>
+                                Not all kilometers are created equal. <a href="https://www.researchgate.net/publication/20910238_Modeling_human_performance_in_running">TRIMP (Training Impulse)</a> -
+                                developed by Dr. Eric Banister - is the gold standard of training load
+                                quantification. It measures the true physiological cost of each session
+                                by weighing intensity against duration using heart rate data.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.pfn.webp"
+                                 alt="PFN/ICL Performance Forecasting"
+                                 width="1290" height="1236"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="9"
+                                 data-caption="PFN/ICL Performance Forecasting - Personalized, Private, and Powerful">
+                            <h3>Very Personal Predictions</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.pfn.webp')"></div>
+                            <h3>Very Personal Predictions</h3>
+                            <p>
+                                MyTraL utilizes a state-of-the-art
+                                <a href="https://www.lakera.ai/blog/what-is-in-context-learning">Prior Foundation Models</a>
+                                to read your training history like a chronicle. By treating your
+                                unique physiology, heart rate kinetics, and workout patterns as
+                                an <a href="https://github.com/soda-inria/tabicl">in-context
+                                learning (ICL)</a> dataset, MyTraL executes zero-shot
+                                performance forecasting in a single forward pass on your device
+                                (no cloud). Because it leverages deep-learning priors trained on
+                                millions of synthetic data arrays rather than relying on brittle
+                                local tuning, MyTraL predicts race-day outcomes and overtraining
+                                risks with individualized accuracy. No 3rd-party athlete data,
+                                no cloud servers, no privacy compromises - just your own data,
+                                your own machine, and your own edge.
+
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.this-vs-last.webp"
+                                 alt="God's in the details"
+                                 width="1261" height="1176"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="10"
+                                 data-caption="God's in the details - High-resolution granularity for every lap, set, and rest interval">
+                            <h3>God's in the details</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.this-vs-last.webp')"></div>
+                            <h3>God's in the details</h3>
+                            <p>
+                                Every lap, every set, and every rest interval is a data point with a story to tell.
+                                Why was the fourth interval slower? Was it a fade in focus, a spike in heart rate,
+                                or a heavy feeling in your legs that you noted in your diary?
+                                <br/>
+                                MyTraL uncovers these answers by moving beyond the "single block" recording style,
+                                allowing you to structure your workouts with <a href="https://en.wikipedia.org/wiki/The_devil_is_in_the_details">high-resolution granularity</a>.
+                                By capturing individual laps, work intervals, and specific rest periods as metadata,
+                                it tracks not just the work done, but the precise rhythm of the session.
+                                Beyond the clock, when you record the structure of the workout,
+                                you move from merely measuring distance to understanding your potential.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-flip-wrapper">
+                    <div class="feature-card" data-flip="true">
+                        <div class="feature-flip-front">
+                            <img class="feature-thumb"
+                                 src="images/feature.radar.webp"
+                                 alt="Training Periodization Radar"
+                                 width="1404" height="1333"
+                                 loading="lazy" decoding="async"
+                                 data-lightbox="11"
+                                 data-caption="The Rhythm of the Spiral - Training Periodization">
+                            <h3>The Rhythm of the Spiral</h3>
+                            <span class="feature-flip-badge">more &rsaquo;</span>
+                        </div>
+                        <div class="feature-flip-back">
+                            <div class="feature-back-ghost" style="background-image: url('images/feature.radar.webp')"></div>
+                            <h3>The Rhythm of the Spiral</h3>
+                            <p>
+                                Nature operates in cycles, from the rotation of the planets to
+                                the rhythmic <a href="https://en.wikipedia.org/wiki/Sports_periodization">periodization</a>
+                                of athletic performance - the intentional ebb and flow of intensity and recovery.
+
+                                Rather than obsessing over a single day, MyTraL allows you to
+                                compare weeks, months, and years to track your true trajectory.
+
+                                By viewing your history through these cycles, you can see how far you have come
+                                and where you are heading.
+
+                                This perspective reveals the patterns in your peaks and valleys,
+                                helping you understand when to push and when to allow your body to rebuild.
+                                Understanding your progress as a series of cycles transforms your training from
+                                a random collection of workouts into a purposeful journey of mastery.
+                            </p>
+                            <span class="feature-flip-back-hint">&lsaquo; back</span>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+
+
+
+
+
+    <!--Manifesto Section -->
+    <section id="manifesto" class="features">
+        <div class="container">
+            <div class="section-label">Manifesto</div>
+            <h2 class="section-title">The Principles We Train By</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-number">*</div>
@@ -629,44 +1659,6 @@
 
                 <div class="feature-card">
                     <div class="feature-number">*</div>
-                    <h3>God’s in the details</h3>
-                    <p>
-                        Every lap, every set, and every rest interval is a data point with a story to tell.
-                        Why was the fourth interval slower? Was it a fade in focus, a spike in heart rate,
-                        or a heavy feeling in your legs that you noted in your diary?
-                        <br/>
-                        MyTraL uncovers these answers by moving beyond the "single block" recording style,
-                        allowing you to structure your workouts with <a href="https://en.wikipedia.org/wiki/The_devil_is_in_the_details">high-resolution granularity</a>.
-                        By capturing individual laps, work intervals, and specific rest periods as metadata,
-                        it tracks not just the work done, but the precise rhythm of the session.
-                        Beyond the clock, when you record the structure of the workout,
-                        you move from merely measuring distance to understanding your potential.
-                    </p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-number">*</div>
-                    <h3>The Rhythm of the Spiral</h3>
-                    <p>
-                        Nature operates in cycles, from the rotation of the planets to
-                        the rhythmic <a href="https://en.wikipedia.org/wiki/Sports_periodization">periodization</a>
-                        of athletic performance - the intentional ebb and flow of intensity and recovery.
-
-                        Rather than obsessing over a single day, MyTraL allows you to
-                        compare weeks, months, and years to track your true trajectory.
-
-                        By viewing your history through these cycles, you can see how far you have come
-                        and where you are heading.
-
-                        This perspective reveals the patterns in your peaks and valleys,
-                        helping you understand when to push and when to allow your body to rebuild.
-                        Understanding your progress as a series of cycles transforms your training from
-                        a random collection of workouts into a purposeful journey of mastery.
-                    </p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-number">*</div>
                     <h3>Open Data Formats</h3>
                     <p>
                         Your training history is a lifetime asset that deserves to stand the test of time.
@@ -680,10 +1672,25 @@
                     </p>
                 </div>
 
-                <div class="feature-card">
+                <div class="feature-card" id="rest-is-training">
+                    <div class="feature-number">~</div>
+                    <h3>Rest Is Training</h3>
+                    <p>
+                        Your body doesn't get stronger during the workout.
+                        It gets stronger during the rest that follows.
+                        The flatline isn't failure — it's the signal that adaptation
+                        is underway. Every peak demands a valley. Every stride needs
+                        a stillness.
+                        <br/>
+                        Recovery is not the absence of training; it is training's most
+                        essential phase. The best athletes aren't the ones who train
+                        the hardest — they're the ones who recover the smartest.
+                    </p>
+                </div>
+
+                <!-- div class="feature-card">
                     <div class="feature-number">*</div>
                     <h3>Training Knowledge</h3>
-                    <!-- h3>Smart Insights</h3 -->
                     <p>
                         Stop guessing and start uncovering the "breakthrough outliers" hidden within your athletic history
                         by identifying the precise triggers and patterns that drive your peak performance.
@@ -695,7 +1702,7 @@
                         Maintain favorite training locations.
                         Collect and organize your holistic training wisdom.
                     </p>
-                </div>
+                </div -->
             </div>
         </div>
     </section>
@@ -716,8 +1723,8 @@
                 <p>
                     In this project, I'm building and documenting the software chain to digitize and normalize
                     30+ years of diverse training logs I have used over the years - from paper (official performance
-                    sports center diaries and my personal notebooks) and MS Excel to third-party online and desktop tools,
-                    Concept2 ranking, all the way to Strava.
+                    sports center diaries and my personal notebooks) and spreadsheets to third-party online and desktop tools,
+                    Concept2 ranking, all the way to social fitness networks.
                 </p>
                 <p>
                     What will I learn from the data? I can't wait! What about <b>you</b>?
@@ -726,31 +1733,140 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
+    <!-- Download Section -->
+    <section id="download" class="features">
         <div class="container">
-            <div class="section-label">Get In Touch</div>
-            <h2 class="section-title">Interested?</h2>
-            <p style="text-align: center; margin-bottom: 2rem; color: var(--light-gray);">
-                If you have questions, suggestions, or just want to get in touch, please fill out the form below.
+            <div class="section-label">Get MyTraL</div>
+            <h2 class="section-title">Download</h2>
+            <p style="text-align: center; margin-bottom: 3rem; color: var(--light-gray); font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Free and open-source. No account required. No telemetry.
+                Your data on your machine.
             </p>
-            <div class="contact-form">
-                <form action="https://formspree.io/f/mrbadjgz" method="POST">
-                    <div class="form-group">
-                        <label for="email" class="form-label">&gt; email:</label>
-                        <input type="email" id="email" name="email" class="form-control" placeholder="your@email.com" required>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="message" class="form-label">&gt; message:</label>
-                        <textarea id="message" name="message" class="form-control" placeholder="Your thoughts, questions, or ideas..." required></textarea>
-                    </div>
+            <div class="features-grid download-grid-3col">
 
-                    <button type="submit" class="btn-submit">Send Message</button>
-                </form>
+                <!--
+
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M4 4m0 1a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1z"/>
+                            <path d="M4 15m0 1a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-14a1 1 0 0 1 -1 -1z"/>
+                            <path d="M4 11l0 4"/>
+                            <path d="M20 11l0 4"/>
+                            <path d="M8 8l0 .01"/>
+                            <path d="M8 17l0 .01"/>
+                        </svg>
+                    </div>
+                    <h3>Linux</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Native packages for major distributions.
+                    </p>
+                    <ul class="download-links">
+                        <li><a href="#" target="_blank"><span class="dl-badge">PPA</span> Ubuntu</a></li>
+                        <li><a href="#" target="_blank"><span class="dl-badge">Snap</span> Ubuntu / Debian / Fedora / Arch</a></li>
+
+                        <li><a href="#"><span class="dl-badge">DEB</span> Ubuntu / Debian</a></li>
+                        <li><a href="#"><span class="dl-badge">RPM</span> Fedora / Red Hat</a></li>
+                        <li><a href="#"><span class="dl-badge">AppImage</span> Any Linux</a></li>
+                        <li><a href="#"><span class="dl-badge">TAR.GZ</span> Archive</a></li>
+                    </ul>
+                </div>
+                -->
+
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M17.8 20h-11.6a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h11.6a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2z"/>
+                            <path d="M12 8v4"/>
+                            <path d="M8 12h8"/>
+                        </svg>
+                    </div>
+                    <h3>Windows</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        ZIP that needs no installation - extract and run.
+                    </p>
+                    <ul class="download-links">
+                        <!--
+                        <li><a href="#"><span class="dl-badge">EXE</span> Installer</a></li>
+                        -->
+                        <li><a href="https://github.com/dvorka-oss/mytral/releases" target="_blank"><span class="dl-badge">ZIP</span> Archive with EXE binary</a></li>
+                    </ul>
+                </div>
+
+                <!--
+                <div class="feature-card">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 7c-3 0 -4 3 -4 5.5c0 3 2 7.5 4 7.5c1 .023 1.424 -.55 3 -.55c1.576 0 1.924 .55 3 .55c2 0 4 -4.5 4 -7.5c0 -2.5 -1 -5.5 -4 -5.5c-1.4 0 -2.5 .6 -3 1"/>
+                            <path d="M12 4a3 3 0 0 0 -3 3"/>
+                        </svg>
+                    </div>
+                    <h3>macOS</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Drag-and-drop DMG installation.
+                    </p>
+                    <ul class="download-links">
+                        <li><a href="#" target="_blank"><span class="dl-badge">DMG</span> Disk Image (x86)</a></li>
+
+                        <li><a href="#" target="_blank"><span class="dl-badge">DMG</span> Disk Image (Apple Silicon)</a></li>
+                        <li><a href="#"><span class="dl-badge">brew</span> <code style="font-size:0.85rem;">brew install mytral</code></a></li>
+
+                    </ul>
+                </div>
+
+                -->
+
+                <div class="feature-card download-center">
+                    <div class="download-platform-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"/>
+                        </svg>
+                    </div>
+                    <h3>Source Code</h3>
+                    <p style="color: var(--light-gray); font-size: 0.95rem; line-height: 1.6; margin-bottom: 0.5rem;">
+                        Build from source, contribute patches,
+                        or audit every line — it is all open.
+                    </p>
+                    <ul class="download-links">
+                        <li><a href="https://github.com/dvorka-oss/mytral/releases" target="_blank"><span class="dl-badge">TAR.GZ</span> Source Tarball</a></li>
+                        <li><a href="https://github.com/dvorka-oss/mytral/releases" target="_blank"><span class="dl-badge">ZIP</span> Source Archive</a></li>
+                    </ul>
+                </div>
+
             </div>
+
+            <!-- Sponsor callout -->
+            <div class="sponsor-banner">
+                <p class="sponsor-text">
+                    <svg class="sponsor-heart" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    MyTraL is free, open-source, and built with passion. If it brings value to your training, consider&nbsp;supporting&nbsp;its&nbsp;development.
+                </p>
+                <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral" target="_blank" rel="noopener" class="sponsor-badge-link" aria-label="Support MyTraL on Open Collective">
+                    <img src="https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective" alt="Sponsor on Open Collective" class="sponsor-badge-img">
+                </a>
+            </div>
+
         </div>
     </section>
+
+    <!-- Lightbox Gallery -->
+    <div class="lightbox-overlay" id="lightbox">
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightbox-close" aria-label="Close gallery">&times;</button>
+            <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous image">&#10094;</button>
+            <img class="lightbox-image" id="lightbox-img" src="" alt="">
+            <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next image">&#10095;</button>
+        </div>
+        <div class="lightbox-counter" id="lightbox-counter"></div>
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
 
     <!-- Rabbit
     <div style="text-align: right; padding-right: 3em;">
@@ -761,14 +1877,74 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-heading">SUPPORT</div>
+                    <a href="./docs">Documentation</a>
+                    <a href="https://github.com/dvorka-oss">Repositories</a>
+                    <a href="https://github.com/dvorka-oss/mytral/issues">Support</a>
+                    <a href="https://github.com/dvorka-oss/mytral/blob/main/LICENSE">License</a>
+                </div>
+                <div class="footer-col">
+                    <div class="footer-heading">MYTRAL</div>
+                    <a href="./docs/about.html">About</a>
+                    <a href="./docs/changelog.html">Changelog</a>
+                    <a href="https://github.com/dvorka-oss/mytral/releases">Releases</a>
+                    <a href="https://github.com/dvorka-oss/mytral">GitHub</a>
+                    <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral">Sponsor</a>
+                </div>
+                <div class="footer-col footer-brand">
+                    <a href="#">
+                        <img src="./mytral-logo.png" alt="MyTraL" style="width: 36px; height: auto; vertical-align: middle;">
+                        <strong>MyTraL</strong>
+                    </a>
+                    <br/>
+                    <div style="display: flex; gap: 1rem; align-items: center; justify-content: center;">
+                        <a href="https://github.com/dvorka-oss/mytral">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-github">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+                            </svg>
+                        </a>
+                        <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-brand-open-collective">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M12 20l-7 -4v-8l7 -4l7 4v8z"/>
+                                <path d="M9 7h.01"/>
+                                <path d="M15 7h.01"/>
+                            </svg>
+                        </a>
+                        <a href="https://discord.gg/pb4HYvF2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-discord">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                <path d="M8 12a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+                                <path d="M14 12a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+                                <path d="M15.5 17c0 1 1.5 3 2 3c1.5 0 2.833 -1.667 3.5 -3c.667 -1.667 .5 -5.833 -1.5 -11.5c-1.457 -1.015 -3 -1.34 -4.5 -1.5l-.972 1.923a11.913 11.913 0 0 0 -4.053 0l-.975 -1.923c-1.5 .16 -3.043 .485 -4.5 1.5c-2 5.667 -2.167 9.833 -1.5 11.5c.667 1.333 2 3 3.5 3c.5 0 2 -2 2 -3" />
+                                <path d="M7 16.5c3.5 1 6.5 1 10 0" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem; font-size: small; color: var(--gray); width: 60%; text-align: center; margin-left: auto; margin-right: auto;">
+                <i>
+                Strava&reg; is a registered trademark of Strava, Inc. Garmin&reg; is a trademark or
+                registered trademark of Garmin Ltd. or its subsidiaries. Polar&reg; is a
+                registered trademark of Polar Electro Oy. Concept2&reg; is a registered
+                trademark of Concept2, Inc. All third-party trademarks,
+                service marks, and company names are the property of their respective
+                owners. Use of them does not imply any affiliation with or endorsement
+                by them.
+                </i>
+            </P>
+            <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem;">
                 &copy; MyTraL. Your personal training log for deeper insights and smarter progress.
-                <br>
-                <!--
-                <a href="/static/documentation/license.html">License</a> •
-                <a>Documentation</a> •
-                <a href="#contact">Contact</a>
-                 -->
+                <br/>
+                Created with passion for my personal pleasure.
+                <br/>
+                <a href="https://github.com/dvorka/" style="color: var(--gray);">Martin Dvorak</a><!-- and contributors -->
+                <br/>
+                2026
             </p>
         </div>
     </footer>
@@ -777,16 +1953,108 @@
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                // bare '#' is a scroll-to-top shortcut; let it fall through to default
+                if (!href || href === '#') return;
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                // reveal skunkworks first if the nav link targets it while hidden
+                if (href === '#skunkworks') {
+                    const sw = document.getElementById('skunkworks');
+                    const rb = document.getElementById('rabbit-trigger');
+                    if (sw && !sw.classList.contains('revealed')) {
+                        sw.classList.add('revealed');
+                        if (rb) rb.classList.add('active');
+                    }
+                }
+                const target = document.querySelector(href);
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
                 }
             });
         });
+
+        // Easter egg: rabbit toggles Skunkworks section
+        (function () {
+            const rabbit = document.getElementById('rabbit-trigger');
+            const skunkworks = document.getElementById('skunkworks');
+            if (!rabbit || !skunkworks) return;
+
+            function toggle() {
+                const visible = skunkworks.classList.toggle('revealed');
+                rabbit.classList.toggle('active', visible);
+                if (visible) {
+                    setTimeout(() => skunkworks.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                }
+            }
+
+            rabbit.addEventListener('click', toggle);
+            rabbit.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+            });
+        })();
+
+        // Easter egg: terminal dots flatline → "Rest Is Training" card
+        (function () {
+            const dotBlue   = document.getElementById('dot-blue');
+            const dotYellow = document.getElementById('dot-yellow');
+            const dotRed    = document.getElementById('dot-red');
+            const restCard  = document.getElementById('rest-is-training');
+            if (!dotBlue || !dotYellow || !dotRed || !restCard) return;
+
+            const ORDER = ['blue', 'yellow', 'red'];
+            let clicks  = [];
+            let done    = false;
+
+            function reset() {
+                [dotBlue, dotYellow, dotRed].forEach(d => {
+                    d.classList.remove('clicked-red', 'flatlining', 'flatlined');
+                });
+                clicks = [];
+            }
+
+            function flatline() {
+                done = true;
+                // stagger: each dot pulses then morphs into a flat line
+                [dotBlue, dotYellow, dotRed].forEach((d, i) => {
+                    d.classList.add('clicked-red');
+                    setTimeout(() => d.classList.add('flatlining'), i * 120);
+                    setTimeout(() => {
+                        d.classList.remove('flatlining');
+                        d.classList.add('flatlined');
+                    }, 600 + i * 120);
+                });
+
+                // reveal the manifesto card after the flatline animation settles
+                setTimeout(() => {
+                    restCard.classList.add('revealed');
+                    restCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 1100);
+            }
+
+            function tap(name) {
+                if (done) return;
+
+                const expected = ORDER[clicks.length];
+                if (name !== expected) {
+                    reset();
+                    // if the mis-click happens to be the first in sequence, start fresh
+                    if (name === ORDER[0]) {
+                        clicks.push(name);
+                        document.getElementById('dot-' + name).classList.add('clicked-red');
+                    }
+                    return;
+                }
+
+                clicks.push(name);
+                document.getElementById('dot-' + name).classList.add('clicked-red');
+
+                if (clicks.length === ORDER.length) flatline();
+            }
+
+            dotBlue  .addEventListener('click', e => { e.stopPropagation(); tap('blue');   });
+            dotYellow.addEventListener('click', e => { e.stopPropagation(); tap('yellow'); });
+            dotRed   .addEventListener('click', e => { e.stopPropagation(); tap('red');    });
+        })();
 
         // Parallax effect for hero grid
         window.addEventListener('scroll', () => {
@@ -814,12 +2082,105 @@
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-            observer.observe(card);
+        document.querySelectorAll('.feature-flip-wrapper').forEach(wrapper => {
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(30px)';
+            wrapper.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(wrapper);
         });
+
+        // card flip — skip if the click was on the screenshot (lightbox handles that)
+        document.querySelectorAll('.feature-card[data-flip]').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.classList.contains('feature-thumb')) return;
+                card.classList.toggle('flipped');
+            });
+        });
+
+        // --- Lightbox Gallery ---
+        (function() {
+            const overlay = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            const caption = document.getElementById('lightbox-caption');
+            const closeBtn = document.getElementById('lightbox-close');
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+
+            // collect all feature thumbnails
+            const thumbs = document.querySelectorAll('.feature-thumb');
+            const slides = Array.from(thumbs).map(t => ({
+                src: t.src,
+                caption: t.dataset.caption || t.alt
+            }));
+
+            let currentIndex = 0;
+
+            function showSlide(index) {
+                if (slides.length === 0) return;
+                // wrap around
+                if (index < 0) index = slides.length - 1;
+                if (index >= slides.length) index = 0;
+                currentIndex = index;
+
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = slides[currentIndex].src;
+                    img.alt = slides[currentIndex].caption;
+                    caption.textContent = slides[currentIndex].caption;
+                    counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+                    img.style.opacity = '1';
+                }, 150);
+            }
+
+            function openLightbox(index) {
+                currentIndex = index;
+                img.src = slides[currentIndex].src;
+                img.alt = slides[currentIndex].caption;
+                img.style.opacity = '1';
+                caption.textContent = slides[currentIndex].caption;
+                counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // click on thumbnail opens lightbox (stopPropagation prevents card flip)
+            thumbs.forEach((thumb, i) => {
+                thumb.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(i); });
+            });
+
+            // close button
+            closeBtn.addEventListener('click', closeLightbox);
+
+            // click outside image closes lightbox
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeLightbox();
+            });
+
+            // navigation buttons
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSlide(currentIndex - 1);
+            });
+
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showSlide(currentIndex + 1);
+            });
+
+            // keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!overlay.classList.contains('active')) return;
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') showSlide(currentIndex - 1);
+                if (e.key === 'ArrowRight') showSlide(currentIndex + 1);
+            });
+        })();
     </script>
 </body>
 </html>

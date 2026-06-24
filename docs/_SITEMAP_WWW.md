@@ -8,6 +8,12 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 ### Manifesto
 * [source](INDEX.md)
 
+### Installation
+* [source](INSTALLATION.md)
+
+### Configuration
+* [source](CONFIGURATION.md)
+
 ### ---
 
 ### Data Sharing

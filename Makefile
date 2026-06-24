@@ -274,7 +274,8 @@ data-sync:: ## synchronize ~ pull data in MyTraL data repository
 
 .PHONY: run
 run: .venv ## run MyTraL server w/ ENV var specified data directory
-	vibe
+	MYTRAL_ENABLE_CACHE=true \
+	MYTRAL_INCARNATION=DESKTOP \
 	uv run python -m mytral.run
 
 .PHONY: runvdev
@@ -393,6 +394,12 @@ vibe-copilot-deepseek:
 	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
 	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
 	copilot --allow-all-tools --banner
+
+# Anthropic Claude Code: ideally @ Sonnet 1M
+.PHONE: vibe-cc
+vibe-cc:
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
+	claude --dangerously-skip-permissions
 
 # DeepSeek
 # https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
@@ -546,6 +553,7 @@ wheel: ## build Python wheel
 
 DIR_DISTRO_WEBAPP = distro/webapp
 DIR_DISTRO_DESKTOP = distro/desktop
+DIR_DISTRO_DEB = distro/deb
 
 .PHONY: distro-webapp-clean
 distro-webapp-clean: ## clean web application distribution directory
@@ -570,6 +578,28 @@ distro-webapp-test: distro-webapp-build ## test web application distribution
 .PHONY: distro-tarball
 distro-tarball: ## build upstream tarball (.tar.gz) for Linux distribution maintainers
 	@./build/tarball/tarball-build.sh
+
+#
+# DISTRIBUTION: Ubuntu PPA @ Launchpad
+#
+
+distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	./launchpad-release.sh
+	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
+.PHONY: distro-ubuntu-deb
+distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
+	@mkdir -p $(DIR_DISTRO_DEB)
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	DRY_RUN=true ./launchpad-release.sh
+	@find $(USER_HOME)/p/mytral/launchpad -name "mytral_*.deb" | \
+	    xargs ls -t | head -1 | xargs -I{} cp -v {} $(DIR_DISTRO_DEB)/
+	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"
 
 #
 # DISTRIBUTION: desktop application
@@ -673,6 +703,7 @@ doc-sync-data:
 	@echo "Preparing data..."
 	cp -vf CREDITS.md docs/CREDITS.md
 	cp -vf CHANGELOG.md docs/CHANGELOG.md
+	cp -vf INSTALLATION.md docs/INSTALLATION.md
 	uv run python make/preprocess_license_to_markdown.py
 	uv run python make/preprocess_licenses_to_markdown.py
 
@@ -687,8 +718,8 @@ doc-clean: ## clean generated documentation
 	rm -f mytral/static/documentation/*.html
 	@echo "Documentation cleaned"
 
-.PHONY: doc-serve
-doc-serve: doc ## serve documentation locally for preview
+.PHONY: doc-live
+doc-live: doc ## serve documentation locally for preview
 	@echo "Serving documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory mytral/static/documentation
 
@@ -697,9 +728,10 @@ doc-serve: doc ## serve documentation locally for preview
 #
 
 # INSTALL live server: npm install -g live-server
-.PHONY: www-live-server
-www-live-server: ## start live server for www.mytral.fitness development
-	@cd webs/www.mytral.fitness && live-server ./
+.PHONY: www-live
+www-live: ## start live server for www.mytral.fitness development
+	@echo "Serving documentation at http://localhost:8080"
+	uv run python -m http.server 8080 --directory webs/www.mytral.fitness
 
 .PHONY: www-doc
 www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
@@ -713,8 +745,8 @@ www-doc-clean: ## clean generated public documentation
 	rm -rf webs/www.mytral.fitness/docs/*.png
 	@echo "Public documentation cleaned"
 
-.PHONY: www-doc-serve
-www-doc-serve: www-doc ## serve public documentation locally for preview
+.PHONY: www-doc-live
+www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 
@@ -810,16 +842,6 @@ tool-pyproject-as-yaml: ## convert pyproject.toml to JSON
 #
 # USER SPECIFIC PRODUCTION DATA MANAGEMENT
 #
-
-# pull production data from Git repository & sync blobs from the shared drive
-PHONY: my-data-pull
-my-data-pull:
-	cd make && ./d_production_data_pull.sh
-
-# push production data to Git repository & sync blobs to the shared drive
-.PHONY: my-data-push
-my-data-push:
-	cd make && ./d_production_data_push.sh
 
 .PHONY: my-data-zip
 my-data-zip-snapshot:

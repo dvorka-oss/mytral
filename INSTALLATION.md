@@ -2,44 +2,73 @@
 
 Install:
 
-* [Linux via Snap](#install-on-linux-via-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
-* [Windows](#install-on-windows)
+* [Linux (Snap)](#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
+* [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
+* [Windows (ZIP)](#install-on-windows-using-zip)
 
 Build:
 
-* [build on Ubuntu](#build-on-ubuntu)
-* [build on Windows](#build-on-windows)
+* [Ubuntu (binary)](#build-binary-on-ubuntu)
+* [Ubuntu (.deb)](#build--deb-on-ubuntu)
+* [Windows (binary)](#build-binary-on-windows)
 
 Run:
 
-* [Run via Python on Linux](#run-via-python-on-linux)
-* [Run via Python on Windows](#run-via-python-on-windows)
-* [Run via Python on macOS](#run-via-python-on-macos)
-* [Run on Debian in Docker](#run-on-debian-in-docker)
-* [Run on Fedora in Docker](#run-on-fedora-in-docker)
+* [Run using Python on Ubuntu](#run-using-python-on-ubuntu)
+* [Run using Docker on Debian](#run-using-docker-on-debian)
+* [Run using Docker on Fedora](#run-using-docker-on-fedora)
 
 Tarball:
 
-* [download and install tarball](#download-and-install-tarball)
+* [Download and install tarball](#download-and-install-tarball)
 
 
 
 # Install
-
-## Install on Windows
-
-Download the latest MyTraL desktop executable from the
-[GitHub releases](https://github.com/dvorka/my-training-log/releases) page.
-
-1. Download `mytral-<version>.exe`.
-2. Move it to a folder of your choice (e.g. `C:\Users\<you>\bin\`).
-3. Double-click `mytral-<version>.exe` — MyTraL opens in your default browser.
-
-Data is stored in `%USERPROFILE%\.mytral\application-data\` and persists across restarts.
+Install MyTraL desktop application.
 
 
 
-## Install on Linux via Snap
+## Install on Ubuntu from PPA
+
+Install MyTraL using one-liner:
+
+```bash
+sudo add-apt-repository ppa:ultradvorka/sport && sudo apt-get update && sudo apt-get install mytral
+```
+
+... or step by step:
+
+```
+sudo add-apt-repository ppa:ultradvorka/sport
+sudo apt-get update
+sudo apt-get install mytral
+```
+
+
+
+## Install on Windows using ZIP
+Download the latest ZIP archive with the executable:
+
+* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+
+Extract `*.exe`:
+
+```bash
+unzip mytral-<version>.exe-Win*.zip
+```
+
+Start MyTraL:
+
+```
+mytral-<version>.exe
+
+# example: mytral-1.51.0.exe
+```
+
+
+
+## Install on Linux using Snap
 
 Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
 MyTraL uses **classic confinement** so it can open a native desktop window via Chrome/Chromium.
@@ -117,161 +146,179 @@ is **not touched**.
 
 # Build
 
-Build MyTraL from source code.
+Build MyTraL desktop application from the source code.
 
-## Build on Ubuntu
 
-Install Python 3.11 and uv:
+
+## Build Binary on Ubuntu
+
+Install `uv`:
 
 ```bash
-sudo apt install python3.11 python3.11-venv curl
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Clone the repository:
+Install `Python`:
 
 ```bash
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
+uv python install 3.11
 ```
 
-Install dependencies and start MyTraL:
+Clone Git repository:
 
 ```bash
-uv run mytral-web
+git clone https://github.com/dvorka-oss/mytral.git
+cd mytral
 ```
 
-Open `http://localhost:5000` in your browser.
+Install dependencies and build desktop application executable:
+
+```bash
+make setup distro-desktop-build
+```
+
+Run MyTraL desktop application:
+
+```bash
+cd distro/desktop && ./mytral-<version>
+
+# example:
+# cd distro/desktop && ./mytral-1.51.0
+```
+
+Start using MyTraL:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
+
+Optionally install MyTraL for the current user:
+
+```
+make distro-desktop-install
+```
 
 
 
-## Build on Windows
+## Build .deb on Ubuntu
 
-Install [Python 3.11](https://www.python.org/downloads/) for Windows, then install uv (PowerShell):
+Install prerequisites:
 
-```powershell
+```
+sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
+```
+
+Build `.deb`:
+
+```
+make distro-ubuntu-deb
+```
+
+Find `.deb` package in the directory printed by the `make` target.
+
+
+
+## Build Binary on Windows
+
+Install `uv` to `C:\Users\[user]\.local\bin`:
+
+```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Clone the repository:
+Install `Python`:
 
-```powershell
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
+```bash
+uv python install 3.11
 ```
 
-Install dependencies and start the web server:
+Clone Git repository:
 
-```powershell
-uv run mytral-web
+```bash
+git clone https://github.com/dvorka-oss/mytral.git
+cd mytral
 ```
 
-To build a standalone Windows executable:
+Install dependencies and build desktop application executable:
 
-```powershell
-make distro-desktop-build-win
+```bash
+make setup distro-desktop-build-win
 ```
 
-The executable is created at `distro\desktop\mytral-<version>.exe`.
+Run MyTraL desktop application:
+
+```bash
+cd distro\desktop
+
+# example: mytral-1.51.0.exe
+mytral-<version>.exe
+```
+
+Data will be stored to:
+
+```
+C:\Users\[user]\Application Data\mytral\data
+```
+
+Start using MyTraL:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
 
 
 
 # Run
 
-## Run via Python on Linux
-
-Install [uv](https://github.com/astral-sh/uv) (fast Python package manager):
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Install Python 3.11:
-
-```bash
-uv python install 3.11
-```
-
-Clone the repository and set up the project:
-
-```bash
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
-make setup
-```
-
-Start MyTraL:
-
-```bash
-uv run mytral-web
-```
-
-Open `http://localhost:5000` in your browser.
+Run MyTraL web application.
 
 
-## Run via Python on Windows
 
-Install [uv](https://github.com/astral-sh/uv) (PowerShell):
+## Run using Python on Ubuntu
 
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-Install Python 3.11:
-
-```powershell
-uv python install 3.11
-```
-
-Clone the repository and install dependencies:
-
-```powershell
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
-uv sync --all-groups
-```
-
-Start MyTraL:
-
-```powershell
-uv run mytral-web
-```
-
-Open `http://localhost:5000` in your browser.
-
-
-## Run via Python on macOS
-
-Install [uv](https://github.com/astral-sh/uv):
+Install `uv`:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Install Python 3.11:
+Install `Python`:
 
 ```bash
 uv python install 3.11
 ```
 
-Clone the repository and set up the project (requires Xcode Command Line Tools for `make`):
+Clone Git repository:
 
 ```bash
-git clone https://github.com/dvorka/my-training-log.git
-cd my-training-log
+git clone https://github.com/dvorka-oss/mytral.git
+cd mytral
+```
+
+Install dependencies:
+
+```bash
 make setup
 ```
 
-Start MyTraL:
+Run MyTraL as web application:
 
 ```bash
-uv run mytral-web
+make run
 ```
 
-Open `http://localhost:5000` in your browser.
+Open `http://localhost:5000` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
 
 
-## Run on Debian in Docker
+
+## Run using Docker on Debian
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 Build the Debian image (requires Docker and uv in `PATH`):
 
@@ -279,13 +326,19 @@ Build the Debian image (requires Docker and uv in `PATH`):
 make distro-docker-debian-build
 ```
 
-Run the container (serves on http://localhost:8888):
+Run the container:
 
 ```bash
 make distro-docker-debian-run
 ```
 
-Data is stored at `~/.local/share/mytral-docker/`.
+* Serves on [http://localhost:8888](http://localhost:8888) .
+* Data is stored at `~/.local/share/mytral-docker-debian/`.
+
+Open `http://localhost:8888` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
 
 Stop the container:
 
@@ -293,7 +346,15 @@ Stop the container:
 docker stop mytral-debian
 ```
 
-## Run on Fedora in Docker
+
+
+## Run using Docker on Fedora
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 Build the Fedora image (requires Docker and uv in `PATH`):
 
@@ -301,13 +362,19 @@ Build the Fedora image (requires Docker and uv in `PATH`):
 make distro-docker-fedora-build
 ```
 
-Run the container (serves on http://localhost:8888):
+Run the container:
 
 ```bash
 make distro-docker-fedora-run
 ```
 
-Data is stored at `~/.local/share/mytral-docker-fedora/`.
+* Serves on [http://localhost:8888](http://localhost:8888) .
+* Data is stored at `~/.local/share/mytral-docker-fedora/`.
+
+Open `http://localhost:8888` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
 
 Stop the container:
 
@@ -319,23 +386,45 @@ docker stop mytral-fedora
 
 # Tarball
 
-## Download and install tarball
+## Download and Install Tarball
 
 Download the latest tarball from the
-[GitHub releases](https://github.com/dvorka/my-training-log/releases) page.
-
-Install uv if not already installed:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+[GitHub Releases](https://github.com/dvorka-oss/mytral/releases) page.
 
 Extract and start MyTraL:
 
 ```bash
 tar xzf mytral-<version>.tar.gz
 cd mytral-<version>
-uv run mytral-web
 ```
 
-Open `http://localhost:5000` in your browser.
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Install `Python`:
+
+```bash
+uv python install 3.11
+```
+
+Install dependencies:
+
+```bash
+make setup
+```
+
+Run MyTraL as web application:
+
+```bash
+make run
+```
+
+Open `http://localhost:5000` in your browser:
+
+* Click `Add new user` button to add new athlete account.
+* `Sign in`.
+
+
