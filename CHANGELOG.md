@@ -15,6 +15,7 @@ This MyTraL **minor** release brings:
   and `MYTRAL_ENABLE_CACHE` environment variables for correct desktop startup.
 
 ## Documentation
+- Added MyTraL configuration guide.
 - Added Ubuntu PPA installation guide.
 - Added Ubuntu .deb installation guide.
 
