@@ -63,6 +63,9 @@ import argparse
 import logging
 import os
 import pathlib
+import shutil
+import socket
+import subprocess
 import sys
 import threading
 import time
@@ -116,6 +119,55 @@ def configure_pyinstaller_paths():
         # update Flask app's template and static folders
         routes.flask_app.template_folder = str(template_folder)
         routes.flask_app.static_folder = str(static_folder)
+
+
+def open_app_window(url: str) -> None:
+    """Open url in a standalone app window (no browser chrome/toolbar).
+
+    Tries Chromium-family browsers with --app flag first; falls back to the
+    system default browser via webbrowser if none is found.
+    """
+    chromium_browsers = [
+        "chromium-browser",
+        "chromium",
+        "google-chrome",
+        "google-chrome-stable",
+        "brave-browser",
+    ]
+    for browser in chromium_browsers:
+        if shutil.which(browser):
+            app_logger.info(f"Opening standalone app window with {browser}", url=url)
+            subprocess.Popen([browser, f"--app={url}"])
+            return
+    app_logger.warning(
+        "No Chromium browser found, falling back to system browser", url=url
+    )
+    webbrowser.open(url)
+
+
+def _wait_for_server(host: str, port: int, timeout: float = 30.0) -> None:
+    """Block until the server accepts TCP connections or timeout expires."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=0.1):
+                return
+        except OSError:
+            time.sleep(0.05)
+    app_logger.warning(
+        "Server did not become ready within timeout",
+        host=host,
+        port=port,
+        timeout=timeout,
+    )
+
+
+def start_waitress_in_background() -> threading.Thread:
+    """Start Waitress in a daemon thread and return it once the server is ready."""
+    thread = threading.Thread(target=start_waitress_server, daemon=True)
+    thread.start()
+    _wait_for_server(app_config.host, app_config.port)
+    return thread
 
 
 def start_waitress_server():
@@ -215,12 +267,7 @@ MyTraL: My Trailing Log - Desktop Edition
 
         app_logger.info("Launching MyTraL Desktop application...")
 
-        # start waitress in a separate thread
-        server_thread = threading.Thread(target=start_waitress_server, daemon=True)
-        server_thread.start()
-
-        # give server time to start
-        time.sleep(2)
+        start_waitress_in_background()
 
         # run FlaskWebGUI - opens Brave/Chrome/Chromium/* in --app mode (frameless win)
         ui = FlaskUI(
@@ -240,12 +287,9 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.warning(
             "Install FlaskWebGUI for desktop window: pip install flaskwebgui"
         )
-        server_thread = threading.Thread(target=start_waitress_server, daemon=True)
-        server_thread.start()
-        time.sleep(2)
+        server_thread = start_waitress_in_background()
         url = f"http://{app_config.host}:{app_config.port}"
-        app_logger.info(f"Opening browser at {url}")
-        webbrowser.open(url)
+        open_app_window(url)
         server_thread.join()
     except KeyboardInterrupt:
         print("\n  MyTraL Desktop stopped.")
