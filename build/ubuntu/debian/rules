@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=mytral
+
+%:
+	dh $@ --buildsystem=pybuild
+
+override_dh_auto_install:
+	# bundle the built wheel for venv installation in postinst
+	mkdir -p debian/mytral/opt/mytral
+	find .pybuild -name "mytral-*.whl" | head -1 | xargs -I{} cp {} debian/mytral/opt/mytral/
+	# generate requirements.txt from pyproject.toml — single source of truth
+	python3 -c "\
+import tomllib, pathlib; \
+data = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
+deps = data['project']['dependencies'] + ['flaskwebgui']; \
+print('\n'.join(deps))" > debian/mytral/opt/mytral/requirements.txt
+	# wrapper scripts use the isolated venv — nothing touches system Python
+	install -d debian/mytral/usr/bin
+	printf '#!/bin/sh\nexport MYTRAL_INCARNATION=DESKTOP\nexport MYTRAL_USER_REGISTRATION=true\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-desktop "$$@"\n' > debian/mytral/usr/bin/mytral
+	printf '#!/bin/sh\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-web "$$@"\n' > debian/mytral/usr/bin/mytral-web
+	printf '#!/bin/sh\nexport MYTRAL_INCARNATION=DESKTOP\nexport MYTRAL_USER_REGISTRATION=true\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-desktop "$$@"\n' > debian/mytral/usr/bin/mytral-desktop
+	chmod 755 debian/mytral/usr/bin/mytral debian/mytral/usr/bin/mytral-web debian/mytral/usr/bin/mytral-desktop
+
+override_dh_auto_test:
+	# tests require an active virtualenv — skip in package build environment

@@ -5,13 +5,19 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added Ubuntu PPA distribution for Ubuntu via Launchpad (`ppa:ultradvorka/sport`).
+- Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally (output to `distro/deb/`).
 
 ### Fixed
-- .
+- Fixed `.deb` packaging: Python dependencies are installed into an isolated virtualenv at
+  `/opt/mytral/venv/` - system Python environment is never polluted.
+- Fixed `.deb` wrapper scripts to export `MYTRAL_INCARNATION`, `MYTRAL_USER_REGISTRATION`,
+  and `MYTRAL_ENABLE_CACHE` environment variables for correct desktop startup.
 
 ## Documentation
-- .
+- Added MyTraL configuration guide.
+- Added Ubuntu PPA installation guide.
+- Added Ubuntu .deb installation guide.
 
 
 

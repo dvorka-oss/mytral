@@ -11,6 +11,9 @@ It is used to generate MyTraL's documentation to `mytral/static/documentation/*.
 ### Installation
 * [source](INSTALLATION.md)
 
+### Configuration
+* [source](CONFIGURATION.md)
+
 ### ---
 
 ### Data Sharing
