@@ -14,6 +14,13 @@ This MyTraL **minor** release brings:
 - Fixed `.deb` wrapper scripts to export `MYTRAL_INCARNATION`, `MYTRAL_USER_REGISTRATION`,
   and `MYTRAL_ENABLE_CACHE` environment variables for correct desktop startup.
 
+### Performance
+- Fixed top calendar week navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed top feed day navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed duplicated activities list loading by the `routes.py::calendar_view()`
+
 ## Documentation
 - Added MyTraL configuration guide.
 - Added Ubuntu PPA installation guide.
