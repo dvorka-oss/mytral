@@ -14,14 +14,6 @@ I know, I know, it's one man show for now, right? ;)
 
 ## Performance
 
-### perf(frontend): ⚡ top calendar week navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
-### perf(frontend): ⚡ top feed day navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
 ### perf(import): ⚡ Polar PPP import
 
 * **Description**: I improved it from 25' to 17" on the test data, hope to make it ~9".
@@ -36,12 +28,13 @@ I know, I know, it's one man show for now, right? ;)
 
 ### feat(metrics): ✨ TRIMP for HR-based activity data analysis
 
-* **Description**: I did ~3 wibe & manually review & refactor rounds and there is at least one missing, I think that I'm gettting close.
+* **Description**: I did ~3 vibe & manually review & refactor rounds and there is at least one missing, I think that I'm gettting close.
 * **PR**: https://github.com/dvorka-oss/mytral/pull/49
 
 ### feat(metrics): ✨ 3D IR model for power-based activity data analysis
 
-* **Description**: I did ~1 wibe & manually review & refactor round, will need much more effort to carefully review the implementation against the paper, make it useful and valuable.
+* **Description**: I did ~1 vibe & manually review & refactor round. I will need much more effort to carefully review the implementation against the paper, make it useful and valuable. 3D IR model is complex and vibe coding will not be enough to have the implementation
+which ensures that metrics are physiologically realistic and avoid collinearity and mathematical overfitting. Techniques to check include: skiba / Skiba-Bartram differential equations, exploding parameters, L-BFGS-B, Bayesian framework w/ informative priors, OLS / NLLS optimization.
 * **PR**: https://github.com/dvorka-oss/mytral/pull/49
 
 ### feat(predictions): ✨ Tab ICL based activity predictions

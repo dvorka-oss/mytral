@@ -1,4 +1,4 @@
-# MyTraL: my trailing log
+#!/bin/bash
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
 #
@@ -15,5 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# MyTraL MASTER VERSION (semantic versioning - single source of truth)
-__version__ = "1.53.0"
+sudo add-apt-repository ppa:ultradvorka/sport
+sudo apt-get update
+
+# eof

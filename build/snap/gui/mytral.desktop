@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=MyTraL
+GenericName=Training Log
+Comment=Sovereign athlete training log - track activities, gear, health, goals and progress
+Exec=mytral
+Icon=${SNAP}/meta/gui/mytral.png
+Terminal=false
+Type=Application
+Categories=Sports;Fitness;
+StartupNotify=true
+Keywords=training;fitness;running;cycling;swimming;activities;gear;TRIMP;

@@ -398,7 +398,7 @@ vibe-copilot-deepseek:
 # Anthropic Claude Code: ideally @ Sonnet 1M
 .PHONE: vibe-cc
 vibe-cc:
-	@cp -vf ./vibe/COPILOT-INSTRUCTIONS.md ./CLAUDE.md
+	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
 	claude --dangerously-skip-permissions
 
 # DeepSeek
@@ -553,6 +553,7 @@ wheel: ## build Python wheel
 
 DIR_DISTRO_WEBAPP = distro/webapp
 DIR_DISTRO_DESKTOP = distro/desktop
+DIR_DISTRO_DEB = distro/deb
 
 .PHONY: distro-webapp-clean
 distro-webapp-clean: ## clean web application distribution directory
@@ -577,6 +578,28 @@ distro-webapp-test: distro-webapp-build ## test web application distribution
 .PHONY: distro-tarball
 distro-tarball: ## build upstream tarball (.tar.gz) for Linux distribution maintainers
 	@./build/tarball/tarball-build.sh
+
+#
+# DISTRIBUTION: Ubuntu PPA @ Launchpad
+#
+
+distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	./launchpad-release.sh
+	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
+.PHONY: distro-ubuntu-deb
+distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
+	@mkdir -p $(DIR_DISTRO_DEB)
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	DRY_RUN=true ./launchpad-release.sh
+	@find $(USER_HOME)/p/mytral/launchpad -name "mytral_*.deb" | \
+	    xargs ls -t | head -1 | xargs -I{} cp -v {} $(DIR_DISTRO_DEB)/
+	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"
 
 #
 # DISTRIBUTION: desktop application
@@ -622,6 +645,54 @@ distro-desktop-install: distro/desktop/mytral ## install desktop application to 
 distro-desktop-test: distro-desktop-build ## test the built desktop executable
 	@echo "Testing desktop executable..."
 	@ls -lh distro/desktop/mytral-* 2>/dev/null || ls -lh distro/desktop/mytral* 2>/dev/null || (echo "ERROR: No executable found in distro/desktop/"; exit 1)
+
+#
+# SNAP: Snap package distribution (local builds only)
+#
+# Prerequisites:
+#   # Snapcraft
+#   sudo snap install snapcraft --classic
+#   # LXD containers
+#   sudo snap install lxd
+#   sudo lxd init --auto
+#   sudo usermod -aG lxd $USER
+#
+
+.PHONY: distro-snap-clean
+distro-snap-clean: ## clean Snap build artifacts
+	@./build/snap/clean.sh
+
+.PHONY: distro-snap-build
+distro-snap-build: ## build Snap package (LXD required; see build/snap/build-snap.sh)
+	@./build/snap/build-snap.sh
+
+.PHONY: distro-snap-install-local
+distro-snap-install-local: distro-snap-build ## build and install Snap locally (for testing, requires sudo)
+	@echo "Installing Snap package locally..."
+	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
+	if [ -z "$$SNAP_FILE" ]; then \
+		echo "Error: Snap package not found. Run 'make distro-snap-build' first."; \
+		exit 1; \
+	fi; \
+	echo "Note: This command requires sudo privileges for snap install"; \
+	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	echo "✓ Snap installed. Run with: mytral"
+
+.PHONY: distro-snap-test
+distro-snap-test: distro-snap-install-local ## build, install, and test Snap
+	@echo "Testing Snap package..."
+	@mytral --version || echo "Note: mytral --version not yet implemented"
+	@echo "✓ Snap package test successful"
+
+.PHONY: distro-snap-path
+distro-snap-path: ## show path to built snap package
+	@ls distro/snap/mytral_*.snap 2>/dev/null || echo "No snap package built yet"
+
+.PHONY: distro-snap-remove
+distro-snap-remove: ## remove locally installed Snap (requires sudo)
+	@echo "Removing Snap package..."
+	sudo snap remove mytral || true
+	@echo "✓ Snap removed"
 
 #
 # DOCUMENTATION

@@ -1,4 +1,4 @@
-# MyTraL: my trailing log
+#!/bin/bash
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
 #
@@ -15,5 +15,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# MyTraL MASTER VERSION (semantic versioning - single source of truth)
-__version__ = "1.53.0"
+set -euo pipefail
+
+# https://en.wikipedia.org/wiki/Ubuntu_version_history
+# bootstrap new OR refresh distribution base for pbuilder
+export DISTRO=resolute
+
+# pbuilder-dist stores the base tarball at ~/pbuilder/${DISTRO}-base.tgz automatically
+pbuilder-dist "${DISTRO}" create
+
+# eof

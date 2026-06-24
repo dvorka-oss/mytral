@@ -1,6 +1,39 @@
 # Changelog
 
-## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...HEAD)
+## [1.53.0](https://github.com/dvorka-oss/mytral/compare/v1.52.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added Ubuntu PPA distribution for Ubuntu via Launchpad (`ppa:ultradvorka/sport`).
+- Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally.
+- Added Snap package distribution for universal Linux package management. Opens a native
+  desktop window via FlaskUI via classic confinement. User data stored in default
+  locations.
+
+### Fixed
+- Fixed elevation chart rendering in the application's analysis page by smoothing
+  the GPX points.
+- Fixed `.deb` packaging: Python dependencies are installed into an isolated virtualenv at
+  `/opt/mytral/venv/` - system Python environment is never polluted.
+- Fixed `.deb` wrapper scripts to export `MYTRAL_INCARNATION`, `MYTRAL_USER_REGISTRATION`,
+  and `MYTRAL_ENABLE_CACHE` environment variables for correct desktop startup.
+
+### Performance
+- Fixed top calendar week navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed top feed day navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed duplicated activities list loading by the `routes.py::calendar_view()`
+
+## Documentation
+- Added MyTraL configuration guide.
+- Added Ubuntu PPA installation guide.
+- Added Ubuntu .deb installation guide.
+
+
+
+## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0)
 
 This MyTraL **minor** release brings:
 
@@ -32,12 +65,15 @@ This MyTraL **minor** release brings:
 - Added tarball distribution.
 - Added Debian @ Docker distribution.
 - Added Fedora @ Docker distribution.
+- Added weight field to gear model allowing track the weight of your gear like running
+  shoes, or bikes.
 
 ### Fixed
 - Fixed km / hour usage of retired gears with no history.
 - Fixed exercise / symptom delete message to contain display name (not UUID) when
   removing these entities from an activity.
 - Removed color from Strava links on the day activities view and search result view.
+- Fixed exercise and symptom delete pages to show display names instead of UUIDs.
 
 ## Documentation
 - Adding the installation documentation.

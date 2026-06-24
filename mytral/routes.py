@@ -3916,6 +3916,7 @@ def list_activities_year(year):
         "activity-list-year.html",
         user_profile=user_profile,
         activities=activities,
+        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activity_types=ds.list_activity_types(user_id=user_id),
         activities_weekdays=activities_weekdays,
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -3999,6 +4000,7 @@ def search_activities():
         "search-results.html",
         user_profile=user_profile,
         activities=activities,
+        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=ds.list_activity_types(user_id=user_id),
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -4037,6 +4039,7 @@ def list_activities_diary():
             "activity-list-diary.html",
             user_profile=user_profile,
             activities=diary_activities,
+            feed_bar_chart_data=views.build_feed_bar_chart_data(diary_activities),
             activities_weekdays=activities_weekdays,
             activity_types=activity_types,
             is_diary=True,
@@ -4447,6 +4450,7 @@ def list_activities_for_date(year, month, day):
         "day-get.html",
         user_profile=user_profile,
         activities=activities,
+        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=activity_types_registry,
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -4497,6 +4501,7 @@ def list_activities_for_month_day(month, day):
         "activity-list.html",
         user_profile=user_profile,
         activities=activities,
+        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=ds.list_activity_types(user_id=user_id),
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -4985,20 +4990,15 @@ def calendar_year(year):
         activity_types=ds.list_activity_types(user_id),
         logger=app_logger,
     )
-    cal_heatmap.build_activity_type_heatmap(
-        activities=ds.list_activities(
-            user_id=user_id, dataset_name=user_profile.dataset_name
-        ),
+    all_activities = ds.list_activities(
+        user_id=user_id, dataset_name=user_profile.dataset_name
     )
+    cal_heatmap.build_activity_type_heatmap(activities=all_activities)
 
     activities_stats = ds.activities_stats(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
-        activities=ds.list_activities(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            filter_year=year_int,
-        ),
+        activities=[a for a in all_activities if a.when_year == year_int],
     )
 
     today = datetime.date.today()

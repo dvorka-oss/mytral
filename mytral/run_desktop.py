@@ -63,9 +63,13 @@ import argparse
 import logging
 import os
 import pathlib
+import shutil
+import socket
+import subprocess
 import sys
 import threading
 import time
+import webbrowser
 
 # ENV SETUP
 # because mytral/__init__.py creates app_config at import time, ENV vars must be set
@@ -115,6 +119,55 @@ def configure_pyinstaller_paths():
         # update Flask app's template and static folders
         routes.flask_app.template_folder = str(template_folder)
         routes.flask_app.static_folder = str(static_folder)
+
+
+def open_app_window(url: str) -> None:
+    """Open url in a standalone app window (no browser chrome/toolbar).
+
+    Tries Chromium-family browsers with --app flag first; falls back to the
+    system default browser via webbrowser if none is found.
+    """
+    chromium_browsers = [
+        "chromium-browser",
+        "chromium",
+        "google-chrome",
+        "google-chrome-stable",
+        "brave-browser",
+    ]
+    for browser in chromium_browsers:
+        if shutil.which(browser):
+            app_logger.info(f"Opening standalone app window with {browser}", url=url)
+            subprocess.Popen([browser, f"--app={url}"])
+            return
+    app_logger.warning(
+        "No Chromium browser found, falling back to system browser", url=url
+    )
+    webbrowser.open(url)
+
+
+def _wait_for_server(host: str, port: int, timeout: float = 30.0) -> None:
+    """Block until the server accepts TCP connections or timeout expires."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=0.1):
+                return
+        except OSError:
+            time.sleep(0.05)
+    app_logger.warning(
+        "Server did not become ready within timeout",
+        host=host,
+        port=port,
+        timeout=timeout,
+    )
+
+
+def start_waitress_in_background() -> threading.Thread:
+    """Start Waitress in a daemon thread and return it once the server is ready."""
+    thread = threading.Thread(target=start_waitress_server, daemon=True)
+    thread.start()
+    _wait_for_server(app_config.host, app_config.port)
+    return thread
 
 
 def start_waitress_server():
@@ -214,26 +267,19 @@ MyTraL: My Trailing Log - Desktop Edition
 
         app_logger.info("Launching MyTraL Desktop application...")
 
-        # start waitress in a separate thread
-        # Waitress is a production-grade WSGI server
-        server_thread = threading.Thread(target=start_waitress_server, daemon=True)
-        server_thread.start()
+        start_waitress_in_background()
 
-        # give server time to start
-        time.sleep(2)
-
-        # launch desktop UI with FlaskWebGUI
-        # - FlaskWebGUI opens a desktop window pointing to our Waitress server
+        # run FlaskWebGUI - opens Brave/Chrome/Chromium/* in --app mode (frameless win)
         ui = FlaskUI(
             app=routes.flask_app,
-            server="flask",  # FlaskUI internal mode - but we ignore it
+            server="flask",
             port=app_config.port,
             width=1200,
             height=800,
         )
-
-        # launch the UI (this will block and open browser window)
+        # launch the UI - this will block until the browser window is closed
         ui.run()
+
     except ImportError as e:
         app_logger.warning(
             f"FlaskWebGUI import failed ({e}) - falling back to Waitress server mode"
@@ -241,11 +287,26 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.warning(
             "Install FlaskWebGUI for desktop window: pip install flaskwebgui"
         )
-        start_waitress_server()
+        server_thread = start_waitress_in_background()
+        url = f"http://{app_config.host}:{app_config.port}"
+        open_app_window(url)
+        server_thread.join()
+    except KeyboardInterrupt:
+        print("\n  MyTraL Desktop stopped.")
+        app_logger.info("MyTraL Desktop: received Ctrl-C, shutting down.")
+        sys.exit(0)
+    except OSError as e:
+        if "Address already in use" in str(e) or "98" in str(e):
+            app_logger.error(
+                f"Port {app_config.port} is already in use. "
+                f"Another MyTraL instance may be running. "
+                f"Try: pkill -f mytral"
+            )
+        raise
     except Exception as e:
         # If FlaskWebGUI fails for any reason, fall back to Waitress only
         app_logger.error(f"FlaskWebGUI failed: {e}")
-        app_logger.info("Falling back to Waitress server mode.")
+        app_logger.info("Falling back to Waitress server mode...")
         app_logger.info(
             f"Open browser manually to: http://{app_config.host}:{app_config.port}"
         )

@@ -1,0 +1,73 @@
+# MyTraL Snap Package Configuration
+#
+# Build: make distro-snap-build
+# Install: sudo snap install --dangerous --classic distro/snap/mytral_*.snap
+# Run: mytral
+
+name: mytral
+version: '1.53.0'
+title: MyTraL
+summary: Sovereign athlete training log - track activities, gear, health, and progress
+description: |
+  MyTraL is a personal sport training log that helps you track your athletic
+  activities, gear usage, and fitness progress:
+
+  - Activity tracking (any sport).
+  - Gear management with usage statistics.
+  - Training load analysis.
+  - Holistic tracking of goals, PRs, health, weight, trails, and outfits.
+  - Photo attachments and FIT/GPX/TCX/Strava/Polar/* import.
+  - Local data storage.
+
+  Perfect for athletes who value privacy and want full control over their data.
+
+grade: stable
+confinement: classic
+base: core24
+license: AGPL-3.0
+contact: martin.dvorak@mindforger.com
+issues: https://github.com/dvorka-oss/mytral/issues
+source-code: https://github.com/dvorka-oss/mytral
+website: https://mytral.fitness
+
+platforms:
+  amd64:
+  arm64:
+
+environment:
+  PYTHONPATH: $SNAP/lib/python3.12/site-packages
+  MYTRAL_INCARNATION: DESKTOP
+  MYTRAL_USER_REGISTRATION: "true"
+  MYTRAL_ENABLE_CACHE: "true"
+
+apps:
+  mytral:
+    command: bin/mytral-wrapper
+    desktop: meta/gui/mytral.desktop
+
+parts:
+  mytral:
+    plugin: python
+    source: .
+    build-packages:
+      - python3-dev    # provides python3 interpreter + headers inside the LXD build container
+    stage-packages:
+      - python3-venv
+      - curl
+      - ca-certificates
+    override-build: |
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/bin"
+      cp /usr/bin/python3.12 "$SNAPCRAFT_PART_INSTALL/usr/bin/python3.12"
+      craftctl default
+      pip install "waitress~=3.0" "flaskwebgui~=1.0.0" "psutil>=5.9,<6.0"
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
+      echo '#!/bin/bash' > "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      echo 'exec "$SNAP/bin/mytral-desktop" "$@"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      chmod +x "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+
+  desktop-assets:
+    plugin: dump
+    source: snap/gui
+    organize:
+      mytral.desktop: meta/gui/mytral.desktop
+      mytral.png: meta/gui/mytral.png
