@@ -119,8 +119,8 @@ printing the URL so you can open it manually in any browser.
 
 **Data storage**
 
-Because MyTraL uses classic confinement it stores data in the same location as every other
-installation - your data is never locked inside the snap:
+Because MyTraL uses classic confinement it stores data in the same location as every
+other installation - your data is never locked inside the snap:
 
 ```
 ~/.local/share/mytral/   (data)
@@ -138,9 +138,6 @@ sudo snap refresh mytral
 ```bash
 sudo snap remove mytral
 ```
-
-`snap remove` only removes the snap package itself. Your data in `~/.local/share/mytral/`
-is **not touched**.
 
 
 

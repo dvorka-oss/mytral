@@ -6,7 +6,10 @@ This MyTraL **minor** release brings:
 
 ### Added
 - Added Ubuntu PPA distribution for Ubuntu via Launchpad (`ppa:ultradvorka/sport`).
-- Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally (output to `distro/deb/`).
+- Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally.
+- Added Snap package distribution for universal Linux package management. Opens a native
+  desktop window via FlaskUI via classic confinement. User data stored in default
+  locations.
 
 ### Fixed
 - Fixed `.deb` packaging: Python dependencies are installed into an isolated virtualenv at
@@ -55,10 +58,6 @@ This MyTraL **minor** release brings:
 - Added Fedora @ Docker distribution.
 - Added weight field to gear model allowing track the weight of your gear like running
   shoes, or bikes.
-- Added Snap package distribution for universal Linux package management. Opens a native
-  desktop window via FlaskUI via classic confinement. User data stored in
-  `~/snap/mytral/common/` and preserved across upgrades, but **removed** with the Snap
-  removal.
 
 ### Fixed
 - Fixed km / hour usage of retired gears with no history.
