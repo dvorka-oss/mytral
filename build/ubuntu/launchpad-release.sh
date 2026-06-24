@@ -41,9 +41,16 @@ set -euo pipefail
 
 export MYTRAL_SRC=/home/dvorka/p/mytral/git/mytral
 export MYTRAL_RELEASE_DIR=/home/dvorka/p/mytral/launchpad
+export MYTRAL_MAINTAINER_EMAIL
+MYTRAL_MAINTAINER_EMAIL=$(python3 -c "
+import tomllib, pathlib
+data = tomllib.loads(pathlib.Path('${MYTRAL_SRC}/pyproject.toml').read_text())
+print(data['project']['authors'][0]['email'])
+")
 
 # set to true to skip the final dput upload step
-export DRY_RUN="${DRY_RUN:-false}"
+#export DRY_RUN="${DRY_RUN:-false}"
+export DRY_RUN="true"
 
 # ############################################################################
 # # Check dependencies #
@@ -75,7 +82,8 @@ function checkDependencies() {
     fi
 
     # report missing dependencies
-    if [ ${#missing_deps[@]} -gt 0 ]; then
+    if [ ${#missing_deps[@]} -gt 0 ]
+    then
         echo "ERROR: Missing required dependencies:"
         for dep in "${missing_deps[@]}"; do
             echo "  - $dep"
@@ -86,13 +94,17 @@ function checkDependencies() {
         exit 1
     fi
 
-    # check if brz whoami is configured
-    if ! brz whoami &> /dev/null; then
-        missing_config+=("brz-whoami")
+    # check if brz whoami is configured (fall back to reading config directly if brz is broken)
+    if ! brz whoami &> /dev/null
+    then
+        if ! grep -qE '^email\s*=' ~/.config/breezy/breezy.conf 2>/dev/null; then
+            missing_config+=("brz-whoami")
+        fi
     fi
 
     # report missing configuration
-    if [ ${#missing_config[@]} -gt 0 ]; then
+    if [ ${#missing_config[@]} -gt 0 ]
+    then
         echo "ERROR: Missing required configuration:"
         for cfg in "${missing_config[@]}"; do
             case $cfg in
@@ -106,28 +118,27 @@ function checkDependencies() {
     fi
 
     # check for GPG key matching the maintainer email
-    local brz_email
-    brz_email=$(brz whoami 2>/dev/null | sed -n 's/.*<\([^>]*\)>.*/\1/p')
-    if [ -n "$brz_email" ]; then
-        if ! gpg --list-secret-keys "$brz_email" &> /dev/null; then
-            missing_config+=("gpg-key")
-        fi
+    if ! gpg --list-secret-keys "${MYTRAL_MAINTAINER_EMAIL}" &> /dev/null
+    then
+        missing_config+=("gpg-key")
     fi
 
     # report missing GPG configuration
-    if [ ${#missing_config[@]} -gt 0 ]; then
+    if [ ${#missing_config[@]} -gt 0 ]
+    then
         echo "ERROR: Missing required configuration:"
-        for cfg in "${missing_config[@]}"; do
+        for cfg in "${missing_config[@]}"
+        do
             case $cfg in
                 gpg-key)
-                    echo "  - No GPG key found for: $brz_email"
+                    echo "  - No GPG key found for: ${MYTRAL_MAINTAINER_EMAIL}"
                     echo ""
                     echo "    OPTION 1: Generate new GPG key:"
                     echo "      gpg --full-generate-key"
-                    echo "      (Use: Martin Dvorak <$brz_email>)"
+                    echo "      (Use: Martin Dvorak <${MYTRAL_MAINTAINER_EMAIL}>)"
                     echo ""
                     echo "    OPTION 2: Import key from old machine:"
-                    echo "      On old machine: gpg --export-secret-keys $brz_email > ~/gpg-key.asc"
+                    echo "      On old machine: gpg --export-secret-keys ${MYTRAL_MAINTAINER_EMAIL} > ~/gpg-key.asc"
                     echo "      Transfer file securely, then: gpg --import ~/gpg-key.asc"
                     echo ""
                     echo "    After creating/importing key:"
@@ -148,7 +159,8 @@ function prepareSources() {
     local dest_dir="${1}"
     echo "Preparing MyTraL source from ${MYTRAL_SRC} into ${dest_dir}"
 
-    if [ ! -d "${MYTRAL_SRC}" ]; then
+    if [ ! -d "${MYTRAL_SRC}" ]
+    then
         echo "ERROR: MYTRAL_SRC directory not found: ${MYTRAL_SRC}"
         exit 1
     fi
@@ -157,7 +169,8 @@ function prepareSources() {
     # git archive exports only tracked files — no .git dir, no untracked artifacts
     git -C "${MYTRAL_SRC}" archive HEAD | tar -x -C "${dest_dir}"
 
-    if [ -z "$(ls -A "${dest_dir}")" ]; then
+    if [ -z "$(ls -A "${dest_dir}")" ]
+    then
         echo "ERROR: git archive produced an empty directory: ${dest_dir}"
         exit 1
     fi
@@ -238,32 +251,29 @@ function releaseForParticularUbuntuVersion() {
 
     # build signed source package
     cd "${SRC_DIR_ABS}"
-    debuild -S -sa
+    debuild -S -sa -d
     cd "${BUILD_DIR_ABS}"
 
-    # build binary from source deb on clean system — no deps installed
-    echo -e "\n_ mytral pbuilder-dist build  _______________________________________________\n"
-    # workaround: pbuilder caches in /var and /home must be on the same physical drive;
-    # copy base tarball to /tmp so pbuilder-dist finds it on a single filesystem
-    export PBUILDFOLDER=/tmp/mytral-pbuilder
-    rm -rf "${PBUILDFOLDER}"
-    mkdir -p "${PBUILDFOLDER}"
-    if [ -f "${HOME}/pbuilder/${UBUNTUVERSION}-base.tgz" ]; then
-        cp -v "${HOME}/pbuilder/${UBUNTUVERSION}-base.tgz" "${PBUILDFOLDER}/"
-    else
-        echo "ERROR: pbuilder base tarball not found: ~/pbuilder/${UBUNTUVERSION}-base.tgz"
-        echo "Please create it first by running:"
-        echo "  pbuilder-dist ${UBUNTUVERSION} create"
-        exit 1
-    fi
-
-    local DSC_FILE="mytral_${MYTRAL_FULL_VERSION}.dsc"
-    pbuilder-dist "${UBUNTUVERSION}" build "${DSC_FILE}"
+    # build binary .deb locally for installation testing (unsigned, no clean chroot needed)
+    echo -e "\n_ mytral local binary .deb build  ______________________________________________\n"
+    cd "${SRC_DIR_ABS}"
+    debuild -b -d -us -uc
+    cd "${BUILD_DIR_ABS}"
+    echo ""
+    echo "Local .deb packages:"
+    ls "${BUILD_DIR_ABS}"/*.deb
+    echo ""
+    echo "Install with:"
+    echo "  sudo dpkg -i ${BUILD_DIR_ABS}/mytral_*.deb"
+    echo "  or"
+    echo "  sudo apt install ${BUILD_DIR_ABS}/mytral_*.deb"
+    echo ""
 
     # upload source package to Launchpad PPA
     local CHANGES_FILE="mytral_${MYTRAL_FULL_VERSION}_source.changes"
     echo "Before dput push: $(pwd)"
-    if [ "${DRY_RUN}" = "false" ]; then
+    if [ "${DRY_RUN}" = "false" ]
+    then
         dput "ppa:ultradvorka/sport" "${CHANGES_FILE}"
     else
         echo "DRY_RUN=true: skipping dput upload of ${CHANGES_FILE}"
@@ -278,16 +288,18 @@ function releaseForParticularUbuntuVersion() {
 
 echo "IMPORTANT: make sure your GPG key is configured and uploaded to Launchpad."
 echo "IMPORTANT: make sure your SSH key is configured on Launchpad: https://launchpad.net/~ultradvorka/+editsshkeys"
-echo -e "This script is expected to be copied to and run from: ~/p/mytral/launchpad\n\n"
+echo -e "This script is expected to be copied to and run from: ${HOME}/p/mytral/launchpad\n\n"
 
 # refuse to run from inside a Git repository
-if git rev-parse --git-dir > /dev/null 2>&1; then
+if git rev-parse --git-dir > /dev/null 2>&1
+then
     echo "This script must NOT be run from inside a Git repository."
-    echo "Copy it to ~/p/mytral/launchpad and run it from there."
+    echo "Copy it to ${HOME}/p/mytral/launchpad and run it from there."
     exit 1
 fi
 
-if [ ! -d "${MYTRAL_RELEASE_DIR}" ]; then
+if [ ! -d "${MYTRAL_RELEASE_DIR}" ]
+then
     echo "ERROR: release directory must exist: ${MYTRAL_RELEASE_DIR}"
     exit 1
 fi
@@ -308,7 +320,8 @@ export MYTRAL_MSG="Release ${BASE_VERSION}"
 
 # start GPG agent if not already running
 GPG_AGENT_SOCK=$(gpgconf --list-dirs agent-socket 2>/dev/null || true)
-if [ -S "${GPG_AGENT_SOCK}" ]; then
+if [ -S "${GPG_AGENT_SOCK}" ]
+then
     echo "OK: GPG agent running."
 else
     gpg-agent --daemon
@@ -323,7 +336,8 @@ fi
 #   trusty xenial bionic focal jammy noble plucky questing
 # future:
 #   resolute
-for UBUNTU_VERSION in trusty xenial bionic focal jammy noble plucky questing
+#for UBUNTU_VERSION in trusty xenial bionic focal jammy noble plucky questing
+for UBUNTU_VERSION in noble
 do
     echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION}"
     releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${BASE_VERSION}" "${MYTRAL_MSG}"

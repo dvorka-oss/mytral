@@ -1,8 +1,14 @@
 # Installation
 
+Install:
+
+* [Ubuntu](#install-on-ubuntu-from-ppa)
+* [Windows](#install-on-windows-from-zip)
+
 Build:
 
 * [Build on Ubuntu](#build-on-ubuntu)
+* [Build .deb](#build--deb-on-ubuntu)
 * [Build on Windows](#build-on-windows)
 
 Run:
@@ -18,10 +24,31 @@ Tarball:
 
 # Install
 Install MyTraL desktop application.
-## Windows
+
+
+
+## Install on Ubuntu from PPA
+
+Install MyTraL using one-liner:
+
+```bash
+sudo add-apt-repository ppa:ultradvorka/sport && sudo apt-get update && sudo apt-get install mytral
+```
+
+... or step by step:
+
+```
+sudo add-apt-repository ppa:ultradvorka/sport
+sudo apt-get update
+sudo apt-get install mytral
+```
+
+
+
+## Install on Windows from ZIP
 Download the latest ZIP archive with the executable:
 
-* [GitHub Releases](https://github.com/dvorka/mytral/releases)
+* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
 
 Extract `*.exe`:
 
@@ -88,6 +115,23 @@ Optionally install MyTraL for the current user:
 ```
 make distro-desktop-install
 ```
+
+## Build .deb on Ubuntu
+
+Install prerequisites:
+
+```
+sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
+```
+
+Build `.deb`:
+
+```
+$DRY_RUN=true make distro-launchpad-release
+```
+
+Find `.deb` package in the directory printed by the `make` target.
+
 
 
 ## Build on Windows
@@ -255,7 +299,7 @@ docker stop mytral-fedora
 ## Download and install tarball
 
 Download the latest tarball from the
-[GitHub Releases](https://github.com/dvorka/mytral/releases) page.
+[GitHub Releases](https://github.com/dvorka-oss/mytral/releases) page.
 
 Extract and start MyTraL:
 

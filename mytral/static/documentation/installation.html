@@ -206,9 +206,15 @@
                 <div class="row">
                     <!-- BEGIN MAIN CONTENT -->
                     <div class="col-12 col-xxl-10">
-                        <div id="overview" class="card mb-3"><div class="card-body"><p>Build:</p>
+                        <div id="overview" class="card mb-3"><div class="card-body"><p>Install:</p>
+<ul>
+<li><a href="#install-on-ubuntu-from-ppa">Ubuntu</a></li>
+<li><a href="#install-on-windows-from-zip">Windows</a></li>
+</ul>
+<p>Build:</p>
 <ul>
 <li><a href="#build-on-ubuntu">Build on Ubuntu</a></li>
+<li><a href="#build--deb-on-ubuntu">Build .deb</a></li>
 <li><a href="#build-on-windows">Build on Windows</a></li>
 </ul>
 <p>Run:</p>
@@ -223,10 +229,21 @@
 </ul>
 <h1 id="install">Install</h1>
 <p>Install MyTraL desktop application.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="windows">Windows</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-ubuntu-from-ppa">Install on Ubuntu from PPA</h2>
+<p>Install MyTraL using one-liner:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>add-apt-repository<span class="w"> </span>ppa:ultradvorka/sport<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>mytral
+</code></pre></div>
+
+<p>... or step by step:</p>
+<div class="codehilite"><pre><span></span><code>sudo add-apt-repository ppa:ultradvorka/sport
+sudo apt-get update
+sudo apt-get install mytral
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-from-zip">Install on Windows from ZIP</h2>
 <p>Download the latest ZIP archive with the executable:</p>
 <ul>
-<li><a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a></li>
+<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
 </ul>
 <p>Extract <code>*.exe</code>:</p>
 <div class="codehilite"><pre><span></span><code>unzip<span class="w"> </span>mytral-&lt;version&gt;.exe-Win*.zip
@@ -274,6 +291,16 @@
 <div class="codehilite"><pre><span></span><code>make distro-desktop-install
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-deb-on-ubuntu">Build .deb on Ubuntu</h2>
+<p>Install prerequisites:</p>
+<div class="codehilite"><pre><span></span><code>sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
+</code></pre></div>
+
+<p>Build <code>.deb</code>:</p>
+<div class="codehilite"><pre><span></span><code>$DRY_RUN=true make distro-launchpad-release
+</code></pre></div>
+
+<p>Find <code>.deb</code> package in the directory printed by the <code>make</code> target.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-on-windows">Build on Windows</h2>
 <p>Install <code>uv</code> to <code>C:\Users\[user]\.local\bin</code>:</p>
 <div class="codehilite"><pre><span></span><code>powershell<span class="w"> </span>-ExecutionPolicy<span class="w"> </span>ByPass<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;irm https://astral.sh/uv/install.ps1 | iex&quot;</span>
@@ -392,7 +419,7 @@ mytral-&lt;version&gt;.exe
 <h1 id="tarball">Tarball</h1>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and install tarball</h2>
 <p>Download the latest tarball from the
-<a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a> page.</p>
+<a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a> page.</p>
 <p>Extract and start MyTraL:</p>
 <div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>xzf<span class="w"> </span>mytral-&lt;version&gt;.tar.gz
 <span class="nb">cd</span><span class="w"> </span>mytral-&lt;version&gt;
@@ -428,8 +455,10 @@ mytral-&lt;version&gt;.exe
                         <div class="mt-6 py-6 sticky-top">
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
-        <a href="#windows" class="nav-link">Windows</a>
+        <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
+<a href="#install-on-windows-from-zip" class="nav-link">Install on Windows from ZIP</a>
 <a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
+<a href="#build-deb-on-ubuntu" class="nav-link">Build .deb on Ubuntu</a>
 <a href="#build-on-windows" class="nav-link">Build on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>

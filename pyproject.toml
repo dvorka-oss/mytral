@@ -62,7 +62,7 @@ mytral-web = "mytral.run:main" # as mytral.run has main() function: uv run mytra
 mytral-desktop = "mytral.run_desktop:main" # desktop app: uv run mytral-desktop
 
 [project.urls]
-source = "https://github.com/dvorka/mytral"
+source = "https://github.com/dvorka-oss/mytral"
 
 [tool.ruff]
 line-length = 88

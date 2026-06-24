@@ -579,6 +579,17 @@ distro-tarball: ## build upstream tarball (.tar.gz) for Linux distribution maint
 	@./build/tarball/tarball-build.sh
 
 #
+# DISTRIBUTION: Ubuntu PPA @ Launchpad
+#
+
+distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	./launchpad-release.sh
+	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
+#
 # DISTRIBUTION: desktop application
 #
 
