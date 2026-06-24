@@ -209,14 +209,15 @@
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Install:</p>
 <ul>
-<li><a href="#install-on-ubuntu-from-ppa">Ubuntu</a></li>
-<li><a href="#install-on-windows-from-zip">Windows</a></li>
+<li><a href="#install-on-linux-using-snap">Linux (Snap)</a> (Ubuntu, Debian, Fedora, Arch, OpenSUSE)</li>
+<li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
+<li><a href="#install-on-windows-using-zip">Windows (ZIP)</a></li>
 </ul>
 <p>Build:</p>
 <ul>
-<li><a href="#build-on-ubuntu">Build on Ubuntu</a></li>
-<li><a href="#build--deb-on-ubuntu">Build .deb</a></li>
-<li><a href="#build-on-windows">Build on Windows</a></li>
+<li><a href="#build-binary-on-ubuntu">Ubuntu (binary)</a></li>
+<li><a href="#build--deb-on-ubuntu">Ubuntu (.deb)</a></li>
+<li><a href="#build-binary-on-windows">Windows (binary)</a></li>
 </ul>
 <p>Run:</p>
 <ul>
@@ -241,7 +242,7 @@ sudo apt-get update
 sudo apt-get install mytral
 </code></pre></div>
 
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-from-zip">Install on Windows from ZIP</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-zip">Install on Windows using ZIP</h2>
 <p>Download the latest ZIP archive with the executable:</p>
 <ul>
 <li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
@@ -256,9 +257,60 @@ sudo apt-get install mytral
 # example: mytral-1.51.0.exe
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap">Install on Linux using Snap</h2>
+<p>Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
+MyTraL uses <strong>classic confinement</strong> so it can open a native desktop window via Chrome/Chromium.</p>
+<p><strong>Prerequisite:</strong> Chrome or Chromium must be installed — MyTraL opens its UI in a frameless
+Chrome window (not as a browser tab).</p>
+<p>Install <code>Snapd</code> (if not already installed):</p>
+<p><strong>Ubuntu/Debian:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>snapd
+</code></pre></div>
+
+<p><strong>Fedora:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>snapd
+sudo<span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>/var/lib/snapd/snap<span class="w"> </span>/snap
+</code></pre></div>
+
+<p><strong>Arch Linux:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>snapd
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>snapd.socket
+</code></pre></div>
+
+<p><strong>openSUSE:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>snapd
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>snapd
+</code></pre></div>
+
+<p>Install MyTraL from the Snap Store (classic confinement requires the <code>--classic</code> flag):</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>mytral<span class="w"> </span>--classic
+</code></pre></div>
+
+<p>Start MyTraL from the application menu or run:</p>
+<div class="codehilite"><pre><span></span><code>mytral
+</code></pre></div>
+
+<p>MyTraL opens as a native desktop window. If Chrome/Chromium is not found it falls back to
+printing the URL so you can open it manually in any browser.</p>
+<p><strong>Data storage</strong></p>
+<p>Because MyTraL uses classic confinement it stores data in the same location as every
+other installation - your data is never locked inside the snap:</p>
+<div class="codehilite"><pre><span></span><code>~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
+</code></pre></div>
+
+<p><strong>Upgrade:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>refresh<span class="w"> </span>mytral
+</code></pre></div>
+
+<p><strong>Uninstall:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>remove<span class="w"> </span>mytral
+</code></pre></div>
+
 <h1 id="build">Build</h1>
 <p>Build MyTraL desktop application from the source code.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-on-ubuntu">Build on Ubuntu</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-binary-on-ubuntu">Build Binary on Ubuntu</h2>
 <p>Install <code>uv</code>:</p>
 <div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
 </code></pre></div>
@@ -302,7 +354,7 @@ sudo apt-get install mytral
 </code></pre></div>
 
 <p>Find <code>.deb</code> package in the directory printed by the <code>make</code> target.</p>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-on-windows">Build on Windows</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-binary-on-windows">Build Binary on Windows</h2>
 <p>Install <code>uv</code> to <code>C:\Users\[user]\.local\bin</code>:</p>
 <div class="codehilite"><pre><span></span><code>powershell<span class="w"> </span>-ExecutionPolicy<span class="w"> </span>ByPass<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;irm https://astral.sh/uv/install.ps1 | iex&quot;</span>
 </code></pre></div>
@@ -418,7 +470,7 @@ mytral-&lt;version&gt;.exe
 </code></pre></div>
 
 <h1 id="tarball">Tarball</h1>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and install tarball</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and Install Tarball</h2>
 <p>Download the latest tarball from the
 <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a> page.</p>
 <p>Extract and start MyTraL:</p>
@@ -457,14 +509,15 @@ mytral-&lt;version&gt;.exe
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
-<a href="#install-on-windows-from-zip" class="nav-link">Install on Windows from ZIP</a>
-<a href="#build-on-ubuntu" class="nav-link">Build on Ubuntu</a>
+<a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
+<a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
+<a href="#build-binary-on-ubuntu" class="nav-link">Build Binary on Ubuntu</a>
 <a href="#build-deb-on-ubuntu" class="nav-link">Build .deb on Ubuntu</a>
-<a href="#build-on-windows" class="nav-link">Build on Windows</a>
+<a href="#build-binary-on-windows" class="nav-link">Build Binary on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>
 <a href="#run-using-docker-on-fedora" class="nav-link">Run using Docker on Fedora</a>
-<a href="#download-and-install-tarball" class="nav-link">Download and install tarball</a>
+<a href="#download-and-install-tarball" class="nav-link">Download and Install Tarball</a>
     </div>
 </div>
                     </div>

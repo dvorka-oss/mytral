@@ -66,6 +66,7 @@ import pathlib
 import sys
 import threading
 import time
+import webbrowser
 
 # ENV SETUP
 # because mytral/__init__.py creates app_config at import time, ENV vars must be set
@@ -215,25 +216,23 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.info("Launching MyTraL Desktop application...")
 
         # start waitress in a separate thread
-        # Waitress is a production-grade WSGI server
         server_thread = threading.Thread(target=start_waitress_server, daemon=True)
         server_thread.start()
 
         # give server time to start
         time.sleep(2)
 
-        # launch desktop UI with FlaskWebGUI
-        # - FlaskWebGUI opens a desktop window pointing to our Waitress server
+        # run FlaskWebGUI - opens Brave/Chrome/Chromium/* in --app mode (frameless win)
         ui = FlaskUI(
             app=routes.flask_app,
-            server="flask",  # FlaskUI internal mode - but we ignore it
+            server="flask",
             port=app_config.port,
             width=1200,
             height=800,
         )
-
-        # launch the UI (this will block and open browser window)
+        # launch the UI - this will block until the browser window is closed
         ui.run()
+
     except ImportError as e:
         app_logger.warning(
             f"FlaskWebGUI import failed ({e}) - falling back to Waitress server mode"
@@ -241,11 +240,29 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.warning(
             "Install FlaskWebGUI for desktop window: pip install flaskwebgui"
         )
-        start_waitress_server()
+        server_thread = threading.Thread(target=start_waitress_server, daemon=True)
+        server_thread.start()
+        time.sleep(2)
+        url = f"http://{app_config.host}:{app_config.port}"
+        app_logger.info(f"Opening browser at {url}")
+        webbrowser.open(url)
+        server_thread.join()
+    except KeyboardInterrupt:
+        print("\n  MyTraL Desktop stopped.")
+        app_logger.info("MyTraL Desktop: received Ctrl-C, shutting down.")
+        sys.exit(0)
+    except OSError as e:
+        if "Address already in use" in str(e) or "98" in str(e):
+            app_logger.error(
+                f"Port {app_config.port} is already in use. "
+                f"Another MyTraL instance may be running. "
+                f"Try: pkill -f mytral"
+            )
+        raise
     except Exception as e:
         # If FlaskWebGUI fails for any reason, fall back to Waitress only
         app_logger.error(f"FlaskWebGUI failed: {e}")
-        app_logger.info("Falling back to Waitress server mode.")
+        app_logger.info("Falling back to Waitress server mode...")
         app_logger.info(
             f"Open browser manually to: http://{app_config.host}:{app_config.port}"
         )

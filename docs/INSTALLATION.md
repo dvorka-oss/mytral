@@ -2,14 +2,15 @@
 
 Install:
 
-* [Ubuntu](#install-on-ubuntu-from-ppa)
-* [Windows](#install-on-windows-from-zip)
+* [Linux (Snap)](#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
+* [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
+* [Windows (ZIP)](#install-on-windows-using-zip)
 
 Build:
 
-* [Build on Ubuntu](#build-on-ubuntu)
-* [Build .deb](#build--deb-on-ubuntu)
-* [Build on Windows](#build-on-windows)
+* [Ubuntu (binary)](#build-binary-on-ubuntu)
+* [Ubuntu (.deb)](#build--deb-on-ubuntu)
+* [Windows (binary)](#build-binary-on-windows)
 
 Run:
 
@@ -20,6 +21,7 @@ Run:
 Tarball:
 
 * [Download and install tarball](#download-and-install-tarball)
+
 
 
 # Install
@@ -45,7 +47,7 @@ sudo apt-get install mytral
 
 
 
-## Install on Windows from ZIP
+## Install on Windows using ZIP
 Download the latest ZIP archive with the executable:
 
 * [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
@@ -65,11 +67,87 @@ mytral-<version>.exe
 ```
 
 
+
+## Install on Linux using Snap
+
+Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
+MyTraL uses **classic confinement** so it can open a native desktop window via Chrome/Chromium.
+
+**Prerequisite:** Chrome or Chromium must be installed — MyTraL opens its UI in a frameless
+Chrome window (not as a browser tab).
+
+Install `Snapd` (if not already installed):
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install snapd
+```
+
+**Fedora:**
+```bash
+sudo dnf install snapd
+sudo ln -s /var/lib/snapd/snap /snap
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S snapd
+sudo systemctl enable --now snapd.socket
+```
+
+**openSUSE:**
+```bash
+sudo zypper install snapd
+sudo systemctl enable --now snapd
+```
+
+Install MyTraL from the Snap Store (classic confinement requires the `--classic` flag):
+
+```bash
+sudo snap install mytral --classic
+```
+
+Start MyTraL from the application menu or run:
+
+```bash
+mytral
+```
+
+MyTraL opens as a native desktop window. If Chrome/Chromium is not found it falls back to
+printing the URL so you can open it manually in any browser.
+
+**Data storage**
+
+Because MyTraL uses classic confinement it stores data in the same location as every
+other installation - your data is never locked inside the snap:
+
+```
+~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
+```
+
+**Upgrade:**
+
+```bash
+sudo snap refresh mytral
+```
+
+**Uninstall:**
+
+```bash
+sudo snap remove mytral
+```
+
+
+
 # Build
 
 Build MyTraL desktop application from the source code.
 
-## Build on Ubuntu
+
+
+## Build Binary on Ubuntu
 
 Install `uv`:
 
@@ -116,6 +194,8 @@ Optionally install MyTraL for the current user:
 make distro-desktop-install
 ```
 
+
+
 ## Build .deb on Ubuntu
 
 Install prerequisites:
@@ -134,7 +214,7 @@ Find `.deb` package in the directory printed by the `make` target.
 
 
 
-## Build on Windows
+## Build Binary on Windows
 
 Install `uv` to `C:\Users\[user]\.local\bin`:
 
@@ -181,9 +261,13 @@ Start using MyTraL:
 * Click `Add new user` button to add new athlete account.
 * `Sign in`.
 
+
+
 # Run
 
 Run MyTraL web application.
+
+
 
 ## Run using Python on Ubuntu
 
@@ -224,6 +308,7 @@ Open `http://localhost:5000` in your browser:
 * `Sign in`.
 
 
+
 ## Run using Docker on Debian
 
 Install `uv`:
@@ -257,6 +342,7 @@ Stop the container:
 ```bash
 docker stop mytral-debian
 ```
+
 
 
 ## Run using Docker on Fedora
@@ -294,9 +380,10 @@ docker stop mytral-fedora
 ```
 
 
+
 # Tarball
 
-## Download and install tarball
+## Download and Install Tarball
 
 Download the latest tarball from the
 [GitHub Releases](https://github.com/dvorka-oss/mytral/releases) page.

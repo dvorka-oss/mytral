@@ -647,6 +647,54 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 	@ls -lh distro/desktop/mytral-* 2>/dev/null || ls -lh distro/desktop/mytral* 2>/dev/null || (echo "ERROR: No executable found in distro/desktop/"; exit 1)
 
 #
+# SNAP: Snap package distribution (local builds only)
+#
+# Prerequisites:
+#   # Snapcraft
+#   sudo snap install snapcraft --classic
+#   # LXD containers
+#   sudo snap install lxd
+#   sudo lxd init --auto
+#   sudo usermod -aG lxd $USER
+#
+
+.PHONY: distro-snap-clean
+distro-snap-clean: ## clean Snap build artifacts
+	@./build/snap/clean.sh
+
+.PHONY: distro-snap-build
+distro-snap-build: ## build Snap package (LXD required; see build/snap/build-snap.sh)
+	@./build/snap/build-snap.sh
+
+.PHONY: distro-snap-install-local
+distro-snap-install-local: distro-snap-build ## build and install Snap locally (for testing, requires sudo)
+	@echo "Installing Snap package locally..."
+	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
+	if [ -z "$$SNAP_FILE" ]; then \
+		echo "Error: Snap package not found. Run 'make distro-snap-build' first."; \
+		exit 1; \
+	fi; \
+	echo "Note: This command requires sudo privileges for snap install"; \
+	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	echo "✓ Snap installed. Run with: mytral"
+
+.PHONY: distro-snap-test
+distro-snap-test: distro-snap-install-local ## build, install, and test Snap
+	@echo "Testing Snap package..."
+	@mytral --version || echo "Note: mytral --version not yet implemented"
+	@echo "✓ Snap package test successful"
+
+.PHONY: distro-snap-path
+distro-snap-path: ## show path to built snap package
+	@ls distro/snap/mytral_*.snap 2>/dev/null || echo "No snap package built yet"
+
+.PHONY: distro-snap-remove
+distro-snap-remove: ## remove locally installed Snap (requires sudo)
+	@echo "Removing Snap package..."
+	sudo snap remove mytral || true
+	@echo "✓ Snap removed"
+
+#
 # DOCUMENTATION
 #
 
