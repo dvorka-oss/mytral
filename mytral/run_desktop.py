@@ -66,6 +66,7 @@ import pathlib
 import sys
 import threading
 import time
+import webbrowser
 
 # ENV SETUP
 # because mytral/__init__.py creates app_config at import time, ENV vars must be set
@@ -239,7 +240,13 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.warning(
             "Install FlaskWebGUI for desktop window: pip install flaskwebgui"
         )
-        start_waitress_server()
+        server_thread = threading.Thread(target=start_waitress_server, daemon=True)
+        server_thread.start()
+        time.sleep(2)
+        url = f"http://{app_config.host}:{app_config.port}"
+        app_logger.info(f"Opening browser at {url}")
+        webbrowser.open(url)
+        server_thread.join()
     except KeyboardInterrupt:
         print("\n  MyTraL Desktop stopped.")
         app_logger.info("MyTraL Desktop: received Ctrl-C, shutting down.")

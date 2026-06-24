@@ -59,6 +59,7 @@ parts:
       mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/bin"
       cp /usr/bin/python3.12 "$SNAPCRAFT_PART_INSTALL/usr/bin/python3.12"
       craftctl default
+      pip install "waitress~=3.0"
       mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
       echo '#!/bin/bash' > "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
       echo 'exec "$SNAP/bin/mytral-desktop" "$@"' >> "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
