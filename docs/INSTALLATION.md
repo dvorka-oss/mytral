@@ -127,7 +127,7 @@ sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
 Build `.deb`:
 
 ```
-$DRY_RUN=true make distro-launchpad-release
+make distro-ubuntu-deb
 ```
 
 Find `.deb` package in the directory printed by the `make` target.

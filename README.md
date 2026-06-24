@@ -17,11 +17,13 @@
 
 Install:
 
+* [Ubuntu](INSTALLATION.md#install-on-ubuntu-from-ppa)
 * [Windows](INSTALLATION.md#windows)
 
 Build:
 
 * [Build on Ubuntu](INSTALLATION.md#build-on-ubuntu)
+* [Build .deb](INSTALLATION.md#build--deb-on-ubuntu)
 * [Build on Windows](INSTALLATION.md#build-on-windows)
 
 Run:

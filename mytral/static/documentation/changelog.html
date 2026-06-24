@@ -136,6 +136,7 @@
                           <div class="dropdown-menu-columns">
                             <div class="dropdown-menu-column">
                               <a class="dropdown-item" href="index.html">Manifesto</a>
+<a class="dropdown-item" href="configuration.html">Configuration</a>
 <div class="dropdown-divider"></div>
 <a class="dropdown-item" href="sharing.html">Data Sharing</a>
 <div class="dropdown-divider"></div>
@@ -210,15 +211,20 @@
 <p>This MyTraL <strong>minor</strong> release brings:</p>
 <h3 id="added">Added</h3>
 <ul>
-<li>.</li>
+<li>Added Ubuntu PPA distribution for Ubuntu via Launchpad (<code>ppa:ultradvorka/sport</code>).</li>
+<li>Added <code>distro-ubuntu-deb</code> Makefile target to build <code>.deb</code> package locally (output to <code>distro/deb/</code>).</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>.</li>
+<li>Fixed <code>.deb</code> packaging: Python dependencies are installed into an isolated virtualenv at
+  <code>/opt/mytral/venv/</code> - system Python environment is never polluted.</li>
+<li>Fixed <code>.deb</code> wrapper scripts to export <code>MYTRAL_INCARNATION</code>, <code>MYTRAL_USER_REGISTRATION</code>,
+  and <code>MYTRAL_ENABLE_CACHE</code> environment variables for correct desktop startup.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation">Documentation</h2>
 <ul>
-<li>.</li>
+<li>Added Ubuntu PPA installation guide.</li>
+<li>Added Ubuntu .deb installation guide.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1520"><a href="https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0">1.52.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>

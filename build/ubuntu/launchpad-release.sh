@@ -49,8 +49,8 @@ print(data['project']['authors'][0]['email'])
 ")
 
 # set to true to skip the final dput upload step
-#export DRY_RUN="${DRY_RUN:-false}"
-export DRY_RUN="true"
+export DRY_RUN="${DRY_RUN:-false}"
+#export DRY_RUN="true"
 
 # ############################################################################
 # # Check dependencies #
