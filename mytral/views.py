@@ -674,3 +674,50 @@ class CalendarHeatmap:
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=2)
+
+
+_SKIP_ACTIVITY_TYPES = frozenset({"sick", "injured", "comment"})
+
+
+def build_feed_bar_chart_data(activities: list) -> list[dict]:
+    """Pre-aggregate activities into per-day stats for the feed bar chart navigation.
+
+    Returns a sorted list of dicts (one per day that has activities), ready for
+    JSON serialisation.  Replaces the old client-side aggregation over the full
+    ActivityEntity list.
+    """
+    days: dict[int, dict] = {}
+
+    for activity in activities:
+        date = datetime.date(activity.when_year, activity.when_month, activity.when_day)
+        day_of_year = date.timetuple().tm_yday
+
+        if day_of_year not in days:
+            days[day_of_year] = {
+                "day_of_year": day_of_year,
+                "month": activity.when_month,
+                "day": activity.when_day,
+                "total_distance": 0,
+                "total_duration": 0,
+                "total_tonnage": 0.0,
+                "total_weight": 0.0,
+                "activity_count": 0,
+                "first_key": activity.key,
+                "names": [],
+            }
+
+        day = days[day_of_year]
+        day["activity_count"] += 1
+        if len(day["names"]) < 3:
+            day["names"].append(activity.name or activity.activity_type_key)
+
+        if activity.activity_type_key not in _SKIP_ACTIVITY_TYPES:
+            day["total_distance"] += activity.distance or 0
+            day["total_duration"] += (
+                activity.hours * 3600 + activity.minutes * 60 + activity.seconds
+            )
+            day["total_tonnage"] += activity.exercise_kgs or 0
+            if activity.weight:
+                day["total_weight"] = activity.weight
+
+    return sorted(days.values(), key=lambda d: d["day_of_year"])

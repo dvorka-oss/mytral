@@ -14,14 +14,6 @@ I know, I know, it's one man show for now, right? ;)
 
 ## Performance
 
-### perf(frontend): ⚡ top calendar week navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
-### perf(frontend): ⚡ top feed day navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
 ### perf(import): ⚡ Polar PPP import
 
 * **Description**: I improved it from 25' to 17" on the test data, hope to make it ~9".

@@ -221,6 +221,14 @@
 <li>Fixed <code>.deb</code> wrapper scripts to export <code>MYTRAL_INCARNATION</code>, <code>MYTRAL_USER_REGISTRATION</code>,
   and <code>MYTRAL_ENABLE_CACHE</code> environment variables for correct desktop startup.</li>
 </ul>
+<h3 id="performance">Performance</h3>
+<ul>
+<li>Fixed top calendar week navigation which was slooow as it was build on the frontend -
+  moved it to the backend.</li>
+<li>Fixed top feed day navigation which was slooow as it was build on the frontend -
+  moved it to the backend.</li>
+<li>Fixed duplicated activities list loading by the <code>routes.py::calendar_view()</code></li>
+</ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation">Documentation</h2>
 <ul>
 <li>Added Ubuntu PPA installation guide.</li>
@@ -387,7 +395,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>GPX import rewritten to be non-blocking (except upload) and to make intensive work in
   the asynchronous task.</li>
 </ul>
-<h3 id="performance">Performance</h3>
+<h3 id="performance_1">Performance</h3>
 <ul>
 <li>Per-request total size limit is now enforced when uploading multiple photos in a
   single request, preventing excessive memory use.</li>
@@ -456,7 +464,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Structured logging using <code>structlog</code>.</li>
 <li>User dataset size statistics to the account page.</li>
 </ul>
-<h3 id="performance_1">Performance</h3>
+<h3 id="performance_2">Performance</h3>
 <ul>
 <li>Deployments and build configuration upgraded from Python 3.10 to Python 3.11.</li>
 <li>Source code migrated to 3.11 constructions like <code>match</code> or <code>Self</code>.</li>
@@ -478,7 +486,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Progress / PRs page now includes ranked laps in addition to ranked activities, showing
   lap name, distance, duration, activity types, and date with a link back to the parent activity.</li>
 </ul>
-<h3 id="performance_2">Performance</h3>
+<h3 id="performance_3">Performance</h3>
 <ul>
 <li>DRY of Jinja templates - new macros and includes.</li>
 </ul>
@@ -678,7 +686,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Session management with Flask-Login.</li>
 <li>CSRF protection on all forms.</li>
 </ul>
-<h3 id="performance_3">Performance</h3>
+<h3 id="performance_4">Performance</h3>
 <ul>
 <li>Optimized JSON file operations for faster data loading.</li>
 <li>Lazy loading of chart data for improved page load times.</li>
@@ -762,6 +770,7 @@ Find conventions details and template at the bottom of this document.</p>
         <a href="#1530" class="nav-link">1.53.0</a>
 <a href="#added" class="nav-link ms-3">Added</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#performance" class="nav-link ms-3">Performance</a>
 <a href="#documentation" class="nav-link">Documentation</a>
 <a href="#1520" class="nav-link">1.52.0</a>
 <a href="#added_1" class="nav-link ms-3">Added</a>
@@ -780,7 +789,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#added_4" class="nav-link ms-3">Added</a>
 <a href="#changed_1" class="nav-link ms-3">Changed</a>
 <a href="#fixed_4" class="nav-link ms-3">Fixed</a>
-<a href="#performance" class="nav-link ms-3">Performance</a>
+<a href="#performance_1" class="nav-link ms-3">Performance</a>
 <a href="#documentation_3" class="nav-link ms-3">Documentation</a>
 <a href="#tests" class="nav-link ms-3">Tests</a>
 <a href="#180" class="nav-link">1.8.0</a>
@@ -788,11 +797,11 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#fixed_5" class="nav-link ms-3">Fixed</a>
 <a href="#170" class="nav-link">1.7.0</a>
 <a href="#added_6" class="nav-link ms-3">Added</a>
-<a href="#performance_1" class="nav-link ms-3">Performance</a>
+<a href="#performance_2" class="nav-link ms-3">Performance</a>
 <a href="#fixed_6" class="nav-link ms-3">Fixed</a>
 <a href="#160" class="nav-link">1.6.0</a>
 <a href="#added_7" class="nav-link ms-3">Added</a>
-<a href="#performance_2" class="nav-link ms-3">Performance</a>
+<a href="#performance_3" class="nav-link ms-3">Performance</a>
 <a href="#security" class="nav-link ms-3">Security</a>
 <a href="#fixed_7" class="nav-link ms-3">Fixed</a>
 <a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
@@ -822,7 +831,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#100" class="nav-link">1.0.0</a>
 <a href="#added_14" class="nav-link ms-3">Added</a>
 <a href="#security_1" class="nav-link ms-3">Security</a>
-<a href="#performance_3" class="nav-link ms-3">Performance</a>
+<a href="#performance_4" class="nav-link ms-3">Performance</a>
 <a href="#documentation_6" class="nav-link ms-3">Documentation</a>
 <a href="#infrastructure_4" class="nav-link ms-3">Infrastructure</a>
 <a href="#001" class="nav-link">0.0.1</a>
