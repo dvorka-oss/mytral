@@ -1041,7 +1041,7 @@
     }
 </style>
 
-{% if activities %}
+{% if feed_bar_chart_data %}
 {# ############################################# #}
 {# BEGIN: FIXED STICKY FEED BAR CHART NAVIGATION #}
 {# ############################################# #}
@@ -1070,7 +1070,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const activities = {{ activities|tojson }};
+            const feedDayStats = {{ feed_bar_chart_data|tojson }};
 
             {% if is_diary is defined and is_diary %}
             const isDiary = true;
@@ -1088,13 +1088,10 @@
             const year = currentYear;
             {% endif %}
 
-            // Calculate days in year (handles leap years)
             const isCurrentYear = year === currentYear;
             const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-            const daysInYear = isLeapYear ? 366 : 365;
             const daysPerMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-            // Helper function to calculate day of year (same logic as template)
             function calculateDayOfYear(month, day) {
                 let dayOfYear = day;
                 for (let m = 0; m < month - 1; m++) {
@@ -1103,64 +1100,22 @@
                 return dayOfYear;
             }
 
-            // Initialize day data structure
+            // Build lookup from pre-aggregated backend data
             const dayData = {};
-            for (let i = 1; i <= daysInYear; i++) {
-                dayData[i] = {
-                    dayOfYear: i,
-                    activities: [],
-                    totalDistance: 0,
-                    totalDuration: 0,
-                    totalTonnage: 0,
-                    totalWeight: 0,
-                    hasData: false
-                };
-            }
+            feedDayStats.forEach(d => { dayData[d.day_of_year] = d; });
 
-            // Process activities
-            activities.forEach(a => {
-                // Calculate day of year using SAME method as template
-                const dayOfYear = calculateDayOfYear(a.when_month, a.when_day);
-
-                if (dayOfYear >= 1 && dayOfYear <= daysInYear) {
-                    dayData[dayOfYear].activities.push(a);
-                    dayData[dayOfYear].hasData = true;
-
-                    // Accumulate metrics (only for non-meta activities)
-                    if (!['sick', 'injured', 'comment'].includes(a.activity_type_key)) {
-                        dayData[dayOfYear].totalDistance += a.distance || 0;
-                        dayData[dayOfYear].totalDuration += (a.hours * 3600 + a.minutes * 60 + a.seconds) || 0;
-                        dayData[dayOfYear].totalTonnage += a.exercise_kgs || 0;
-                        if (a.weight) {
-                            dayData[dayOfYear].totalWeight = a.weight; // Use latest weight
-                        }
-                    }
-                }
+            // Calculate max values for bar height scaling
+            let maxDistance = 0, maxDuration = 0, maxTonnage = 0;
+            feedDayStats.forEach(d => {
+                maxDistance = Math.max(maxDistance, d.total_distance);
+                maxDuration = Math.max(maxDuration, d.total_duration);
+                maxTonnage = Math.max(maxTonnage, d.total_tonnage);
             });
 
-            // Calculate max values for scaling
-            let maxDistance = 0;
-            let maxDuration = 0;
-            let maxTonnage = 0;
-            let maxWeight = 0;
-
-            Object.values(dayData).forEach(d => {
-                maxDistance = Math.max(maxDistance, d.totalDistance);
-                maxDuration = Math.max(maxDuration, d.totalDuration);
-                maxTonnage = Math.max(maxTonnage, d.totalTonnage);
-                maxWeight = Math.max(maxWeight, d.totalWeight);
-            });
-
-            // Build the chart
             const chart = document.getElementById('year-bar-chart');
             const monthLabels = document.getElementById('year-bar-chart-months');
-
-            // Month names
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-            let currentMonthStartDay = 1;
-
-            // Create month labels
             monthNames.forEach((monthName, monthIndex) => {
                 const monthDiv = document.createElement('div');
                 monthDiv.className = 'month-label';
@@ -1169,20 +1124,15 @@
                     monthDiv.classList.add('current-month');
                 }
 
-                // Calculate first day of year for this month
                 const firstDayOfMonth = calculateDayOfYear(monthIndex + 1, 1);
-
-                // Click to scroll to first activity of that month
                 monthDiv.addEventListener('click', () => {
                     const targetElement = document.querySelector(`[data-activity-day="${firstDayOfMonth}"]`);
                     if (targetElement) {
                         targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
-
                 monthLabels.appendChild(monthDiv);
 
-                // Create bars for this month
                 const daysInMonth = daysPerMonth[monthIndex];
                 for (let day = 1; day <= daysInMonth; day++) {
                     const dayOfYear = calculateDayOfYear(monthIndex + 1, day);
@@ -1191,49 +1141,37 @@
                     bar.className = 'bar-day';
                     bar.dataset.day = dayOfYear;
 
-                    // Mark today
                     if (isCurrentYear && monthIndex + 1 === currentMonth && day === currentDay) {
                         bar.classList.add('today');
                     }
 
-                    if (dayInfo.hasData) {
+                    if (dayInfo) {
                         bar.classList.add('has-activities');
 
                         if (isDiary) {
-                            // diary mode: dark gray bar for days with comments
                             bar.style.background = 'var(--tblr-muted)';
                             bar.style.height = '50%';
                         } else {
-                            // Calculate proportional heights directly against max values
-                            // This ensures bars show TRUE differences between small and large activity days
-                            // Min height of 5% for visibility on days with minimal activity
                             const distanceHeight = maxDistance > 0
-                                ? Math.max(5, (dayInfo.totalDistance / maxDistance) * 90)
-                                : 0;
+                                ? Math.max(5, (dayInfo.total_distance / maxDistance) * 90) : 0;
                             const durationHeight = maxDuration > 0
-                                ? Math.max(3, (dayInfo.totalDuration / maxDuration) * 60)
-                                : 0;
+                                ? Math.max(3, (dayInfo.total_duration / maxDuration) * 60) : 0;
                             const tonnageHeight = maxTonnage > 0
-                                ? Math.max(2, (dayInfo.totalTonnage / maxTonnage) * 40)
-                                : 0;
+                                ? Math.max(2, (dayInfo.total_tonnage / maxTonnage) * 40) : 0;
 
-                            // Create stacked segments - order matters (bottom to top due to flex-direction: column-reverse)
-                            // Tonnage on top, Duration middle, Distance at bottom
-                            if (dayInfo.totalTonnage > 0) {
+                            if (dayInfo.total_tonnage > 0) {
                                 const seg = document.createElement('div');
                                 seg.className = 'bar-segment bar-segment-elevation';
                                 seg.style.height = tonnageHeight + '%';
                                 bar.appendChild(seg);
                             }
-
-                            if (dayInfo.totalDuration > 0) {
+                            if (dayInfo.total_duration > 0) {
                                 const seg = document.createElement('div');
                                 seg.className = 'bar-segment bar-segment-duration';
                                 seg.style.height = durationHeight + '%';
                                 bar.appendChild(seg);
                             }
-
-                            if (dayInfo.totalDistance > 0) {
+                            if (dayInfo.total_distance > 0) {
                                 const seg = document.createElement('div');
                                 seg.className = 'bar-segment bar-segment-distance';
                                 seg.style.height = distanceHeight + '%';
@@ -1241,49 +1179,38 @@
                             }
                         }
 
-                        // Build tooltip content
                         const date = new Date(year, monthIndex, day);
                         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                        const activityNames = dayInfo.activities.map(a =>
-                            a.name || a.activity_type_key
-                        ).slice(0, 3).join(', ');
-                        const moreActivities = dayInfo.activities.length > 3 ? ` +${dayInfo.activities.length - 3} more` : '';
+                        const activityLabel = dayInfo.activity_count === 1 ? 'activity' : 'activities';
+                        const moreCount = dayInfo.activity_count > 3 ? ` +${dayInfo.activity_count - 3} more` : '';
+                        const distanceKm = (dayInfo.total_distance / 1000).toFixed(1);
+                        const durationHours = Math.floor(dayInfo.total_duration / 3600);
+                        const durationMinutes = Math.floor((dayInfo.total_duration % 3600) / 60);
+                        const durationStr = durationHours > 0
+                            ? `${durationHours}h${durationMinutes}m` : `${durationMinutes}m`;
 
-                        const distanceKm = (dayInfo.totalDistance / 1000).toFixed(1);
-                        const durationHours = Math.floor(dayInfo.totalDuration / 3600);
-                        const durationMinutes = Math.floor((dayInfo.totalDuration % 3600) / 60);
-                        const durationStr = durationHours > 0 ? `${durationHours}h${durationMinutes}m` : `${durationMinutes}m`;
-
-                        let tooltipParts = [`${dateStr}: ${dayInfo.activities.length} activity${dayInfo.activities.length !== 1 ? 'ies' : ''}`];
-                        if (dayInfo.totalDistance > 0) tooltipParts.push(`${distanceKm}km`);
-                        if (dayInfo.totalDuration > 0) tooltipParts.push(durationStr);
-                        if (dayInfo.totalTonnage > 0) tooltipParts.push(`${dayInfo.totalTonnage.toFixed(0)}kg`);
-                        if (dayInfo.totalWeight > 0) tooltipParts.push(`${dayInfo.totalWeight.toFixed(1)}kg`);
-                        tooltipParts.push(`— ${activityNames}${moreActivities}`);
-
+                        let tooltipParts = [`${dateStr}: ${dayInfo.activity_count} ${activityLabel}`];
+                        if (dayInfo.total_distance > 0) tooltipParts.push(`${distanceKm}km`);
+                        if (dayInfo.total_duration > 0) tooltipParts.push(durationStr);
+                        if (dayInfo.total_tonnage > 0) tooltipParts.push(`${dayInfo.total_tonnage.toFixed(0)}kg`);
+                        if (dayInfo.total_weight > 0) tooltipParts.push(`${dayInfo.total_weight.toFixed(1)}kg`);
+                        tooltipParts.push(`— ${dayInfo.names.join(', ')}${moreCount}`);
                         bar.dataset.tooltip = tooltipParts.join(' • ');
                     } else {
-                        // Empty day - small gray bar
                         bar.style.background = 'var(--tblr-bg-surface-secondary)';
                         bar.style.height = '20%';
                         bar.dataset.tooltip = `${new Date(year, monthIndex, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: No activities`;
                     }
 
-                    // Click to scroll to activity - navigate to first activity of the day
                     bar.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
 
-                        if (dayInfo.activities.length > 0) {
-                            // First try to find by day-of-year data attribute using the bar's day
-                            const clickedDayOfYear = bar.dataset.day;
-                            let targetElement = document.querySelector(`[data-activity-day="${clickedDayOfYear}"]`);
+                        if (dayInfo) {
+                            let targetElement = document.querySelector(`[data-activity-day="${bar.dataset.day}"]`);
 
-                            // If not found by day-of-year, try to find by activity key
-                            if (!targetElement && dayInfo.activities[0].key) {
-                                // Try to find the activity card/row by key
-                                targetElement = document.querySelector(`a[href*="${dayInfo.activities[0].key}"]`);
-                                // If found an anchor, scroll to its parent card/row
+                            if (!targetElement && dayInfo.first_key) {
+                                targetElement = document.querySelector(`a[href*="${dayInfo.first_key}"]`);
                                 if (targetElement) {
                                     targetElement = targetElement.closest('[data-activity-day]') ||
                                                    targetElement.closest('.card') ||
@@ -1293,7 +1220,6 @@
 
                             if (targetElement) {
                                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                // Highlight the element briefly
                                 targetElement.style.transition = 'all 0.3s';
                                 const originalBoxShadow = targetElement.style.boxShadow;
                                 const originalTransform = targetElement.style.transform;
@@ -1303,12 +1229,8 @@
                                     targetElement.style.boxShadow = originalBoxShadow;
                                     targetElement.style.transform = originalTransform;
                                 }, 1500);
-                            } else {
-                                // Fallback: navigate directly to the first activity
-                                const firstActivity = dayInfo.activities[0];
-                                if (firstActivity.key) {
-                                    window.location.href = `/activity/${firstActivity.key}`;
-                                }
+                            } else if (dayInfo.first_key) {
+                                window.location.href = `/activity/${dayInfo.first_key}`;
                             }
                         }
                     });
@@ -1317,30 +1239,17 @@
                 }
             });
 
-            // Track which activity day is currently most visible (center of viewport)
             let currentVisibleDay = null;
 
-            const observerOptions = {
-                root: null,
-                rootMargin: '-20% 0px -60% 0px', // Consider elements in the upper portion of screen as "active"
-                threshold: 0
-            };
-
             const observer = new IntersectionObserver((entries) => {
-                // Find the entry that is most visible in the viewport
                 let mostVisibleEntry = null;
                 let maxVisibility = -Infinity;
 
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const rect = entry.target.getBoundingClientRect();
-                        const viewportHeight = window.innerHeight;
-                        // Calculate distance from center of viewport (closer to center = higher score)
                         const elementCenter = rect.top + rect.height / 2;
-                        const viewportCenter = viewportHeight / 2;
-                        const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
-                        const visibilityScore = 1000 - distanceFromCenter; // Higher score = closer to center
-
+                        const visibilityScore = 1000 - Math.abs(elementCenter - window.innerHeight / 2);
                         if (visibilityScore > maxVisibility) {
                             maxVisibility = visibilityScore;
                             mostVisibleEntry = entry;
@@ -1348,19 +1257,13 @@
                     }
                 });
 
-                // Only update highlight if we have a most visible entry
                 if (mostVisibleEntry) {
                     const dayOfYear = mostVisibleEntry.target.dataset.activityDay;
-
                     if (dayOfYear && dayOfYear !== currentVisibleDay) {
-                        // Remove highlight from previous bar
                         if (currentVisibleDay) {
                             const prevBar = document.querySelector(`.bar-day[data-day="${currentVisibleDay}"]`);
-                            if (prevBar) {
-                                prevBar.classList.remove('in-viewport');
-                            }
+                            if (prevBar) prevBar.classList.remove('in-viewport');
                         }
-                        // Highlight new bar
                         const newBar = document.querySelector(`.bar-day[data-day="${dayOfYear}"]`);
                         if (newBar) {
                             newBar.classList.add('in-viewport');
@@ -1368,25 +1271,19 @@
                         }
                     }
                 }
-            }, observerOptions);
+            }, { root: null, rootMargin: '-20% 0px -60% 0px', threshold: 0 });
 
-            // Observe all activity rows
             document.querySelectorAll('[data-activity-day]').forEach(row => {
                 observer.observe(row);
             });
 
-            // Also handle scroll events to clear highlight when user scrolls to top
             let scrollTimeout;
             window.addEventListener('scroll', () => {
                 clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
-                    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                    if (scrollTop < 200 && currentVisibleDay) {
-                        // Clear highlight when near top of page
+                    if ((window.scrollY || document.documentElement.scrollTop) < 200 && currentVisibleDay) {
                         const bar = document.querySelector(`.bar-day[data-day="${currentVisibleDay}"]`);
-                        if (bar) {
-                            bar.classList.remove('in-viewport');
-                        }
+                        if (bar) bar.classList.remove('in-viewport');
                         currentVisibleDay = null;
                     }
                 }, 100);
