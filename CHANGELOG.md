@@ -22,15 +22,6 @@ This MyTraL **minor** release brings:
 
 
 
-### perf(frontend): ⚡ top calendar week navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
-### perf(frontend): ⚡ top feed day navigation
-
-* **Description**: The navigation is slooow as it's build on the frontend, but must be moved to the backend.
-
-
 ## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0)
 
 This MyTraL **minor** release brings:

@@ -10,6 +10,13 @@ This MyTraL **minor** release brings:
 ### Fixed
 - .
 
+### Performance
+- Fixed top calendar week navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed top feed day navigation which was slooow as it was build on the frontend -
+  moved it to the backend.
+- Fixed duplicated activities list loading by the `routes.py::calendar_view()`
+
 ## Documentation
 - .
 
