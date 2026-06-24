@@ -553,6 +553,7 @@ wheel: ## build Python wheel
 
 DIR_DISTRO_WEBAPP = distro/webapp
 DIR_DISTRO_DESKTOP = distro/desktop
+DIR_DISTRO_DEB = distro/deb
 
 .PHONY: distro-webapp-clean
 distro-webapp-clean: ## clean web application distribution directory
@@ -588,6 +589,17 @@ distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
 	cd $(USER_HOME)/p/mytral/launchpad && \
 	./launchpad-release.sh
 	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
+.PHONY: distro-ubuntu-deb
+distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
+	@mkdir -p $(DIR_DISTRO_DEB)
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	DRY_RUN=true ./launchpad-release.sh
+	@find $(USER_HOME)/p/mytral/launchpad -name "mytral_*.deb" | \
+	    xargs ls -t | head -1 | xargs -I{} cp -v {} $(DIR_DISTRO_DEB)/
+	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"
 
 #
 # DISTRIBUTION: desktop application
