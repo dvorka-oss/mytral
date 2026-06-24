@@ -9,6 +9,8 @@ This MyTraL **minor** release brings:
 - Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally (output to `distro/deb/`).
 
 ### Fixed
+- Fixed elevation chart rendering in the application's analysis page by smoothing
+  the GPX points.
 - Fixed `.deb` packaging: Python dependencies are installed into an isolated virtualenv at
   `/opt/mytral/venv/` - system Python environment is never polluted.
 - Fixed `.deb` wrapper scripts to export `MYTRAL_INCARNATION`, `MYTRAL_USER_REGISTRATION`,
@@ -22,6 +24,7 @@ This MyTraL **minor** release brings:
 - Fixed duplicated activities list loading by the `routes.py::calendar_view()`
 
 ## Documentation
+- Added MyTraL configuration guide.
 - Added Ubuntu PPA installation guide.
 - Added Ubuntu .deb installation guide.
 
