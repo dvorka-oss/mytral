@@ -933,6 +933,21 @@ def demo_active_in_week():
     return script, div
 
 
+def _smooth_altitude(values: list, window: int = 15) -> list:
+    """Apply centered rolling mean to smooth noisy GPS altitude samples."""
+    n = len(values)
+    if n < 3:
+        return values
+    half = window // 2
+    result = []
+    for i in range(n):
+        lo = max(0, i - half)
+        hi = min(n, i + half + 1)
+        finite = [v for v in values[lo:hi] if v is not None and not math.isnan(v)]
+        result.append(sum(finite) / len(finite) if finite else values[i])
+    return result
+
+
 def _build_overlay_chart(
     rec: RecordingData,
     athlete_metrics: settings.AthleteMetrics | None = None,
@@ -956,7 +971,7 @@ def _build_overlay_chart(
     hr_plot = [_nan(v) for v in hr_values]
     speed_plot = [_nan(v) for v in speed_values]
     cadence_plot = [_nan(v) for v in cadence_values]
-    altitude_plot = [_nan(v) for v in altitude_values]
+    altitude_plot = [_nan(v) for v in _smooth_altitude(altitude_values)]
     power_plot = [_nan(v) for v in power_values]
 
     source = ColumnDataSource(
@@ -1240,7 +1255,8 @@ def _build_ridge_chart(
     # build source with channel data and per-channel fill baselines
     source_data: dict = {"ts": timestamps}
     for field, raw, *_ in channels:
-        source_data[field] = [_nan(v) for v in raw]
+        values = _smooth_altitude(raw) if field == "altitude" else raw
+        source_data[field] = [_nan(v) for v in values]
         y_min, _, y_pad = y_ranges[field]
         source_data[f"{field}_base"] = [y_min - y_pad] * len(timestamps)
 
