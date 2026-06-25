@@ -647,6 +647,23 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 	@ls -lh distro/desktop/mytral-* 2>/dev/null || ls -lh distro/desktop/mytral* 2>/dev/null || (echo "ERROR: No executable found in distro/desktop/"; exit 1)
 
 #
+# DISTRIBUTION: Windows installer (Inno Setup 6)
+#
+# Prerequisites:
+#   1. Build desktop executable: make distro-desktop-build-win
+#   2. Install Inno Setup 6:     https://jrsoftware.org/isinfo.php
+#   3. Configure compiler path:  build\windows\env.bat
+#
+
+.PHONY: distro-windows-installer
+distro-windows-installer: ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
+	.\build\windows\build-win-installer.bat
+
+.PHONY: distro-windows-clean
+distro-windows-clean: ## clean Windows installer build artifacts
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
+
+#
 # SNAP: Snap package distribution (local builds only)
 #
 # Prerequisites:

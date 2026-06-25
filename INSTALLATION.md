@@ -4,6 +4,7 @@ Install:
 
 * [Linux (Snap)](#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
+* [Windows (Installer)](#install-on-windows-using-installer)
 * [Windows (ZIP)](#install-on-windows-using-zip)
 
 Build:
@@ -11,6 +12,7 @@ Build:
 * [Ubuntu (binary)](#build-binary-on-ubuntu)
 * [Ubuntu (.deb)](#build--deb-on-ubuntu)
 * [Windows (binary)](#build-binary-on-windows)
+* [Windows (installer)](#build-windows-installer)
 
 Run:
 
@@ -44,6 +46,33 @@ sudo add-apt-repository ppa:ultradvorka/sport
 sudo apt-get update
 sudo apt-get install mytral
 ```
+
+
+
+## Install on Windows using Installer
+
+Download the latest installer from:
+
+* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+
+Run the installer:
+
+```
+mytral-<version>-setup.exe
+
+# example: mytral-1.54.0-setup.exe
+```
+
+The installer places MyTraL in `C:\Program Files\MyTraL\` and optionally creates a
+Desktop shortcut. It includes an uninstaller registered in Windows `Apps & features`.
+
+Data is stored in:
+
+```
+C:\Users\<user>\AppData\Local\mytral\
+```
+
+**Uninstall:** open Windows `Apps & features`, find MyTraL, and click `Uninstall`.
 
 
 
@@ -211,6 +240,37 @@ make distro-ubuntu-deb
 ```
 
 Find `.deb` package in the directory printed by the `make` target.
+
+
+
+## Build Windows Installer
+
+The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+
+**Prerequisites:**
+
+1. Build the desktop executable first (see [Build Binary on Windows](#build-binary-on-windows)).
+2. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) on Windows.
+3. Edit `build\windows\env.bat` to set the path to `ISCC.exe` if needed
+   (default: `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`).
+
+Build the installer:
+
+```bash
+make distro-windows-installer
+```
+
+Output:
+
+```
+distro\windows\mytral-<version>-setup.exe
+```
+
+To clean installer artifacts:
+
+```bash
+make distro-windows-clean
+```
 
 
 
