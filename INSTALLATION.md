@@ -245,28 +245,75 @@ Find `.deb` package in the directory printed by the `make` target.
 
 ## Build Windows Installer
 
-The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php) — a free,
+widely used Windows installer compiler.
 
-**Prerequisites:**
 
-1. Build the desktop executable first (see [Build Binary on Windows](#build-binary-on-windows)).
-2. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php) on Windows.
-3. Edit `build\windows\env.bat` to set the path to `ISCC.exe` if needed
-   (default: `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`).
 
-Build the installer:
+**Step 1: Build the desktop executable**
+
+Build the desktop binary first (see [Build Binary on Windows](#build-binary-on-windows)):
+
+```bash
+make setup distro-desktop-build-win
+```
+
+Verify the binary was created:
+
+```
+distro\desktop\mytral-<version>.exe
+```
+
+
+
+**Step 2: Install Inno Setup 6**
+
+Install via `winget` (no administrator rights required — installs to your user profile):
+
+```
+winget install --id JRSoftware.InnoSetup
+```
+
+Or download the installer from the official website and run it:
+
+* [https://jrsoftware.org/isdl.php](https://jrsoftware.org/isdl.php)
+
+`env.bat` automatically detects both install locations:
+
+| Location | How installed |
+|---|---|
+| `C:\Program Files (x86)\Inno Setup 6\` | System-wide (requires admin) |
+| `%LOCALAPPDATA%\Programs\Inno Setup 6\` | Per-user via winget or without admin |
+
+No manual configuration is needed for either location.
+
+
+
+**Step 3: Build the installer**
 
 ```bash
 make distro-windows-installer
 ```
 
-Output:
+The installer is created at:
 
 ```
 distro\windows\mytral-<version>-setup.exe
 ```
 
-To clean installer artifacts:
+
+
+**Custom Inno Setup path (optional)**
+
+If `ISCC.exe` is installed elsewhere, edit `build\windows\env.bat` and set:
+
+```
+set MYTRAL_ISCC=C:\your\custom\path\ISCC.exe
+```
+
+
+
+**Clean installer artifacts:**
 
 ```bash
 make distro-windows-clean
