@@ -31,7 +31,7 @@ Install MyTraL desktop application.
 
 ## Install on Ubuntu from PPA
 
-Install MyTraL using one-liner:
+Install MyTraL from [PPA](https://launchpad.net/~ultradvorka/+archive/ubuntu/sport) using one-liner:
 
 ```bash
 sudo add-apt-repository ppa:ultradvorka/sport && sudo apt-get update && sudo apt-get install mytral
