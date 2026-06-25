@@ -267,12 +267,19 @@ MyTraL: My Trailing Log - Desktop Edition
 
         app_logger.info("Launching MyTraL Desktop application...")
 
-        start_waitress_in_background()
-
         # run FlaskWebGUI - opens Brave/Chrome/Chromium/* in --app mode (frameless win)
+        # server="flask" maps to DefaultServerFlask which starts Waitress (if installed)
+        # or Flask dev server as a fallback; do NOT call start_waitress_in_background()
+        # here or Waitress will double-bind the port.
         ui = FlaskUI(
             app=routes.flask_app,
             server="flask",
+            server_kwargs={
+                "app": routes.flask_app,
+                "port": app_config.port,
+                "host": app_config.host,
+                "threads": 4,
+            },
             port=app_config.port,
             width=1200,
             height=800,

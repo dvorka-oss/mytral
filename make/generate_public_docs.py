@@ -151,9 +151,11 @@ def generate_sidebar_nav_html(sections: list[NavSection], active_page: str = "")
     nav_html = '\n'.join(nav_items)
 
     return f'''<nav class="docs-nav">
-        <div class="nav-brand">
-            <img src="../mytral-logo.png" alt="MyTraL" class="nav-logo">
-            <span class="nav-brand-text">MyTraL Docs</span>
+        <div class="nav-brand header-links">
+                <img src="../mytral-logo.png" alt="MyTraL" class="nav-logo">
+                <a href="../index.html" target="_blank">
+                    <span class="nav-brand-text">MyTraL Docs</span>
+                </a>
         </div>
         <div class="nav-items">
             {nav_html}
@@ -607,6 +609,16 @@ def get_html_template() -> str:
             color: var(--primary);
         }
 
+        .header-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .header-links a:hover {
+            color: var(--primary);
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .docs-toc {
@@ -645,7 +657,7 @@ def get_html_template() -> str:
         </div>
 
         <div class="docs-footer">
-            <div>&copy; 2026 MyTraL</div>
+            <div class="footer-links">&copy; 2026 <a href="../index.html" target="_blank">MyTraL</a></div>
             <div class="footer-links">
                 <a href="{{MINDFORGER_LINK}}" target="_blank">Doc made with MindForger</a>
                 <a href="{{GITHUB_EDIT_URL}}" target="_blank">Edit on GitHub</a>
