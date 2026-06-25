@@ -4,19 +4,10 @@
 
 This MyTraL **minor** release brings:
 
-### Added
-- .
-
 ### Fixed
 - Fixed and refactored Snap distribution builder to have `snapcraft.io` on repository
   paths required by snapcraft.io, use host's vs. container's resources correctly,
   and avoid use of (host) hard-coded paths.
-
-### Performance
-- .
-
-## Documentation
-- .
 
 
 
