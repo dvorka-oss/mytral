@@ -1,6 +1,15 @@
 # Changelog
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...HEAD)
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Fixed
+- .
+
+
+
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
 
 This MyTraL **minor** release brings:
 
