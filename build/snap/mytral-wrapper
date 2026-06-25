@@ -1,0 +1,25 @@
+#!/bin/bash
+# Classic confinement launcher: invoke core24's ld.so directly so the snap
+# always uses core24's glibc, regardless of the host glibc version.
+# This avoids both the host ld.so / core24 libc mismatch
+# (undefined symbol: __tunable_is_initialized) and PyType_GetName failures
+# caused by the host Python being used instead of the snap-bundled Python 3.12.
+case "$(uname -m)" in
+  aarch64)
+    _LD="/snap/core24/current/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1"
+    _LIBS="/snap/core24/current/lib/aarch64-linux-gnu:/snap/core24/current/usr/lib/aarch64-linux-gnu:$SNAP/usr/lib/aarch64-linux-gnu"
+    ;;
+  *)
+    _LD="/snap/core24/current/lib64/ld-linux-x86-64.so.2"
+    _LIBS="/snap/core24/current/lib/x86_64-linux-gnu:/snap/core24/current/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu"
+    ;;
+esac
+export PYTHONHOME="$SNAP/usr"
+# pass the library search path to ld.so via --library-path instead of exporting
+# LD_LIBRARY_PATH. this keeps core24's glibc in scope for our bundled Python AND
+# its runtime dlopen()s, while NOT leaking into child processes: a chrome/bash
+# launched from Python would otherwise inherit LD_LIBRARY_PATH, load core24's
+# glibc 2.39 under the host's older ld.so, and crash with:
+#   symbol lookup error: undefined symbol: __tunable_is_initialized, GLIBC_PRIVATE
+exec "$_LD" --library-path "$_LIBS" \
+  "$SNAP/usr/bin/python3.12" "$SNAP/bin/mytral-desktop" "$@"
