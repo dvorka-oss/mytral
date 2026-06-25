@@ -245,10 +245,7 @@ Find `.deb` package in the directory printed by the `make` target.
 
 ## Build Windows Installer
 
-The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php) — a free,
-widely used Windows installer compiler.
-
-
+The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
 **Step 1: Build the desktop executable**
 
@@ -264,11 +261,9 @@ Verify the binary was created:
 distro\desktop\mytral-<version>.exe
 ```
 
-
-
 **Step 2: Install Inno Setup 6**
 
-Install via `winget` (no administrator rights required — installs to your user profile):
+Install via `winget` (no administrator rights required - installs to your user profile):
 
 ```
 winget install --id JRSoftware.InnoSetup
@@ -287,8 +282,6 @@ Or download the installer from the official website and run it:
 
 No manual configuration is needed for either location.
 
-
-
 **Step 3: Build the installer**
 
 ```bash
@@ -301,8 +294,6 @@ The installer is created at:
 distro\windows\mytral-<version>-setup.exe
 ```
 
-
-
 **Custom Inno Setup path (optional)**
 
 If `ISCC.exe` is installed elsewhere, edit `build\windows\env.bat` and set:
@@ -310,8 +301,6 @@ If `ISCC.exe` is installed elsewhere, edit `build\windows\env.bat` and set:
 ```
 set MYTRAL_ISCC=C:\your\custom\path\ISCC.exe
 ```
-
-
 
 **Clean installer artifacts:**
 

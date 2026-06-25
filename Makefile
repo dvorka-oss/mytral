@@ -655,8 +655,7 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 #   3. Configure compiler path:  build\windows\env.bat
 #
 
-.PHONY: distro-windows-installer
-distro-windows-installer: ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
+distro-windows-installer: distro-windows-clean distro-desktop-clean distro-desktop-build  ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
 	.\build\windows\build-win-installer.bat
 
 .PHONY: distro-windows-clean
