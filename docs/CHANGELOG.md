@@ -1,20 +1,22 @@
 # Changelog
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...HEAD)
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
 
 This MyTraL **minor** release brings:
-
-### Added
-- .
 
 ### Fixed
 - .
 
-### Performance
-- .
 
-## Documentation
-- .
+
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
+
+This MyTraL **minor** release brings:
+
+### Fixed
+- Fixed and refactored Snap distribution builder to have `snapcraft.io` on repository
+  paths required by snapcraft.io, use host's vs. container's resources correctly,
+  and avoid use of (host) hard-coded paths.
 
 
 
