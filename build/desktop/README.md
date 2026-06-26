@@ -112,7 +112,6 @@ mytral
 Desktop-specific dependencies (in `build/desktop/requirements_desktop.txt`):
 
 ```
-waitress==3.0.2       # Production WSGI server
 flaskwebgui==1.0.8    # Desktop window wrapper
 pyinstaller==6.11.1   # Executable packaging
 ```
@@ -144,11 +143,8 @@ Data persists across application restarts.
 │  └─────────────┬─────────────────────┘  │
 │                │                        │
 │  ┌─────────────▼─────────────────────┐  │
-│  │ Waitress (Production Server)      │  │
-│  └─────────────┬─────────────────────┘  │
-│                │                        │
-│  ┌─────────────▼─────────────────────┐  │
 │  │ Flask Application (MyTraL)        │  │
+│  │ (threaded WSGI server)            │  │
 │  └─────────────┬─────────────────────┘  │
 │                │                        │
 │  ┌─────────────▼─────────────────────┐  │

@@ -144,8 +144,6 @@ test = [
     "fitparse>=1.2.0",
 ]
 desktop = [
-    # production WSGI server
-    "waitress~=3.0",
     # desktop UI wrapper (opens a native browser window)
     # NOTE: pin to 1.0.x — 1.1.x uses PEP 701 f-string syntax requiring Python 3.12+
     "flaskwebgui~=1.0.0",
