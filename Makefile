@@ -650,11 +650,11 @@ distro-desktop-install: distro/desktop/mytral ## install desktop application to 
 #   3. Configure compiler path:  build\windows\env.bat
 #
 
-distro-windows-installer: distro-windows-clean distro-desktop-clean distro-desktop-build  ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
+distro-win-installer: distro-win-clean distro-desktop-clean distro-desktop-build  ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
 	.\build\windows\build-win-installer.bat
 
-.PHONY: distro-windows-clean
-distro-windows-clean: ## clean Windows installer build artifacts
+.PHONY: distro-win-clean
+distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
@@ -817,6 +817,20 @@ distro-desktop-deps: .venv ## install desktop application dependencies
 .PHONY: distro-desktop-run
 distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 	uv run python -m mytral.run_desktop
+
+#
+# RELEASE
+#
+
+release-distros-linux: clean distro-snap-clean distro-tarball distro-snap-build ## build all LINUX distribution packages for release
+	@echo "ALL Linux distribution packages built for release"
+
+release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release
+	@echo "ALL Win distribution packages built for release"
+
+.PHONY: release-distros-macos
+release-distros-macos:  ## build all MACOS distribution packages for release
+	@echo "ALL MacOS distribution packages built for release"
 
 #
 # CLEANUP
