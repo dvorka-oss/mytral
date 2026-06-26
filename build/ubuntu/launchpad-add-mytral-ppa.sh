@@ -1,4 +1,5 @@
 #!/bin/bash
+# MyTraL: my trailing log
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
 #
