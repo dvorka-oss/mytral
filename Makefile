@@ -641,11 +641,6 @@ distro-desktop-install: distro/desktop/mytral ## install desktop application to 
 	distro/desktop/mytral.desktop \
       > ~/.local/share/applications/mytral.desktop
 
-.PHONY: distro-desktop-test
-distro-desktop-test: distro-desktop-build ## test the built desktop executable
-	@echo "Testing desktop executable..."
-	@ls -lh distro/desktop/mytral-* 2>/dev/null || ls -lh distro/desktop/mytral* 2>/dev/null || (echo "ERROR: No executable found in distro/desktop/"; exit 1)
-
 #
 # DISTRIBUTION: Windows installer (Inno Setup 6)
 #
@@ -678,12 +673,18 @@ distro-windows-clean: ## clean Windows installer build artifacts
 distro-snap-clean: ## clean Snap build artifacts
 	@./build/snap/clean.sh
 
+.PHONY: distro-snap-remove
+distro-snap-remove: ## remove locally installed Snap (requires sudo)
+	@echo "Removing Snap package..."
+	sudo snap remove mytral || true
+	@echo "DONE Snap removed"
+
 .PHONY: distro-snap-build
 distro-snap-build: ## build Snap package (LXD required; see build/snap/build-snap.sh)
 	@./build/snap/build-snap.sh
 
 .PHONY: distro-snap-install-local
-distro-snap-install-local: distro-snap-build ## build and install Snap locally (for testing, requires sudo)
+distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install Snap locally (for testing, requires sudo)
 	@echo "Installing Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
@@ -692,23 +693,16 @@ distro-snap-install-local: distro-snap-build ## build and install Snap locally (
 	fi; \
 	echo "Note: This command requires sudo privileges for snap install"; \
 	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
-	echo "✓ Snap installed. Run with: mytral"
-
-.PHONY: distro-snap-test
-distro-snap-test: distro-snap-install-local ## build, install, and test Snap
-	@echo "Testing Snap package..."
-	@mytral --version || echo "Note: mytral --version not yet implemented"
-	@echo "✓ Snap package test successful"
+	echo "DONE Snap installed. Run with: mytral"
 
 .PHONY: distro-snap-path
 distro-snap-path: ## show path to built snap package
 	@ls distro/snap/mytral_*.snap 2>/dev/null || echo "No snap package built yet"
 
-.PHONY: distro-snap-remove
-distro-snap-remove: ## remove locally installed Snap (requires sudo)
-	@echo "Removing Snap package..."
-	sudo snap remove mytral || true
-	@echo "✓ Snap removed"
+.PHONY: distro-snap-upload
+distro-snap-upload: ## upload Snap package to Snap Store
+	@echo "Uploading Snap package to Snap Store..."
+	snapcraft upload --release=stable mytral_$(MYTRAL_VERSION)_amd64.snap
 
 #
 # DOCUMENTATION
@@ -784,16 +778,6 @@ deploy-spaceship-data-backup: ## backup SpaceShip.com data, use TARGET_DATA_DIRE
 # DEPLOYMENT: Docker
 #
 
-docker-build-image: wheel ## build Docker image
-	rm -rvf build/docker/*.whl
-	cp distro/mytral-$(MYTRAL_VERSION)-py3-none-any.whl build/docker/
-	cd build/docker && docker build --tag mytral:$(MYTRAL_VERSION) .
-	docker images | grep mytral
-
-.PHONY: docker-run
-docker-run: ## run MyTraL Docker container on port 5500
-	docker run -p 5500:5000 --name running-mytral mytral:latest
-
 .PHONY: distro-docker-debian-build
 distro-docker-debian-build: ## build Docker Debian image with MyTraL inside
 	@./build/docker/debian/build.sh
@@ -839,7 +823,7 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 #
 
 .PHONY: clean
-clean: distro-desktop-clean distro-webapp-clean ## clean build relics
+clean: distro-desktop-clean distro-webapp-clean distro-snap-clean ## clean build relics
 	rm -vf GEMINI.md
 	rm -vf requirements*.txt
 	find . -type d -name "__pycache__" -exec rm -rf {} +
