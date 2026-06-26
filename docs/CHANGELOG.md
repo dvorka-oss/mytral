@@ -1,6 +1,18 @@
 # Changelog
 
-## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
+## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Dependencies
+- Updated `bleach` from 6.3 to 6.4.
+- Updated `cryptography` from 46.0 to 48.0.
+- Updated `msgpack` from 1.0 to 1.2.
+- Updated `pytest` (dev) from 8.4 to 9.0.
+
+
+
+## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...v1.55.0)
 
 This MyTraL **minor** release brings:
 
