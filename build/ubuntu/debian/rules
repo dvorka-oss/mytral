@@ -10,10 +10,15 @@ override_dh_auto_install:
 	mkdir -p debian/mytral/opt/mytral
 	find .pybuild -name "mytral-*.whl" | head -1 | xargs -I{} cp {} debian/mytral/opt/mytral/
 	# generate requirements.txt from pyproject.toml — single source of truth
+	# include core deps + runtime desktop deps (exclude build-only: pyinstaller, backports.*, importlib-*)
 	python3 -c "\
 import tomllib, pathlib; \
 data = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
-deps = data['project']['dependencies'] + ['flaskwebgui']; \
+build_only = {'pyinstaller', 'importlib-metadata', 'importlib-resources', \
+    'backports.functools-lru-cache', 'backports.zoneinfo', 'backports.tarfile'}; \
+desktop = [d for d in data['dependency-groups']['desktop'] \
+    if not any(d.startswith(p) for p in build_only)]; \
+deps = data['project']['dependencies'] + desktop; \
 print('\n'.join(deps))" > debian/mytral/opt/mytral/requirements.txt
 	# wrapper scripts use the isolated venv — nothing touches system Python
 	install -d debian/mytral/usr/bin
