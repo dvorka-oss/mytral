@@ -13,7 +13,7 @@ This MyTraL **minor** release brings:
 - .
 
 ### Fixed
-- .
+- Fixed "missing waitress" server in the MyTraL installation from PPA `apt` log.
 
 ### Performance
 - .
