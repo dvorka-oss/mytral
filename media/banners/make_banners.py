@@ -75,7 +75,9 @@ def save(canvas, name):
     else:
         print(f"  {name}.png  {sz//1024} KB")
 
-# ─── Banner: Train Smarter — athletic, purple-to-crimson, radar science ─────
+#
+# Banner: Train Smarter — athletic, purple-to-crimson, radar science
+#
 def banner3_train_smarter():
     canvas = hgrad3((14, 10, 44), (48, 14, 84), (128, 24, 44))
     draw = ImageDraw.Draw(canvas)
@@ -123,10 +125,12 @@ def banner3_train_smarter():
     draw.rectangle([(88, 518), (690, 522)], fill=(251, 115, 22, 180))
     t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (178, 138, 220, 168))
 
-    save(canvas, "banner-train-smarter")
+    save(canvas, "banner-train-smarter-purple")
 
 
-# ─── Banner variant: same content, website dark-navy color scheme ────────────
+#
+# Banner variant: same content, website dark-navy color scheme
+#
 def banner3_train_smarter_web():
     # bg matches website: --darker #020617 → --bg #0f172a → --card-bg #1e293b
     canvas = hgrad3((2, 6, 23), (12, 19, 40), (24, 32, 58))
@@ -160,7 +164,7 @@ def banner3_train_smarter_web():
     for deg in range(0, 360, 20):
         rad = math.radians(deg)
         draw.line(
-            [(cx, cy), (int(cx + 780 * math.cos(rad)), int(cy + 780 * math.sin(rad)))],
+            [(cx, cy), (int(cx + 740 * math.cos(rad)), int(cy + 780 * math.sin(rad)))],
             fill=(14, 165, 233, 10),
             width=1,
         )
@@ -192,11 +196,11 @@ def banner3_train_smarter_web():
     draw.rectangle([(88, 518), (690, 522)], fill=(14, 165, 233, 180))
     t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (100, 116, 139, 168))
 
-    save(canvas, "banner-train-smarter-web")
+    save(canvas, "banner-train-smarter")
 
 
 os.makedirs(OUT, exist_ok=True)
 print("Generating banners...")
-banner3_train_smarter()
+# banner3_train_smarter()
 banner3_train_smarter_web()
 print("Done.")

@@ -766,6 +766,12 @@ www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 
+.PHONY: www-banners
+www-banners: ## generate Snapcraft/store feature banners (outputs to media/banners/)
+	@echo "Generating banners..."
+	uv run python media/banners/make_banners.py
+	@echo "DONE Banners saved to media/banners/"
+
 #
 # DEPLOYMENT: mytral.fitness
 #
