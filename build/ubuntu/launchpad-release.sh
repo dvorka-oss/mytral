@@ -316,6 +316,10 @@ print(version.__version__.replace('dev', '').rstrip('.'))
 ")
 echo "Releasing MyTraL version: ${BASE_VERSION}"
 
+# set to the highest patch number already uploaded for this release;
+# the loop increments it before each build, so 0 > first build gets .1
+PATCH_VERSION=0
+
 export MYTRAL_MSG="Release ${BASE_VERSION}"
 
 # start GPG agent if not already running
@@ -336,11 +340,12 @@ fi
 #   trusty xenial bionic focal jammy noble plucky questing
 # future:
 #   resolute
-#for UBUNTU_VERSION in trusty xenial bionic focal jammy noble plucky questing
-for UBUNTU_VERSION in noble
+for UBUNTU_VERSION in trusty xenial bionic focal jammy noble plucky questing
 do
-    echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION}"
-    releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${BASE_VERSION}" "${MYTRAL_MSG}"
+    PATCH_VERSION=$((PATCH_VERSION + 1))
+    VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
+    echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION} (${VERSIONED_BASE_VERSION})"
+    releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
 done
 
 # eof
