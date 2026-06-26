@@ -221,7 +221,7 @@
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>.</li>
+<li>Fixed "missing waitress" server in the MyTraL installation from PPA <code>apt</code> log.</li>
 </ul>
 <h3 id="performance">Performance</h3>
 <ul>
@@ -243,6 +243,12 @@
 <p>This MyTraL <strong>minor</strong> release brings:</p>
 <h3 id="added_1">Added</h3>
 <ul>
+<li>Added Windows installer built with Inno Setup 6 (<code>build/windows/installer/mytral-setup.iss</code>).
+  Installs to <code>C:\Program Files\MyTraL\</code>, registers an uninstaller, and optionally creates
+  a Desktop shortcut.</li>
+<li>Added <code>distro-windows-installer</code> Makefile target to build the Windows installer after the
+  desktop executable is built with <code>distro-desktop-build-win</code>.</li>
+<li>Added <code>distro-windows-clean</code> Makefile target to remove Windows installer build artifacts.</li>
 <li>Added Ubuntu PPA distribution for Ubuntu via Launchpad (<code>ppa:ultradvorka/sport</code>).</li>
 <li>Added <code>distro-ubuntu-deb</code> Makefile target to build <code>.deb</code> package locally.</li>
 <li>Added Snap package distribution for universal Linux package management. Opens a native

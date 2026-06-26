@@ -211,6 +211,7 @@
 <ul>
 <li><a href="#install-on-linux-using-snap">Linux (Snap)</a> (Ubuntu, Debian, Fedora, Arch, OpenSUSE)</li>
 <li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
+<li><a href="#install-on-windows-using-installer">Windows (Installer)</a></li>
 <li><a href="#install-on-windows-using-zip">Windows (ZIP)</a></li>
 </ul>
 <p>Build:</p>
@@ -218,6 +219,7 @@
 <li><a href="#build-binary-on-ubuntu">Ubuntu (binary)</a></li>
 <li><a href="#build--deb-on-ubuntu">Ubuntu (.deb)</a></li>
 <li><a href="#build-binary-on-windows">Windows (binary)</a></li>
+<li><a href="#build-windows-installer">Windows (installer)</a></li>
 </ul>
 <p>Run:</p>
 <ul>
@@ -242,6 +244,24 @@ sudo apt-get update
 sudo apt-get install mytral
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-installer">Install on Windows using Installer</h2>
+<p>Download the latest installer from:</p>
+<ul>
+<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
+</ul>
+<p>Run the installer:</p>
+<div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;-setup.exe
+
+# example: mytral-1.54.0-setup.exe
+</code></pre></div>
+
+<p>The installer places MyTraL in <code>C:\Program Files\MyTraL\</code> and optionally creates a
+Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &amp; features</code>.</p>
+<p>Data is stored in:</p>
+<div class="codehilite"><pre><span></span><code>C:\Users\&lt;user&gt;\AppData\Local\mytral\
+</code></pre></div>
+
+<p><strong>Uninstall:</strong> open Windows <code>Apps &amp; features</code>, find MyTraL, and click <code>Uninstall</code>.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-zip">Install on Windows using ZIP</h2>
 <p>Download the latest ZIP archive with the executable:</p>
 <ul>
@@ -354,6 +374,63 @@ other installation - your data is never locked inside the snap:</p>
 </code></pre></div>
 
 <p>Find <code>.deb</code> package in the directory printed by the <code>make</code> target.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-windows-installer">Build Windows Installer</h2>
+<p>The Windows installer is built with <a href="https://jrsoftware.org/isinfo.php">Inno Setup 6</a>.</p>
+<p><strong>Step 1: Build the desktop executable</strong></p>
+<p>Build the desktop binary first (see <a href="#build-binary-on-windows">Build Binary on Windows</a>):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>setup<span class="w"> </span>distro-desktop-build-win
+</code></pre></div>
+
+<p>Verify the binary was created:</p>
+<div class="codehilite"><pre><span></span><code>distro\desktop\mytral-&lt;version&gt;.exe
+</code></pre></div>
+
+<p><strong>Step 2: Install Inno Setup 6</strong></p>
+<p>Install via <code>winget</code> (no administrator rights required - installs to your user profile):</p>
+<div class="codehilite"><pre><span></span><code>winget install --id JRSoftware.InnoSetup
+</code></pre></div>
+
+<p>Or download the installer from the official website and run it:</p>
+<ul>
+<li><a href="https://jrsoftware.org/isdl.php">https://jrsoftware.org/isdl.php</a></li>
+</ul>
+<p><code>env.bat</code> automatically detects both install locations:</p>
+<table class="table table-bordered field-table">
+<thead>
+<tr>
+<th>Location</th>
+<th>How installed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>C:\Program Files (x86)\Inno Setup 6\</code></td>
+<td>System-wide (requires admin)</td>
+</tr>
+<tr>
+<td><code>%LOCALAPPDATA%\Programs\Inno Setup 6\</code></td>
+<td>Per-user via winget or without admin</td>
+</tr>
+</tbody>
+</table>
+<p>No manual configuration is needed for either location.</p>
+<p><strong>Step 3: Build the installer</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-windows-installer
+</code></pre></div>
+
+<p>The installer is created at:</p>
+<div class="codehilite"><pre><span></span><code>distro\windows\mytral-&lt;version&gt;-setup.exe
+</code></pre></div>
+
+<p><strong>Custom Inno Setup path (optional)</strong></p>
+<p>If <code>ISCC.exe</code> is installed elsewhere, edit <code>build\windows\env.bat</code> and set:</p>
+<div class="codehilite"><pre><span></span><code>set MYTRAL_ISCC=C:\your\custom\path\ISCC.exe
+</code></pre></div>
+
+<p><strong>Clean installer artifacts:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-windows-clean
+</code></pre></div>
+
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-binary-on-windows">Build Binary on Windows</h2>
 <p>Install <code>uv</code> to <code>C:\Users\[user]\.local\bin</code>:</p>
 <div class="codehilite"><pre><span></span><code>powershell<span class="w"> </span>-ExecutionPolicy<span class="w"> </span>ByPass<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;irm https://astral.sh/uv/install.ps1 | iex&quot;</span>
@@ -509,10 +586,12 @@ mytral-&lt;version&gt;.exe
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
+<a href="#install-on-windows-using-installer" class="nav-link">Install on Windows using Installer</a>
 <a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
 <a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
 <a href="#build-binary-on-ubuntu" class="nav-link">Build Binary on Ubuntu</a>
 <a href="#build-deb-on-ubuntu" class="nav-link">Build .deb on Ubuntu</a>
+<a href="#build-windows-installer" class="nav-link">Build Windows Installer</a>
 <a href="#build-binary-on-windows" class="nav-link">Build Binary on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>
