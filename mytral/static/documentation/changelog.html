@@ -209,8 +209,12 @@
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><h2 id="1560"><a href="https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD">1.56.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="dependencies">Dependencies</h3>
+<h3 id="changed">Changed</h3>
 <ul>
+<li>Removed the Waitress WSGI server from the desktop edition. The desktop app serves
+  a single local, so it now uses Flask's built-in threaded server - this removes
+  a dependency and simplifies installation and packaging across Snap, PPA,
+  and the Windows installer.</li>
 <li>Updated <code>bleach</code> from 6.3 to 6.4.</li>
 <li>Updated <code>cryptography</code> from 46.0 to 48.0.</li>
 <li>Updated <code>msgpack</code> from 1.0 to 1.2.</li>
@@ -218,7 +222,7 @@
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1550"><a href="https://github.com/dvorka-oss/mytral/compare/v1.54.0...v1.55.0">1.55.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
-<h3 id="changed">Changed</h3>
+<h3 id="changed_1">Changed</h3>
 <ul>
 <li>Switched from Python 3.11 to Python 3.12. The main reason is that Snap 22 runtime
   had Python 3.10 and Snap 24 runtime has Python 3.12. New Python constructs - like
@@ -365,7 +369,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
   suggested activity and weight balance.</li>
 <li>Added resting HR estimate to the athlete metrics page.</li>
 </ul>
-<h3 id="changed_1">Changed</h3>
+<h3 id="changed_2">Changed</h3>
 <ul>
 <li>Strava API import is not hidden behing feature flag (just inverse condition on FE).</li>
 <li>Refactored Predictions insight page to two pages - Predictions and Analytics.</li>
@@ -421,7 +425,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Enriched bootstraps for activity types, exercises, and symptoms (muscle groups,
   descriptions/default weights, symptom body-part targeting) with new pytest coverage.</li>
 </ul>
-<h3 id="changed_2">Changed</h3>
+<h3 id="changed_3">Changed</h3>
 <ul>
 <li>Core data model changes:</li>
 <li><code>ActivityEntity.sport</code> renamed to <code>ActivityEntity.activity_type_key</code> - breaks
@@ -674,7 +678,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Settings:</li>
 <li>Added 4 metrics for goals, exercises, symptoms, laps and outfits.</li>
 </ul>
-<h3 id="changed_3">Changed</h3>
+<h3 id="changed_4">Changed</h3>
 <ul>
 <li>Changed activities and settings (gear, exercises, symptoms, ...) JSON persistence from dicts to lists.</li>
 <li>Enhanced Gear class to support components and component history.</li>
@@ -697,7 +701,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Activity feed view.</li>
 <li>Body diagram with interactive injuries and sicknesses filtering.</li>
 </ul>
-<h3 id="changed_4">Changed</h3>
+<h3 id="changed_5">Changed</h3>
 <ul>
 <li>Removed <code>activity_key</code> field in the <code>activity/exercises[]</code> items.</li>
 <li>Renamed <code>activity/exercises[]/name</code> to <code>activity/exercises[]/name</code>.</li>
@@ -822,9 +826,9 @@ Find conventions details and template at the bottom of this document.</p>
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#1560" class="nav-link">1.56.0</a>
-<a href="#dependencies" class="nav-link ms-3">Dependencies</a>
-<a href="#1550" class="nav-link">1.55.0</a>
 <a href="#changed" class="nav-link ms-3">Changed</a>
+<a href="#1550" class="nav-link">1.55.0</a>
+<a href="#changed_1" class="nav-link ms-3">Changed</a>
 <a href="#added" class="nav-link ms-3">Added</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
 <a href="#documentation" class="nav-link ms-3">Documentation</a>
@@ -845,12 +849,12 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#documentation_3" class="nav-link">Documentation</a>
 <a href="#1500" class="nav-link">1.50.0</a>
 <a href="#added_4" class="nav-link ms-3">Added</a>
-<a href="#changed_1" class="nav-link ms-3">Changed</a>
+<a href="#changed_2" class="nav-link ms-3">Changed</a>
 <a href="#removed" class="nav-link ms-3">Removed</a>
 <a href="#fixed_5" class="nav-link ms-3">Fixed</a>
 <a href="#190" class="nav-link">1.9.0</a>
 <a href="#added_5" class="nav-link ms-3">Added</a>
-<a href="#changed_2" class="nav-link ms-3">Changed</a>
+<a href="#changed_3" class="nav-link ms-3">Changed</a>
 <a href="#fixed_6" class="nav-link ms-3">Fixed</a>
 <a href="#performance_1" class="nav-link ms-3">Performance</a>
 <a href="#documentation_4" class="nav-link ms-3">Documentation</a>
@@ -883,11 +887,11 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#fixed_11" class="nav-link ms-3">Fixed</a>
 <a href="#120" class="nav-link">1.2.0</a>
 <a href="#added_13" class="nav-link ms-3">Added</a>
-<a href="#changed_3" class="nav-link ms-3">Changed</a>
+<a href="#changed_4" class="nav-link ms-3">Changed</a>
 <a href="#infrastructure_2" class="nav-link ms-3">Infrastructure</a>
 <a href="#110" class="nav-link">1.1.0</a>
 <a href="#added_14" class="nav-link ms-3">Added</a>
-<a href="#changed_4" class="nav-link ms-3">Changed</a>
+<a href="#changed_5" class="nav-link ms-3">Changed</a>
 <a href="#removed_2" class="nav-link ms-3">Removed</a>
 <a href="#infrastructure_3" class="nav-link ms-3">Infrastructure</a>
 <a href="#documentation_6" class="nav-link ms-3">Documentation</a>

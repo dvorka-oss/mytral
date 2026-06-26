@@ -20,8 +20,7 @@ MyTraL desktop application entry point.
 
 This module provides the desktop/air-gapped version of MyTraL that bundles:
 
-- Flask application
-- Waitress production WSGI server
+- Flask application (threaded WSGI server)
 - FlaskWebGUI for native desktop window
 - PyInstaller for single executable packaging
 
@@ -162,27 +161,29 @@ def _wait_for_server(host: str, port: int, timeout: float = 30.0) -> None:
     )
 
 
-def start_waitress_in_background() -> threading.Thread:
-    """Start Waitress in a daemon thread and return it once the server is ready."""
-    thread = threading.Thread(target=start_waitress_server, daemon=True)
+def start_flask_in_background() -> threading.Thread:
+    """Start the Flask server in a daemon thread, return it once it is ready."""
+    thread = threading.Thread(target=start_flask_server, daemon=True)
     thread.start()
     _wait_for_server(app_config.host, app_config.port)
     return thread
 
 
-def start_waitress_server():
-    """Start production-grade Waitress WSGI server."""
-    try:
-        from waitress import serve
+def start_flask_server():
+    """Run the Flask app via its threaded WSGI server - blocks until stopped.
 
-        app_logger.info(
-            f"Starting Waitress production server on {app_config.host}"
-            f":{app_config.port}"
-        )
-        serve(routes.flask_app, host=app_config.host, port=app_config.port, threads=4)
-    except ImportError:
-        app_logger.error("Waitress not installed. Install with: pip install waitress")
-        sys.exit(1)
+    The desktop edition serves a single local user on 127.0.0.1, so the
+    built-in threaded Flask/Werkzeug server is sufficient. ``use_reloader`` is
+    forced off: the reloader needs the main thread for signal handling and
+    would break both background-thread startup and the PyInstaller bundle.
+    """
+    app_logger.info(f"Starting Flask server on {app_config.host}:{app_config.port}")
+    routes.flask_app.run(
+        host=app_config.host,
+        port=app_config.port,
+        threaded=True,
+        use_reloader=False,
+    )
 
 
 def main():
@@ -259,8 +260,12 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.info(f"  {b.__package__}{b.__name__}")
 
     # control flask logging
+    # outside debug, raise werkzeug to ERROR so the threaded server's
+    # "development server" banner is not shown to desktop users (the desktop
+    # edition serves a single local user); request logging is handled by the
+    # structlog after_request hook in routes.py.
     log = logging.getLogger("werkzeug")
-    log.setLevel(logging.DEBUG if app_config.debug else logging.WARNING)
+    log.setLevel(logging.DEBUG if app_config.debug else logging.ERROR)
 
     try:
         from flaskwebgui import FlaskUI
@@ -268,18 +273,11 @@ MyTraL: My Trailing Log - Desktop Edition
         app_logger.info("Launching MyTraL Desktop application...")
 
         # run FlaskWebGUI - opens Brave/Chrome/Chromium/* in --app mode (frameless win)
-        # server="flask" maps to DefaultServerFlask which starts Waitress (if installed)
-        # or Flask dev server as a fallback; do NOT call start_waitress_in_background()
-        # here or Waitress will double-bind the port.
+        # pass start_flask_server as the server callable so FlaskWebGUI runs our
+        # threaded Flask server directly (no extra WSGI dependency).
         ui = FlaskUI(
             app=routes.flask_app,
-            server="flask",
-            server_kwargs={
-                "app": routes.flask_app,
-                "port": app_config.port,
-                "host": app_config.host,
-                "threads": 4,
-            },
+            server=start_flask_server,
             port=app_config.port,
             width=1200,
             height=800,
@@ -289,12 +287,12 @@ MyTraL: My Trailing Log - Desktop Edition
 
     except ImportError as e:
         app_logger.warning(
-            f"FlaskWebGUI import failed ({e}) - falling back to Waitress server mode"
+            f"FlaskWebGUI import failed ({e}) - falling back to server + browser mode"
         )
         app_logger.warning(
             "Install FlaskWebGUI for desktop window: pip install flaskwebgui"
         )
-        server_thread = start_waitress_in_background()
+        server_thread = start_flask_in_background()
         url = f"http://{app_config.host}:{app_config.port}"
         open_app_window(url)
         server_thread.join()
@@ -311,13 +309,13 @@ MyTraL: My Trailing Log - Desktop Edition
             )
         raise
     except Exception as e:
-        # If FlaskWebGUI fails for any reason, fall back to Waitress only
+        # if FlaskWebGUI fails for any reason, fall back to server-only mode
         app_logger.error(f"FlaskWebGUI failed: {e}")
-        app_logger.info("Falling back to Waitress server mode...")
+        app_logger.info("Falling back to server-only mode...")
         app_logger.info(
             f"Open browser manually to: http://{app_config.host}:{app_config.port}"
         )
-        start_waitress_server()
+        start_flask_server()
 
 
 if __name__ == "__main__":
