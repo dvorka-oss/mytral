@@ -1,6 +1,29 @@
 # Changelog
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...HEAD)
+## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Changed
+- Switched from Python 3.11 to Python 3.12. The main reason is that Snap 22 runtime
+  had Python 3.10 and Snap 24 runtime has Python 3.12. New Python constructs - like
+  `type`, `override`, and `T` - will be incorporated as I go.
+
+### Added
+- .
+
+### Fixed
+- .
+
+### Performance
+- .
+
+## Documentation
+- .
+
+
+
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
 
 This MyTraL **minor** release brings:
 

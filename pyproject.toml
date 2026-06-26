@@ -25,7 +25,7 @@ build-backend = "hatchling.build"  # build system module to run
 name = "MyTraL"
 dynamic = ["version"]
 description="My training log."
-requires-python = "==3.11.*"
+requires-python = "==3.12.*"
 license = "AGPL-3.0"
 authors = [
   { name = "Martin Dvorak", email = "martin.dvorak@mindforger.com" },
