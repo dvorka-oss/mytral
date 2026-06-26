@@ -7,19 +7,29 @@
 name: mytral
 version: '1.56.0'
 title: MyTraL
-summary: Sovereign athlete training log - track activities, gear, health, and progress
+summary: Sovereign athlete training log - train smarter, not harder
 description: |
-  MyTraL is a personal sport training log that helps you track your athletic
-  activities, gear usage, and fitness progress:
+  MyTraL is a privacy-first personal sport training log designed to track your
+  athletic activities, manage your gear, and analyze your fitness progress
+  without relying on mandatory cloud subscriptions.
 
-  - Activity tracking (any sport).
-  - Gear management with usage statistics.
-  - Training load analysis.
-  - Holistic tracking of goals, PRs, health, weight, trails, and outfits.
-  - Photo attachments and FIT/GPX/TCX/Strava/Polar/* import.
-  - Local data storage.
+  Key Features:
 
-  Perfect for athletes who value privacy and want full control over their data.
+  - Universal Activity Tracking: Record and analyze any sport, from running and
+    cycling to weightlifting and hiking.
+  - Smart Gear Management: Monitor usage statistics for shoes, bikes, and
+    components to know exactly when to service or replace them.
+  - Deep Training Insights: Analyze your training load, monitor fitness trends,
+    track goals, and record personal records (PRs).
+  - Holistic Health Tracking: Keep tabs on your weight, general health metrics,
+    custom trails, and training outfits.
+  - Seamless Importing: Bring your data with you. Supports FIT, GPX, TCX,
+    Strava(R), Polar(R), and more.
+  - 100% Local Storage: Your data stays on your machine. No mandatory accounts,
+    no cloud tracking.
+
+  Whether you're training for a marathon or keeping a daily active journal,
+  MyTraL puts your data back in your hands.
 
 grade: stable
 confinement: classic
