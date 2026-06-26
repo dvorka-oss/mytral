@@ -5,7 +5,9 @@ This document provides instructions to coding agents.
 ## Project identity
 
 - **MyTraL** — a personal sport training log web application (monorepo).
-- **License**: AGPL-3.0.  **Python**: 3.11 only.  **Version**: `mytral/version.py`.
+- **License**: AGPL-3.0.
+- **Python**: 3.12 only.
+- **Version**: `mytral/version.py`.
 - **Run**: `uv run make run` (server), `uv run mytral-web` (CLI), `uv run mytral-desktop` (desktop).
 - **Lint**: `uv run make py-lint` (ruff check + ruff format + isort).  **MANDATORY after every change.**
 - **Test**: `uv run make test` (pytest).  **MANDATORY after every change.**
@@ -196,7 +198,7 @@ from mytral import ff                # FeatureFlags — ff.can("FEATURE_NAME")
 
 | Layer          | Technology                                          |
 |----------------|-----------------------------------------------------|
-| Backend        | Python 3.11, Flask 3.1, WTForms 3.2                 |
+| Backend        | Python 3.12, Flask 3.1, WTForms 3.2                 |
 | Charts         | Bokeh 3.8.2                                         |
 | Data frames    | Polars 1.30 (NOT Pandas for production code)        |
 | Logging        | structlog 25.5 (keyword args only, no positional)   |
@@ -215,7 +217,7 @@ from mytral import ff                # FeatureFlags — ff.can("FEATURE_NAME")
 
 ## Python code conventions
 
-- **Python 3.11 only** — use `X | Y` unions, lowercase types (`list[str]`), never `Optional`/`Union`.
+- **Python 3.12 only** — use `X | Y` unions, lowercase types (`list[str]`), never `Optional`/`Union`.
 - **Imports**: ALWAYS import modules (not symbols), ALWAYS at top of file, NEVER local, NEVER relative.
   ```python
   # CORRECT

@@ -10,8 +10,7 @@ case "$1" in
         echo "mytral: creating isolated virtual environment at ${VENV}..."
         python3 -m venv "${VENV}"
         echo "mytral: installing dependencies (this may take a minute)..."
-        # --ignore-requires-python: mytral pins python==3.11.* but runs fine on 3.12
-        "${VENV}/bin/pip" install --quiet --ignore-requires-python \
+        "${VENV}/bin/pip" install --quiet \
             -r "${REQUIREMENTS}" "${WHEEL}" || \
             echo "WARNING: pip install failed. Run manually: ${VENV}/bin/pip install -r ${REQUIREMENTS} ${WHEEL}"
         ;;

@@ -26,7 +26,7 @@ MYTRAL_VERSION=$(grep -oP '(?<=__version__ = ")[^"]+' "$PROJECT_ROOT/mytral/vers
 echo "MyTraL version: $MYTRAL_VERSION"
 
 # inject version into snapcraft.yaml before copying to build dir
-SNAPCRAFT_YAML="$SCRIPT_DIR/snapcraft.yaml"
+SNAPCRAFT_YAML="$PROJECT_ROOT/snap/snapcraft.yaml"
 sed -i "s/^version: .*/version: '$MYTRAL_VERSION'/" "$SNAPCRAFT_YAML"
 
 # clean previous temp build
@@ -47,21 +47,8 @@ rsync -a --exclude='.git' \
          --exclude='.ruff_cache' \
          --exclude='.idea' \
          --exclude='build/snap/project' \
-         --exclude='snap' \
          --exclude='*.snap' \
          "$PROJECT_ROOT/" "$PROJECT_BUILD_DIR/"
-
-# relax requires-python for the snap build environment (core24 ships Python 3.12,
-# not 3.11; >=3.11,<3.13 satisfies both without changing the authoritative pyproject.toml)
-sed -i 's/requires-python = "==3\.11\.\*"/requires-python = ">=3.11,<3.13"/' \
-    "$PROJECT_BUILD_DIR/pyproject.toml"
-
-# place snap config (snapcraft.yaml + gui assets) where snapcraft expects it
-echo "Setting up snap/ config directory..."
-mkdir -p "$PROJECT_BUILD_DIR/snap/gui"
-cp "$SCRIPT_DIR/snapcraft.yaml" "$PROJECT_BUILD_DIR/snap/"
-cp "$SCRIPT_DIR/gui/mytral.desktop" "$PROJECT_BUILD_DIR/snap/gui/"
-cp "$SCRIPT_DIR/gui/mytral.png"    "$PROJECT_BUILD_DIR/snap/gui/"
 
 # build
 echo "Building Snap package..."
