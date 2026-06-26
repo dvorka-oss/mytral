@@ -4,7 +4,11 @@
 
 This MyTraL **minor** release brings:
 
-### Dependencies
+### Changed
+- Removed the Waitress WSGI server from the desktop edition. The desktop app serves
+  a single local, so it now uses Flask's built-in threaded server - this removes
+  a dependency and simplifies installation and packaging across Snap, PPA,
+  and the Windows installer.
 - Updated `bleach` from 6.3 to 6.4.
 - Updated `cryptography` from 46.0 to 48.0.
 - Updated `msgpack` from 1.0 to 1.2.
