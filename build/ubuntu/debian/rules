@@ -12,7 +12,8 @@ override_dh_auto_install:
 	# generate requirements.txt from pyproject.toml — single source of truth
 	# include core deps + runtime desktop deps (exclude build-only: pyinstaller, backports.*, importlib-*)
 	python3 -c "\
-import tomllib, pathlib; \
+import sys, pathlib; \
+tomllib = __import__('tomllib' if sys.version_info >= (3, 11) else 'tomli'); \
 data = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
 build_only = {'pyinstaller', 'importlib-metadata', 'importlib-resources', \
     'backports.functools-lru-cache', 'backports.zoneinfo', 'backports.tarfile'}; \

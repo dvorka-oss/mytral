@@ -11,9 +11,13 @@ This MyTraL **minor** release brings:
 
 ### Added
 - Added improved Windows installer make targets and build artifacts.
+- Added Ubuntu `resolute` to Launchpad PPA.
 
 ### Fixed
 - Fixed "missing waitress" server in the MyTraL installation from PPA `apt` log.
+
+### Documentation
+- Banner improved by the switch to MyTraL WWW palette.
 
 
 

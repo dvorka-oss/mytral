@@ -218,10 +218,15 @@
 <h3 id="added">Added</h3>
 <ul>
 <li>Added improved Windows installer make targets and build artifacts.</li>
+<li>Added Ubuntu <code>resolute</code> to Launchpad PPA.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed "missing waitress" server in the MyTraL installation from PPA <code>apt</code> log.</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>Banner improved by the switch to MyTraL WWW palette.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1540"><a href="https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0">1.54.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
@@ -265,7 +270,7 @@
   moved it to the backend.</li>
 <li>Fixed duplicated activities list loading by the <code>routes.py::calendar_view()</code></li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation">Documentation</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation_1">Documentation</h2>
 <ul>
 <li>Added MyTraL configuration guide.</li>
 <li>Added Ubuntu PPA installation guide.</li>
@@ -282,7 +287,7 @@
 <li>Fixed Desktop binary environment variables based setup so that athletes can create
   accounts OOTB.</li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation_1">Documentation</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation_2">Documentation</h2>
 <ul>
 <li>Added Ubuntu distribution build guide.</li>
 <li>Added Python @ Ubuntu distribution guide.</li>
@@ -312,7 +317,7 @@
 <li>Removed color from Strava links on the day activities view and search result view.</li>
 <li>Fixed exercise and symptom delete pages to show display names instead of UUIDs.</li>
 </ul>
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation_2">Documentation</h2>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="documentation_3">Documentation</h2>
 <ul>
 <li>Adding the installation documentation.</li>
 </ul>
@@ -443,7 +448,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
   array into a Python list; metadata is cleared in-place, reducing memory allocation
   significantly for large images.</li>
 </ul>
-<h3 id="documentation_3">Documentation</h3>
+<h3 id="documentation_4">Documentation</h3>
 <ul>
 <li>HTML documentation is newly generated from Markdown files in this repository.</li>
 <li>Public HTML documentation for mytral.fitness is newly generated from Markdown files in
@@ -599,7 +604,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Fixed deading and writing of unicode characters, like emojis, by forcing UTF-8 encoding
   in JSON IO persistence functions.</li>
 </ul>
-<h3 id="documentation_4">Documentation</h3>
+<h3 id="documentation_5">Documentation</h3>
 <ul>
 <li>HTML documentation scripts revamp.</li>
 <li>Added "Why MyTraL?" HTML documentation page.</li>
@@ -698,7 +703,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>Version management with the single source of truth (SSOT) approach.</li>
 </ul>
-<h3 id="documentation_5">Documentation</h3>
+<h3 id="documentation_6">Documentation</h3>
 <ul>
 <li>Scripts for building of the HTML documentation.</li>
 <li>Initial drafts of digitization, terminology and normalization documentation.</li>
@@ -731,7 +736,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Optimized JSON file operations for faster data loading.</li>
 <li>Lazy loading of chart data for improved page load times.</li>
 </ul>
-<h3 id="documentation_6">Documentation</h3>
+<h3 id="documentation_7">Documentation</h3>
 <ul>
 <li>Complete README with installation and setup instructions.</li>
 <li>API documentation for backend modules.</li>
@@ -811,21 +816,22 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#added" class="nav-link ms-3">Added</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#documentation" class="nav-link ms-3">Documentation</a>
 <a href="#1540" class="nav-link">1.54.0</a>
 <a href="#fixed_1" class="nav-link ms-3">Fixed</a>
 <a href="#1530" class="nav-link">1.53.0</a>
 <a href="#added_1" class="nav-link ms-3">Added</a>
 <a href="#fixed_2" class="nav-link ms-3">Fixed</a>
 <a href="#performance" class="nav-link ms-3">Performance</a>
-<a href="#documentation" class="nav-link">Documentation</a>
+<a href="#documentation_1" class="nav-link">Documentation</a>
 <a href="#1520" class="nav-link">1.52.0</a>
 <a href="#added_2" class="nav-link ms-3">Added</a>
 <a href="#fixed_3" class="nav-link ms-3">Fixed</a>
-<a href="#documentation_1" class="nav-link">Documentation</a>
+<a href="#documentation_2" class="nav-link">Documentation</a>
 <a href="#1510" class="nav-link">1.51.0</a>
 <a href="#added_3" class="nav-link ms-3">Added</a>
 <a href="#fixed_4" class="nav-link ms-3">Fixed</a>
-<a href="#documentation_2" class="nav-link">Documentation</a>
+<a href="#documentation_3" class="nav-link">Documentation</a>
 <a href="#1500" class="nav-link">1.50.0</a>
 <a href="#added_4" class="nav-link ms-3">Added</a>
 <a href="#changed_1" class="nav-link ms-3">Changed</a>
@@ -836,7 +842,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#changed_2" class="nav-link ms-3">Changed</a>
 <a href="#fixed_6" class="nav-link ms-3">Fixed</a>
 <a href="#performance_1" class="nav-link ms-3">Performance</a>
-<a href="#documentation_3" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_4" class="nav-link ms-3">Documentation</a>
 <a href="#tests" class="nav-link ms-3">Tests</a>
 <a href="#180" class="nav-link">1.8.0</a>
 <a href="#added_6" class="nav-link ms-3">Added</a>
@@ -855,7 +861,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#added_9" class="nav-link ms-3">Added</a>
 <a href="#removed_1" class="nav-link ms-3">Removed</a>
 <a href="#fixed_10" class="nav-link ms-3">Fixed</a>
-<a href="#documentation_4" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_5" class="nav-link ms-3">Documentation</a>
 <a href="#infrastructure_1" class="nav-link ms-3">Infrastructure</a>
 <a href="#140" class="nav-link">1.4.0</a>
 <a href="#added_10" class="nav-link ms-3">Added</a>
@@ -873,12 +879,12 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#changed_4" class="nav-link ms-3">Changed</a>
 <a href="#removed_2" class="nav-link ms-3">Removed</a>
 <a href="#infrastructure_3" class="nav-link ms-3">Infrastructure</a>
-<a href="#documentation_5" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_6" class="nav-link ms-3">Documentation</a>
 <a href="#100" class="nav-link">1.0.0</a>
 <a href="#added_15" class="nav-link ms-3">Added</a>
 <a href="#security_1" class="nav-link ms-3">Security</a>
 <a href="#performance_4" class="nav-link ms-3">Performance</a>
-<a href="#documentation_6" class="nav-link ms-3">Documentation</a>
+<a href="#documentation_7" class="nav-link ms-3">Documentation</a>
 <a href="#infrastructure_4" class="nav-link ms-3">Infrastructure</a>
 <a href="#001" class="nav-link">0.0.1</a>
 <a href="#added_16" class="nav-link ms-3">Added</a>
