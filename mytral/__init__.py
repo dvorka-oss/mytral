@@ -25,12 +25,6 @@ from mytral.backends import dataset
 from mytral.tasks import manager as task_manager
 
 #
-# MyTraL CODE CONVENTIONS
-#
-# TYPE HINTS
-# - Python 3.11 features (lower case, |, Self, NotRequired, generics)
-
-#
 # application singletons
 #
 

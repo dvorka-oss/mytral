@@ -1,6 +1,27 @@
 # Changelog
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...HEAD)
+## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Changed
+- Switched from Python 3.11 to Python 3.12. The main reason is that Snap 22 runtime
+  had Python 3.10 and Snap 24 runtime has Python 3.12. New Python constructs - like
+  `type`, `override`, and `T` - will be incorporated as I go.
+
+### Added
+- Added improved Windows installer make targets and build artifacts.
+- Added Ubuntu `resolute` to Launchpad PPA.
+
+### Fixed
+- Fixed "missing waitress" server in the MyTraL installation from PPA `apt` log.
+
+### Documentation
+- Banner improved by the switch to MyTraL WWW palette.
+
+
+
+## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
 
 This MyTraL **minor** release brings:
 
@@ -16,6 +37,13 @@ This MyTraL **minor** release brings:
 This MyTraL **minor** release brings:
 
 ### Added
+- Added Windows installer built with Inno Setup 6
+  (`build/windows/installer/mytral-setup.iss`). Installs to `C:\Program Files\MyTraL\`,
+  registers an uninstaller, and optionally creates a Desktop shortcut.
+- Added `distro-windows-installer` Makefile target to build the Windows installer after
+  the desktop executable is built with `distro-desktop-build-win`.
+- Added `distro-windows-clean` Makefile target to remove Windows installer build
+  artifacts.
 - Added Ubuntu PPA distribution for Ubuntu via Launchpad (`ppa:ultradvorka/sport`).
 - Added `distro-ubuntu-deb` Makefile target to build `.deb` package locally.
 - Added Snap package distribution for universal Linux package management. Opens a native

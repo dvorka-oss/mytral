@@ -25,6 +25,7 @@ Big thanks to 3rd party [FLOSS](https://en.wikipedia.org/wiki/Free_and_open-sour
 * Volodymyr Agafonkin ([Leaflet](https://leafletjs.com/) - mobile-friendly interactive maps)
 * OpenStreetMap contributors ([OpenStreetMap](https://www.openstreetmap.org/) - free geographic data under ODbL)
 * Jay Loden, Dave Daeschler, Giampaolo Rodola ([psutil](https://github.com/giampaolo/psutil) - process king)
+* Jordan Russell and Martijn Laan ([Inno Setup](https://jrsoftware.org/isinfo.php) - Windows installer compiler)
 * Hartmut Goebel, Giovanni Bajo, David Vierra, David Cortesi, and Martin Zibricky ([PyInstaller](https://pyinstaller.org/) - desktop installer)
 * Holger Krekel ([pytest](https://pytest.org/) - Python testing that brings joy)
 

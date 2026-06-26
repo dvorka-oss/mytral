@@ -13,10 +13,10 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0"
 LABEL org.opencontainers.image.source="https://github.com/dvorka/mytral"
 
 # ---------------------------------------------------------------------------
-# Install Python 3.11 and uv
+# Install Python and uv
 # ---------------------------------------------------------------------------
 RUN dnf install -y \
-        python3.11 \
+        python3.12 \
         curl \
     && dnf clean all
 

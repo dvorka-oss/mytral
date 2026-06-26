@@ -2,8 +2,9 @@
 
 Install:
 
-* [Linux (Snap)](#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
+* [Linux (Snap)](#install-on-linux-using-snap) for Ubuntu, Debian, Fedora, Arch, OpenSUSE
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
+* [Windows (Installer)](#install-on-windows-using-installer)
 * [Windows (ZIP)](#install-on-windows-using-zip)
 
 Build:
@@ -11,6 +12,7 @@ Build:
 * [Ubuntu (binary)](#build-binary-on-ubuntu)
 * [Ubuntu (.deb)](#build--deb-on-ubuntu)
 * [Windows (binary)](#build-binary-on-windows)
+* [Windows (installer)](#build-windows-installer)
 
 Run:
 
@@ -44,6 +46,33 @@ sudo add-apt-repository ppa:ultradvorka/sport
 sudo apt-get update
 sudo apt-get install mytral
 ```
+
+
+
+## Install on Windows using Installer
+
+Download the latest installer from:
+
+* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+
+Run the installer:
+
+```
+mytral-<version>-setup.exe
+
+# example: mytral-1.54.0-setup.exe
+```
+
+The installer places MyTraL in `C:\Program Files\MyTraL\` and optionally creates a
+Desktop shortcut. It includes an uninstaller registered in Windows `Apps & features`.
+
+Data is stored in:
+
+```
+C:\Users\<user>\AppData\Local\mytral\
+```
+
+**Uninstall:** open Windows `Apps & features`, find MyTraL, and click `Uninstall`.
 
 
 
@@ -158,7 +187,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Install `Python`:
 
 ```bash
-uv python install 3.11
+uv python install 3.12
 ```
 
 Clone Git repository:
@@ -214,6 +243,73 @@ Find `.deb` package in the directory printed by the `make` target.
 
 
 
+## Build Windows Installer
+
+The Windows installer is built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+
+**Step 1: Build the desktop executable**
+
+Build the desktop binary first (see [Build Binary on Windows](#build-binary-on-windows)):
+
+```bash
+make setup distro-desktop-build-win
+```
+
+Verify the binary was created:
+
+```
+distro\desktop\mytral-<version>.exe
+```
+
+**Step 2: Install Inno Setup 6**
+
+Install via `winget` (no administrator rights required - installs to your user profile):
+
+```
+winget install --id JRSoftware.InnoSetup
+```
+
+Or download the installer from the official website and run it:
+
+* [https://jrsoftware.org/isdl.php](https://jrsoftware.org/isdl.php)
+
+`env.bat` automatically detects both install locations:
+
+| Location | How installed |
+|---|---|
+| `C:\Program Files (x86)\Inno Setup 6\` | System-wide (requires admin) |
+| `%LOCALAPPDATA%\Programs\Inno Setup 6\` | Per-user via winget or without admin |
+
+No manual configuration is needed for either location.
+
+**Step 3: Build the installer**
+
+```bash
+make distro-windows-installer
+```
+
+The installer is created at:
+
+```
+distro\windows\mytral-<version>-setup.exe
+```
+
+**Custom Inno Setup path (optional)**
+
+If `ISCC.exe` is installed elsewhere, edit `build\windows\env.bat` and set:
+
+```
+set MYTRAL_ISCC=C:\your\custom\path\ISCC.exe
+```
+
+**Clean installer artifacts:**
+
+```bash
+make distro-windows-clean
+```
+
+
+
 ## Build Binary on Windows
 
 Install `uv` to `C:\Users\[user]\.local\bin`:
@@ -225,7 +321,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Install `Python`:
 
 ```bash
-uv python install 3.11
+uv python install 3.12
 ```
 
 Clone Git repository:
@@ -280,7 +376,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Install `Python`:
 
 ```bash
-uv python install 3.11
+uv python install 3.12
 ```
 
 Clone Git repository:
@@ -404,7 +500,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Install `Python`:
 
 ```bash
-uv python install 3.11
+uv python install 3.12
 ```
 
 Install dependencies:

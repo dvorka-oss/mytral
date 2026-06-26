@@ -13,12 +13,12 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0"
 LABEL org.opencontainers.image.source="https://github.com/dvorka-oss/mytral"
 
 # ---------------------------------------------------------------------------
-# Install Python 3.11 and uv
+# Install Python and uv
 # ---------------------------------------------------------------------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        python3.11 \
-        python3.11-venv \
+        python3.12 \
+        python3.12-venv \
         python3-pip \
         curl \
         ca-certificates \

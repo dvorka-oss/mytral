@@ -26,7 +26,7 @@
 ###########################
 # Project DEVELOPMENT setup
 #
-# EITHER you can setup everything (if you have Python 3.11 installed):
+# EITHER you can setup everything (if you have Python 3.12 installed):
 #
 # make setup
 # . ./.venv/bin/activate
@@ -34,9 +34,9 @@
 # ... OR run targets step by step:
 #
 ## install Python
-# uv python install 3.11
+# uv python install 3.12
 ## create virtual environment
-# uv venv --python 3.11 .venv
+# uv venv --python 3.12 .venv
 ## run project setup
 # make setup
 ## activate virtual environment (if needed)
@@ -87,7 +87,7 @@ MYTRAL_VERSION := $(shell uv run python -c "import sys; sys.path.insert(0, 'mytr
 # Python interpreter
 PYTHON ?= python
 # Python version
-PYTHON_VERSION := 3.11
+PYTHON_VERSION := 3.12
 # virtual environment detection
 ACTIVE_VENV := $(shell echo $$VIRTUAL_ENV)
 # user home
@@ -185,7 +185,7 @@ py-lint-mypy: .venv py-install-dev-deps ## mypy type checking
 # - https://pydevtools.com/handbook/reference/ty/
 .PHONY: py-lint-ty
 py-lint-ty: .venv py-install-dev-deps ## ty type checking
-	uv run ty check --python-version 3.11 mytral
+	uv run ty check --python-version 3.12 mytral
 
 # check Bokeh version: Python Bokeh package and JavaScript Bokeh versions MUST MATCH
 .PHONY: py-check-bokeh
@@ -647,6 +647,22 @@ distro-desktop-test: distro-desktop-build ## test the built desktop executable
 	@ls -lh distro/desktop/mytral-* 2>/dev/null || ls -lh distro/desktop/mytral* 2>/dev/null || (echo "ERROR: No executable found in distro/desktop/"; exit 1)
 
 #
+# DISTRIBUTION: Windows installer (Inno Setup 6)
+#
+# Prerequisites:
+#   1. Build desktop executable: make distro-desktop-build-win
+#   2. Install Inno Setup 6:     https://jrsoftware.org/isinfo.php
+#   3. Configure compiler path:  build\windows\env.bat
+#
+
+distro-windows-installer: distro-windows-clean distro-desktop-clean distro-desktop-build  ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
+	.\build\windows\build-win-installer.bat
+
+.PHONY: distro-windows-clean
+distro-windows-clean: ## clean Windows installer build artifacts
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
+
+#
 # SNAP: Snap package distribution (local builds only)
 #
 # Prerequisites:
@@ -749,6 +765,12 @@ www-doc-clean: ## clean generated public documentation
 www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
+
+.PHONY: www-banners
+www-banners: ## generate Snapcraft/store feature banners (outputs to media/banners/)
+	@echo "Generating banners..."
+	uv run python media/banners/make_banners.py
+	@echo "DONE Banners saved to media/banners/"
 
 #
 # DEPLOYMENT: mytral.fitness
