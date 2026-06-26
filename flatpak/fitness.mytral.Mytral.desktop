@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=MyTraL
+GenericName=Training Log
+Comment=Sovereign athlete training log - train smarter, not harder
+Exec=mytral-flatpak-launcher
+Icon=fitness.mytral.Mytral
+Terminal=false
+Type=Application
+Categories=Sports;Utility;
+StartupNotify=true
+Keywords=training;fitness;running;cycling;swimming;activities;gear;TRIMP;

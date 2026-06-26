@@ -4,6 +4,12 @@
 
 This MyTraL **minor** release brings:
 
+### Added
+- Added a Flatpak distribution (`fitness.mytral.Mytral`). The package runs the local
+  server and opens the UI in the default browser. Your data are stored outside of the
+  sandbox in the standard MyTraL directory.
+
+
 ### Changed
 - Removed the Waitress WSGI server from the desktop edition. The desktop app serves
   a single local, so it now uses Flask's built-in threaded server - this removes
@@ -13,6 +19,10 @@ This MyTraL **minor** release brings:
 - Updated `cryptography` from 46.0 to 48.0.
 - Updated `msgpack` from 1.0 to 1.2.
 - Updated `pytest` (dev) from 8.4 to 9.0.
+
+### Documentation
+- Documented Flatpak install and build.
+- Documented Snap build.
 
 
 

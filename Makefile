@@ -705,6 +705,46 @@ distro-snap-upload: ## upload Snap package to Snap Store
 	snapcraft upload --release=stable mytral_$(MYTRAL_VERSION)_amd64.snap
 
 #
+# FLATPAK: Flatpak package distribution (local builds only)
+#
+# Prerequisites:
+#   sudo apt install flatpak flatpak-builder   # or dnf/pacman/zypper equivalent
+#   flatpak remote-add --if-not-exists --user flathub \
+#       https://flathub.org/repo/flathub.flatpakrepo
+#   flatpak install --user flathub \
+#       org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+#
+
+.PHONY: distro-flatpak-clean
+distro-flatpak-clean: ## clean Flatpak build artifacts
+	@./build/flatpak/clean.sh
+
+.PHONY: distro-flatpak-build
+distro-flatpak-build: ## build Flatpak bundle (flatpak-builder + freedesktop 24.08 runtime/sdk required)
+	@./build/flatpak/build-flatpak.sh
+
+.PHONY: distro-flatpak-path
+distro-flatpak-path: ## show path to built Flatpak bundle
+	@ls distro/flatpak/mytral-*.flatpak 2>/dev/null || echo "No Flatpak bundle built yet"
+
+.PHONY: distro-flatpak-remove
+distro-flatpak-remove: ## remove locally installed Flatpak
+	@echo "Removing Flatpak..."
+	flatpak uninstall --user -y fitness.mytral.Mytral || true
+	@echo "DONE Flatpak removed"
+
+.PHONY: distro-flatpak-install-local
+distro-flatpak-install-local: distro-flatpak-build ## build and install Flatpak locally (user scope, for testing)
+	@echo "Installing Flatpak bundle locally..."
+	@BUNDLE=$$(ls distro/flatpak/mytral-*.flatpak 2>/dev/null | head -1); \
+	if [ -z "$$BUNDLE" ]; then \
+		echo "Error: Flatpak bundle not found. Run 'make distro-flatpak-build' first."; \
+		exit 1; \
+	fi; \
+	flatpak install --user --reinstall -y "$$BUNDLE"; \
+	echo "DONE Flatpak installed. Run with: flatpak run fitness.mytral.Mytral"
+
+#
 # DOCUMENTATION
 #
 
@@ -822,7 +862,7 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 # RELEASE
 #
 
-release-distros-linux: clean distro-snap-clean distro-tarball distro-snap-build ## build all LINUX distribution packages for release
+release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
 release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release
