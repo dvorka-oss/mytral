@@ -14,6 +14,8 @@ This MyTraL **minor** release brings:
   `rel/<major.minor.patch>` branches targeting `main`.
 - Added `Distro Windows` GHA workflow that builds the Windows installer and ZIP archive
   on a Windows runner in `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Flatpak` GHA workflow that builds the Flatpak bundle in
+  `rel/<major.minor.patch>` branches targeting `main`.
 - Added `distro-win-zip` Makefile target that packages the Windows desktop executable
   into a ZIP archive (`distro/windows/mytral-<version>.exe.zip`).
 
