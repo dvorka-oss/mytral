@@ -490,6 +490,7 @@ class StatsAspect(enum.Enum):
     DISTANCE = enum.auto()
     DURATION = enum.auto()
     KGS = enum.auto()
+    ELEVATION = enum.auto()
 
 
 class StatsPeriod(enum.Enum):

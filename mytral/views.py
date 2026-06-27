@@ -137,6 +137,7 @@ class CalendarHeatmap:
     KEY_M = "meters"  # m ... distance in meters
     KEY_SECONDS = "seconds"  # ... time in seconds
     KEY_KG = "kgs"  # m ... distance in meters
+    KEY_ELEVATION = "elevation"  # m ... elevation gain in meters
     KEY_TIME = "time"  # ... time as formatted string
     KEY_WEEK_DATE = "week_date"  # ... date of the first day in the week
 
@@ -237,6 +238,7 @@ class CalendarHeatmap:
                     CalendarHeatmap.KEY_WEIGHT: a.weight,
                     CalendarHeatmap.KEY_M: a.distance,
                     CalendarHeatmap.KEY_KG: kgs,
+                    CalendarHeatmap.KEY_ELEVATION: a.elevation_gain,
                     CalendarHeatmap.KEY_SECONDS: duration_seconds,
                     CalendarHeatmap.KEY_TIME: "{:0>8}".format(
                         str(datetime.timedelta(seconds=duration_seconds))
@@ -261,6 +263,9 @@ class CalendarHeatmap:
                 )
                 self.week_stats[year][week_number][CalendarHeatmap.KEY_KG] += kgs
                 self.week_stats[year][week_number][CalendarHeatmap.KEY_M] += a.distance
+                self.week_stats[year][week_number][CalendarHeatmap.KEY_ELEVATION] += (
+                    a.elevation_gain
+                )
                 self.week_stats[year][week_number][CalendarHeatmap.KEY_TIME] = (
                     "{:0>8}"
                 ).format(
@@ -313,6 +318,7 @@ class CalendarHeatmap:
                     # weight, time, ...
                     CalendarHeatmap.KEY_M: 0,
                     CalendarHeatmap.KEY_KG: 0,
+                    CalendarHeatmap.KEY_ELEVATION: 0,
                     CalendarHeatmap.KEY_SECONDS: 0,
                     CalendarHeatmap.KEY_WEEK_DATE: "",
                 }
@@ -529,6 +535,10 @@ class CalendarHeatmap:
             ]
         elif aspect == commons.StatsAspect.KGS:
             return [sum([a.exercise_kgs for a in activities]) for activities in week_as]
+        elif aspect == commons.StatsAspect.ELEVATION:
+            return [
+                sum([a.elevation_gain for a in activities]) for activities in week_as
+            ]
 
         raise ValueError(f"Unsupported aspect: {aspect}")
 
