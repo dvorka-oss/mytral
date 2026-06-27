@@ -4,6 +4,10 @@
 
 This MyTraL **minor** release brings:
 
+### Added
+- Added `Distro Tarball` GHA workflow that builds the upstream tarball in
+  `rel/<major.minor.patch>` branches targeting `main`.
+
 ### Changed
 - Removed the Waitress WSGI server from the desktop edition. The desktop app serves
   a single local, so it now uses Flask's built-in threaded server - this removes

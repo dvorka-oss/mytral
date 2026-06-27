@@ -15,21 +15,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-name: Python Lint - All Branches
+name: Distro Tarball
 
+# build the upstream tarball only for release pull requests:
+#   - source (head) branch must be rel/<major.minor.patch>
+#   - target (base) branch must be main
 on:
-  push:
-    branches: ['**']
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 jobs:
-  test:
+  distro-tarball:
+    # cheap gate: only run for rel/* head branches targeting main
+    if: startsWith(github.head_ref, 'rel/')
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.12"]
 
     steps:
+    - name: Validate release branch name
+      run: |
+        if [[ ! "${{ github.head_ref }}" =~ ^rel/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Branch '${{ github.head_ref }}' is not a rel/<major.minor.patch> release branch."
+          exit 1
+        fi
+        echo "Release branch '${{ github.head_ref }}' validated."
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -44,5 +56,19 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    - name: Run linting
-      run: uv run make py-lint
+    - name: Build upstream tarball
+      run: uv run make distro-tarball
+
+    - name: Resolve tarball path
+      id: tarball
+      run: |
+        TARBALL=$(ls distro/mytral-*.tar.gz)
+        echo "path=${TARBALL}" >> "$GITHUB_OUTPUT"
+        echo "name=$(basename "${TARBALL}")" >> "$GITHUB_OUTPUT"
+
+    - name: Upload tarball artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.tarball.outputs.name }}
+        path: ${{ steps.tarball.outputs.path }}
+        if-no-files-found: error
