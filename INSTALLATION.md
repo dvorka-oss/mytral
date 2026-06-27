@@ -2,7 +2,7 @@
 
 Install:
 
-* [Linux (Snap)](#install-on-linux-using-snap) for Ubuntu, Debian, Fedora, Arch, OpenSUSE
+* [Linux (Snap)](#install-on-linux-using-snap)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
 * [Windows (Installer)](#install-on-windows-using-installer)
 * [Windows (ZIP)](#install-on-windows-using-zip)

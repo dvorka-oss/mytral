@@ -7,6 +7,8 @@ This MyTraL **minor** release brings:
 ### Added
 - Added `Distro Tarball` GHA workflow that builds the upstream tarball in
   `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Snap` GHA workflow that builds the Snap package in
+  `rel/<major.minor.patch>` branches targeting `main`.
 
 ### Changed
 - Removed the Waitress WSGI server from the desktop edition. The desktop app serves
