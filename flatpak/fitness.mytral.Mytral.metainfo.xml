@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>fitness.mytral.Mytral</id>
+  <name>MyTraL</name>
+  <summary>Sovereign athlete training log - train smarter, not harder</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+  <developer id="fitness.mytral">
+    <name>Martin Dvorak</name>
+  </developer>
+  <description>
+    <p>
+      MyTraL is a privacy-first personal sport training log designed to track
+      your athletic activities, manage your gear, and analyze your fitness
+      progress.
+    </p>
+    <p>Key Features:</p>
+    <ul>
+      <li>Universal Activity Tracking: Record and analyze any sport, from running and cycling to weightlifting and hiking.</li>
+      <li>Smart Gear Management: Monitor usage statistics for shoes, bikes, and components to know exactly when to service or replace them.</li>
+      <li>Deep Training Insights: Analyze your training load, monitor fitness trends, track goals, and record personal records (PRs).</li>
+      <li>Holistic Health Tracking: Keep tabs on your weight, general health metrics, custom trails, and training outfits.</li>
+      <li>Seamless Importing: Bring your data with you. Supports FIT, GPX, TCX, Strava®, Polar®, and more.</li>
+      <li>100% Local Storage: Your data stays on your machine. No mandatory accounts, no cloud tracking.</li>
+    </ul>
+    <p>
+      Whether you're training for a marathon or keeping a daily active journal,
+      MyTraL puts your data back in your hands.
+    </p>
+  </description>
+  <launchable type="desktop-id">fitness.mytral.Mytral.desktop</launchable>
+  <url type="homepage">https://mytral.fitness</url>
+  <url type="bugtracker">https://github.com/dvorka-oss/mytral/issues</url>
+  <url type="vcs-browser">https://github.com/dvorka-oss/mytral</url>
+  <categories>
+    <category>Sports</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://mytral.fitness/screenshot-dashboard-white.png</image>
+      <caption>MyTraL training dashboard (light theme)</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://mytral.fitness/screenshot-dashboard-dark.png</image>
+      <caption>MyTraL training dashboard (dark theme)</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="1.56.0" date="2026-06-26"/>
+  </releases>
+</component>

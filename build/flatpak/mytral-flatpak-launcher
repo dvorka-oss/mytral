@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# MyTraL Flatpak launcher
+#
+# Sets the desktop incarnation environment and starts MyTraL.
+#   * flaskwebgui is not bundled in the Flatpak,
+#     so run_desktop takes its "server + browser mode"
+#   * fallback: it runs the Flask server inside the sandbox and opens the UI
+#     in the host's default browser via the XDG OpenURI portal (webbrowser -> xdg-open).
+export MYTRAL_INCARNATION=DESKTOP
+export MYTRAL_USER_REGISTRATION=true
+export MYTRAL_ENABLE_CACHE=true
+# store data/config in the shared standard location:
+#   ~/.local/share/mytral
+#   ~/.config/mytral
+# Flatpak grants only the mytral subdirs via --filesystem=xdg-{data,config}/mytral.
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+exec mytral-desktop "$@"
