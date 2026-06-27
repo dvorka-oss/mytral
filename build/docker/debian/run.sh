@@ -32,9 +32,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
-# ---------------------------------------------------------------------------
+#
 # Resolve version
-# ---------------------------------------------------------------------------
+#
 VERSION="${1:-$(cd "${REPO_ROOT}" && uv run python -c "
 import sys; sys.path.insert(0, 'mytral')
 import version; print(version.__version__)
@@ -43,32 +43,32 @@ import version; print(version.__version__)
 IMAGE="mytral-debian:${VERSION}"
 CONTAINER_NAME="mytral-debian"
 
-# ---------------------------------------------------------------------------
+#
 # Data directory on the host filesystem
-# ---------------------------------------------------------------------------
+#
 # Default: ~/.local/share/mytral-docker-debian (follows XDG_DATA_HOME convention)
 HOST_DATA_DIR="${MYTRAL_DOCKER_DATA_DIR:-${HOME}/.local/share/mytral-docker-debian}"
 mkdir -p "${HOST_DATA_DIR}"
 
-# ---------------------------------------------------------------------------
+#
 # Encryption key
-# ---------------------------------------------------------------------------
+#
 # For production, set MYTRAL_ENCRYPTION_KEY in the environment before running.
 # For development, we pass a default key so the container starts without error.
 ENC_KEY="${MYTRAL_ENCRYPTION_KEY:-docker-dev-key-change-me}"
 
-# ---------------------------------------------------------------------------
+#
 # Stop and remove any existing container with the same name
-# ---------------------------------------------------------------------------
+#
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "--- Stopping and removing existing container '${CONTAINER_NAME}' ---"
     docker stop "${CONTAINER_NAME}" 2>/dev/null || true
     docker rm "${CONTAINER_NAME}" 2>/dev/null || true
 fi
 
-# ---------------------------------------------------------------------------
+#
 # Run
-# ---------------------------------------------------------------------------
+#
 echo "=== MyTraL Docker Debian runner ==="
 echo "  Image:       ${IMAGE}"
 echo "  Container:   ${CONTAINER_NAME}"
@@ -86,9 +86,9 @@ docker run \
     --detach \
     "${IMAGE}"
 
-# ---------------------------------------------------------------------------
+#
 # Report
-# ---------------------------------------------------------------------------
+#
 echo ""
 echo "================================================================================"
 echo "  MyTraL IS RUNNING"

@@ -1,0 +1,87 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+name: Distro Windows
+
+# build the Windows installer and ZIP archive only for release pull requests:
+#   - source (head) branch must be rel/<major.minor.patch>
+#   - target (base) branch must be main
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  distro-win:
+    # cheap gate: only run for rel/* head branches targeting main
+    if: startsWith(github.head_ref, 'rel/')
+    runs-on: windows-latest
+
+    steps:
+    - name: Validate release branch name
+      shell: bash
+      run: |
+        if [[ ! "${{ github.head_ref }}" =~ ^rel/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Branch '${{ github.head_ref }}' is not a rel/<major.minor.patch> release branch."
+          exit 1
+        fi
+        echo "Release branch '${{ github.head_ref }}' validated."
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Set up Python 3.12
+      run: uv python install 3.12
+
+    - name: Install Inno Setup 6
+      run: choco install innosetup --no-progress -y
+
+    - name: Resolve version
+      id: ver
+      run: |
+        $v = uv run python -c "import sys; sys.path.insert(0, 'mytral'); import version; print(version.__version__)"
+        "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+    # build the standalone desktop executable once; both the installer and the
+    # ZIP archive are produced from it
+    - name: Build Windows desktop executable
+      run: .\build\desktop\build-executable.ps1
+
+    - name: Build Windows installer
+      shell: cmd
+      run: .\build\windows\build-win-installer.bat
+
+    - name: Build Windows ZIP archive
+      run: .\build\windows\build-win-zip.ps1
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mytral-${{ steps.ver.outputs.version }}-setup.exe
+        path: distro/windows/mytral-${{ steps.ver.outputs.version }}-setup.exe
+        if-no-files-found: error
+
+    - name: Upload ZIP artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mytral-${{ steps.ver.outputs.version }}.exe.zip
+        path: distro/windows/mytral-${{ steps.ver.outputs.version }}.exe.zip
+        if-no-files-found: error

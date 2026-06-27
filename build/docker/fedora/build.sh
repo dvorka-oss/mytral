@@ -31,9 +31,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${1:-$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
 
-# ---------------------------------------------------------------------------
+#
 # Resolve version
-# ---------------------------------------------------------------------------
+#
 VERSION=$(cd "${REPO_ROOT}" && uv run python -c "
 import sys; sys.path.insert(0, 'mytral')
 import version; print(version.__version__)
@@ -47,9 +47,9 @@ echo "  Version:  ${VERSION}"
 echo "  Repo:     ${REPO_ROOT}"
 echo "  Image:    ${IMAGE_TAG}"
 
-# ---------------------------------------------------------------------------
+#
 # Build context setup (clean copy of source, no dev artifacts)
-# ---------------------------------------------------------------------------
+#
 BUILD_CTX="/tmp/mytral-docker-fedora-build"
 echo "  Build ctx: ${BUILD_CTX}"
 
@@ -57,9 +57,9 @@ echo "  Build ctx: ${BUILD_CTX}"
 rm -rf "${BUILD_CTX}"
 mkdir -p "${BUILD_CTX}"
 
-# ---------------------------------------------------------------------------
+#
 # Copy project source to build context
-# ---------------------------------------------------------------------------
+#
 echo ""
 echo "--- Copying project source ---"
 
@@ -84,9 +84,9 @@ cp "${REPO_ROOT}/CONTRIBUTE.md"   "${BUILD_CTX}/"
 cp "${REPO_ROOT}/KNOWN_ISSUES.md" "${BUILD_CTX}/"
 cp "${REPO_ROOT}/.gitignore"      "${BUILD_CTX}/"
 
-# ---------------------------------------------------------------------------
+#
 # Prune development artifacts from build context
-# ---------------------------------------------------------------------------
+#
 echo ""
 echo "--- Pruning development artifacts ---"
 
@@ -130,9 +130,9 @@ find . -type f \( -name "*~" -o -name "*.swp" -o -name "*.swo" \) -delete 2>/dev
 # Empty directories
 find . -type d -empty -delete 2>/dev/null || true
 
-# ---------------------------------------------------------------------------
+#
 # Build Docker image
-# ---------------------------------------------------------------------------
+#
 echo ""
 echo "--- Building Docker image ---"
 cd "${SCRIPT_DIR}"
@@ -142,14 +142,14 @@ docker build \
     --file Dockerfile \
     "${BUILD_CTX}"
 
-# ---------------------------------------------------------------------------
+#
 # Clean up build context
-# ---------------------------------------------------------------------------
+#
 rm -rf "${BUILD_CTX}"
 
-# ---------------------------------------------------------------------------
+#
 # Report
-# ---------------------------------------------------------------------------
+#
 echo ""
 echo "================================================================================"
 echo "  DOCKER IMAGE BUILT"
