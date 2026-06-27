@@ -1,6 +1,44 @@
 # Changelog
 
-## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...HEAD)
+## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added a Flatpak distribution (`fitness.mytral.Mytral`). The package runs the local
+  server and opens the UI in the default browser.
+  Athlete data are stored outside of the sandbox in the standard MyTraL directory.
+- Added `Distro Tarball` GHA workflow that builds the upstream tarball in
+  `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Snap` GHA workflow that builds the Snap package in
+  `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Windows` GHA workflow that builds the Windows installer and ZIP archive
+  on a Windows runner in `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Flatpak` GHA workflow that builds the Flatpak bundle in
+  `rel/<major.minor.patch>` branches targeting `main`.
+- Added `distro-win-zip` Makefile target that packages the Windows desktop executable
+  into a ZIP archive (`distro/windows/mytral-<version>.exe.zip`).
+
+### Changed
+- Removed the Waitress WSGI server from the desktop edition. The desktop app serves
+  a single local, so it now uses Flask's built-in threaded server - this removes
+  a dependency and simplifies installation and packaging across Snap, PPA,
+  and the Windows installer.
+- Updated `bleach` from 6.3 to 6.4.
+- Updated `cryptography` from 46.0 to 48.0.
+- Updated `msgpack` from 1.0 to 1.2.
+- Updated `pytest` (dev) from 8.4 to 9.0.
+
+### Documentation
+- Documented Flatpak install and build.
+- Documented Snap build.
+
+### Fixed
+- Fixed `distro-win-installer` Makefile target which depended on the Linux targets.
+
+
+
+## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...v1.55.0)
 
 This MyTraL **minor** release brings:
 

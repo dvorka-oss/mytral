@@ -1,0 +1,72 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+name: Distro Flatpak
+
+# build the Flatpak bundle only for release pull requests:
+#   - source (head) branch must be rel/<major.minor.patch>
+#   - target (base) branch must be main
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  distro-flatpak:
+    # cheap gate: only run for rel/* head branches targeting main
+    if: startsWith(github.head_ref, 'rel/')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Validate release branch name
+      run: |
+        if [[ ! "${{ github.head_ref }}" =~ ^rel/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "Branch '${{ github.head_ref }}' is not a rel/<major.minor.patch> release branch."
+          exit 1
+        fi
+        echo "Release branch '${{ github.head_ref }}' validated."
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install flatpak and flatpak-builder
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak flatpak-builder
+
+    - name: Install freedesktop 24.08 runtime and SDK
+      run: |
+        flatpak remote-add --if-not-exists --user flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+        flatpak install --user -y flathub \
+            org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+
+    - name: Build Flatpak bundle
+      run: make distro-flatpak-build
+
+    - name: Resolve flatpak path
+      id: flatpak
+      run: |
+        BUNDLE=$(ls distro/flatpak/mytral-*.flatpak)
+        echo "path=${BUNDLE}" >> "$GITHUB_OUTPUT"
+        echo "name=$(basename "${BUNDLE}")" >> "$GITHUB_OUTPUT"
+
+    - name: Upload flatpak artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.flatpak.outputs.name }}
+        path: ${{ steps.flatpak.outputs.path }}
+        if-no-files-found: error

@@ -1,5 +1,4 @@
 #!/bin/bash
-# MyTraL: my trailing log
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
 #
@@ -16,7 +15,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-sudo add-apt-repository ppa:ultradvorka/sport
-sudo apt-get update
+set -e
 
-# eof
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+echo "Cleaning Flatpak build artifacts..."
+rm -rf "$PROJECT_ROOT/build/flatpak/build-dir"
+rm -rf "$PROJECT_ROOT/build/flatpak/repo"
+rm -rf "$PROJECT_ROOT/build/flatpak/.flatpak-builder"
+rm -rf "$PROJECT_ROOT/distro/flatpak"
+echo "DONE"

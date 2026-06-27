@@ -106,7 +106,7 @@ hidden_imports += collect_submodules('griffe')
 hidden_imports += collect_submodules('pydantic')
 hidden_imports += collect_submodules('pydantic_core')
 hidden_imports += collect_submodules('pydantic_graph')
-hidden_imports += ['waitress', 'flaskwebgui', 'psutil', 'flask', 'flask_wtf', 'wtforms', 'bokeh']
+hidden_imports += ['flaskwebgui', 'psutil', 'flask', 'flask_wtf', 'wtforms', 'bokeh']
 hidden_imports += ['pydantic_ai', 'griffe', 'pydantic', 'pydantic_core', 'pydantic_graph', 'annotated_types']
 hidden_imports += ['email_validator', 'msgpack', 'requests']
 

@@ -19,7 +19,7 @@
 # Build MyTraL desktop executable using PyInstaller
 #
 # This script builds a single-file executable for the desktop version of MyTraL.
-# It bundles Python, Flask, Waitress, FlaskWebGUI, and all dependencies into
+# It bundles Python, Flask, FlaskWebGUI, and all dependencies into
 # a standalone executable.
 
 set -e  # exit on error

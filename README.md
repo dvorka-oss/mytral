@@ -6,6 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/dvorka-oss/mytral.svg?maxAge=360)](https://github.com/dvorka-oss/mytrals/issues)
 [![All releases downloads](https://img.shields.io/github/downloads/dvorka-oss/mytral/total.svg)](https://github.com/dvorka-oss/mytral/releases)
 <!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
+<!-- [![Flathub](https://img.shields.io/flathub/v/fitness.mytral.Mytral)](https://flathub.org/apps/fitness.mytral.Mytral) -->
 [![License](https://img.shields.io/github/license/dvorka-oss/mytral?color=%24fe0000)](https://github.com/dvorka-oss/mytral/blob/main/LICENSE)
 
 **My** **Tra**ining **L**og (MyTraL) is my personal training log for deeper insights and smarter progress.
@@ -18,7 +19,8 @@
 
 Install:
 
-* [Linux (Snap)](INSTALLATION.md#install-on-linux-using-snap) (Ubuntu, Debian, Fedora, Arch, OpenSUSE)
+* [Linux (Snap)](INSTALLATION.md#install-on-linux-using-snap)
+* [Linux (Flatpak)](INSTALLATION.md#install-on-linux-using-flatpak)
 * [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
 * [Windows (ZIP)](INSTALLATION.md#install-on-windows-using-zip)
 
@@ -26,6 +28,8 @@ Build:
 
 * [Ubuntu (binary)](INSTALLATION.md#build-binary-on-ubuntu)
 * [Ubuntu (.deb)](INSTALLATION.md#build--deb-on-ubuntu)
+* [Snap (package)](INSTALLATION.md#build-snap-on-linux)
+* [Flatpak (bundle)](INSTALLATION.md#build-flatpak-on-linux)
 * [Windows (binary)](INSTALLATION.md#build-binary-on-windows)
 
 Run:

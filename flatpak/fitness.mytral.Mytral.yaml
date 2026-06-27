@@ -1,0 +1,54 @@
+# MyTraL Flatpak manifest
+#
+# Build:   make distro-flatpak-build
+# Install: flatpak install --user ./distro/flatpak/mytral-<version>.flatpak
+# Run:     flatpak run fitness.mytral.Mytral
+#
+app-id: fitness.mytral.Mytral
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'  # Python 3.12 ~ pyproject.toml pin
+sdk: org.freedesktop.Sdk
+command: mytral-flatpak-launcher
+
+build-options:
+  # network is needed to pip-install dependencies from PyPI at build time
+  build-args:
+    - --share=network
+
+finish-args:
+  - --share=network  # local Flask server + sport services import/integrations
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # MyTraL modules are installed under /app
+  - --env=PYTHONPATH=/app/lib/python3.12/site-packages
+  # MyTraL data use the standard locations: ~/.local/share/mytral, ~/.config/mytral
+  - --filesystem=xdg-data/mytral:create
+  - --filesystem=xdg-config/mytral:create
+  # MyTraL UI opens in the host default browser
+
+modules:
+  - name: mytral
+    buildsystem: simple
+    build-commands:
+      # install MyTraL only w/o flaskwebgui
+      - pip3 install --prefix=${FLATPAK_DEST} .
+      - install -Dm755 build/flatpak/mytral-flatpak-launcher ${FLATPAK_DEST}/bin/mytral-flatpak-launcher
+      - install -Dm644 flatpak/fitness.mytral.Mytral.desktop ${FLATPAK_DEST}/share/applications/fitness.mytral.Mytral.desktop
+      - install -Dm644 flatpak/fitness.mytral.Mytral.metainfo.xml ${FLATPAK_DEST}/share/metainfo/fitness.mytral.Mytral.metainfo.xml
+      - install -Dm644 flatpak/fitness.mytral.Mytral.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/fitness.mytral.Mytral.png
+    sources:
+      - type: dir
+        path: ..
+        # exclude artifacts and dirs not needed to pip install the package
+        skip:
+          - .git
+          - .venv
+          - distro
+          - docs
+          - webs
+          - tests
+          - vibe
+          - build/flatpak/build-dir
+          - build/flatpak/repo
+          - build/flatpak/.flatpak-builder

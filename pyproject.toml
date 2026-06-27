@@ -35,9 +35,9 @@ authors = [
 dependencies = [
   "anthropic~=0.101",
   "bcrypt~=5.0.0",
-  "bleach~=6.3",
+  "bleach~=6.4",
   "bokeh==3.8.2",
-  "cryptography~=46.0",
+  "cryptography~=48.0",
   "defusedxml~=0.7",
   "email_validator~=2.2",
   "fit-tool>=0.9.15",
@@ -45,7 +45,7 @@ dependencies = [
   "flask-wtf~=1.2",
   "flask~=3.1",
   "markdown~=3.10",
-  "msgpack~=1.0",
+  "msgpack~=1.2",
   "openai~=2.29",
   "polars~=1.30",
   "polyline~=2.0",
@@ -131,7 +131,6 @@ dev = [
     "pandas-stubs~=2.3",
     "pip-audit~=2.10.0",
     "pygments>=2.19.2",
-    "pytest~=8.4",
     "ruff~=0.15",
     "types-Flask-Cors~=6.0",
     "types-Flask~=1.1",
@@ -140,13 +139,11 @@ dev = [
     "ty>=0.0.48",
 ]
 test = [
-    "pytest~=8.4",
+    "pytest~=9.0",
     "pytest-cov~=7.0",
     "fitparse>=1.2.0",
 ]
 desktop = [
-    # production WSGI server
-    "waitress~=3.0",
     # desktop UI wrapper (opens a native browser window)
     # NOTE: pin to 1.0.x — 1.1.x uses PEP 701 f-string syntax requiring Python 3.12+
     "flaskwebgui~=1.0.0",

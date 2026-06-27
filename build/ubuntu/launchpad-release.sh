@@ -1,4 +1,5 @@
 #!/bin/bash
+# MyTraL: my trailing log
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
 #
@@ -345,7 +346,8 @@ fi
 #   jammy noble plucky questing
 # future:
 #   resolute
-for UBUNTU_VERSION in jammy noble plucky questing resolute
+for UBUNTU_VERSION in noble
+# for UBUNTU_VERSION in jammy noble plucky questing resolute
 do
     PATCH_VERSION=$((PATCH_VERSION + 1))
     VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
