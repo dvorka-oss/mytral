@@ -1,6 +1,27 @@
 # Changelog
 
-## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
+## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added an `Elevation` aspect to the `This vs. Last` page, comparing weekly, monthly,
+  and yearly elevation gain. The weekly and monthly charts also show a dashed red
+  `Everesting` (8848 m) reference line so athletes can see whether their cumulative
+  climbing reaches Mt. Everest peak.
+
+### Changed
+- .
+
+### Documentation
+- .
+
+### Fixed
+- .
+
+
+
+## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0)
 
 This MyTraL **minor** release brings:
 
