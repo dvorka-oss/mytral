@@ -579,6 +579,10 @@ distro-webapp-test: distro-webapp-build ## test web application distribution
 distro-tarball: ## build upstream tarball (.tar.gz) for Linux distribution maintainers
 	@./build/tarball/tarball-build.sh
 
+.PHONY: distro-pad-refresh
+distro-pad-refresh: ## refresh PAD.xml release fields (version, date, changelog, installer size)
+	uv run python make/distro_pad_refresh.py
+
 #
 # DISTRIBUTION: Ubuntu PPA @ Launchpad
 #
