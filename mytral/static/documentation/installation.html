@@ -209,6 +209,7 @@
                     <div class="col-12 col-xxl-10">
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Install:</p>
 <ul>
+<li><a href="#install-on-linux-using-flatpak">Linux (Flatpak)</a></li>
 <li><a href="#install-on-linux-using-snap">Linux (Snap)</a></li>
 <li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
 <li><a href="#install-on-windows-using-installer">Windows (Installer)</a></li>
@@ -218,6 +219,8 @@
 <ul>
 <li><a href="#build-binary-on-ubuntu">Ubuntu (binary)</a></li>
 <li><a href="#build--deb-on-ubuntu">Ubuntu (.deb)</a></li>
+<li><a href="#build-snap-on-linux">Snap (package)</a></li>
+<li><a href="#build-flatpak-on-linux">Flatpak (bundle)</a></li>
 <li><a href="#build-binary-on-windows">Windows (binary)</a></li>
 <li><a href="#build-windows-installer">Windows (installer)</a></li>
 </ul>
@@ -278,10 +281,9 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 </code></pre></div>
 
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap">Install on Linux using Snap</h2>
-<p>Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
-MyTraL uses <strong>classic confinement</strong> so it can open a native desktop window via Chrome/Chromium.</p>
-<p><strong>Prerequisite:</strong> Chrome or Chromium must be installed — MyTraL opens its UI in a frameless
-Chrome window (not as a browser tab).</p>
+<p>Snap works across all major Linux distributions and keeps MyTraL up to date
+automatically. MyTraL uses <strong>classic confinement</strong> so it can open a native desktop
+window via a browser.</p>
 <p>Install <code>Snapd</code> (if not already installed):</p>
 <p><strong>Ubuntu/Debian:</strong></p>
 <div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
@@ -311,8 +313,9 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">en
 <div class="codehilite"><pre><span></span><code>mytral
 </code></pre></div>
 
-<p>MyTraL opens as a native desktop window. If Chrome/Chromium is not found it falls back to
-printing the URL so you can open it manually in any browser.</p>
+<p>With a browser MyTraL opens as a frameless desktop window. Otherwise it opens in your
+default browser as a normal window; if no browser can be opened at all, it prints the
+URL so you can open it manually.</p>
 <p><strong>Data storage</strong></p>
 <p>Because MyTraL uses classic confinement it stores data in the same location as every
 other installation - your data is never locked inside the snap:</p>
@@ -328,6 +331,72 @@ other installation - your data is never locked inside the snap:</p>
 <div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>remove<span class="w"> </span>mytral
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-flatpak">Install on Linux using Flatpak</h2>
+<p>Flatpak works across all major Linux distributions. MyTraL runs as a sandboxed
+local web app and opens its UI in your <strong>default browser</strong> (via the desktop
+portal) - no extra permissions and no host access required.</p>
+<p>Install <code>flatpak</code> (if not already installed):</p>
+<p><strong>Ubuntu/Debian:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>flatpak
+</code></pre></div>
+
+<p><strong>Fedora:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>flatpak
+</code></pre></div>
+
+<p><strong>Arch Linux:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>flatpak
+</code></pre></div>
+
+<p><strong>openSUSE:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>zypper<span class="w"> </span>install<span class="w"> </span>flatpak
+</code></pre></div>
+
+<p>Add the Flathub remote (one-time):</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>remote-add<span class="w"> </span>--if-not-exists<span class="w"> </span>flathub<span class="w"> </span>https://flathub.org/repo/flathub.flatpakrepo
+</code></pre></div>
+
+<p><strong>Until MyTraL is published on Flathub</strong>, install the local bundle from
+<a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a>:</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>./mytral-&lt;version&gt;.flatpak
+
+<span class="c1"># example: flatpak install --user ./mytral-1.56.0.flatpak</span>
+</code></pre></div>
+
+<p>... or install MyTraL from <a href="https://flathub.org">Flathub</a> <strong>when available</strong>:</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>install<span class="w"> </span>flathub<span class="w"> </span>fitness.mytral.Mytral
+</code></pre></div>
+
+<p>The bundle is self-contained:</p>
+<ul>
+<li>If the required <code>org.freedesktop.Platform</code> runtime is missing, Flatpak offers to
+  fetch it from Flathub automatically - you do <strong>not</strong> need to configure Flathub first.</li>
+<li>If you prefer, you can still add the Flathub remote with the <code>remote-add</code> command above.</li>
+</ul>
+<p>Start MyTraL from the application menu or run:</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>fitness.mytral.Mytral
+</code></pre></div>
+
+<p>MyTraL starts a local server and opens its UI in <strong>your default browser</strong>.</p>
+<p><strong>Data storage</strong></p>
+<p>Like the in other MyTraL editions, MyTraL stores your data in the standard shared
+location - it is never locked inside the Flatpak sandbox, so it is shared with every
+other MyTraL installation (binary/PPA/Snap/*) and survives uninstalling the Flatpak:</p>
+<div class="codehilite"><pre><span></span><code>~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
+</code></pre></div>
+
+<p><strong>Upgrade:</strong></p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>update<span class="w"> </span>fitness.mytral.Mytral
+</code></pre></div>
+
+<p><strong>Uninstall:</strong></p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>uninstall<span class="w"> </span>fitness.mytral.Mytral
+</code></pre></div>
+
+<p>Your data in <code>~/.local/share/mytral/</code> is <strong>not</strong> removed by uninstalling - delete
+that directory manually if you want to remove it.</p>
 <h1 id="build">Build</h1>
 <p>Build MyTraL desktop application from the source code.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-binary-on-ubuntu">Build Binary on Ubuntu</h2>
@@ -374,6 +443,84 @@ other installation - your data is never locked inside the snap:</p>
 </code></pre></div>
 
 <p>Find <code>.deb</code> package in the directory printed by the <code>make</code> target.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-snap-on-linux">Build Snap on Linux</h2>
+<p>Install prerequisites (Snapcraft, plus LXD for isolated container builds):</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>snapcraft<span class="w"> </span>--classic
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>lxd
+sudo<span class="w"> </span>lxd<span class="w"> </span>init<span class="w"> </span>--auto
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>lxd<span class="w"> </span><span class="nv">$USER</span>
+</code></pre></div>
+
+<p>After adding yourself to the <code>lxd</code> group, log out and back in (or run <code>newgrp lxd</code>)
+so the new group membership takes effect.</p>
+<p>Build the Snap package:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-build
+</code></pre></div>
+
+<p>The package is created at:</p>
+<div class="codehilite"><pre><span></span><code>distro/snap/mytral_&lt;version&gt;_amd64.snap
+</code></pre></div>
+
+<p>Show the path to the built package:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-path
+</code></pre></div>
+
+<p>Build and install it locally for testing (requires sudo; Snap uses classic
+confinement, so the <code>--classic</code> flag is applied automatically):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-install-local
+</code></pre></div>
+
+<p>Run MyTraL:</p>
+<div class="codehilite"><pre><span></span><code>mytral
+</code></pre></div>
+
+<p><strong>Clean Snap artifacts:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-clean
+</code></pre></div>
+
+<p><strong>Remove the locally installed Snap:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-remove
+</code></pre></div>
+
+<p>Publish to the Snap Store (maintainers only):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-snap-upload
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-flatpak-on-linux">Build Flatpak on Linux</h2>
+<p>Install prerequisites:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>flatpak<span class="w"> </span>flatpak-builder
+</code></pre></div>
+
+<p>Add the Flathub remote and install the runtime and SDK (the build targets
+Python 3.12 via the <code>24.08</code> runtime):</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>remote-add<span class="w"> </span>--if-not-exists<span class="w"> </span>--user<span class="w"> </span>flathub<span class="w"> </span>https://flathub.org/repo/flathub.flatpakrepo
+flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>flathub<span class="w"> </span>org.freedesktop.Platform//24.08<span class="w"> </span>org.freedesktop.Sdk//24.08
+</code></pre></div>
+
+<p>Build the Flatpak bundle:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-flatpak-build
+</code></pre></div>
+
+<p>The single-file bundle is created at:</p>
+<div class="codehilite"><pre><span></span><code>distro/flatpak/mytral-&lt;version&gt;.flatpak
+</code></pre></div>
+
+<p>Build and install it locally for testing (user scope):</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-flatpak-install-local
+</code></pre></div>
+
+<p>Run MyTraL:</p>
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>fitness.mytral.Mytral
+</code></pre></div>
+
+<p><strong>Clean Flatpak artifacts:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-flatpak-clean
+</code></pre></div>
+
+<p><strong>Remove the locally installed Flatpak:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-flatpak-remove
+</code></pre></div>
+
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-windows-installer">Build Windows Installer</h2>
 <p>The Windows installer is built with <a href="https://jrsoftware.org/isinfo.php">Inno Setup 6</a>.</p>
 <p><strong>Step 1: Build the desktop executable</strong></p>
@@ -589,8 +736,11 @@ mytral-&lt;version&gt;.exe
 <a href="#install-on-windows-using-installer" class="nav-link">Install on Windows using Installer</a>
 <a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
 <a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
+<a href="#install-on-linux-using-flatpak" class="nav-link">Install on Linux using Flatpak</a>
 <a href="#build-binary-on-ubuntu" class="nav-link">Build Binary on Ubuntu</a>
 <a href="#build-deb-on-ubuntu" class="nav-link">Build .deb on Ubuntu</a>
+<a href="#build-snap-on-linux" class="nav-link">Build Snap on Linux</a>
+<a href="#build-flatpak-on-linux" class="nav-link">Build Flatpak on Linux</a>
 <a href="#build-windows-installer" class="nav-link">Build Windows Installer</a>
 <a href="#build-binary-on-windows" class="nav-link">Build Binary on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
