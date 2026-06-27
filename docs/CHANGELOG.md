@@ -4,6 +4,16 @@
 
 This MyTraL **minor** release brings:
 
+### Added
+- Added `Distro Tarball` GHA workflow that builds the upstream tarball in
+  `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Snap` GHA workflow that builds the Snap package in
+  `rel/<major.minor.patch>` branches targeting `main`.
+- Added `Distro Windows` GHA workflow that builds the Windows installer and ZIP archive
+  on a Windows runner in `rel/<major.minor.patch>` branches targeting `main`.
+- Added `distro-win-zip` Makefile target that packages the Windows desktop executable
+  into a ZIP archive (`distro/windows/mytral-<version>.exe.zip`).
+
 ### Changed
 - Removed the Waitress WSGI server from the desktop edition. The desktop app serves
   a single local, so it now uses Flask's built-in threaded server - this removes
@@ -13,6 +23,12 @@ This MyTraL **minor** release brings:
 - Updated `cryptography` from 46.0 to 48.0.
 - Updated `msgpack` from 1.0 to 1.2.
 - Updated `pytest` (dev) from 8.4 to 9.0.
+
+### Fixed
+- Fixed `distro-win-installer` Makefile target which depended on the Linux desktop
+  build (`distro-desktop-build`/`distro-desktop-clean`) instead of the Windows one,
+  so it never produced the `.exe` the installer needs - it now depends on
+  `distro-desktop-build-win`.
 
 
 

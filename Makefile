@@ -650,8 +650,13 @@ distro-desktop-install: distro/desktop/mytral ## install desktop application to 
 #   3. Configure compiler path:  build\windows\env.bat
 #
 
-distro-win-installer: distro-win-clean distro-desktop-clean distro-desktop-build  ## build Windows installer (.exe setup) — run after distro-desktop-build-win; requires Inno Setup 6
+.PHONY: distro-win-installer
+distro-win-installer: distro-win-clean distro-desktop-build-win  ## build Windows installer (.exe setup) from the desktop executable; requires Inno Setup 6
 	.\build\windows\build-win-installer.bat
+
+.PHONY: distro-win-zip
+distro-win-zip: ## package Windows desktop executable into a ZIP archive — run after distro-desktop-build-win
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\windows\build-win-zip.ps1
 
 .PHONY: distro-win-clean
 distro-win-clean: ## clean Windows installer build artifacts
