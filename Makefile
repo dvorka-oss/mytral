@@ -689,19 +689,35 @@ distro-snap-remove: ## remove locally installed Snap (requires sudo)
 	@echo "DONE Snap removed"
 
 .PHONY: distro-snap-build
-distro-snap-build: ## build Snap package (LXD required; see build/snap/build-snap.sh)
+distro-snap-build: ## build strict Snap package for the Snap Store (LXD required)
 	@./build/snap/build-snap.sh
 
+.PHONY: distro-snap-build-classic
+distro-snap-build-classic: ## build classic Snap package for downloadable GitHub Release (LXD required)
+	@./build/snap/build-snap.sh --classic
+
 .PHONY: distro-snap-install-local
-distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install Snap locally (for testing, requires sudo)
-	@echo "Installing Snap package locally..."
+distro-snap-install-local: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
+	@echo "Installing classic Snap package locally..."
+	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
+	if [ -z "$$SNAP_FILE" ]; then \
+		echo "Error: Snap package not found. Run 'make distro-snap-build-classic' first."; \
+		exit 1; \
+	fi; \
+	echo "Note: This command requires sudo privileges for snap install"; \
+	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	echo "DONE Snap installed. Run with: mytral"
+
+.PHONY: distro-snap-install-local-strict
+distro-snap-install-local-strict: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
+	@echo "Installing strict Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
 		echo "Error: Snap package not found. Run 'make distro-snap-build' first."; \
 		exit 1; \
 	fi; \
 	echo "Note: This command requires sudo privileges for snap install"; \
-	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	sudo snap install --dangerous "$$SNAP_FILE"; \
 	echo "DONE Snap installed. Run with: mytral"
 
 .PHONY: distro-snap-path
@@ -709,9 +725,9 @@ distro-snap-path: ## show path to built snap package
 	@ls distro/snap/mytral_*.snap 2>/dev/null || echo "No snap package built yet"
 
 .PHONY: distro-snap-upload
-distro-snap-upload: ## upload Snap package to Snap Store
+distro-snap-upload: distro-snap-build ## upload strict Snap package to the Snap Store (amd64)
 	@echo "Uploading Snap package to Snap Store..."
-	snapcraft upload --release=stable mytral_$(MYTRAL_VERSION)_amd64.snap
+	snapcraft upload --release=stable distro/snap/mytral_$(MYTRAL_VERSION)_amd64.snap
 
 #
 # FLATPAK: Flatpak package distribution (local builds only)
@@ -871,7 +887,7 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 # RELEASE
 #
 
-release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build distro-flatpak-build ## build all LINUX distribution packages for release
+release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build-classic distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
 release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release

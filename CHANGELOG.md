@@ -5,13 +5,19 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Published MyTraL to the Snap Store (snapcraft.io) using strict confinement.
+  The Snap Store snap runs the local server and opens the UI in the default browser.
+  Athlete data are stored in `$SNAP_USER_COMMON` (`~/snap/mytral/common`) i.e. are
+  NOT stored in the location used by all other distros + are retained for 30 days only.
+- Added `distro-snap-build-classic` and `distro-snap-install-local-strict` Makefile
+  targets for the two snap confinement variants.
 
 ### Changed
-- .
+- The downloadable Snap (GitHub Releases) keeps classic confinement (native window,
+  `~/.local/share/mytral` data), the Snap Store build is strict.
 
 ### Documentation
-- .
+- Documented both strict and classic Snap installations.
 
 ### Fixed
 - .

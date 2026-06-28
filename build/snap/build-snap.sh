@@ -27,8 +27,12 @@
 #   sudo usermod -aG lxd $USER
 #
 # Usage:
-#   ./build/snap/build-snap.sh              # LXD build (default, isolated)
+#   ./build/snap/build-snap.sh              # strict (default), LXD build
+#   ./build/snap/build-snap.sh --classic    # classic confinement (downloadable sideload)
 #   ./build/snap/build-snap.sh --destructive-mode  # host build (requires sudo for build packages)
+#
+# The committed snap/snapcraft.yaml is the STRICT manifest. --classic transforms a build
+# COPY of it (never the source) via apply-classic.sh.
 
 set -e  # exit on error
 
@@ -37,14 +41,22 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build/snap"
 PROJECT_BUILD_DIR="$BUILD_DIR/project"
 
+# consume the --classic flag; forward the remaining args to 'snapcraft pack'
+CLASSIC=0
+PACK_ARGS=()
+for arg in "$@"; do
+    if [ "$arg" = "--classic" ]; then
+        CLASSIC=1
+    else
+        PACK_ARGS+=("$arg")
+    fi
+done
+
 # read version from the single source of truth (grep avoids importing the full package)
 MYTRAL_VERSION=$(grep -oP '(?<=__version__ = ")[^"]+' "$PROJECT_ROOT/mytral/version.py" || echo "dev")
 
 echo "MyTraL version: $MYTRAL_VERSION"
-
-# inject version into snapcraft.yaml before copying to build dir
-SNAPCRAFT_YAML="$PROJECT_ROOT/snap/snapcraft.yaml"
-sed -i "s/^version: .*/version: '$MYTRAL_VERSION'/" "$SNAPCRAFT_YAML"
+[ "$CLASSIC" -eq 1 ] && echo "Confinement: classic (sideload)" || echo "Confinement: strict (default)"
 
 # clean previous temp build
 echo "Cleaning previous build..."
@@ -67,6 +79,15 @@ rsync -a --exclude='.git' \
          --exclude='*.snap' \
          "$PROJECT_ROOT/" "$PROJECT_BUILD_DIR/"
 
+# inject version into the build COPY (never the committed source)
+BUILD_SNAPCRAFT_YAML="$PROJECT_BUILD_DIR/snap/snapcraft.yaml"
+sed -i "s/^version: .*/version: '$MYTRAL_VERSION'/" "$BUILD_SNAPCRAFT_YAML"
+
+# --classic: transform the build copy from the strict default to classic confinement
+if [ "$CLASSIC" -eq 1 ]; then
+    "$SCRIPT_DIR/apply-classic.sh" "$BUILD_SNAPCRAFT_YAML"
+fi
+
 # build
 echo "Building Snap package..."
 cd "$PROJECT_BUILD_DIR"
@@ -76,7 +97,7 @@ mkdir -p "$PROJECT_ROOT/distro/snap"
 snapcraft clean 2>/dev/null || true
 
 # snapcraft 9: 'snapcraft pack' runs the full lifecycle (pull→build→stage→prime→pack)
-snapcraft pack "$@"
+snapcraft pack "${PACK_ARGS[@]}"
 
 # move snap to output location
 SNAP_FILE=$(ls mytral_*.snap 2>/dev/null | head -1)
