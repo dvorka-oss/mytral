@@ -1,0 +1,92 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+name: Release
+
+# Triggered by pushing a version tag after the release PR is merged to main.
+# Builds the Windows installer + ZIP and publishes a GitHub release with both
+# artifacts attached — providing the public download URL that winget requires.
+#
+# Typical workflow:
+#   git tag v1.56.0 && git push origin v1.56.0
+# or via:
+#   make release-tag VERSION=1.56.0
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write   # required to create the GitHub release
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    - name: Set up Python 3.12
+      run: uv python install 3.12
+
+    - name: Install Inno Setup 6
+      run: choco install innosetup --no-progress -y
+
+    - name: Resolve version
+      id: ver
+      shell: pwsh
+      run: |
+        $v = uv run python -c "import sys; sys.path.insert(0, 'mytral'); import version; print(version.__version__)"
+        "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        Write-Host "Version: $v"
+
+    - name: Verify tag matches version
+      shell: bash
+      run: |
+        TAG="${GITHUB_REF_NAME}"          # e.g. v1.56.0
+        VERSION="${{ steps.ver.outputs.version }}"
+        if [ "v${VERSION}" != "${TAG}" ]; then
+          echo "ERROR: tag ${TAG} does not match version.py (${VERSION})"
+          exit 1
+        fi
+
+    - name: Build Windows desktop executable
+      run: .\build\desktop\build-executable.ps1
+
+    - name: Build Windows installer (Inno Setup)
+      shell: cmd
+      run: .\build\windows\build-win-installer.bat
+
+    - name: Build Windows ZIP (portable)
+      run: .\build\windows\build-win-zip.ps1
+
+    - name: Create GitHub release and upload artifacts
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        VERSION="${{ steps.ver.outputs.version }}"
+        gh release create "v${VERSION}" \
+          --title "MyTraL ${VERSION}" \
+          --generate-notes \
+          "distro/windows/mytral-${VERSION}-setup.exe#MyTraL ${VERSION} Installer (Windows)" \
+          "distro/windows/mytral-${VERSION}.exe.zip#MyTraL ${VERSION} Portable ZIP (Windows)"

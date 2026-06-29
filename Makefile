@@ -667,6 +667,37 @@ distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
+# DISTRIBUTION: winget (Windows Package Manager)
+#
+# See WINGET_DISTRO.md for the full release workflow.
+#
+# Prerequisites:
+#   winget CLI:    winget install Microsoft.Winget.Client
+#   gh CLI:        winget install GitHub.cli  (+ gh auth login)
+#
+# Per-release sequence — run AFTER the GitHub release is live:
+#   make distro-winget-from-release VERSION=x.y.z
+#   make distro-winget-validate     VERSION=x.y.z
+#   make distro-winget-submit-pr    VERSION=x.y.z WINGET_PKGS_DIR=C:\path\to\winget-pkgs
+#
+
+.PHONY: distro-winget-from-release
+distro-winget-from-release: ## download published installer from GitHub release, hash it, and generate winget manifests (VERSION required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/generate-from-release.ps1 -Version $(VERSION)
+
+.PHONY: distro-winget-validate
+distro-winget-validate: ## validate generated winget manifests locally (VERSION required)
+	winget validate --manifest distro/winget/manifests/m/Mytral/Mytral/$(VERSION)
+
+.PHONY: distro-winget-submit-pr
+distro-winget-submit-pr: ## copy manifests to winget-pkgs fork, commit signed, push, open PR (VERSION and WINGET_PKGS_DIR required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/submit-pr.ps1 -Version $(VERSION) -WingetPkgsDir "$(WINGET_PKGS_DIR)"
+
+.PHONY: distro-winget-sha256-url
+distro-winget-sha256-url: ## print SHA256 of the published installer without generating manifests (VERSION required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/sha256-from-url.ps1 -Version $(VERSION)
+
+#
 # SNAP: Snap package distribution (local builds only)
 #
 # Prerequisites:
@@ -874,8 +905,13 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
-release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release
+release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-zip distro-win-installer ## build all WIN distribution packages for release (local build — for GHA release use release-tag)
 	@echo "ALL Win distribution packages built for release"
+
+.PHONY: release-tag
+release-tag: ## push a version tag to trigger the GHA release workflow (VERSION required)
+	git tag v$(VERSION)
+	git push origin v$(VERSION)
 
 .PHONY: release-distros-macos
 release-distros-macos:  ## build all MACOS distribution packages for release

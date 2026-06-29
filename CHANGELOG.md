@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.57.0
+
+### Added
+- Added Winget distribution Makefile targets, artifacts and scripts.
+
+### Documentation
+- Documented Winget release process as a feature analysis in docs/.
+
+
+
 ## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
 
 This MyTraL **minor** release brings:
