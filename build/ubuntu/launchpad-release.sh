@@ -49,6 +49,10 @@ data = tomllib.loads(pathlib.Path('${MYTRAL_SRC}/pyproject.toml').read_text())
 print(data['project']['authors'][0]['email'])
 ")
 
+# set to the highest patch number already uploaded for this release;
+# the loop increments it before each build, so 0 > first build gets .1
+PATCH_VERSION=12
+
 # set to true to skip the final dput upload step
 export DRY_RUN="${DRY_RUN:-false}"
 #export DRY_RUN="true"
@@ -317,10 +321,6 @@ print(version.__version__.replace('dev', '').rstrip('.'))
 ")
 echo "Releasing MyTraL version: ${BASE_VERSION}"
 
-# set to the highest patch number already uploaded for this release;
-# the loop increments it before each build, so 0 > first build gets .1
-PATCH_VERSION=10
-
 export MYTRAL_MSG="Release ${BASE_VERSION}"
 
 # start GPG agent if not already running
@@ -346,8 +346,9 @@ fi
 #   jammy noble plucky questing
 # future:
 #   resolute
-for UBUNTU_VERSION in noble
-# for UBUNTU_VERSION in jammy noble plucky questing resolute
+
+# for UBUNTU_VERSION in noble
+for UBUNTU_VERSION in jammy noble plucky questing resolute
 do
     PATCH_VERSION=$((PATCH_VERSION + 1))
     VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
