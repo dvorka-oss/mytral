@@ -12,6 +12,9 @@ This MyTraL **minor** release brings:
 
 ### Documentation
 - Documented Winget release process as a feature analysis in docs/.
+- Documented installing MyTraL on Windows via Winget (`winget install --id Mytral.Mytral`)
+  as a new chapter in INSTALLATION.md.
+- Listed the Windows (winget) installation method in README.md.
 
 ### Fixed
 - .

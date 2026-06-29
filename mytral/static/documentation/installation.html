@@ -210,15 +210,16 @@
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Install:</p>
 <ul>
 <li><a href="#install-on-linux-using-flatpak">Linux (Flatpak)</a></li>
-<li><a href="#install-on-linux-using-snap">Linux (Snap)</a></li>
+<li><a href="#install-on-linux-using-snap">Linux (download)</a></li>
 <li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
-<li><a href="#install-on-windows-using-installer">Windows (Installer)</a></li>
-<li><a href="#install-on-windows-using-zip">Windows (ZIP)</a></li>
+<li><a href="#install-on-windows-using-winget">Windows (winget)</a></li>
+<li><a href="#install-on-windows-using-installer">Windows (installer)</a></li>
+<li><a href="#install-on-windows-using-zip">Windows (zip)</a></li>
 </ul>
 <p>Build:</p>
 <ul>
 <li><a href="#build-binary-on-ubuntu">Ubuntu (binary)</a></li>
-<li><a href="#build--deb-on-ubuntu">Ubuntu (.deb)</a></li>
+<li><a href="#build--deb-on-ubuntu">Ubuntu (deb)</a></li>
 <li><a href="#build-snap-on-linux">Snap (package)</a></li>
 <li><a href="#build-flatpak-on-linux">Flatpak (bundle)</a></li>
 <li><a href="#build-binary-on-windows">Windows (binary)</a></li>
@@ -245,6 +246,30 @@
 <div class="codehilite"><pre><span></span><code>sudo add-apt-repository ppa:ultradvorka/sport
 sudo apt-get update
 sudo apt-get install mytral
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-winget">Install on Windows using winget</h2>
+<p><a href="https://learn.microsoft.com/windows/package-manager/">winget</a> is the Windows Package
+Manager, built into Windows 10 and 11. It downloads, installs and updates MyTraL from the
+official <a href="https://github.com/microsoft/winget-pkgs">Microsoft Community repository</a> - no
+manual download required.</p>
+<p>Install MyTraL:</p>
+<div class="codehilite"><pre><span></span><code>winget install --id Mytral.Mytral
+</code></pre></div>
+
+<p>Accept the source and package agreements if prompted. winget downloads the signed
+installer from <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a>, verifies
+its SHA256 checksum and installs MyTraL to <code>C:\Program Files\MyTraL\</code>.</p>
+<p>Data is stored in:</p>
+<div class="codehilite"><pre><span></span><code>C:\Users\&lt;user&gt;\AppData\Local\mytral\
+</code></pre></div>
+
+<p><strong>Upgrade</strong> to the latest release:</p>
+<div class="codehilite"><pre><span></span><code>winget upgrade --id Mytral.Mytral
+</code></pre></div>
+
+<p><strong>Uninstall:</strong></p>
+<div class="codehilite"><pre><span></span><code>winget uninstall --id Mytral.Mytral
 </code></pre></div>
 
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-installer">Install on Windows using Installer</h2>
@@ -733,6 +758,7 @@ mytral-&lt;version&gt;.exe
     <h3 class="mt-9">Table of Contents</h3>
     <div class="nav nav-vertical" id="toc">
         <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
+<a href="#install-on-windows-using-winget" class="nav-link">Install on Windows using winget</a>
 <a href="#install-on-windows-using-installer" class="nav-link">Install on Windows using Installer</a>
 <a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
 <a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
