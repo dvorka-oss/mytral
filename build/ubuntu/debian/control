@@ -10,8 +10,6 @@ Vcs-Browser: https://github.com/dvorka-oss/mytral
 
 Package: mytral
 Architecture: all
-Depends: ${misc:Depends}, python3-venv
+Depends: ${misc:Depends}, curl, ca-certificates
 Description: Sovereign athlete training log for deeper insights and smarter progress.
- MyTraL is a self-hosted Python/Flask web application for tracking athlete
- training data. All Python dependencies are installed into an isolated
- virtualenv at /opt/mytral/venv during package setup.
+ Your log, your data, your edge. Track, analyze, understand, and optimize to achieve your goals. Train smarter, not harder.

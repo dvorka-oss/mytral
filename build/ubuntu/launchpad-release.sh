@@ -337,17 +337,18 @@ fi
 # obsolete:
 #   precise quantal saucy utopic vivid wily yakkety artful cosmic disco eoan
 #   groovy hirsute impish oracular
-# removed (build-time deps unavailable; cannot install Python 3.12 app either):
-#   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.4
-#   xenial (16.04): debhelper 10, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.5
-#   bionic (18.04): debhelper 11, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.6
-#   focal  (20.04): debhelper 12, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.8
-# current:
+# the Python runtime of distro version does not matter: postinst uses uv
+# to provision a self-contained Python 3.12 regardless of the system interpreter:
+#   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling
+#   xenial (16.04): debhelper 10, no pybuild-plugin-pyproject, no python3-hatchling
+#   bionic (18.04): debhelper 11, no pybuild-plugin-pyproject, no python3-hatchling
+#   focal  (20.04): debhelper 12, no pybuild-plugin-pyproject, no python3-hatchling
+# current (build-time deps available; uv handles the 3.12 runtime at install):
 #   jammy noble plucky questing
 # future:
 #   resolute
-for UBUNTU_VERSION in noble
-# for UBUNTU_VERSION in jammy noble plucky questing resolute
+# for UBUNTU_VERSION in noble
+for UBUNTU_VERSION in trusty xenial bionic focal jammy noble questing resolute
 do
     PATCH_VERSION=$((PATCH_VERSION + 1))
     VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"

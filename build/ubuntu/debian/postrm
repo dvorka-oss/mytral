@@ -2,6 +2,11 @@
 set -e
 
 case "$1" in
+    remove)
+        # remove everything postinst generated (uv, managed Python, venv);
+        # dpkg removes the package-shipped files itself
+        rm -rf /opt/mytral/venv /opt/mytral/python /opt/mytral/bin /opt/mytral/.cache
+        ;;
     purge)
         rm -rf /opt/mytral
         ;;
