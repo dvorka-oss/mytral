@@ -19,17 +19,20 @@
 
 Install:
 
-* [Linux (Snap)](INSTALLATION.md#install-on-linux-using-snap)
 * [Linux (Flatpak)](INSTALLATION.md#install-on-linux-using-flatpak)
+* [Linux (download)](INSTALLATION.md#install-on-linux-using-snap)
 * [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
-* [Windows (ZIP)](INSTALLATION.md#install-on-windows-using-zip)
+* [Windows (winget)](INSTALLATION.md#install-on-windows-using-winget)
+* [Windows (installer)](INSTALLATION.md#install-on-windows-using-installer)
+* [Windows (zip)](INSTALLATION.md#install-on-windows-using-zip)
 
 Build:
 
 * [Ubuntu (binary)](INSTALLATION.md#build-binary-on-ubuntu)
-* [Ubuntu (.deb)](INSTALLATION.md#build--deb-on-ubuntu)
+* [Ubuntu (deb)](INSTALLATION.md#build--deb-on-ubuntu)
 * [Snap (package)](INSTALLATION.md#build-snap-on-linux)
 * [Flatpak (bundle)](INSTALLATION.md#build-flatpak-on-linux)
+* [Windows (installer)](INSTALLATION.md#build-windows-installer)
 * [Windows (binary)](INSTALLATION.md#build-binary-on-windows)
 
 Run:

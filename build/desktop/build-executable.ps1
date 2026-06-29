@@ -77,6 +77,24 @@ if (Test-Path $ExecutablePath) {
     Write-Host "Build successful!" -ForegroundColor Green
     Write-Host "================================================" -ForegroundColor Green
     Write-Host "Executable: $ExecutablePath" -ForegroundColor Green
+
+    # generate .desktop file with Exec= pointing to the .exe by bare filename
+    $DesktopFile = Join-Path $DistDir "mytral.desktop"
+    $TemplateFile = Join-Path $BuildDir "mytral.desktop.in"
+    $DesktopContent = (Get-Content $TemplateFile -Raw) `
+        -replace '@@MYTRAL_VERSION@@', $MytralVersion `
+        -replace '@@EXEC_PATH@@', $ExecutableName
+    Set-Content -Path $DesktopFile -Value $DesktopContent -Encoding UTF8
+    Write-Host "Desktop file: $DesktopFile" -ForegroundColor Green
+
+    # create .zip archive containing the .exe and .desktop file
+    $ZipName = "mytral-$MytralVersion-win.zip"
+    $ZipPath = Join-Path $DistDir $ZipName
+
+    if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
+
+    Compress-Archive -Path @($ExecutablePath, $DesktopFile) -DestinationPath $ZipPath
+    Write-Host "Archive:    $ZipPath" -ForegroundColor Green
 } else {
     Write-Host "================================================" -ForegroundColor Red
     Write-Host "Build failed!" -ForegroundColor Red

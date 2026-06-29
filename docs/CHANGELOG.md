@@ -1,6 +1,27 @@
 # Changelog
 
-## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
+## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added Winget distribution Makefile targets, artifacts and scripts.
+
+### Changed
+- .
+
+### Documentation
+- Documented Winget release process as a feature analysis in docs/.
+- Documented installing MyTraL on Windows via Winget (`winget install --id Mytral.Mytral`)
+  as a new chapter in INSTALLATION.md.
+- Listed the Windows (winget) installation method in README.md.
+
+### Fixed
+- .
+
+
+
+## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0)
 
 This MyTraL **minor** release brings:
 

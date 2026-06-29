@@ -3,15 +3,16 @@
 Install:
 
 * [Linux (Flatpak)](#install-on-linux-using-flatpak)
-* [Linux (Snap)](#install-on-linux-using-snap)
+* [Linux (download)](#install-on-linux-using-snap)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
-* [Windows (Installer)](#install-on-windows-using-installer)
-* [Windows (ZIP)](#install-on-windows-using-zip)
+* [Windows (winget)](#install-on-windows-using-winget)
+* [Windows (installer)](#install-on-windows-using-installer)
+* [Windows (zip)](#install-on-windows-using-zip)
 
 Build:
 
 * [Ubuntu (binary)](#build-binary-on-ubuntu)
-* [Ubuntu (.deb)](#build--deb-on-ubuntu)
+* [Ubuntu (deb)](#build--deb-on-ubuntu)
 * [Snap (package)](#build-snap-on-linux)
 * [Flatpak (bundle)](#build-flatpak-on-linux)
 * [Windows (binary)](#build-binary-on-windows)
@@ -48,6 +49,43 @@ sudo add-apt-repository ppa:ultradvorka/sport && sudo apt-get update && sudo apt
 sudo add-apt-repository ppa:ultradvorka/sport
 sudo apt-get update
 sudo apt-get install mytral
+```
+
+
+
+## Install on Windows using winget
+
+[winget](https://learn.microsoft.com/windows/package-manager/) is the Windows Package
+Manager, built into Windows 10 and 11. It downloads, installs and updates MyTraL from the
+official [Microsoft Community repository](https://github.com/microsoft/winget-pkgs) - no
+manual download required.
+
+Install MyTraL:
+
+```
+winget install --id Mytral.Mytral
+```
+
+Accept the source and package agreements if prompted. winget downloads the signed
+installer from [GitHub Releases](https://github.com/dvorka-oss/mytral/releases), verifies
+its SHA256 checksum and installs MyTraL to `C:\Program Files\MyTraL\`.
+
+Data is stored in:
+
+```
+C:\Users\<user>\AppData\Local\mytral\
+```
+
+**Upgrade** to the latest release:
+
+```
+winget upgrade --id Mytral.Mytral
+```
+
+**Uninstall:**
+
+```
+winget uninstall --id Mytral.Mytral
 ```
 
 
