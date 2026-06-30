@@ -1,0 +1,51 @@
+#!/usr/bin/make -f
+
+# Old-Ubuntu compatible packaging (trusty, xenial, bionic, focal, ...).
+#
+# These releases predate Python 3.12 and do not ship the build tooling the
+# modern packaging relies on (pybuild-plugin-pyproject, python3-hatchling).
+# uv is therefore used to provision a self-contained Python 3.12 that builds
+# the wheel here; the wheel and its dependencies are installed at configure
+# time by debian/postinst — exactly as on modern releases. This file mirrors
+# build/ubuntu/debian/rules but replaces the pybuild build with uv.
+
+export DH_VERBOSE=1
+
+# keep uv's managed Python and cache inside the build tree
+export UV_PYTHON_INSTALL_DIR=$(CURDIR)/.uv/python
+export UV_CACHE_DIR=$(CURDIR)/.uv/cache
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -rf .uv dist
+
+override_dh_auto_build:
+	# trusty ships Python 3.4 — provision 3.12 and build the wheel with uv
+	uv build --wheel --out-dir dist
+
+override_dh_auto_install:
+	# bundle the built wheel for venv installation in postinst
+	mkdir -p debian/mytral/opt/mytral
+	find dist -name "mytral-*.whl" | head -1 | xargs -I{} cp {} debian/mytral/opt/mytral/
+	# generate requirements.txt from pyproject.toml — single source of truth
+	# include core deps + runtime desktop deps (exclude build-only: pyinstaller, backports.*, importlib-*)
+	uv run --python 3.12 --no-project python -c "\
+import pathlib, tomllib; \
+data = tomllib.loads(pathlib.Path('pyproject.toml').read_text()); \
+build_only = {'pyinstaller', 'importlib-metadata', 'importlib-resources', \
+    'backports.functools-lru-cache', 'backports.zoneinfo', 'backports.tarfile'}; \
+desktop = [d for d in data['dependency-groups']['desktop'] \
+    if not any(d.startswith(p) for p in build_only)]; \
+deps = data['project']['dependencies'] + desktop; \
+print('\n'.join(deps))" > debian/mytral/opt/mytral/requirements.txt
+	# wrapper scripts use the isolated venv — nothing touches system Python
+	install -d debian/mytral/usr/bin
+	printf '#!/bin/sh\nexport MYTRAL_INCARNATION=DESKTOP\nexport MYTRAL_USER_REGISTRATION=true\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-desktop "$$@"\n' > debian/mytral/usr/bin/mytral
+	printf '#!/bin/sh\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-web "$$@"\n' > debian/mytral/usr/bin/mytral-web
+	printf '#!/bin/sh\nexport MYTRAL_INCARNATION=DESKTOP\nexport MYTRAL_USER_REGISTRATION=true\nexport MYTRAL_ENABLE_CACHE=true\nexec /opt/mytral/venv/bin/mytral-desktop "$$@"\n' > debian/mytral/usr/bin/mytral-desktop
+	chmod 755 debian/mytral/usr/bin/mytral debian/mytral/usr/bin/mytral-web debian/mytral/usr/bin/mytral-desktop
+
+override_dh_auto_test:
+	# tests require an active virtualenv — skip in package build environment

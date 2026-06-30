@@ -606,6 +606,36 @@ distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
 	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"
 
 #
+# TEST: Ubuntu .deb, release by release, in Docker
+#
+# Each target builds the .deb ON the target Ubuntu release, installs it
+# (postinst provisions uv + Python 3.12), and leaves MyTraL running on
+# http://localhost:8888 for manual testing. Scoped to the legacy releases that
+# predate Python 3.12 and use debhelper compat 9 (the #89 concern); modern
+# releases are covered by the canonical packaging and distro-docker-debian.
+#
+
+.PHONY: test-ubuntu-trusty
+test-ubuntu-trusty: ## build+install the .deb on Ubuntu 14.04 trusty in Docker and run MyTraL (http://localhost:8888)
+	@./build/docker/ubuntu/build.sh trusty
+	@./build/docker/ubuntu/run.sh trusty
+
+.PHONY: test-ubuntu-xenial
+test-ubuntu-xenial: ## build+install the .deb on Ubuntu 16.04 xenial in Docker and run MyTraL (http://localhost:8888)
+	@./build/docker/ubuntu/build.sh xenial
+	@./build/docker/ubuntu/run.sh xenial
+
+.PHONY: test-ubuntu-bionic
+test-ubuntu-bionic: ## build+install the .deb on Ubuntu 18.04 bionic in Docker and run MyTraL (http://localhost:8888)
+	@./build/docker/ubuntu/build.sh bionic
+	@./build/docker/ubuntu/run.sh bionic
+
+.PHONY: test-ubuntu-focal
+test-ubuntu-focal: ## build+install the .deb on Ubuntu 20.04 focal in Docker and run MyTraL (http://localhost:8888)
+	@./build/docker/ubuntu/build.sh focal
+	@./build/docker/ubuntu/run.sh focal
+
+#
 # DISTRIBUTION: desktop application
 #
 
