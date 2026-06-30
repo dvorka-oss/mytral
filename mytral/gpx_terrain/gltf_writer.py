@@ -228,13 +228,21 @@ def assemble_gltf(
             tex_idx = len(doc["textures"])
             doc["textures"].append({"sampler": 0, "source": img_idx})
             material_idx = len(doc["materials"])
+            # render the map tile mostly UNLIT: most of its colour comes through
+            # the emissive channel so the map reads at near-true brightness
+            # regardless of slope orientation, while a small lit base term still
+            # gives gentle directional relief (CubeTrek look). Avoids the
+            # "dark cave" effect of fully re-lighting a flat raster map.
             doc["materials"].append(
                 {
                     "pbrMetallicRoughness": {
                         "baseColorTexture": {"index": tex_idx},
+                        "baseColorFactor": [0.35, 0.35, 0.35, 1.0],
                         "metallicFactor": 0.0,
                         "roughnessFactor": 1.0,
-                    }
+                    },
+                    "emissiveTexture": {"index": tex_idx},
+                    "emissiveFactor": [0.85, 0.85, 0.85],
                 }
             )
 

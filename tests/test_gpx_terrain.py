@@ -25,6 +25,7 @@ from mytral.gpx_terrain import hgt_loader
 from mytral.gpx_terrain import map_tile
 from mytral.gpx_terrain import mesh_builder
 from mytral.gpx_terrain import terrain_service
+from mytral.gpx_terrain import tile_cache
 
 # ---------------------------------------------------------------------------
 # coordinates.py
@@ -677,3 +678,57 @@ def test_terrain_service_tatry_tile_seams_are_continuous(monkeypatch, tmp_path):
         south = tile_grids.get((tx, ty + 1))
         if south is not None:
             assert np.allclose(grid[-1, :, 1], south[0, :, 1], atol=1e-6)
+
+
+@pytest.mark.mytral
+def test_assemble_gltf_map_material_is_mostly_unlit():
+    # GIVEN a textured terrain mesh
+    buf = _make_simple_mesh()
+    tile = map_tile.MapTile(zoom=14, x=8765, y=5743)
+    meta = [{"_tile": tile, "Tile_Z": "14", "Tile_X": "8765", "Tile_Y": "5743"}]
+
+    # WHEN GLTF is assembled with a tile texture
+    doc = json.loads(
+        gltf_writer.assemble_gltf(
+            [buf], [], meta, tile_url_template="https://tile.example/{z}/{x}/{y}.png"
+        )
+    )
+
+    # THEN the material emits the map texture (so the map reads at near-true
+    # brightness regardless of slope), with a dim lit base term for relief
+    mat = doc["materials"][0]
+    assert "emissiveTexture" in mat
+    assert mat["emissiveFactor"][0] > 0.5
+    assert mat["pbrMetallicRoughness"]["baseColorFactor"][0] < 0.5
+
+
+# ---------------------------------------------------------------------------
+# tile_cache.py
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.mytral
+def test_tile_cache_miss_then_hit_roundtrip(tmp_path):
+    # GIVEN an empty tile cache
+    cache = tile_cache.TileCache(tmp_path / "map_tiles")
+
+    # WHEN a tile is requested before it is stored
+    # THEN it is a miss
+    assert cache.get("osm", 14, 8765, 5743) is None
+
+    # WHEN the tile bytes are stored and re-read
+    cache.put("osm", 14, 8765, 5743, b"\x89PNG-fake-tile")
+
+    # THEN the same bytes come back (offline-capable on subsequent loads)
+    assert cache.get("osm", 14, 8765, 5743) == b"\x89PNG-fake-tile"
+
+
+@pytest.mark.mytral
+def test_tile_cache_rejects_unknown_maptype(tmp_path):
+    # GIVEN a tile cache
+    cache = tile_cache.TileCache(tmp_path / "map_tiles")
+
+    # WHEN an unknown maptype is used (defence against path traversal)
+    # THEN it raises rather than writing outside the cache tree
+    with pytest.raises(ValueError):
+        cache.put("../etc", 1, 2, 3, b"x")

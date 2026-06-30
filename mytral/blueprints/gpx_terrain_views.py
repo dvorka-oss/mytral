@@ -26,10 +26,12 @@ API   : GET /api/terrain/<key>.geojson
         GET /api/terrain/tiles/<maptype>/<z>/<x>/<y>.png  (tile proxy, avoids CORS)
 """
 
+import io
 import os
 import typing
 
 import flask
+import PIL.Image
 import requests
 
 import mytral
@@ -39,14 +41,16 @@ from mytral import app_user_ds as ds
 from mytral import blobstore as blob_pkg
 from mytral.blobstore import activity_service as blob_svc_module
 from mytral.gpx_terrain import TerrainService
+from mytral.gpx_terrain import tile_cache as tile_cache_module
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 
 # MapTiler API key is optional — OSM is used when the key is absent.
 _MAPTILER_KEY: str = os.environ.get("MYTRAL_MAPTILER_KEY", "")
 
-# Lazy singleton: created once on first request.
+# Lazy singletons: created once on first request.
 _terrain_svc: TerrainService | None = None
+_tile_cache: tile_cache_module.TileCache | None = None
 
 
 def _svc() -> TerrainService:
@@ -60,6 +64,20 @@ def _svc() -> TerrainService:
             tile_proxy_base="/api/terrain/tiles",
         )
     return _terrain_svc
+
+
+def _tiles() -> tile_cache_module.TileCache:
+    """Return (or lazily create) the shared on-disk map-tile cache.
+
+    Tiles live under the purgeable cache dir so they survive restarts (offline
+    support) but can be cleared at any time.
+    """
+    global _tile_cache
+    if _tile_cache is None:
+        _tile_cache = tile_cache_module.TileCache(
+            app_config.paths.work_path / "map_tiles"
+        )
+    return _tile_cache
 
 
 def _blob_service() -> blob_svc_module.ActivityBlobService:
@@ -211,6 +229,21 @@ _TILE_MIMETYPES: dict[str, str] = {
     "satellite": "image/jpeg",
 }
 
+# lazily-built muted grey-green placeholder, served when a tile cannot be
+# fetched so a single missing tile never aborts the whole GLTF texture load
+_placeholder_png: bytes | None = None
+
+
+def _placeholder_tile() -> bytes:
+    """Return a solid placeholder PNG tile (built once, then cached)."""
+    global _placeholder_png
+    if _placeholder_png is None:
+        img = PIL.Image.new("RGB", (256, 256), (150, 156, 150))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        _placeholder_png = buf.getvalue()
+    return _placeholder_png
+
 
 @flask_app.route(
     "/api/terrain/tiles/<maptype>/<int:z>/<int:x>/<int:y>.png",
@@ -231,21 +264,33 @@ def terrain_tile_proxy(maptype: str, z: int, x: int, y: int):
     if maptype in ("standard", "satellite") and not _MAPTILER_KEY:
         return flask.abort(403)
 
-    template = _TILE_URLS[maptype]
-    url = template.format(z=z, x=x, y=y)
-    try:
-        resp = requests.get(
-            url,
-            timeout=_TILE_TIMEOUT_S,
-            headers={"User-Agent": "MytraL/1.0 (mytral.fitness; training log)"},
-        )
-        resp.raise_for_status()
-    except Exception as exc:
-        logger.warning(f"terrain: tile proxy error {url}: {exc}")
-        return flask.abort(502)
+    # serve from the on-disk cache when available (offline support, no refetch)
+    cache = _tiles()
+    content = cache.get(maptype, z, x, y)
+    if content is None:
+        template = _TILE_URLS[maptype]
+        url = template.format(z=z, x=x, y=y)
+        try:
+            resp = requests.get(
+                url,
+                timeout=_TILE_TIMEOUT_S,
+                headers={"User-Agent": "MytraL/1.0 (mytral.fitness; training log)"},
+            )
+            resp.raise_for_status()
+        except Exception as exc:
+            # degrade gracefully: a placeholder keeps the 3D scene intact even
+            # when a single tile is unreachable (offline, CDN hiccup, 404)
+            logger.warning(f"terrain: tile proxy error {url}: {exc}")
+            return flask.Response(
+                _placeholder_tile(),
+                mimetype="image/png",
+                headers={"Cache-Control": "no-store"},
+            )
+        content = resp.content
+        cache.put(maptype, z, x, y, content)
 
     return flask.Response(
-        resp.content,
+        content,
         mimetype=_TILE_MIMETYPES[maptype],
         headers={
             "Cache-Control": "public, max-age=86400",

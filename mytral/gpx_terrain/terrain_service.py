@@ -34,6 +34,7 @@ _HEIGHT_OFFSET_M: float = 500.0  # ensure terrain base stays above zero
 _PADDING_M: float = 500.0  # bounding box padding around track
 _MAX_TILES: int = 48
 _GRID_CELLS_PER_TILE: int = 40  # DEM sample density per map tile
+_GLTF_CACHE_MAX: int = 16  # cap in-memory GLTF cache (each entry is large base64)
 
 # OSM raster tile template (no API key required)
 OSM_TILE_TEMPLATE: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -99,8 +100,8 @@ class TerrainService:
         self._hgt_cache = hgt_loader.HgtCache(hgt_dir, cells=hgt_loader.CELLS_3DEM)
         self._maptiler_key = maptiler_key
         self._tile_proxy_base = tile_proxy_base
-        # in-memory GLTF cache keyed by (activity_key, tile_type)
-        self._gltf_cache: dict[tuple[str, str], str] = {}
+        # bounded in-memory GLTF cache keyed by (activity_key, tile_type, proxy)
+        self._gltf_cache: dict[tuple[str, str, str], str] = {}
 
     def build_geojson(self, gpx_stream: object, activity_name: str = "") -> str:
         """Parse a GPX stream and return a GeoJSON string.
@@ -255,10 +256,17 @@ class TerrainService:
         """
         cache_key = (activity_key, tile_type, self._tile_proxy_base)
         if cache_key in self._gltf_cache:
-            return self._gltf_cache[cache_key]
+            # mark as most-recently-used
+            result = self._gltf_cache.pop(cache_key)
+            self._gltf_cache[cache_key] = result
+            return result
 
         result = self._generate_gltf(gpx_stream, tile_type, with_enclosure)
         self._gltf_cache[cache_key] = result
+        # evict least-recently-used entries beyond the cap (dict keeps order)
+        while len(self._gltf_cache) > _GLTF_CACHE_MAX:
+            oldest = next(iter(self._gltf_cache))
+            del self._gltf_cache[oldest]
         return result
 
     def _generate_gltf(
@@ -397,5 +405,6 @@ class TerrainService:
         activity_key : str
             Activity identifier to evict from the cache.
         """
-        for tile_type in ("osm", "standard", "satellite"):
-            self._gltf_cache.pop((activity_key, tile_type), None)
+        stale = [key for key in self._gltf_cache if key[0] == activity_key]
+        for key in stale:
+            del self._gltf_cache[key]
