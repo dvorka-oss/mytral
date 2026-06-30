@@ -10,7 +10,6 @@
 """Tests for mytral.gpx_terrain modules (no network, no disk I/O)."""
 
 import base64
-import io
 import json
 import pathlib
 import textwrap
@@ -26,6 +25,7 @@ from mytral.gpx_terrain import map_tile
 from mytral.gpx_terrain import mesh_builder
 from mytral.gpx_terrain import terrain_service
 from mytral.gpx_terrain import tile_cache
+from mytral.recordings import parquet_converter
 
 # ---------------------------------------------------------------------------
 # coordinates.py
@@ -114,11 +114,21 @@ _MINIMAL_GPX = textwrap.dedent("""\
     <gpx version="1.1" creator="test">
       <trk>
         <trkseg>
-          <trkpt lat="47.0" lon="11.0"><ele>1000</ele></trkpt>
-          <trkpt lat="47.01" lon="11.01"><ele>1050</ele></trkpt>
-          <trkpt lat="47.02" lon="11.02"><ele>1100</ele></trkpt>
-          <trkpt lat="47.03" lon="11.03"><ele>1080</ele></trkpt>
-          <trkpt lat="47.04" lon="11.04"><ele>1060</ele></trkpt>
+          <trkpt lat="47.0" lon="11.0">
+            <ele>1000</ele><time>2024-01-01T00:00:00Z</time>
+          </trkpt>
+          <trkpt lat="47.01" lon="11.01">
+            <ele>1050</ele><time>2024-01-01T00:00:10Z</time>
+          </trkpt>
+          <trkpt lat="47.02" lon="11.02">
+            <ele>1100</ele><time>2024-01-01T00:00:20Z</time>
+          </trkpt>
+          <trkpt lat="47.03" lon="11.03">
+            <ele>1080</ele><time>2024-01-01T00:00:30Z</time>
+          </trkpt>
+          <trkpt lat="47.04" lon="11.04">
+            <ele>1060</ele><time>2024-01-01T00:00:40Z</time>
+          </trkpt>
         </trkseg>
       </trk>
     </gpx>
@@ -126,12 +136,12 @@ _MINIMAL_GPX = textwrap.dedent("""\
 
 
 @pytest.mark.mytral
-def test_parse_gpx_point_count():
-    # GIVEN a minimal GPX with 5 track points
-    stream = io.BytesIO(_MINIMAL_GPX.encode())
+def test_points_from_parquet_point_count():
+    # GIVEN a minimal GPX normalized to the canonical recording Parquet
+    parquet_bytes = parquet_converter.gpx_to_parquet(_MINIMAL_GPX.encode())
 
-    # WHEN the GPX is parsed
-    points = gpx_worker.parse_gpx(stream)
+    # WHEN track points are read from the Parquet
+    points = gpx_worker.points_from_parquet(parquet_bytes)
 
     # THEN all 5 points are returned with correct coordinates
     assert len(points) == 5
@@ -141,14 +151,14 @@ def test_parse_gpx_point_count():
 
 
 @pytest.mark.mytral
-def test_parse_gpx_elevation_preserved():
-    # GIVEN a GPX with known elevation sequence
-    stream = io.BytesIO(_MINIMAL_GPX.encode())
+def test_points_from_parquet_elevation_preserved():
+    # GIVEN a GPX with a known elevation sequence, normalized to Parquet
+    parquet_bytes = parquet_converter.gpx_to_parquet(_MINIMAL_GPX.encode())
 
-    # WHEN parsed
-    points = gpx_worker.parse_gpx(stream)
+    # WHEN read back as track points
+    points = gpx_worker.points_from_parquet(parquet_bytes)
 
-    # THEN elevation values match the XML
+    # THEN elevation values match the source
     eles = [p.elevation for p in points]
     assert eles == [1000.0, 1050.0, 1100.0, 1080.0, 1060.0]
 
@@ -648,13 +658,16 @@ def test_terrain_service_tatry_tile_seams_are_continuous(monkeypatch, tmp_path):
 
     svc = terrain_service.TerrainService(hgt_dir=tmp_path / "hgt")
     tatry_gpx = pathlib.Path("tests/data/import/gpx/hike-tatry-9718831053.gpx")
-    with tatry_gpx.open("rb") as stream:
-        gltf_str = svc.build_gltf(
-            gpx_stream=stream,
-            activity_key="tatry-seam-regression",
-            tile_type="osm",
-            with_enclosure=False,
-        )
+    # go through the canonical Parquet path, as the blueprint does
+    points = gpx_worker.points_from_parquet(
+        parquet_converter.gpx_to_parquet(tatry_gpx.read_bytes())
+    )
+    gltf_str = svc.build_gltf(
+        points=points,
+        activity_key="tatry-seam-regression",
+        tile_type="osm",
+        with_enclosure=False,
+    )
 
     # WHEN mesh borders are compared across adjacent tiles
     doc = json.loads(gltf_str)

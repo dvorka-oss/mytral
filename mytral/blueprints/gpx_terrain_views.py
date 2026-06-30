@@ -28,7 +28,6 @@ API   : GET /api/terrain/<key>.geojson
 
 import io
 import os
-import typing
 
 import flask
 import PIL.Image
@@ -40,8 +39,10 @@ from mytral import app_logger as logger
 from mytral import app_user_ds as ds
 from mytral import blobstore as blob_pkg
 from mytral.blobstore import activity_service as blob_svc_module
+from mytral.gpx_terrain import gpx_worker
 from mytral.gpx_terrain import TerrainService
 from mytral.gpx_terrain import tile_cache as tile_cache_module
+from mytral.recordings import parquet_converter
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 
@@ -143,13 +144,13 @@ def terrain_geojson(activity_key: str):
         return flask.abort(401)
 
     blob_svc = _blob_service()
-    gpx_stream = _open_gpx_stream(blob_svc, user_id, activity_key)
-    if gpx_stream is None:
+    points = _load_track_points(blob_svc, user_id, activity_key)
+    if not points:
         return flask.abort(404)
 
     svc = _svc()
     try:
-        geojson = svc.build_geojson(gpx_stream)
+        geojson = svc.build_geojson(points)
     except Exception as exc:
         logger.warning(f"terrain: geojson build failed for {activity_key}: {exc}")
         return flask.abort(500)
@@ -190,15 +191,15 @@ def terrain_gltf(activity_key: str):
         maptype = "osm"
 
     blob_svc = _blob_service()
-    gpx_stream = _open_gpx_stream(blob_svc, user_id, activity_key)
-    if gpx_stream is None:
+    points = _load_track_points(blob_svc, user_id, activity_key)
+    if not points:
         return flask.abort(404)
 
     svc = _svc()
     try:
         gltf_json = svc.build_gltf(
             activity_key=activity_key,
-            gpx_stream=gpx_stream,
+            points=points,
             tile_type=maptype,
             with_enclosure=True,
         )
@@ -303,30 +304,67 @@ def terrain_tile_proxy(maptype: str, z: int, x: int, y: int):
 # ---------------------------------------------------------------------------
 
 
+# recording formats that carry a GPS track and can be normalized to Parquet
+_TRACK_EXTS: tuple[str, ...] = (".gpx", ".fit", ".tcx")
+
+
 def _has_gpx(
     svc: blob_svc_module.ActivityBlobService, user_id: str, activity_key: str
 ) -> bool:
-    """Return True if the activity has a GPX or FIT recording attached."""
+    """Return True if the activity has a GPX/FIT/TCX recording attached."""
     try:
         recordings = svc.list_recordings(user_id, activity_key)
         for r in recordings:
-            if r.extension.lower() in (".gpx", ".fit"):
+            if r.extension.lower() in _TRACK_EXTS:
                 return True
         return False
     except Exception:
         return False
 
 
-def _open_gpx_stream(
+def _raw_to_parquet(extension: str, data: bytes) -> bytes | None:
+    """Normalize a raw recording to Parquet via the canonical converter."""
+    ext = extension.lower()
+    if ext == ".gpx":
+        return parquet_converter.gpx_to_parquet(data)
+    if ext == ".fit":
+        return parquet_converter.fit_to_parquet(data)
+    if ext == ".tcx":
+        return parquet_converter.tcx_to_parquet(data)
+    return None
+
+
+def _load_track_points(
     svc: blob_svc_module.ActivityBlobService, user_id: str, activity_key: str
-) -> typing.BinaryIO | None:
-    """Open the first GPX/FIT recording stream, returning None if unavailable."""
+) -> list[gpx_worker.TrackPoint]:
+    """Return the activity's GPS track points from its normalized Parquet.
+
+    Reuses the canonical recording pipeline: prefers the stored normalized
+    Parquet (generated at import) and regenerates it from the raw recording via
+    the shared converter when missing. Returns an empty list when the activity
+    has no usable GPS recording.
+    """
     try:
         recordings = svc.list_recordings(user_id, activity_key)
-        for r in recordings:
-            if r.extension.lower() in (".gpx", ".fit"):
-                stream, _ = svc.open_recording(user_id, activity_key, r.blob_key)
-                return stream
-        return None
-    except (blob_pkg.BlobValidationError, blob_pkg.BlobNotFoundError):
-        return None
+    except Exception:
+        return []
+
+    for r in recordings:
+        if r.extension.lower() not in _TRACK_EXTS:
+            continue
+        try:
+            opened = svc.open_parquet(user_id, activity_key, r.blob_key)
+            if opened is not None:
+                stream, _ = opened
+                parquet_bytes = stream.read()
+            else:
+                raw_stream, _ = svc.open_recording(user_id, activity_key, r.blob_key)
+                parquet_bytes = _raw_to_parquet(r.extension, raw_stream.read())
+        except (blob_pkg.BlobValidationError, blob_pkg.BlobNotFoundError):
+            continue
+        if not parquet_bytes:
+            continue
+        points = gpx_worker.points_from_parquet(parquet_bytes)
+        if points:
+            return points
+    return []

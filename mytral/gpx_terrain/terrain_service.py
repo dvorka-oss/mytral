@@ -103,13 +103,15 @@ class TerrainService:
         # bounded in-memory GLTF cache keyed by (activity_key, tile_type, proxy)
         self._gltf_cache: dict[tuple[str, str, str], str] = {}
 
-    def build_geojson(self, gpx_stream: object, activity_name: str = "") -> str:
-        """Parse a GPX stream and return a GeoJSON string.
+    def build_geojson(
+        self, points: list[gpx_worker.TrackPoint], activity_name: str = ""
+    ) -> str:
+        """Build a GeoJSON string from track points.
 
         Parameters
         ----------
-        gpx_stream : file-like
-            Open binary stream of the GPX file.
+        points : list[TrackPoint]
+            Track points (from ``gpx_worker.points_from_parquet``).
         activity_name : str
             Human-readable track name written to GeoJSON properties.
 
@@ -118,7 +120,6 @@ class TerrainService:
         str
             GeoJSON Feature JSON string.
         """
-        points = gpx_worker.parse_gpx(gpx_stream)
         points = gpx_worker.simplify_track(points, epsilon_m=2.0)
 
         lats = [p.lat for p in points]
@@ -229,19 +230,19 @@ class TerrainService:
 
     def build_gltf(
         self,
-        gpx_stream: object,
+        points: list[gpx_worker.TrackPoint],
         activity_key: str,
         tile_type: str = "osm",
         with_enclosure: bool = False,
     ) -> str:
-        """Build a GLTF terrain mesh for a GPX track.
+        """Build a GLTF terrain mesh for a track.
 
         Results are cached in memory by (activity_key, tile_type).
 
         Parameters
         ----------
-        gpx_stream : file-like
-            Open binary stream of the GPX file.
+        points : list[TrackPoint]
+            Track points (from ``gpx_worker.points_from_parquet``).
         activity_key : str
             Unique activity identifier used as cache key.
         tile_type : str
@@ -261,7 +262,7 @@ class TerrainService:
             self._gltf_cache[cache_key] = result
             return result
 
-        result = self._generate_gltf(gpx_stream, tile_type, with_enclosure)
+        result = self._generate_gltf(points, tile_type, with_enclosure)
         self._gltf_cache[cache_key] = result
         # evict least-recently-used entries beyond the cap (dict keeps order)
         while len(self._gltf_cache) > _GLTF_CACHE_MAX:
@@ -271,12 +272,11 @@ class TerrainService:
 
     def _generate_gltf(
         self,
-        gpx_stream: object,
+        points: list[gpx_worker.TrackPoint],
         tile_type: str,
         with_enclosure: bool,
     ) -> str:
-        """Internal: parse GPX, load elevation, build mesh, assemble GLTF."""
-        points = gpx_worker.parse_gpx(gpx_stream)
+        """Internal: load elevation, build mesh, assemble GLTF from track points."""
         points = gpx_worker.simplify_track(points, epsilon_m=2.0)
 
         lats = [p.lat for p in points]

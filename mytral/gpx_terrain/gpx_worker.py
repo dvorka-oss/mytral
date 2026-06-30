@@ -7,11 +7,12 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-"""GPX and FIT file parsing, track simplification and statistics.
+"""Track point extraction, simplification and statistics.
 
-Implements the same algorithms as GPXWorker.java in TopoLibrary:
-  - GPX parsing via gpxpy
-  - FIT binary parsing via fitdecode
+Track points are read from the canonical normalized recording Parquet (produced
+by ``mytral.recordings.parquet_converter`` for GPX/FIT/TCX/HRM), so no
+format-specific parser is duplicated here.
+
   - Ramer-Douglas-Peucker track simplification
   - Track statistics (distance, elevation gain/loss, duration, pace)
   - Mean-bias elevation normalisation against SRTM reference
@@ -20,11 +21,8 @@ Implements the same algorithms as GPXWorker.java in TopoLibrary:
 import dataclasses
 import io
 import math
-from typing import BinaryIO
 
-import fitdecode
-import gpxpy
-import gpxpy.gpx
+import polars
 
 from mytral.gpx_terrain import coordinates
 
@@ -85,105 +83,50 @@ class TrackSummary:
     point_count: int = 0
 
 
-def parse_gpx(source: str | bytes | BinaryIO) -> list[TrackPoint]:
-    """Parse a GPX file and return a flat list of track points.
+def points_from_parquet(parquet_bytes: bytes) -> list[TrackPoint]:
+    """Build track points from a normalized recording Parquet.
+
+    Reads the canonical Parquet produced by
+    ``mytral.recordings.parquet_converter`` (columns ``lat``, ``lon``,
+    ``altitude``, ``hr``, ``ts_unix_ms``) and returns the GPS track points,
+    dropping rows that have no latitude/longitude fix. This is the single
+    parsing path shared with the rest of MyTraL — GPX, FIT and TCX recordings
+    are all converted to this Parquet, so the 3D pipeline needs no format-
+    specific parser of its own.
 
     Parameters
     ----------
-    source : str | bytes | BinaryIO
-        GPX content as a file path string, raw bytes, or an open binary stream.
+    parquet_bytes : bytes
+        Raw normalized-recording Parquet content.
 
     Returns
     -------
     list[TrackPoint]
-        Ordered list of track points from all tracks and segments.
+        Ordered GPS track points.
     """
-    if isinstance(source, str):
-        with open(source, "rb") as f:
-            gpx = gpxpy.parse(f)
-    elif isinstance(source, (bytes, bytearray)):
-        gpx = gpxpy.parse(io.BytesIO(source))
-    else:
-        gpx = gpxpy.parse(source)
+    df = polars.read_parquet(io.BytesIO(parquet_bytes))
+    cols = set(df.columns)
+    if "lat" not in cols or "lon" not in cols:
+        return []
 
     points: list[TrackPoint] = []
-    for track in gpx.tracks:
-        for segment in track.segments:
-            for pt in segment.points:
-                ts = pt.time.timestamp() if pt.time else 0.0
-                ele = float(pt.elevation) if pt.elevation is not None else 0.0
-                hr = 0
-                if pt.extensions:
-                    # gpxpy stores Garmin extensions as XML elements
-                    for ext in pt.extensions:
-                        for child in ext:
-                            if child.tag.endswith("hr") or child.tag.endswith(
-                                "heartRate"
-                            ):
-                                try:
-                                    hr = int(child.text or 0)
-                                except ValueError:
-                                    pass
-                points.append(
-                    TrackPoint(
-                        lat=float(pt.latitude),
-                        lon=float(pt.longitude),
-                        elevation=ele,
-                        timestamp=ts,
-                        heart_rate=hr,
-                    )
-                )
-    return points
-
-
-def parse_fit(source: str | bytes | BinaryIO) -> list[TrackPoint]:
-    """Parse a Garmin FIT binary file and return a flat list of track points.
-
-    Matches GPXWorker.loadFitTracks() from TopoLibrary.
-    FIT position values are in semicircles; converted to degrees by
-    multiplying by (180 / 2^31).
-
-    Parameters
-    ----------
-    source : str | bytes | BinaryIO
-        FIT content as a file path string, raw bytes, or an open binary stream.
-
-    Returns
-    -------
-    list[TrackPoint]
-        Ordered list of track points.
-    """
-    _SEMICIRCLES_TO_DEG = 180.0 / (2**31)
-
-    if isinstance(source, str):
-        ctx = open(source, "rb")
-    elif isinstance(source, (bytes, bytearray)):
-        ctx = io.BytesIO(source)
-    else:
-        ctx = source
-
-    points: list[TrackPoint] = []
-    with fitdecode.FitReader(ctx) as reader:
-        for frame in reader:
-            if not isinstance(frame, fitdecode.FitDataMessage):
-                continue
-            if frame.name != "record":
-                continue
-            lat_semi = frame.get_value("position_lat")
-            lon_semi = frame.get_value("position_long")
-            if lat_semi is None or lon_semi is None:
-                continue
-            lat = lat_semi * _SEMICIRCLES_TO_DEG
-            lon = lon_semi * _SEMICIRCLES_TO_DEG
-            alt = frame.get_value("altitude") or 0.0
-            ts_raw = frame.get_value("timestamp")
-            ts = ts_raw.timestamp() if ts_raw else 0.0
-            hr = int(frame.get_value("heart_rate") or 0)
-            points.append(
-                TrackPoint(
-                    lat=lat, lon=lon, elevation=float(alt), timestamp=ts, heart_rate=hr
-                )
+    for row in df.iter_rows(named=True):
+        lat = row.get("lat")
+        lon = row.get("lon")
+        if lat is None or lon is None:
+            continue
+        ele = row.get("altitude")
+        ts_ms = row.get("ts_unix_ms")
+        hr = row.get("hr")
+        points.append(
+            TrackPoint(
+                lat=float(lat),
+                lon=float(lon),
+                elevation=float(ele) if ele is not None else 0.0,
+                timestamp=(float(ts_ms) / 1000.0) if ts_ms is not None else 0.0,
+                heart_rate=int(hr) if hr is not None else 0,
             )
+        )
     return points
 
 
