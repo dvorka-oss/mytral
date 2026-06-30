@@ -5,10 +5,13 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added `mytral/anatomy.py`, realistic anatomical muscle geometry (front and back)
+  for the body mannequin, adapted from the MIT-licensed `react-native-body-highlighter`.
 
 ### Changed
-- .
+- Redrew the body mannequin with realistic anatomical muscle geometry, used
+  everywhere it appears (muscle load, injuries, and sickness). Muscle load now
+  renders as a cool-to-hot volume heatmap.
 
 ### Documentation
 - .

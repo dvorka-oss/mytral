@@ -1,6 +1,13 @@
 {#
   Reusable mannequin (body diagram) Jinja macro.
 
+  Geometry lives in mytral/anatomy.py (realistic anatomical muscle paths,
+  adapted from MIT react-native-body-highlighter) and is exposed to templates
+  as Jinja globals MANNEQUIN_FRONT / MANNEQUIN_BACK (+ outlines, viewboxes),
+  registered in routes.py. Each region carries:
+    - data-part-id    one of the 60 body-part ids (injury / body_picker)
+    - data-muscle-key one of the 16 muscle keys   (display / picker), if a muscle
+
   Usage
   -----
   {% from "macros/mannequin.html" import render_mannequin %}
@@ -16,31 +23,31 @@
 
   Parameters
   ----------
-  mode : str
-      "display"  – read-only, coloured highlights via highlights dict.
-      "picker"   – interactive click-to-select muscle groups.
-      "injury"   – read-only, injury (red) highlights (backward compat).
-  highlights : dict[str, str]
-      (display mode) { muscle_group_key: css_state_class }
-      e.g. {"pecs": "state-active intensity-3", "lats": "state-secondary"}
-  injury_highlights : set|list
-      (injury mode) set of SVG element IDs to paint red.
-      This is the existing body_highlights set from routes.py.
-  selected : list[str]
-      (picker mode) pre-selected primary muscle group keys.
-  selected_secondary : list[str]
-      (picker mode) pre-selected secondary / stabilizer muscle group keys.
-  input_name : str
-      (picker mode) name of the hidden <input> that receives CSV of primary keys.
-  input_name_secondary : str
-      (picker mode) name of the hidden <input> that receives CSV of secondary keys.
-  compact : bool
-      Render smaller panels (useful for cards / sidebars).
-  show_legend : bool
-      Show colour-coded legend and selected-group badge row.
-  picker_id : str
-      Unique DOM ID for the picker instance (allows multiple pickers on page).
+  mode : "display" | "picker" | "injury" | "body_picker"
+  highlights : dict[str, str]          (display) {muscle_key: css_state_class}
+  injury_highlights : set|list         (injury) set of SVG part-ids to paint red
+  selected / selected_secondary : list (picker) pre-selected muscle keys
+  selected_body_parts : list           (body_picker) pre-selected part-ids
+  input_name* : str                    hidden-input names for the pickers
+  compact : bool                        render smaller panels
+  show_legend : bool                    show colour legend
+  picker_id : str                       unique DOM id prefix
 #}
+
+{# ---- per-region <g>: same class contract as before, one place ---- #}
+{% macro _mnq_group(r, mode, highlights, injury_highlights, picker_id) -%}
+    <g id="{{ picker_id }}-{{ r.part_id }}" data-part-id="{{ r.part_id }}" {%- if r.muscle_key %}data-muscle-key="{{ r.muscle_key }}"{% endif %}
+data-name="{{ r.label }}" {%- if mode == 'injury' %} class="mnq
+{% if r.part_id in injury_highlights %}body-injured{% endif %}
+" {%- elif mode == 'display' %} class="mnq
+{% if r.muscle_key and highlights.get(r.muscle_key) %}{{ highlights.get(r.muscle_key) }}{% endif %}
+" {%- else %} class="mnq" {%- endif %}>
+{%- for d in r.paths %}
+    <path d="{{ d }}" />
+{% endfor -%}
+</g>
+{%- endmacro %}
+
 {% macro render_mannequin(
     mode="display",
     highlights={},
@@ -54,613 +61,62 @@
     compact=false,
     show_legend=true,
     picker_id="mannequin"
-) %}
-{# ------------------------------------------------------------------- #}
-{# Determine panel dimensions                                          #}
-{# ------------------------------------------------------------------- #}
-{% if compact %}
-  {% set vw = 140 %}{% set vh = 320 %}
-  {% set svg_style = "width:140px;height:320px;" %}
-{% else %}
-  {% set vw = 200 %}{% set vh = 450 %}
-  {% set svg_style = "width:100%;max-width:200px;height:auto;" %}
-{% endif %}
+    ) %}
+    {% if compact %}
+        {% set svg_style = "width:148px;height:auto;" %}
+    {% else %}
+        {% set svg_style = "width:100%;max-width:215px;height:auto;" %}
+    {% endif %}
 
-{# ------------------------------------------------------------------- #}
-{# Helper: resolve CSS classes for a given element ID                  #}
-{#   injury mode  → check injury_highlights set                        #}
-{#   display mode → check highlights dict by muscle-group key          #}
-{#   picker mode  → check selected list                                #}
-{# ------------------------------------------------------------------- #}
+    <div class="mannequin-wrapper" id="{{ picker_id }}-wrapper">
+        <div class="mannequin-panel">
+            <div class="text-center mb-1"
+                 style="font-size:.75rem;
+                        color:var(--tblr-muted);
+                        text-transform:uppercase;
+                        letter-spacing:.05em">Front</div>
+            <svg viewBox="{{ MANNEQUIN_FRONT_VIEWBOX }}"
+                 xmlns="http://www.w3.org/2000/svg"
+                 style="{{ svg_style }}"
+                 role="img"
+                 aria-label="Body front view">
+                <path class="mannequin-outline" d="{{ MANNEQUIN_FRONT_OUTLINE }}" />
+                {% for r in MANNEQUIN_FRONT %}{{ _mnq_group(r, mode, highlights, injury_highlights, picker_id) }}{% endfor %}
+            </svg>
+        </div>
+        <div class="mannequin-panel">
+            <div class="text-center mb-1"
+                 style="font-size:.75rem;
+                        color:var(--tblr-muted);
+                        text-transform:uppercase;
+                        letter-spacing:.05em">Back</div>
+            <svg viewBox="{{ MANNEQUIN_BACK_VIEWBOX }}"
+                 xmlns="http://www.w3.org/2000/svg"
+                 style="{{ svg_style }}"
+                 role="img"
+                 aria-label="Body back view">
+                <path class="mannequin-outline" d="{{ MANNEQUIN_BACK_OUTLINE }}" />
+                {% for r in MANNEQUIN_BACK %}{{ _mnq_group(r, mode, highlights, injury_highlights, picker_id) }}{% endfor %}
+            </svg>
+        </div>
+    </div>
+    {# end mannequin-wrapper #}
 
-{# ---- FRONT SVG ---------------------------------------------------- #}
-<div class="mannequin-wrapper" id="{{ picker_id }}-wrapper">
-  <div class="mannequin-panel">
-    <div class="text-center mb-1" style="font-size:.75rem;color:var(--tblr-muted);text-transform:uppercase;letter-spacing:.05em;">Front</div>
-    <svg viewBox="0 0 {{ vw }} {{ vh }}" xmlns="http://www.w3.org/2000/svg" style="{{ svg_style }}" role="img" aria-label="Body front view">
+    {# ------------------------------------------------------------------- #}
+    {# Picker: hidden input + badge row + JS                               #}
+    {# ------------------------------------------------------------------- #}
+    {% if mode == "picker" %}
+        <input type="hidden"
+               name="{{ input_name }}"
+               id="{{ picker_id }}-input"
+               value="{{ selected | join(",") }}">
+        <input type="hidden"
+               name="{{ input_name_secondary }}"
+               id="{{ picker_id }}-input-secondary"
+               value="{{ selected_secondary | join(",") }}">
+        <div class="mannequin-badges" id="{{ picker_id }}-badges"></div>
 
-      {# ── Head ─────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-front-head"
-         data-part-id="front-head"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-head' in injury_highlights %} body-injured{% endif %}"
-         {% else %}
-           class="mnq"
-         {% endif %}>
-        <ellipse cx="100" cy="30" rx="20" ry="25"/>
-        {# eyebrows #}
-        <path d="M 87 22 Q 92 20 97 22" stroke="#555" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <path d="M 103 22 Q 108 20 113 22" stroke="#555" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      </g>
-
-      {# ── Neck ─────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-neck"
-         data-muscle-key="neck"
-         data-part-id="front-neck"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-neck' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('neck', '')) if highlights.get('neck') else '' }}"
-         {% endif %}>
-        <rect x="90" y="55" width="20" height="14" rx="4"/>
-      </g>
-
-      {# ── Shoulders ────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-shoulders-r"
-         data-muscle-key="shoulders"
-         data-part-id="front-shoulder-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-shoulder-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('shoulders', '')) if highlights.get('shoulders') else '' }}"
-         {% endif %}>
-        <ellipse cx="70" cy="80" rx="16" ry="14"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-shoulders-l"
-         data-muscle-key="shoulders"
-         data-part-id="front-shoulder-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-shoulder-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('shoulders', '')) if highlights.get('shoulders') else '' }}"
-         {% endif %}>
-        <ellipse cx="130" cy="80" rx="16" ry="14"/>
-      </g>
-
-      {# ── Pectorals ────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-pecs"
-         data-muscle-key="pecs"
-         data-part-id="front-chest"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-chest' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('pecs', '')) if highlights.get('pecs') else '' }}"
-         {% endif %}>
-        <path d="M 78 70 Q 100 64 122 70 L 122 105 Q 100 112 78 105 Z"/>
-      </g>
-
-      {# ── Abs ──────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-abs"
-         data-muscle-key="abs"
-         data-part-id="front-abs"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-chest' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('abs', '')) if highlights.get('abs') else '' }}"
-         {% endif %}>
-        <rect x="82" y="108" width="36" height="52" rx="8"/>
-      </g>
-
-      {# ── Obliques ─────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-obliques-r"
-         data-muscle-key="obliques"
-         data-part-id="front-obliques-r"
-         {% if mode == "injury" %}
-           class="mnq"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('obliques', '')) if highlights.get('obliques') else '' }}"
-         {% endif %}>
-        <path d="M 78 110 Q 72 125 74 155 L 82 158 L 82 108 Z" rx="4"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-obliques-l"
-         data-muscle-key="obliques"
-         data-part-id="front-obliques-l"
-         {% if mode == "injury" %}
-           class="mnq"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('obliques', '')) if highlights.get('obliques') else '' }}"
-         {% endif %}>
-        <path d="M 122 110 Q 128 125 126 155 L 118 158 L 118 108 Z" rx="4"/>
-      </g>
-
-      {# ── Biceps ───────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-biceps-r"
-         data-muscle-key="biceps"
-         data-part-id="front-arm-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-arm-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('biceps', '')) if highlights.get('biceps') else '' }}"
-         {% endif %}>
-        <rect x="50" y="94" width="14" height="36" rx="6"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-biceps-l"
-         data-muscle-key="biceps"
-         data-part-id="front-arm-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-arm-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('biceps', '')) if highlights.get('biceps') else '' }}"
-         {% endif %}>
-        <rect x="136" y="94" width="14" height="36" rx="6"/>
-      </g>
-
-      {# ── Elbows (injury only) ─────────────────────────────────────── #}
-      <g id="{{ picker_id }}-front-elbow-r"
-         data-part-id="front-elbow-r"
-         class="mnq{% if mode == 'injury' and 'front-elbow-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="57" cy="133" r="7"/>
-      </g>
-      <g id="{{ picker_id }}-front-elbow-l"
-         data-part-id="front-elbow-l"
-         class="mnq{% if mode == 'injury' and 'front-elbow-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="143" cy="133" r="7"/>
-      </g>
-
-      {# ── Forearms ─────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-forearms-r"
-         data-muscle-key="forearms"
-         data-part-id="front-forearm-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-forearm-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('forearms', '')) if highlights.get('forearms') else '' }}"
-         {% endif %}>
-        <rect x="51" y="140" width="13" height="36" rx="5"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-forearms-l"
-         data-muscle-key="forearms"
-         data-part-id="front-forearm-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-forearm-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('forearms', '')) if highlights.get('forearms') else '' }}"
-         {% endif %}>
-        <rect x="136" y="140" width="13" height="36" rx="5"/>
-      </g>
-
-      {# ── Wrists + Hands (injury only) ─────────────────────────────── #}
-      <g data-part-id="front-wrist-r" class="mnq{% if mode == 'injury' and 'front-wrist-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="57" cy="180" r="5"/>
-      </g>
-      <g data-part-id="front-wrist-l" class="mnq{% if mode == 'injury' and 'front-wrist-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="143" cy="180" r="5"/>
-      </g>
-      <g data-part-id="front-hand-r" class="mnq{% if mode == 'injury' and 'front-hand-r' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="57" cy="196" rx="7" ry="10"/>
-      </g>
-      <g data-part-id="front-hand-l" class="mnq{% if mode == 'injury' and 'front-hand-l' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="143" cy="196" rx="7" ry="10"/>
-      </g>
-
-      {# ── Hip flexors ──────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-hip-flexors-r"
-         data-muscle-key="hip_flexors"
-         data-part-id="front-hip-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-hip-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('hip_flexors', '')) if highlights.get('hip_flexors') else '' }}"
-         {% endif %}>
-        <ellipse cx="87" cy="163" rx="11" ry="9"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-hip-flexors-l"
-         data-muscle-key="hip_flexors"
-         data-part-id="front-hip-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-hip-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('hip_flexors', '')) if highlights.get('hip_flexors') else '' }}"
-         {% endif %}>
-        <ellipse cx="113" cy="163" rx="11" ry="9"/>
-      </g>
-
-      {# ── Quads ────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-quads-r"
-         data-muscle-key="quads"
-         data-part-id="front-thigh-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-thigh-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('quads', '')) if highlights.get('quads') else '' }}"
-         {% endif %}>
-        <rect x="78" y="175" width="18" height="68" rx="8"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-quads-l"
-         data-muscle-key="quads"
-         data-part-id="front-thigh-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-thigh-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('quads', '')) if highlights.get('quads') else '' }}"
-         {% endif %}>
-        <rect x="104" y="175" width="18" height="68" rx="8"/>
-      </g>
-
-      {# ── Knees (injury only) ──────────────────────────────────────── #}
-      <g data-part-id="front-knee-r" class="mnq{% if mode == 'injury' and 'front-knee-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="87" cy="247" r="9"/>
-      </g>
-      <g data-part-id="front-knee-l" class="mnq{% if mode == 'injury' and 'front-knee-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="113" cy="247" r="9"/>
-      </g>
-
-      {# ── Calves (front) ───────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-front-calves-r"
-         data-muscle-key="calves"
-         data-part-id="front-calf-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-calf-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('calves', '')) if highlights.get('calves') else '' }}"
-         {% endif %}>
-        <rect x="79" y="257" width="15" height="54" rx="6"/>
-      </g>
-      <g id="{{ picker_id }}-mg-front-calves-l"
-         data-muscle-key="calves"
-         data-part-id="front-calf-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'front-calf-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('calves', '')) if highlights.get('calves') else '' }}"
-         {% endif %}>
-        <rect x="106" y="257" width="15" height="54" rx="6"/>
-      </g>
-
-      {# ── Ankles + Feet (injury only) ──────────────────────────────── #}
-      <g data-part-id="front-ankle-r" class="mnq{% if mode == 'injury' and 'front-ankle-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="86" cy="315" r="6"/>
-      </g>
-      <g data-part-id="front-ankle-l" class="mnq{% if mode == 'injury' and 'front-ankle-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="114" cy="315" r="6"/>
-      </g>
-      <g data-part-id="front-foot-r" class="mnq{% if mode == 'injury' and 'front-foot-r' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="86" cy="332" rx="10" ry="14"/>
-      </g>
-      <g data-part-id="front-foot-l" class="mnq{% if mode == 'injury' and 'front-foot-l' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="114" cy="332" rx="10" ry="14"/>
-      </g>
-    </svg>
-  </div>
-
-  {# ---- BACK SVG ─────────────────────────────────────────────────── #}
-  <div class="mannequin-panel">
-    <div class="text-center mb-1" style="font-size:.75rem;color:var(--tblr-muted);text-transform:uppercase;letter-spacing:.05em;">Back</div>
-    <svg viewBox="0 0 {{ vw }} {{ vh }}" xmlns="http://www.w3.org/2000/svg" style="{{ svg_style }}" role="img" aria-label="Body back view">
-
-      {# ── Head ─────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-back-head"
-         data-part-id="back-head"
-         class="mnq{% if mode == 'injury' and 'back-head' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="100" cy="30" rx="20" ry="25"/>
-      </g>
-
-      {# ── Neck ─────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-neck"
-         data-muscle-key="neck"
-         data-part-id="back-neck"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-neck' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('neck', '')) if highlights.get('neck') else '' }}"
-         {% endif %}>
-        <rect x="90" y="55" width="20" height="14" rx="4"/>
-      </g>
-
-      {# ── Trapezius ────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-traps"
-         data-muscle-key="traps"
-         data-part-id="back-upper"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-upper' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('traps', '')) if highlights.get('traps') else '' }}"
-         {% endif %}>
-        <path d="M 80 70 Q 100 64 120 70 L 116 102 Q 100 107 84 102 Z"/>
-      </g>
-
-      {# ── Rear Shoulders ───────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-shoulders-r"
-         data-muscle-key="shoulders"
-         data-part-id="back-shoulder-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-shoulder-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('shoulders', '')) if highlights.get('shoulders') else '' }}"
-         {% endif %}>
-        <ellipse cx="70" cy="80" rx="16" ry="14"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-shoulders-l"
-         data-muscle-key="shoulders"
-         data-part-id="back-shoulder-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-shoulder-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('shoulders', '')) if highlights.get('shoulders') else '' }}"
-         {% endif %}>
-        <ellipse cx="130" cy="80" rx="16" ry="14"/>
-      </g>
-
-      {# ── Lats ─────────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-lats-r"
-         data-muscle-key="lats"
-         data-part-id="back-lats-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-upper' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('lats', '')) if highlights.get('lats') else '' }}"
-         {% endif %}>
-        <path d="M 80 100 Q 70 115 72 148 L 82 155 L 84 102 Z"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-lats-l"
-         data-muscle-key="lats"
-         data-part-id="back-lats-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-upper' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('lats', '')) if highlights.get('lats') else '' }}"
-         {% endif %}>
-        <path d="M 120 100 Q 130 115 128 148 L 118 155 L 116 102 Z"/>
-      </g>
-
-      {# ── Lower Back ───────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-lower-back"
-         data-muscle-key="lower_back"
-         data-part-id="back-lower"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-lower' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('lower_back', '')) if highlights.get('lower_back') else '' }}"
-         {% endif %}>
-        <rect x="84" y="108" width="32" height="50" rx="8"/>
-      </g>
-
-      {# ── Triceps ──────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-triceps-r"
-         data-muscle-key="triceps"
-         data-part-id="back-arm-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-arm-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('triceps', '')) if highlights.get('triceps') else '' }}"
-         {% endif %}>
-        <rect x="50" y="94" width="14" height="36" rx="6"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-triceps-l"
-         data-muscle-key="triceps"
-         data-part-id="back-arm-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-arm-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('triceps', '')) if highlights.get('triceps') else '' }}"
-         {% endif %}>
-        <rect x="136" y="94" width="14" height="36" rx="6"/>
-      </g>
-
-      {# ── Elbows (injury only) ─────────────────────────────────────── #}
-      <g data-part-id="back-elbow-r" class="mnq{% if mode == 'injury' and 'back-elbow-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="57" cy="133" r="7"/>
-      </g>
-      <g data-part-id="back-elbow-l" class="mnq{% if mode == 'injury' and 'back-elbow-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="143" cy="133" r="7"/>
-      </g>
-
-      {# ── Forearms (back) ──────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-forearms-r"
-         data-muscle-key="forearms"
-         data-part-id="back-forearm-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-forearm-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('forearms', '')) if highlights.get('forearms') else '' }}"
-         {% endif %}>
-        <rect x="51" y="140" width="13" height="36" rx="5"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-forearms-l"
-         data-muscle-key="forearms"
-         data-part-id="back-forearm-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-forearm-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('forearms', '')) if highlights.get('forearms') else '' }}"
-         {% endif %}>
-        <rect x="136" y="140" width="13" height="36" rx="5"/>
-      </g>
-
-      {# ── Wrists + Hands (injury only) ─────────────────────────────── #}
-      <g data-part-id="back-wrist-r" class="mnq{% if mode == 'injury' and 'back-wrist-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="57" cy="180" r="5"/>
-      </g>
-      <g data-part-id="back-wrist-l" class="mnq{% if mode == 'injury' and 'back-wrist-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="143" cy="180" r="5"/>
-      </g>
-      <g data-part-id="back-hand-r" class="mnq{% if mode == 'injury' and 'back-hand-r' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="57" cy="196" rx="7" ry="10"/>
-      </g>
-      <g data-part-id="back-hand-l" class="mnq{% if mode == 'injury' and 'back-hand-l' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="143" cy="196" rx="7" ry="10"/>
-      </g>
-
-      {# ── Glutes ───────────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-glutes-r"
-         data-muscle-key="glutes"
-         data-part-id="back-hip-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-hip-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('glutes', '')) if highlights.get('glutes') else '' }}"
-         {% endif %}>
-        <ellipse cx="87" cy="163" rx="14" ry="13"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-glutes-l"
-         data-muscle-key="glutes"
-         data-part-id="back-hip-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-hip-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('glutes', '')) if highlights.get('glutes') else '' }}"
-         {% endif %}>
-        <ellipse cx="113" cy="163" rx="14" ry="13"/>
-      </g>
-
-      {# ── Hamstrings ───────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-hamstrings-r"
-         data-muscle-key="hamstrings"
-         data-part-id="back-thigh-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-thigh-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('hamstrings', '')) if highlights.get('hamstrings') else '' }}"
-         {% endif %}>
-        <rect x="78" y="177" width="18" height="66" rx="8"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-hamstrings-l"
-         data-muscle-key="hamstrings"
-         data-part-id="back-thigh-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-thigh-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('hamstrings', '')) if highlights.get('hamstrings') else '' }}"
-         {% endif %}>
-        <rect x="104" y="177" width="18" height="66" rx="8"/>
-      </g>
-
-      {# ── Knees (injury only) ──────────────────────────────────────── #}
-      <g data-part-id="back-knee-r" class="mnq{% if mode == 'injury' and 'back-knee-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="87" cy="247" r="9"/>
-      </g>
-      <g data-part-id="back-knee-l" class="mnq{% if mode == 'injury' and 'back-knee-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="113" cy="247" r="9"/>
-      </g>
-
-      {# ── Calves (back) ────────────────────────────────────────────── #}
-      <g id="{{ picker_id }}-mg-back-calves-r"
-         data-muscle-key="calves"
-         data-part-id="back-calf-r"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-calf-r' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('calves', '')) if highlights.get('calves') else '' }}"
-         {% endif %}>
-        <rect x="79" y="257" width="15" height="54" rx="6"/>
-      </g>
-      <g id="{{ picker_id }}-mg-back-calves-l"
-         data-muscle-key="calves"
-         data-part-id="back-calf-l"
-         {% if mode == "injury" %}
-           class="mnq{% if 'back-calf-l' in injury_highlights %} body-injured{% endif %}"
-         {% elif mode == "picker" %}
-           class="mnq"
-         {% else %}
-           class="mnq{{ (' ' ~ highlights.get('calves', '')) if highlights.get('calves') else '' }}"
-         {% endif %}>
-        <rect x="106" y="257" width="15" height="54" rx="6"/>
-      </g>
-
-      {# ── Ankles + Feet (injury only) ──────────────────────────────── #}
-      <g data-part-id="back-ankle-r" class="mnq{% if mode == 'injury' and 'back-ankle-r' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="86" cy="315" r="6"/>
-      </g>
-      <g data-part-id="back-ankle-l" class="mnq{% if mode == 'injury' and 'back-ankle-l' in injury_highlights %} body-injured{% endif %}">
-        <circle cx="114" cy="315" r="6"/>
-      </g>
-      <g data-part-id="back-foot-r" class="mnq{% if mode == 'injury' and 'back-foot-r' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="86" cy="332" rx="10" ry="14"/>
-      </g>
-      <g data-part-id="back-foot-l" class="mnq{% if mode == 'injury' and 'back-foot-l' in injury_highlights %} body-injured{% endif %}">
-        <ellipse cx="114" cy="332" rx="10" ry="14"/>
-      </g>
-    </svg>
-  </div>
-</div>{# end mannequin-wrapper #}
-
-{# ------------------------------------------------------------------- #}
-{# Picker: hidden input + badge row + JS                               #}
-{# ------------------------------------------------------------------- #}
-{% if mode == "picker" %}
-<input type="hidden" name="{{ input_name }}" id="{{ picker_id }}-input"
-       value="{{ selected | join(',') }}">
-<input type="hidden" name="{{ input_name_secondary }}" id="{{ picker_id }}-input-secondary"
-       value="{{ selected_secondary | join(',') }}">
-<div class="mannequin-badges" id="{{ picker_id }}-badges"></div>
-
-<script>
+        <script>
 (function() {
     var LABELS = {
         pecs: "Pectorals", shoulders: "Shoulders", biceps: "Biceps",
@@ -741,7 +197,7 @@
             var hint = document.createElement("span");
             hint.className = "text-muted";
             hint.style.fontSize = ".8rem";
-            hint.textContent = "Click muscle groups below \u2014 once for primary (green), twice for secondary (amber)";
+            hint.textContent = "Click muscle groups below - once for primary (green), twice for secondary (amber)";
             badges.appendChild(hint);
         }
     }
@@ -763,18 +219,20 @@
 
     refresh();  // apply pre-selected state on load
 })();
-</script>
-{% endif %}
+        </script>
+    {% endif %}
 
-{# ------------------------------------------------------------------- #}
-{# Body picker: hidden input + badge row + JS                          #}
-{# ------------------------------------------------------------------- #}
-{% if mode == "body_picker" %}
-<input type="hidden" name="{{ input_name_body_parts }}" id="{{ picker_id }}-bp-input"
-       value="{{ selected_body_parts | join(',') }}">
-<div class="mannequin-badges" id="{{ picker_id }}-bp-badges"></div>
+    {# ------------------------------------------------------------------- #}
+    {# Body picker: hidden input + badge row + JS                          #}
+    {# ------------------------------------------------------------------- #}
+    {% if mode == "body_picker" %}
+        <input type="hidden"
+               name="{{ input_name_body_parts }}"
+               id="{{ picker_id }}-bp-input"
+               value="{{ selected_body_parts | join(",") }}">
+        <div class="mannequin-badges" id="{{ picker_id }}-bp-badges"></div>
 
-<script>
+        <script>
 (function() {
     var PART_LABELS = {
         "front-head": "Head", "back-head": "Head",
@@ -834,8 +292,7 @@
         var html = Array.from(selected).map(function(pid) {
             return '<span class="badge bg-red text-red-fg me-1 mb-1" style="font-size:.8rem;">' +
                 (PART_LABELS[pid] || pid) +
-                ' <a href="#" style="color:inherit;text-decoration:none;margin-left:.3rem;" ' +
-                'onclick="event.preventDefault();' + clearFn + '(\'' + pid + '\')">&#x2715;</a>' +
+                ' <a href="#" style="color:inherit;text-decoration:none;margin-left:.3rem;" ' + 'onclick="event.preventDefault();' + clearFn + '(\'' + pid + '\')">&#x2715;</a>' +
                 '</span>';
         });
         badges.innerHTML = html.join("") ||
@@ -859,76 +316,97 @@
 
     refresh();
 })();
-</script>
-{% endif %}
-
-{# ------------------------------------------------------------------- #}
-{# Legend                                                              #}
-{# ------------------------------------------------------------------- #}
-{% if show_legend and mode != "injury" and mode != "picker" and mode != "body_picker" %}
-<div class="mannequin-legend mt-2">
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#2fb344;"></div>
-        <span><strong>Primary</strong> - main target muscle</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#f59f00;"></div>
-        <span><strong>Secondary</strong> - stabilizer or synergist</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#dde3ea;border:1px solid #8b96a6;"></div>
-        <span><strong>Not targeted</strong></span>
-    </div>
-    {% if mode == "display" %}
-    <div class="mannequin-legend-item mt-1 w-100 d-flex align-items-center justify-content-center gap-2 flex-wrap">
-        <span class="text-muted" style="font-size:.78rem;"><strong>Muscle load</strong>:</span><br/>
-        <span class="mannequin-legend-swatch" style="background:#2fb344;opacity:.30;display:inline-block;"></span><span style="font-size:.78rem;">Low</span>
-        <span class="mannequin-legend-swatch" style="background:#2fb344;opacity:.50;display:inline-block;"></span>
-        <span class="mannequin-legend-swatch" style="background:#2fb344;opacity:.70;display:inline-block;"></span>
-        <span class="mannequin-legend-swatch" style="background:#2fb344;opacity:.85;display:inline-block;"></span>
-        <span class="mannequin-legend-swatch" style="background:#2fb344;opacity:1.00;display:inline-block;"></span><span style="font-size:.78rem;">High</span>
-    </div>
+        </script>
     {% endif %}
-</div>
-{% endif %}
-{% if show_legend and mode == "injury" %}
-<div class="mannequin-legend">
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#d63939;"></div>
-        <span>Injury / sickness</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#dde3ea;border:1px solid #8b96a6;"></div>
-        <span>Healthy</span>
-    </div>
-</div>
-{% endif %}
-{% if show_legend and mode == "picker" %}
-<div class="mannequin-legend mt-2">
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#2fb344;"></div>
-        <span><strong>Primary</strong> — main target muscle for this exercise / activity</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#f59f00;"></div>
-        <span><strong>Secondary</strong> — assists or stabilizes the movement</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#dde3ea;border:1px solid #8b96a6;"></div>
-        <span>Not selected — click once for primary, twice for secondary, third to clear</span>
-    </div>
-</div>
-{% endif %}
-{% if show_legend and mode == "body_picker" %}
-<div class="mannequin-legend mt-2">
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#d63939;"></div>
-        <span><strong>Selected</strong> — body part affected by this symptom</span>
-    </div>
-    <div class="mannequin-legend-item">
-        <div class="mannequin-legend-swatch" style="background:#dde3ea;border:1px solid #8b96a6;"></div>
-        <span>Not selected — click to mark</span>
-    </div>
-</div>
-{% endif %}
+
+    {# ------------------------------------------------------------------- #}
+    {# Legend                                                              #}
+    {# ------------------------------------------------------------------- #}
+    {% if show_legend and mode != "injury" and mode != "picker" and mode != "body_picker" %}
+        <div class="mannequin-legend mt-2">
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#2fb344;"></div>
+                <span><strong>Primary</strong> - main target muscle</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#f59f00;"></div>
+                <span><strong>Secondary</strong> - stabilizer or synergist</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch"
+                     style="background:#dde3ea;
+                            border:1px solid #8b96a6"></div>
+                <span><strong>Not targeted</strong></span>
+            </div>
+            {% if mode == "display" %}
+                <div class="mannequin-legend-item mt-1 w-100 d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                    <span class="text-muted" style="font-size:.78rem;"><strong>Muscle load</strong>:</span>
+                    <br />
+                    <span style="font-size:.78rem;">Low</span>
+                    <span class="mannequin-legend-swatch"
+                          style="background:#2f86c5;
+                                 display:inline-block"></span>
+                    <span class="mannequin-legend-swatch"
+                          style="background:#23b89a;
+                                 display:inline-block"></span>
+                    <span class="mannequin-legend-swatch"
+                          style="background:#9ed64a;
+                                 display:inline-block"></span>
+                    <span class="mannequin-legend-swatch"
+                          style="background:#f6c244;
+                                 display:inline-block"></span>
+                    <span class="mannequin-legend-swatch"
+                          style="background:#e23b4e;
+                                 display:inline-block"></span>
+                    <span style="font-size:.78rem;">High</span>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if show_legend and mode == "injury" %}
+        <div class="mannequin-legend">
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#d63939;"></div>
+                <span>Injury / sickness</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch"
+                     style="background:#dde3ea;
+                            border:1px solid #8b96a6"></div>
+                <span>Healthy</span>
+            </div>
+        </div>
+    {% endif %}
+    {% if show_legend and mode == "picker" %}
+        <div class="mannequin-legend mt-2">
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#2fb344;"></div>
+                <span><strong>Primary</strong> - main target muscle for this exercise / activity</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#f59f00;"></div>
+                <span><strong>Secondary</strong> - assists or stabilizes the movement</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch"
+                     style="background:#dde3ea;
+                            border:1px solid #8b96a6"></div>
+                <span>Not selected - click once for primary, twice for secondary, third to clear</span>
+            </div>
+        </div>
+    {% endif %}
+    {% if show_legend and mode == "body_picker" %}
+        <div class="mannequin-legend mt-2">
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch" style="background:#d63939;"></div>
+                <span><strong>Selected</strong> - body part affected by this symptom</span>
+            </div>
+            <div class="mannequin-legend-item">
+                <div class="mannequin-legend-swatch"
+                     style="background:#dde3ea;
+                            border:1px solid #8b96a6"></div>
+                <span>Not selected - click to mark</span>
+            </div>
+        </div>
+    {% endif %}
 {% endmacro %}
