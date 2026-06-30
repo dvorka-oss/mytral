@@ -92,6 +92,7 @@ from mytral.blueprints import export_uri_space
 from mytral.blueprints import gear_components_crud
 from mytral.blueprints import gear_crud
 from mytral.blueprints import goal_crud
+from mytral.blueprints import gpx_terrain_views
 from mytral.blueprints import health_uri_space
 from mytral.blueprints import import_uri_space
 from mytral.blueprints import lap_types_crud
@@ -242,6 +243,7 @@ MyTraL: My Trailing Log - Desktop Edition
         gear_components_crud,
         gear_crud,
         goal_crud,
+        gpx_terrain_views,
         health_uri_space,
         lap_types_crud,
         maps_uri_space,

@@ -27,6 +27,7 @@ class FeatureFlags:
     STRAVA_API_IMPORT = "STRAVA_API_IMPORT"
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
     ACOACHES = "ACOACHES"
+    GPX_3D_MAP = "GPX_3D_MAP"
 
     # env variables
     ENV_FF_PREFIX = "MYTRAL_FF"
@@ -36,6 +37,7 @@ class FeatureFlags:
     ENV_STRAVA_API_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_API_IMPORT}"
     ENV_TASKS_DEV = f"{ENV_FF_PREFIX}_{TASKS_DEV}"
     ENV_ACOACHES = f"{ENV_FF_PREFIX}_{ACOACHES}"
+    ENV_GPX_3D_MAP = f"{ENV_FF_PREFIX}_{GPX_3D_MAP}"
 
     # switch MyTraL to DEVELOPMENT / WIP / PRODUCTION mode
     MODE_GA = "ga"  # production quality features only
@@ -56,6 +58,7 @@ class FeatureFlags:
             ),
             FeatureFlags.TASKS_DEV: utils.getenv_bool(FeatureFlags.ENV_TASKS_DEV),
             FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),
+            FeatureFlags.GPX_3D_MAP: utils.getenv_bool(FeatureFlags.ENV_GPX_3D_MAP),
         }
         self._mode = FeatureFlags.MODE_GA  # MyTraL is in GA mode by default
 

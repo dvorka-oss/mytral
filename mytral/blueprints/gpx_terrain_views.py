@@ -1,0 +1,287 @@
+# MyTraL: my trailing log
+#
+# Copyright (C) 2022-2026 Martin Dvorak <martin.dvorak@mindforger.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+"""
+3D terrain viewer routes for GPX recordings.
+
+URL scheme
+----------
+Page  : GET /app/activities/<key>/view3d
+API   : GET /api/terrain/<key>.geojson
+        GET /api/terrain/<key>.gltf          (accepts ?maptype=osm|standard|satellite)
+        GET /api/terrain/tiles/<maptype>/<z>/<x>/<y>.png  (tile proxy, avoids CORS)
+"""
+
+import os
+import typing
+
+import flask
+import requests
+
+import mytral
+from mytral import app_config
+from mytral import app_logger as logger
+from mytral import app_user_ds as ds
+from mytral import blobstore as blob_pkg
+from mytral.blobstore import activity_service as blob_svc_module
+from mytral.gpx_terrain import TerrainService
+from mytral.routes import COOKIE_USER
+from mytral.routes import flask_app
+
+# MapTiler API key is optional — OSM is used when the key is absent.
+_MAPTILER_KEY: str = os.environ.get("MYTRAL_MAPTILER_KEY", "")
+
+# Lazy singleton: created once on first request.
+_terrain_svc: TerrainService | None = None
+
+
+def _svc() -> TerrainService:
+    """Return (or lazily create) the shared TerrainService singleton."""
+    global _terrain_svc
+    if _terrain_svc is None:
+        hgt_dir = app_config.persistence_data_dir / "hgt"
+        _terrain_svc = TerrainService(
+            hgt_dir=hgt_dir,
+            maptiler_key=_MAPTILER_KEY,
+            tile_proxy_base="/api/terrain/tiles",
+        )
+    return _terrain_svc
+
+
+def _blob_service() -> blob_svc_module.ActivityBlobService:
+    """Return an ActivityBlobService bound to the global blobstore and dataset."""
+    return blob_svc_module.ActivityBlobService(
+        store=mytral.app_blobstore,
+        dataset=ds,
+        config=app_config,
+    )
+
+
+def _require_user() -> str | None:
+    """Return the logged-in user_id, or None if not authenticated."""
+    return flask.session.get(COOKIE_USER)
+
+
+# ---------------------------------------------------------------------------
+# Page route
+# ---------------------------------------------------------------------------
+
+
+@flask_app.route(
+    "/app/activities/<activity_key>/view3d",
+    methods=["GET"],
+)
+def activity_view3d(activity_key: str):
+    """Render the 3D terrain viewer page for an activity."""
+    user_id = _require_user()
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    blob_svc = _blob_service()
+    if not _has_gpx(blob_svc, user_id, activity_key):
+        flask.flash("No GPX recording attached to this activity.", "warning")
+        return flask.redirect(flask.url_for("get_activity", key=activity_key))
+
+    maptype = flask.request.args.get("maptype", "osm")
+    if maptype not in ("osm", "standard", "satellite"):
+        maptype = "osm"
+
+    return flask.render_template(
+        "activity-view3d.html",
+        user_profile=ds.profile(user_id),
+        activity_key=activity_key,
+        maptype=maptype,
+        maptiler_available=bool(_MAPTILER_KEY),
+    )
+
+
+# ---------------------------------------------------------------------------
+# GeoJSON API
+# ---------------------------------------------------------------------------
+
+
+@flask_app.route(
+    "/api/terrain/<activity_key>.geojson",
+    methods=["GET"],
+)
+def terrain_geojson(activity_key: str):
+    """Return the GeoJSON track for a 3D terrain viewer."""
+    user_id = _require_user()
+    if not user_id:
+        return flask.abort(401)
+
+    blob_svc = _blob_service()
+    gpx_stream = _open_gpx_stream(blob_svc, user_id, activity_key)
+    if gpx_stream is None:
+        return flask.abort(404)
+
+    svc = _svc()
+    try:
+        geojson = svc.build_geojson(gpx_stream)
+    except Exception as exc:
+        logger.warning(f"terrain: geojson build failed for {activity_key}: {exc}")
+        return flask.abort(500)
+
+    return flask.Response(
+        geojson,
+        mimetype="application/geo+json",
+        headers={"Cache-Control": "private, max-age=300"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# GLTF API
+# ---------------------------------------------------------------------------
+
+
+@flask_app.route(
+    "/api/terrain/<activity_key>.gltf",
+    methods=["GET"],
+)
+def terrain_gltf(activity_key: str):
+    """Return the GLTF terrain mesh for a 3D terrain viewer.
+
+    Query params
+    ------------
+    maptype : str
+        ``osm`` (default), ``standard`` (MapTiler), or ``satellite`` (MapTiler).
+    """
+    user_id = _require_user()
+    if not user_id:
+        return flask.abort(401)
+
+    maptype = flask.request.args.get("maptype", "osm")
+    if maptype not in ("osm", "standard", "satellite"):
+        maptype = "osm"
+    # satellite requires a MapTiler key; fall back to OSM silently
+    if maptype in ("standard", "satellite") and not _MAPTILER_KEY:
+        maptype = "osm"
+
+    blob_svc = _blob_service()
+    gpx_stream = _open_gpx_stream(blob_svc, user_id, activity_key)
+    if gpx_stream is None:
+        return flask.abort(404)
+
+    svc = _svc()
+    try:
+        gltf_json = svc.build_gltf(
+            activity_key=activity_key,
+            gpx_stream=gpx_stream,
+            tile_type=maptype,
+            with_enclosure=True,
+        )
+    except Exception as exc:
+        logger.warning(f"terrain: gltf build failed for {activity_key}: {exc}")
+        return flask.abort(500)
+
+    return flask.Response(
+        gltf_json,
+        mimetype="model/gltf+json",
+        headers={"Cache-Control": "private, max-age=300"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tile proxy (avoids CORS between the browser and tile CDNs)
+# ---------------------------------------------------------------------------
+
+_TILE_TIMEOUT_S = 10
+_TILE_URLS: dict[str, str] = {
+    "osm": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "standard": f"https://api.maptiler.com/maps/basic/{{z}}/{{x}}/{{y}}.png?key={_MAPTILER_KEY}",
+    "satellite": f"https://api.maptiler.com/tiles/satellite-v2/{{z}}/{{x}}/{{y}}.jpg?key={_MAPTILER_KEY}",
+}
+_TILE_MIMETYPES: dict[str, str] = {
+    "osm": "image/png",
+    "standard": "image/png",
+    "satellite": "image/jpeg",
+}
+
+
+@flask_app.route(
+    "/api/terrain/tiles/<maptype>/<int:z>/<int:x>/<int:y>.png",
+    methods=["GET"],
+)
+def terrain_tile_proxy(maptype: str, z: int, x: int, y: int):
+    """Proxy a map tile to avoid browser CORS restrictions.
+
+    This lets terrain3d.js load tiles from OSM or MapTiler through the
+    MytraL server, so the Babylon.js engine can use them as textures.
+    """
+    user_id = _require_user()
+    if not user_id:
+        return flask.abort(401)
+
+    if maptype not in _TILE_URLS:
+        return flask.abort(400)
+    if maptype in ("standard", "satellite") and not _MAPTILER_KEY:
+        return flask.abort(403)
+
+    template = _TILE_URLS[maptype]
+    url = template.format(z=z, x=x, y=y)
+    try:
+        resp = requests.get(
+            url,
+            timeout=_TILE_TIMEOUT_S,
+            headers={"User-Agent": "MytraL/1.0 (mytral.fitness; training log)"},
+        )
+        resp.raise_for_status()
+    except Exception as exc:
+        logger.warning(f"terrain: tile proxy error {url}: {exc}")
+        return flask.abort(502)
+
+    return flask.Response(
+        resp.content,
+        mimetype=_TILE_MIMETYPES[maptype],
+        headers={
+            "Cache-Control": "public, max-age=86400",
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _has_gpx(
+    svc: blob_svc_module.ActivityBlobService, user_id: str, activity_key: str
+) -> bool:
+    """Return True if the activity has a GPX or FIT recording attached."""
+    try:
+        recordings = svc.list_recordings(user_id, activity_key)
+        for r in recordings:
+            if r.extension.lower() in (".gpx", ".fit"):
+                return True
+        return False
+    except Exception:
+        return False
+
+
+def _open_gpx_stream(
+    svc: blob_svc_module.ActivityBlobService, user_id: str, activity_key: str
+) -> typing.BinaryIO | None:
+    """Open the first GPX/FIT recording stream, returning None if unavailable."""
+    try:
+        recordings = svc.list_recordings(user_id, activity_key)
+        for r in recordings:
+            if r.extension.lower() in (".gpx", ".fit"):
+                stream, _ = svc.open_recording(user_id, activity_key, r.blob_key)
+                return stream
+        return None
+    except (blob_pkg.BlobValidationError, blob_pkg.BlobNotFoundError):
+        return None

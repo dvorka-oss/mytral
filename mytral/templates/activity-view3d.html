@@ -1,0 +1,108 @@
+{%extends "layout.html"%}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('get_activity', key=activity_key) }}" class="page-pretitle">Activity</a>
+                <h2 class="page-title">3D Terrain View</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                    {% if maptiler_available %}
+                    <div class="btn-group" role="group" aria-label="Map style">
+                        <button type="button" class="btn btn-sm btn-outline-secondary {% if maptype == 'osm' %}active{% endif %}" data-maptype="osm">
+                            OSM
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary {% if maptype == 'standard' %}active{% endif %}" data-maptype="standard">
+                            Standard
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary {% if maptype == 'satellite' %}active{% endif %}" data-maptype="satellite">
+                            Satellite
+                        </button>
+                    </div>
+                    {% else %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary active" data-maptype="osm">
+                        OSM Map
+                    </button>
+                    {% endif %}
+                    <a href="{{ url_for('get_activity', key=activity_key) }}" class="btn btn-outline-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 12l14 0"/>
+                            <path d="M5 12l6 6"/>
+                            <path d="M5 12l6 -6"/>
+                        </svg>
+                        Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        {# error banner — shown by terrain3d.js on failure #}
+        <div id="terrainError" class="alert alert-danger mb-3" style="display:none;"></div>
+
+        <div class="card" style="position: relative;">
+            {# loading spinner overlay #}
+            <div id="terrainSpinner"
+                 style="display:flex; position:absolute; inset:0; z-index:10;
+                        align-items:center; justify-content:center;
+                        background:rgba(30,40,50,0.85); border-radius:inherit;">
+                <div class="text-center text-white">
+                    <div class="spinner-border mb-2" role="status"></div>
+                    <div class="spinner-label d-block text-muted">Loading terrain…</div>
+                </div>
+            </div>
+
+            <canvas id="terrainCanvas"
+                    style="width:100%; height:78vh; display:block; border-radius:inherit; touch-action:none;">
+            </canvas>
+        </div>
+
+        <div id="trackTooltip"
+             style="display:none; position:absolute; pointer-events:none; z-index:20;
+                    background:rgba(0,0,0,0.75); color:#fff; padding:4px 8px;
+                    border-radius:4px; font-size:12px; white-space:nowrap;">
+        </div>
+
+        <div class="row mt-2">
+            <div class="col text-muted small">
+                <strong>Controls:</strong> left-drag to rotate &nbsp;·&nbsp; scroll wheel to zoom &nbsp;·&nbsp; right-drag to pan
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                Hover terrain to track position
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <strong>Zoom speed:</strong>
+                <input type="range" id="zoomSlider" min="1" max="10" value="9"
+                       class="d-inline-block align-middle" style="width:90px;"
+                       oninput="updateZoomSpeed(this.value)">
+                <span id="zoomLabel">9</span>/10
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                Terrain: SRTM (NASA/CGIAR, ~90 m).
+                {% if not maptiler_available %}
+                Map: &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+                {% else %}
+                Map: &copy; <a href="https://www.maptiler.com/copyright/" target="_blank" rel="noopener">MapTiler</a> &amp; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Babylon.js — vendored locally so MyTraL works offline (v9.14.0) #}
+<script src="{{ url_for('static', filename='babylon/babylon-9.14.0.js') }}"></script>
+<script src="{{ url_for('static', filename='babylon/babylonjs.loaders-9.14.0.min.js') }}"></script>
+
+<script>
+    const terrainConfig = {
+        activityKey: {{ activity_key | tojson }},
+        maptype:     {{ maptype | tojson }},
+        geojsonUrl:  {{ url_for('terrain_geojson', activity_key=activity_key) | tojson }},
+        gltfBaseUrl: {{ url_for('terrain_gltf', activity_key=activity_key) | tojson }},
+    };
+</script>
+<script src="{{ url_for('static', filename='js/terrain3d.js') }}"></script>
+{% endblock %}
