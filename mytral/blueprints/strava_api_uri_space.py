@@ -135,6 +135,28 @@ def strava_api_developer():
     )
 
 
+@flask_app.route("/strava/sync/menu")
+def strava_sync_from_menu():
+    """One-click Strava sync triggered from the top-menu sync icon.
+
+    If a refresh token is available, authenticate silently (when the access
+    token is missing or expired) and start syncing new activities right away.
+    Without a refresh token, fall back to the interactive developer page so the
+    user can authenticate first - same as the Data / Import / Strava API flow.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # no refresh token -> keep the interactive flow on the developer page
+    if not strava.is_refresh_token_valid(user_profile):
+        return flask.redirect(flask.url_for("strava_api_developer"))
+
+    # refresh token available -> start the sync (silent refresh handled inside)
+    return strava_sync_new_to_current()
+
+
 @flask_app.route("/strava/api-secrets", methods=["GET", "POST"])
 def strava_api_secrets():
     """Page to set (or clear) the encrypted Strava API client credentials."""
