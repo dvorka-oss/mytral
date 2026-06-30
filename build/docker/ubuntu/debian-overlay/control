@@ -1,0 +1,15 @@
+Source: mytral
+Section: utils
+Priority: optional
+Maintainer: Martin Dvorak <martin.dvorak@mindforger.com>
+Build-Depends: debhelper (>= 9), curl, ca-certificates
+Standards-Version: 3.9.5
+Homepage: https://github.com/dvorka-oss/mytral
+Vcs-Git: https://github.com/dvorka-oss/mytral.git
+Vcs-Browser: https://github.com/dvorka-oss/mytral
+
+Package: mytral
+Architecture: all
+Depends: ${misc:Depends}, curl, ca-certificates
+Description: Sovereign athlete training log for deeper insights and smarter progress.
+ Your log, your data, your edge. Track, analyze, understand, and optimize to achieve your goals. Train smarter, not harder.
