@@ -32,6 +32,7 @@ import structlog
 from bokeh.embed import components as bokeh_components
 
 import mytral
+from mytral import anatomy
 from mytral import app_config
 from mytral import app_ds
 from mytral import app_logger
@@ -256,6 +257,15 @@ app_task_manager.init_app(flask_app, task_timeout_s=app_config.task_timeout)
 # make application RD_ONLY if activities sync is in progress
 sync_guard_module.register_sync_guard(flask_app)
 sync_guard_module.inject_sync_status(flask_app)
+
+# expose mannequin anatomy geometry to templates (macros, imported without
+# `with context`, can only see true Jinja globals - not context processors)
+flask_app.jinja_env.globals["MANNEQUIN_FRONT"] = anatomy.FRONT_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_BACK"] = anatomy.BACK_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_OUTLINE"] = anatomy.FRONT_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_BACK_OUTLINE"] = anatomy.BACK_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_VIEWBOX"] = anatomy.FRONT_VIEWBOX
+flask_app.jinja_env.globals["MANNEQUIN_BACK_VIEWBOX"] = anatomy.BACK_VIEWBOX
 
 #
 # Flask app decorators
@@ -4412,14 +4422,15 @@ def list_activities_for_date(year, month, day):
             return "state-active intensity-2"
         return "state-active intensity-1"
 
-    # primary muscles: use intensity scale (green); secondary: amber
-    # a muscle that appears as both primary and secondary → primary wins
+    # primary muscles: cool-to-hot load heatmap by occurrence count; secondary-only
+    # muscles render at the coolest step so the whole figure reads as one ramp.
+    # a muscle that is both primary and secondary keeps its primary count
     day_muscle_highlights: dict[str, str] = {}
     for k, v in muscle_counts.items():
         day_muscle_highlights[k] = _intensity_class(v)
     for k in muscle_secondary:
         if k not in day_muscle_highlights:
-            day_muscle_highlights[k] = "state-secondary"
+            day_muscle_highlights[k] = "state-active intensity-1"
 
     # PREVIOUS / NEXT day navigation
     try:
