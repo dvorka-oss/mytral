@@ -122,7 +122,7 @@
     {% endif %}
 {% endif %}
 
-{{ maps_macros.map_detail(activity_map_data, "activity-map-detail-" ~ activity_entity.key) }}
+{{ maps_macros.map_detail(activity_map_data, "activity-map-detail-" ~ activity_entity.key, activity_entity.key, ff.can("GPX_3D_MAP")) }}
 
 <div class="page-body mt-0">
     <div class="container-xl">
