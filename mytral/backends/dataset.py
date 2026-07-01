@@ -729,6 +729,37 @@ class UserDataset(abc.ABC):
         )
 
     #
+    # activity bookmarks
+    #
+
+    @abc.abstractmethod
+    def _load_bookmarks(self, user_id: str) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def create_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def delete_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def move_bookmark(
+        self, user_id: str, activity_key: str, direction: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    def list_bookmarks(self, user_id: str) -> settings.UserBookmarks:
+        return self._cache.user(user_id).bookmarks() or self._cache.user(
+            user_id
+        ).set_bookmarks(bookmarks=self._load_bookmarks(user_id=user_id))
+
+    #
     # component templates
     #
 

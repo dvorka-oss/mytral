@@ -1,0 +1,37 @@
+{%extends "layout.html"%}
+{% import "macros/activity_list_table.html" as activity_list_macros %}
+{% block content %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <a href="{{ url_for('list_activities_year',year=0) }}" class="page-pretitle">Activities</a>
+                <h2 class="page-title">Bookmarks</h2>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+
+                {% if activities|length == 0 %}
+                <div class="empty">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bookmark">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No bookmarks yet</p>
+                    <p class="empty-subtitle text-muted">
+                        Bookmark an activity from its detail page to see it here.
+                    </p>
+                </div>
+                {% else %}
+                {{ activity_list_macros.render_activity_list_table(activities, activity_types, activities_weekdays, gear, is_mobile, bookmark_mode=true, bookmark_form=form) }}
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

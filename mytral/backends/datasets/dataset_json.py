@@ -904,6 +904,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     FILE_USER_GOALS = "user-goals.json"
     FILE_USER_LAPS = "user-laps.json"
     FILE_USER_OUTFITS = "user-outfits.json"
+    FILE_USER_BOOKMARKS = "user-activity-bookmarks.json"
     FILE_USER_COMPONENT_TEMPLATES = "user-component-templates.json"
     FILE_USER_SETTINGS = "user-settings.json"
     FILE_USER_SYMPTOMS = "user-symptoms.json"
@@ -1001,6 +1002,9 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
     def user_outfits_path(self, user_id: str) -> pathlib.Path:
         return self.user_dir(user_id) / JsonUsersDataset.FILE_USER_OUTFITS
 
+    def user_bookmarks_path(self, user_id: str) -> pathlib.Path:
+        return self.user_dir(user_id) / JsonUsersDataset.FILE_USER_BOOKMARKS
+
     def user_component_templates_path(self, user_id: str) -> pathlib.Path:
         return self.user_dir(user_id) / JsonUsersDataset.FILE_USER_COMPONENT_TEMPLATES
 
@@ -1045,6 +1049,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         user_cache.set_goals(self.list_goals(user_id=user_id))
         user_cache.set_laps(self.list_laps(user_id=user_id))
         user_cache.set_outfits(self.list_outfits(user_id=user_id))
+        user_cache.set_bookmarks(self.list_bookmarks(user_id=user_id))
         user_cache.set_component_templates(
             self.list_component_templates(user_id=user_id)
         )
@@ -1104,6 +1109,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         self._create_goals(user_id=user_id)
         self._create_laps(user_id=user_id)
         self._create_outfits(user_id=user_id)
+        self._create_bookmarks(user_id=user_id)
         self._create_component_templates(user_id=user_id)
         self._create_symptoms(user_id=user_id)
         self._create_strava_gears(user_id=user_id)
@@ -1325,11 +1331,13 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         )
 
     def delete_activity(self, user_id: str, dataset_name: str, key: str):
-        return self._activities_dataset.delete_activity(
+        result = self._activities_dataset.delete_activity(
             user_id=user_id,
             dataset_name=dataset_name,
             key=key,
         )
+        self.delete_bookmark(user_id=user_id, activity_key=key)
+        return result
 
     def get_activity(
         self, user_id: str, dataset_name: str, key: str
@@ -1658,6 +1666,62 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         outfits = self.list_outfits(user_id)
         outfits.delete(key)
         self._save_outfits(user_id=user_id, outfits=outfits)
+
+    #
+    # activity bookmarks
+    #
+
+    def _create_bookmarks(self, user_id: str):
+        persistences.save_json(
+            file_path=self.user_bookmarks_path(user_id),
+            data_dict=settings.UserBookmarks().to_dict(),
+        )
+
+    def _load_bookmarks(self, user_id: str) -> settings.UserBookmarks:
+        path = self.user_bookmarks_path(user_id)
+        if not path.exists():
+            # accounts registered before the bookmarks feature existed have no
+            # bookmarks file yet - self-heal instead of failing every request
+            self._create_bookmarks(user_id=user_id)
+            return settings.UserBookmarks()
+        return settings.UserBookmarks.from_dict(persistences.load_json(path))
+
+    def _save_bookmarks(
+        self, user_id: str, bookmarks: settings.UserBookmarks
+    ) -> settings.UserBookmarks:
+        self._cache.user(user_id).set_bookmarks(bookmarks)
+        persistences.save_json(
+            file_path=self.user_bookmarks_path(user_id),
+            data_dict=bookmarks.to_dict(),
+        )
+
+        return bookmarks
+
+    def create_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        bookmarks = self.list_bookmarks(user_id)
+        bookmarks.add(activity_key)
+        return self._save_bookmarks(user_id=user_id, bookmarks=bookmarks)
+
+    def delete_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        bookmarks = self.list_bookmarks(user_id)
+        bookmarks.delete(activity_key)
+        return self._save_bookmarks(user_id=user_id, bookmarks=bookmarks)
+
+    def move_bookmark(
+        self, user_id: str, activity_key: str, direction: str
+    ) -> settings.UserBookmarks:
+        bookmarks = self.list_bookmarks(user_id)
+        if direction == "up":
+            bookmarks.move_up(activity_key)
+        elif direction == "down":
+            bookmarks.move_down(activity_key)
+        else:
+            raise ValueError(f"Invalid bookmark move direction: {direction}")
+        return self._save_bookmarks(user_id=user_id, bookmarks=bookmarks)
 
     #
     # component templates
