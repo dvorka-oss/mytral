@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""Parquet conversion layer for FIT, GPX, TCX and Polar HRM recording files.
+"""Parquet conversion layer for FIT, GPX, TCX, Polar HRM, and GoldenCheetah CSV files.
 
 All recording formats are converted to a canonical Parquet schema that is
 format-agnostic and loaded at analysis time by the chart rendering code.
@@ -495,6 +495,167 @@ def hrm_to_parquet(hrm_data: dict) -> bytes:
             "has_gps": polars.Series([False] * n, dtype=polars.Boolean),
             "has_power": polars.Series([False] * n, dtype=polars.Boolean),
             "source_format": polars.Series(["hrm"] * n, dtype=polars.Utf8),
+        }
+    )
+
+    buf = io.BytesIO()
+    df.write_parquet(buf)
+    return buf.getvalue()
+
+
+def gc_csv_to_parquet(csv_data: bytes, start_dt: datetime.datetime) -> bytes:
+    """Parse a GoldenCheetah OSF CSV and return canonical Parquet bytes.
+
+    Parameters
+    ----------
+    csv_data : bytes
+        Raw CSV content.  Fixed schema: secs,km,power,hr,cad,alt
+        Values are empty strings when a sensor channel has no data.
+    start_dt : datetime.datetime
+        UTC start time of the activity; used to derive per-row timestamps.
+
+    Returns
+    -------
+    bytes
+        Parquet-encoded bytes using the canonical schema.
+    """
+    ts_unix_ms_list: list[int] = []
+    hr_list: list[int | None] = []
+    speed_list: list[float | None] = []
+    cadence_list: list[int | None] = []
+    altitude_list: list[float | None] = []
+    power_list: list[float | None] = []
+    has_hr = False
+    has_speed = False
+    has_cadence = False
+    has_altitude = False
+    has_power = False
+
+    prev_km: float | None = None
+    prev_secs: float | None = None
+
+    try:
+        lines = csv_data.decode("utf-8", errors="replace").splitlines()
+    except Exception:
+        lines = []
+
+    if len(lines) >= 2:
+        col = {name.strip(): idx for idx, name in enumerate(lines[0].split(","))}
+        secs_idx = col.get("secs", 0)
+        km_idx = col.get("km")
+        power_idx = col.get("power")
+        hr_idx = col.get("hr")
+        cad_idx = col.get("cad")
+        alt_idx = col.get("alt")
+
+        for raw_line in lines[1:]:
+            if not raw_line.strip():
+                continue
+            parts = raw_line.split(",")
+
+            try:
+                secs = float(parts[secs_idx])
+            except (IndexError, ValueError):
+                continue
+
+            ts = start_dt + datetime.timedelta(seconds=secs)
+            ts_unix_ms_list.append(int(ts.timestamp() * 1000))
+
+            # HR (bpm)
+            hr_val: int | None = None
+            if hr_idx is not None and hr_idx < len(parts):
+                raw = parts[hr_idx].strip()
+                if raw:
+                    try:
+                        v = float(raw)
+                        if v > 0:
+                            hr_val = int(round(v))
+                            has_hr = True
+                    except ValueError:
+                        pass
+            hr_list.append(hr_val)
+
+            # power (W)
+            pwr_val: float | None = None
+            if power_idx is not None and power_idx < len(parts):
+                raw = parts[power_idx].strip()
+                if raw:
+                    try:
+                        v = float(raw)
+                        if v >= 0:
+                            pwr_val = v
+                            has_power = True
+                    except ValueError:
+                        pass
+            power_list.append(pwr_val)
+
+            # cadence (rpm)
+            cad_val: int | None = None
+            if cad_idx is not None and cad_idx < len(parts):
+                raw = parts[cad_idx].strip()
+                if raw:
+                    try:
+                        v = float(raw)
+                        if v > 0:
+                            cad_val = int(round(v))
+                            has_cadence = True
+                    except ValueError:
+                        pass
+            cadence_list.append(cad_val)
+
+            # altitude (m)
+            alt_val: float | None = None
+            if alt_idx is not None and alt_idx < len(parts):
+                raw = parts[alt_idx].strip()
+                if raw:
+                    try:
+                        alt_val = float(raw)
+                        has_altitude = True
+                    except ValueError:
+                        pass
+            altitude_list.append(alt_val)
+
+            # speed derived from consecutive km differences
+            spd_val: float | None = None
+            if km_idx is not None and km_idx < len(parts):
+                raw = parts[km_idx].strip()
+                if raw:
+                    try:
+                        km_val = float(raw)
+                        if prev_km is not None and prev_secs is not None:
+                            d_km = km_val - prev_km
+                            d_secs = secs - prev_secs
+                            if d_secs > 0 and d_km >= 0:
+                                spd_val = round(d_km / d_secs * 3600, 2)
+                                if spd_val > 0:
+                                    has_speed = True
+                        prev_km = km_val
+                        prev_secs = secs
+                    except ValueError:
+                        pass
+            speed_list.append(spd_val)
+
+    n = len(ts_unix_ms_list)
+    lat_list: list[float | None] = [None] * n
+    lon_list: list[float | None] = [None] * n
+    _ = has_hr  # implicit in hr_list content
+
+    df = polars.DataFrame(
+        {
+            "ts_unix_ms": polars.Series(ts_unix_ms_list, dtype=polars.Int64),
+            "hr": polars.Series(hr_list, dtype=polars.Int32),
+            "speed": polars.Series(speed_list, dtype=polars.Float64),
+            "cadence": polars.Series(cadence_list, dtype=polars.Int32),
+            "altitude": polars.Series(altitude_list, dtype=polars.Float64),
+            "lat": polars.Series(lat_list, dtype=polars.Float64),
+            "lon": polars.Series(lon_list, dtype=polars.Float64),
+            "power": polars.Series(power_list, dtype=polars.Float64),
+            "has_speed": polars.Series([has_speed] * n, dtype=polars.Boolean),
+            "has_cadence": polars.Series([has_cadence] * n, dtype=polars.Boolean),
+            "has_altitude": polars.Series([has_altitude] * n, dtype=polars.Boolean),
+            "has_gps": polars.Series([False] * n, dtype=polars.Boolean),
+            "has_power": polars.Series([has_power] * n, dtype=polars.Boolean),
+            "source_format": polars.Series(["gc_csv"] * n, dtype=polars.Utf8),
         }
     )
 
