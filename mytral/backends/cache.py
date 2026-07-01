@@ -256,6 +256,16 @@ class MytralUserCache(abc.ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def bookmarks(self) -> settings.UserBookmarks | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def set_bookmarks(
+        self, bookmarks: settings.UserBookmarks
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abstractmethod
     def component_templates(self) -> settings.UserComponentTemplates | None:
         raise NotImplementedError
 

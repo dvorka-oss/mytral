@@ -1,0 +1,174 @@
+{% macro render_activity_list_table(activities, activity_types, activities_weekdays, gear, is_mobile, year=none, bookmark_mode=false, bookmark_form=none) %}
+{# Shared activity list/table view - used by the year list aspect and the Bookmarks page #}
+<div class="table-responsive mt-3">
+    <table class="table table-vcenter card-table">
+        <thead>
+            <tr>
+                <th>When</th>
+                <th>Name<br/>Gear</th>
+                <th>Type</th>
+                {% if not is_mobile %}
+                <th>Duration</th>
+                <th>Distance<br/>Elevation</th>
+                <th>km/h<br/>Pace</th>
+                <th title="Exercises / Laps">Exs<br>Lps</th>
+                <th>Source</th>
+                <th title="Workout">W</th>
+                {% endif %}
+                {% if bookmark_mode %}
+                <th>Bookmark</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %}
+            {% if year %}
+            {# Calculate day of year (1-365/366) for scroll navigation from chart #}
+            {% set activity_month = activity.when_month|int %}
+            {% set activity_day = activity.when_day|int %}
+            {% set is_leap = (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0) %}
+            {% set days_in_months = [0, 31, 29 if is_leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] %}
+            {# Use namespace to persist variable across loop #}
+            {% set ns = namespace(day_of_year = activity_day) %}
+            {% for m in range(1, activity_month) %}
+                {% set ns.day_of_year = ns.day_of_year + days_in_months[m] %}
+            {% endfor %}
+            <tr data-activity-day="{{ ns.day_of_year }}" data-activity-date="{{ activity.when }}" data-debug-month="{{ activity_month }}" data-debug-day="{{ activity_day }}">
+            {% else %}
+            <tr data-activity-date="{{ activity.when }}">
+            {% endif %}
+                <td>
+                    <div class="ps-2 mytral-{{ activity_types.color(activity.activity_type_key) }}-border">
+                        <a href="{{ url_for('get_activity', key=activity.key) }}">{{ activity.when }}</a>
+                        <br/>
+                        <span class="text-muted">{{ activities_weekdays[activity.key] }}</span>
+                        {% if activity.commute %}
+                        | <span class="badge bg-green-lt">commute</span>
+                        {% elif activity.warm_up %}
+                        | <span class="badge bg-yellow-lt">warm-up</span>
+                        {% elif activity.cool_down %}
+                        | <span class="badge bg-blue-lt">cool-down</span>
+                        {% elif activity.race %}
+                        | <span class="badge bg-red-lt">race</span>
+                        {% elif activity.ranked %}
+                        | <span class="badge bg-orange-lt">ranked</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td title="{{ activity.description }}">
+                    {% if activity.name %}
+                        <b>{{ activity.name }}</b>
+                    {% else %}
+                        <b>Activity: {{ activity_types.name(activity.activity_type_key) }}</b>
+                    {% endif %}
+                    <br>
+                    {% set activity_gears = activity.gears if activity.gears is defined else ([activity.gear] if activity.gear else []) %}
+                    {% for gear_key in activity_gears %}
+                        {% if gear_key and not gear.to_dict().get(gear_key) %}
+                        <span class="text-danger">{{ gear_key }}</span>
+                        {% else %}
+                        {{ gear.to_dict().get(gear_key, {}).name }}
+                        {% endif %}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {{ activity_types.emoji(activity.activity_type_key) }}
+                    <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
+                </td>
+                {% if not is_mobile %}
+                <td>
+                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment"] %}
+                    {{ activity.duration }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                    {{ "{:0,}".format(activity.distance) }} m<br/>
+                    {{ "{:0,}".format(activity.elevation_gain) }} m
+                    {% endif %}
+                </td>
+                <td>
+                    {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
+                    {{ (activity.avg_speed)|round(1) }}<br/>
+                    {{ activity.pace }}
+                    {% endif %}
+                </td>
+                <td title="Exercises and laps">
+                    {% if activity.activity_type_key in ["exercise", "physio"]  and activity.exercises and activity.exercises|length > 0%}
+                    {{ activity.exercises|length }}
+                    {%else%}
+                    .
+                    {% endif %}
+                    <br/>
+                    {% if activity.activity_type_key not in ["sick","injured","comment","meditation", "physio", "exercise"] and activity.laps and activity.laps|length > 0 %}
+                    {{ activity.laps|length }}
+                    {%else%}
+                    .
+                    {% endif %}
+                </td>
+                <td><span>{{ activity.src }}</span></td>
+                {% if activity.workout_sort_code == 2 %}
+                <td title="Workout"><div class="mytral-workouts-few">
+                {% elif activity.workout_sort_code == 3 %}
+                <td title="Workout"><div class="mytral-workouts-more">
+                {% elif activity.workout_sort_code > 3 %}
+                <td title="Workout"><div class="mytral-workouts-many">
+                {% else %}
+                    {% if activity.activity_type_key in ["sick","injured","comment"] %}
+                    <td title="Workout">
+                    {% else %}
+                    <td title="Workout" class="mytral-workouts-1">
+                    {% endif %}
+                {% endif %}
+                    {% if activity.activity_type_key not in ["sick","injured","comment"] %}
+                    {{ activity.workout_sort_code }}
+                    {% endif %}
+                </div></td>
+                {% endif %}
+                {% if bookmark_mode %}
+                <td>
+                    <div class="btn-list">
+                        <form method="POST" action="{{ url_for('move_activity_bookmark', activity_key=activity.key, direction='up') }}" class="d-inline">
+                            {{ bookmark_form.hidden_tag() }}
+                            <button type="submit" class="btn btn-primary btn-icon" title="Move up" {% if loop.first %}disabled{% endif %}>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-up" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 5l0 14"></path>
+                                    <path d="M18 11l-6 -6"></path>
+                                    <path d="M6 11l6 -6"></path>
+                                </svg>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('move_activity_bookmark', activity_key=activity.key, direction='down') }}" class="d-inline">
+                            {{ bookmark_form.hidden_tag() }}
+                            <button type="submit" class="btn btn-primary btn-icon" title="Move down" {% if loop.last %}disabled{% endif %}>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-arrow-down" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 5l0 14"></path>
+                                    <path d="M18 13l-6 6"></path>
+                                    <path d="M6 13l6 6"></path>
+                                </svg>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('unbookmark_activity', key=activity.key) }}" class="d-inline">
+                            {{ bookmark_form.hidden_tag() }}
+                            <button type="submit" class="btn btn-danger btn-icon" title="Remove bookmark">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M4 7l16 0"></path>
+                                    <path d="M10 11l0 6"></path>
+                                    <path d="M14 11l0 6"></path>
+                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}

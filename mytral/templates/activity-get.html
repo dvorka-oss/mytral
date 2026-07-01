@@ -10,6 +10,27 @@
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
+                    {% if is_bookmarked %}
+                    <form method="POST" action="{{ url_for('unbookmark_activity', key=activity_entity.key) }}" class="d-inline">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn btn-success btn-icon" title="Remove bookmark">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-bookmark">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('bookmark_activity', key=activity_entity.key) }}" class="d-inline">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn btn-outline-primary btn-icon" title="Bookmark this activity">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bookmark">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    {% endif %}
                     <a href="{{ url_for('update_activity', key=activity_entity.key) }}"
                         class="btn btn-primary"
                         title="Edit activity">

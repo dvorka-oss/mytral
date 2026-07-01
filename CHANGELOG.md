@@ -5,7 +5,9 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added activity bookmarks. Bookmark any activity from its detail page, then
+  manage the bookmarked activities - reorder or remove them - from the new
+  Activities > Bookmarks page.
 
 ### Changed
 - .

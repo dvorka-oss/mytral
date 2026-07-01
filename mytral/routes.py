@@ -3487,7 +3487,44 @@ def get_activity(key):
         next_month=next_month,
         next_day=next_day,
         activity_map_data=activity_map_data,
+        is_bookmarked=ds.list_bookmarks(user_id).is_bookmarked(a.key),
         form=form,
+    )
+
+
+@flask_app.route("/app/activities/<key>/bookmark", methods=["POST"])
+def bookmark_activity(key):
+    """Add activity to the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        ds.create_bookmark(user_id=user_id, activity_key=key)
+        flask.flash(message="Activity bookmarked", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("get_activity", key=key))
+
+
+@flask_app.route("/app/activities/<key>/unbookmark", methods=["POST"])
+def unbookmark_activity(key):
+    """Remove activity from the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        ds.delete_bookmark(user_id=user_id, activity_key=key)
+        flask.flash(message="Bookmark removed", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(
+        flask.request.referrer or flask.url_for("get_activity", key=key)
     )
 
 
@@ -4051,6 +4088,70 @@ def list_activities_diary():
         user_profile=user_profile,
         no_data=True,
     )
+
+
+@flask_app.route("/activities/bookmarks")
+def list_activities_bookmarks():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+    dataset_name = user_profile.dataset_name
+
+    bookmarks = ds.list_bookmarks(user_id=user_id)
+
+    activities = []
+    for activity_key in bookmarks.activity_keys:
+        try:
+            activities.append(
+                ds.get_activity(
+                    user_id=user_id, dataset_name=dataset_name, key=activity_key
+                )
+            )
+        except ValueError:
+            app_logger.warning(
+                "Bookmarked activity no longer exists", activity_key=activity_key
+            )
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a in activities
+    }
+
+    return flask.render_template(
+        "activity-bookmarks.html",
+        user_profile=user_profile,
+        activities=activities,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=dataset_name),
+        activities_weekdays=activities_weekdays,
+        is_mobile=flask.session.get(COOKIE_MOBILE),
+        form=forms.EmptyForm(),
+    )
+
+
+@flask_app.route(
+    "/app/activities/bookmarks/<activity_key>/move/<direction>", methods=["POST"]
+)
+def move_activity_bookmark(activity_key, direction):
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        try:
+            ds.move_bookmark(
+                user_id=user_id, activity_key=activity_key, direction=direction
+            )
+        except ValueError:
+            flask.flash(message="Invalid bookmark move direction", category="error")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("list_activities_bookmarks"))
 
 
 @flask_app.route("/activities/prs")

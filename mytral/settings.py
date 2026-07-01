@@ -3773,6 +3773,70 @@ class UserOutfits:
 
 
 #
+# User activity bookmarks
+#
+
+
+class UserBookmarks:
+    """Container for a user's ordered activity bookmarks.
+
+    Position in `activity_keys` is the bookmark order - no separate `order`
+    field is needed since a bookmark is just a reference to an activity.
+
+    """
+
+    def __init__(self) -> None:
+        self.activity_keys: list[str] = []
+
+    def is_bookmarked(self, activity_key: str) -> bool:
+        """Check whether given activity is bookmarked."""
+        return activity_key in self.activity_keys
+
+    def add(self, activity_key: str) -> None:
+        """Add activity to bookmarks (no-op if already bookmarked)."""
+        if activity_key not in self.activity_keys:
+            self.activity_keys.append(activity_key)
+
+    def delete(self, activity_key: str) -> None:
+        """Remove activity from bookmarks (no-op if not bookmarked)."""
+        if activity_key in self.activity_keys:
+            self.activity_keys.remove(activity_key)
+
+    def move_up(self, activity_key: str) -> None:
+        """Move activity one position up (no-op if absent or already first)."""
+        if activity_key not in self.activity_keys:
+            return
+        index = self.activity_keys.index(activity_key)
+        if index > 0:
+            self.activity_keys[index], self.activity_keys[index - 1] = (
+                self.activity_keys[index - 1],
+                self.activity_keys[index],
+            )
+
+    def move_down(self, activity_key: str) -> None:
+        """Move activity one position down (no-op if absent or already last)."""
+        if activity_key not in self.activity_keys:
+            return
+        index = self.activity_keys.index(activity_key)
+        if index < len(self.activity_keys) - 1:
+            self.activity_keys[index], self.activity_keys[index + 1] = (
+                self.activity_keys[index + 1],
+                self.activity_keys[index],
+            )
+
+    def to_dict(self) -> list:
+        """Convert bookmarks to list of activity keys."""
+        return list(self.activity_keys)
+
+    @classmethod
+    def from_dict(cls, bookmarks_data: list | None) -> Self:
+        """Create UserBookmarks instance from list of activity keys."""
+        bookmarks = cls()
+        bookmarks.activity_keys = list(bookmarks_data) if bookmarks_data else []
+        return bookmarks
+
+
+#
 # User goal
 #
 
