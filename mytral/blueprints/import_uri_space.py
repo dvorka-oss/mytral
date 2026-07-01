@@ -41,6 +41,7 @@ from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
 from mytral.tasks.do import fit_directory_import
 from mytral.tasks.do import fit_import
+from mytral.tasks.do import garmin_archive_import
 from mytral.tasks.do import gpx_directory_import
 from mytral.tasks.do import gpx_import
 from mytral.tasks.do import polar_hrm_import
@@ -496,6 +497,7 @@ def tool_import():
         import_mytral_json_form=forms.ImportMytralJsonForm(),
         import_polar_hrm_form=forms.ImportPolarHrmForm(),
         import_strava_archive_form=forms.ImportStravaArchiveForm(),
+        import_garmin_archive_form=forms.ImportGarminArchiveForm(),
         import_fit_form=_build_fit_import_form(user_id),
         import_gpx_form=_build_gpx_import_form(user_id),
         import_tcx_form=_build_tcx_import_form(user_id),
@@ -1029,6 +1031,102 @@ def tool_import_strava_archive():
             traceback=traceback.format_exc(),
         )
         flask.flash(f"Failed to start Strava archive import: {exc}", "error")
+        return flask.redirect(flask.url_for("tool_import"))
+
+
+@flask_app.route("/app/tools/import/garmin/archive", methods=["POST"])
+def tool_import_garmin_archive():
+    """Submit an async Garmin Connect archive import task.
+
+    Desktop-only: requires a local filesystem path.
+    """
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    else:
+        user_id = str(user_id)
+
+    if app_config.incarnation != _config_mod.MytralIncarnation.DESKTOP:
+        err_msg = (
+            "Garmin Connect archive import is only available in the desktop version."
+        )
+        app_logger.error(err_msg)
+        flask.flash(err_msg, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    form = forms.ImportGarminArchiveForm()
+    if not form.validate_on_submit():
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flask.flash(error, "warning")
+        return flask.redirect(flask.url_for("tool_import"))
+
+    data_dir = form.data_dir.data.strip()
+    _path_valid = os.path.isdir(data_dir) or (
+        os.path.isfile(data_dir) and data_dir.lower().endswith(".zip")
+    )
+    if not _path_valid:
+        return flask.render_template(
+            "mytral-error.html",
+            user_profile=ds.profile(user_id),
+            title="Import Error",
+            message=(
+                "The specified path does not exist or is not a directory"
+                f" / ZIP file: {data_dir}"
+            ),
+            back_endpoint="tool_import",
+        )
+
+    correlation_id = str(uuid.uuid4())
+    import_from_date = (form.import_from_date.data or "").strip()
+    import_to_date = (form.import_to_date.data or "").strip()
+
+    task_entity = tasks.TaskEntity(
+        key=str(uuid.uuid4()),
+        user_id=user_id,
+        task_type=garmin_archive_import.GarminArchiveImportTask.TASK_TYPE,
+        status=tasks.TaskStatus.QUEUED,
+        created_at=datetime.datetime.now(),
+        started_at=None,
+        completed_at=None,
+        error_message=None,
+        error_type=None,
+        error_traceback=None,
+        progress=0,
+        parameters={
+            "user_id": user_id,
+            "dataset_name": ds.profile(user_id).dataset_name,
+            garmin_archive_import.GarminArchiveImportTask.DATA_DIR_KEY: data_dir,
+            "on_conflict": form.on_conflict.data,
+            garmin_archive_import.GarminArchiveImportTask.IMPORT_RECORDINGS_KEY: (
+                form.import_recordings.data
+            ),
+            garmin_archive_import.GarminArchiveImportTask.IMPORT_FROM_DATE_KEY: (
+                import_from_date
+            ),
+            garmin_archive_import.GarminArchiveImportTask.IMPORT_TO_DATE_KEY: (
+                import_to_date
+            ),
+            "correlation_id": correlation_id,
+        },
+        is_cancelled=False,
+    )
+
+    try:
+        task_id = app_task_manager.executor.submit(task_entity)
+        flask.flash(
+            f"Garmin Connect archive import started (task {task_id}). "
+            "Check the Tasks page for progress.",
+            "success",
+        )
+        return flask.redirect(flask.url_for("task_detail", task_id=task_id))
+    except Exception as exc:
+        app_logger.exception(
+            "Failed to submit Garmin archive import task",
+            error=str(exc),
+            traceback=traceback.format_exc(),
+        )
+        flask.flash(f"Failed to start Garmin archive import: {exc}", "error")
         return flask.redirect(flask.url_for("tool_import"))
 
 

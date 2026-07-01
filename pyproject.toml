@@ -41,6 +41,7 @@ dependencies = [
   "defusedxml~=0.7",
   "email_validator~=2.2",
   "fit-tool>=0.9.15",
+  "fitparse>=1.2.0",
   "flask-cors~=6.0",
   "flask-wtf~=1.2",
   "flask~=3.1",
