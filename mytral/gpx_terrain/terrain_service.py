@@ -396,15 +396,3 @@ class TerrainService:
             tile_metadata=tile_metadata,
             tile_url_template=template,
         )
-
-    def invalidate(self, activity_key: str) -> None:
-        """Remove cached GLTF data for an activity (e.g. after GPX replacement).
-
-        Parameters
-        ----------
-        activity_key : str
-            Activity identifier to evict from the cache.
-        """
-        stale = [key for key in self._gltf_cache if key[0] == activity_key]
-        for key in stale:
-            del self._gltf_cache[key]

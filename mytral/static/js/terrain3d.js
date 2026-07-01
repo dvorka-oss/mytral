@@ -115,7 +115,47 @@ window.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-view]").forEach((btn) => {
         btn.addEventListener("click", () => applyView(btn.dataset.view));
     });
+
+    setupFullscreen();
 });
+
+// ---------------------------------------------------------------------------
+// Fullscreen toggle (maximizes the 3D card across the whole screen)
+// ---------------------------------------------------------------------------
+
+function setupFullscreen() {
+    const card = document.getElementById("terrain3dCard");
+    const btn = document.getElementById("terrain3dFullscreenBtn");
+    if (!card || !btn) return;
+
+    const maximizeSvg = btn.innerHTML;
+    const minimizeSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler' +
+        ' icon-tabler-arrows-minimize" width="24" height="24" viewBox="0 0 24 24"' +
+        ' stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"' +
+        ' stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/>' +
+        '<path d="M5 9l4 0l0 -4"/><path d="M3 3l6 6"/><path d="M5 15l4 0l0 4"/>' +
+        '<path d="M3 21l6 -6"/><path d="M19 9l-4 0l0 -4"/><path d="M15 9l6 -6"/>' +
+        '<path d="M19 15l-4 0l0 4"/><path d="M15 15l6 6"/></svg>';
+
+    const setState = (full) => {
+        card.classList.toggle("terrain-fullscreen", full);
+        btn.innerHTML = full ? minimizeSvg : maximizeSvg;
+        btn.title = full ? "Exit fullscreen" : "Fullscreen";
+        // Babylon must re-read the canvas size after the card resizes
+        if (_engine) setTimeout(() => _engine.resize(), 60);
+    };
+
+    btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        setState(!card.classList.contains("terrain-fullscreen"));
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && card.classList.contains("terrain-fullscreen")) {
+            setState(false);
+        }
+    });
+}
 
 // ---------------------------------------------------------------------------
 // Data loading

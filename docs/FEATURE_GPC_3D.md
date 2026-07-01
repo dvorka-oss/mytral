@@ -133,14 +133,19 @@ regressions are catchable.
 The feature is a classic **server-generates-assets / client-renders** split:
 
 ```
-GPX/FIT  ─┐
-          │  TerrainService (backend)
-SRTM HGT ─┼─►  parse → simplify → bbox → tiles → DEM grid → mesh → glTF ──► browser
-          │                                   └────────► GeoJSON track ──► browser
-map tiles ┘                                                                  │
+normalized ─┐
+  Parquet   │  TerrainService (backend)
+SRTM HGT  ──┼─►  points → simplify → bbox → tiles → DEM grid → mesh → glTF ──► browser
+            │                                   └──────────► GeoJSON track ──► browser
+map tiles ──┘                                                                  │
                                                               Babylon.js + terrain3d.js
                                                               gpx-profile-chart.js
 ```
+
+The recording (GPX/FIT/TCX) is **not parsed by this feature**: every recording is already
+converted to a normalized Parquet by `mytral.recordings.parquet_converter` at import, and
+the 3D pipeline reads that (`lat`/`lon`/`altitude`), so no format-specific parser is
+duplicated here.
 
 The backend produces two artifacts per activity:
 
@@ -160,8 +165,8 @@ and renders an SVG elevation/gradient chart cross-linked to the 3D scene.
 ```
 mytral/gpx_terrain/                      # backend pipeline (pure, unit-tested)
 ├── coordinates.py      # bbox, haversine, metres-per-degree, slippy-tile math
-├── gpx_worker.py       # GPX (gpxpy) + FIT (fitdecode) parse, RDP simplify,
-│                       #   stats, mean-bias elevation normalization, GeoJSON
+├── gpx_worker.py       # track points from normalized Parquet, RDP simplify,
+│                       #   mean-bias elevation normalization, GeoJSON
 ├── hgt_loader.py       # SRTM HGT loading via srtm.py, multi-tile grid stitch,
 │                       #   on-disk cache, void filling
 ├── map_tile.py         # slippy map tile model, auto-zoom to a tile budget
@@ -184,8 +189,11 @@ Parameters (CubeTrek-derived defaults, `terrain_service.py`): `scale_factor = 0.
 (metres → scene units), `z_exaggeration = 1.5`, `height_offset = 500 m`, bbox
 `padding = 500 m`, `max_tiles = 48`, `grid_cells_per_tile = 40`.
 
-1. **Parse** the GPX (`gpxpy`) or FIT (`fitdecode`, semicircles → degrees) into
-   `TrackPoint[]` (lat, lon, elevation, timestamp, heart_rate).
+1. **Load track points** from the activity's normalized recording Parquet
+   (`gpx_worker.points_from_parquet`: `lat`, `lon`, `altitude` → `TrackPoint[]`). The
+   blueprint prefers the stored Parquet and regenerates it from the raw recording via the
+   canonical `parquet_converter` when missing — so GPX, FIT and TCX all work, with no
+   parser of this feature's own. (Points without a GPS fix are dropped.)
 2. **Simplify** with **Ramer–Douglas–Peucker** (`epsilon = 2 m`, planar metric using
    metres-per-degree) — removes redundant points while preserving shape, cutting mesh/
    draw work for dense recordings.
@@ -257,11 +265,14 @@ tuning (lighting, trail/marker sizes, zoom, fly-through).
   `zOffset` prevent z-fighting with the ground.
 * **Markers** — start (green **S**), finish (red **F**), peak (amber **▲** + elevation),
   drawn as clean billboarded coin badges (DynamicTexture: filled circle + white ring +
-  glyph) on thin pin stems; kept always-on-top (`depthFunction = ALWAYS`) as findable
-  waypoints.
+  glyph) on thin pin stems. Like the trail, they are **depth-tested** so a ridge between
+  the camera and a waypoint occludes it, instead of floating in front of the mountain.
 * **Hover dot** — an orange core sphere + a pulsing radial-gradient glow halo, **depth-
   tested** so it is occluded when the hovered point is behind a mountain. Driven by a
   linear nearest-point scan over the draped points (no KD-tree).
+* **Fullscreen** — a maximize button inside the canvas card toggles a CSS
+  `terrain-fullscreen` class (fixed, 100vw/100vh, z-index 1055) and calls
+  `engine.resize()`; Escape exits. Mirrors the 2D map's fullscreen affordance.
 * **Chart cross-link** — `gpx-profile-chart.js` renders a standalone SVG elevation
   profile coloured by per-segment slope; hovering the chart calls back into the scene to
   move the dot, and terrain hover highlights the chart, sharing one point index space.
@@ -294,15 +305,22 @@ tuning (lighting, trail/marker sizes, zoom, fly-through).
   without post-processing, by construction.
 * **Same-origin tile proxy + disk cache + placeholder** — solves CORS, enables offline,
   respects upstream usage policy (cache, real User-Agent), and degrades gracefully.
+* **Reuse the normalized recording Parquet (no own parser)** — every recording is already
+  converted to a canonical Parquet by `recordings.parquet_converter`. Reading that instead
+  of re-parsing means a single source of truth, GPX/FIT/TCX support for free, and **no
+  `gpxpy`/`fitdecode` dependencies** (the `pygltflib` dependency was likewise unused and
+  dropped — the glTF is written by hand). `numpy` and `srtm.py` are the only Python
+  dependencies this feature adds.
 * **Feature flag `MYTRAL_FF_GPX_3D_MAP`** — lets the feature ship dark and be enabled per
   deployment.
 
 ## Tests
 
-* **Unit** — `tests/test_gpx_terrain.py` (**33 tests**, all `@pytest.mark.mytral`, no
+* **Unit** — `tests/test_gpx_terrain.py` (**31 tests**, all `@pytest.mark.mytral`, no
   network/disk-dependent on real downloads). Coverage by module: coordinates (haversine,
-  bbox, metres-per-degree), gpx_worker (parse, RDP reduces/preserves, stats, elevation
-  normalization, GeoJSON coordinate layout), map_tile (zoom/bbox/auto-zoom budget, URL
+  bbox, metres-per-degree), gpx_worker (`points_from_parquet` count/elevation via the
+  canonical converter, RDP reduces/preserves, elevation normalization, GeoJSON coordinate
+  layout), map_tile (zoom/bbox/auto-zoom budget, URL
   templating), hgt_loader (void filling, multi-tile grid via a stub cache), mesh_builder
   (index/vertex counts, UV presence, height scaling, enclosure walls), gltf_writer (valid
   JSON, required sections, texture-URL injection, mostly-unlit material, wall nodes),

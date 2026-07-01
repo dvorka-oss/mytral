@@ -27,9 +27,9 @@ from mytral.gpx_terrain import terrain_service
 from mytral.gpx_terrain import tile_cache
 from mytral.recordings import parquet_converter
 
-# ---------------------------------------------------------------------------
+#
 # coordinates.py
-# ---------------------------------------------------------------------------
+#
 
 
 @pytest.mark.mytral
@@ -105,9 +105,9 @@ def test_bounding_box_from_track():
     assert bb.west < min(lons)
 
 
-# ---------------------------------------------------------------------------
+#
 # gpx_worker.py
-# ---------------------------------------------------------------------------
+#
 
 _MINIMAL_GPX = textwrap.dedent("""\
     <?xml version="1.0" encoding="UTF-8"?>
@@ -200,38 +200,6 @@ def test_simplify_track_keeps_significant_deviation():
 
 
 @pytest.mark.mytral
-def test_track_summary_distance():
-    # GIVEN two points exactly 1 degree of latitude apart
-    pts = [
-        gpx_worker.TrackPoint(lat=47.0, lon=11.0, elevation=1000.0),
-        gpx_worker.TrackPoint(lat=48.0, lon=11.0, elevation=1000.0),
-    ]
-
-    # WHEN summary is computed
-    summary = gpx_worker.track_summary(pts)
-
-    # THEN distance matches haversine expectation within 500 m
-    assert abs(summary.distance_m - 111_319.5) < 500
-
-
-@pytest.mark.mytral
-def test_track_summary_elevation_gain_loss():
-    # GIVEN a track: climb 100 m then descend 50 m
-    pts = [
-        gpx_worker.TrackPoint(lat=47.0, lon=11.0, elevation=1000.0),
-        gpx_worker.TrackPoint(lat=47.01, lon=11.0, elevation=1100.0),
-        gpx_worker.TrackPoint(lat=47.02, lon=11.0, elevation=1050.0),
-    ]
-
-    # WHEN summary is computed
-    summary = gpx_worker.track_summary(pts)
-
-    # THEN elevation gain is 100 m and loss is 50 m
-    assert summary.elevation_up_m == pytest.approx(100.0)
-    assert summary.elevation_down_m == pytest.approx(50.0)
-
-
-@pytest.mark.mytral
 def test_normalize_elevation_shifts_mean():
     # GIVEN track points with GPS elevation mean of 1000 m
     pts = [
@@ -274,9 +242,9 @@ def test_points_to_geojson_structure():
     assert coords[0][4] == pytest.approx(0.0)  # cumulative distance at start
 
 
-# ---------------------------------------------------------------------------
+#
 # map_tile.py
-# ---------------------------------------------------------------------------
+#
 
 
 @pytest.mark.mytral
@@ -346,9 +314,9 @@ def test_map_tile_url_template():
     assert "5743" in url
 
 
-# ---------------------------------------------------------------------------
+#
 # hgt_loader.py
-# ---------------------------------------------------------------------------
+#
 
 
 class _SequentialElevationCache:
@@ -412,9 +380,9 @@ def test_hgt_cache_clamps_srtm_void_sentinel(tmp_path):
     assert value == -500
 
 
-# ---------------------------------------------------------------------------
+#
 # mesh_builder.py
-# ---------------------------------------------------------------------------
+#
 
 
 @pytest.mark.mytral
@@ -523,9 +491,9 @@ def test_build_enclosure_walls_count():
         assert wall.vertex_count > 0
 
 
-# ---------------------------------------------------------------------------
+#
 # gltf_writer.py
-# ---------------------------------------------------------------------------
+#
 
 
 def _make_simple_mesh() -> mesh_builder.MeshBuffers:
@@ -615,9 +583,9 @@ def test_assemble_gltf_wall_meshes_add_nodes():
     assert len(doc["nodes"]) == 5
 
 
-# ---------------------------------------------------------------------------
+#
 # terrain_service.py
-# ---------------------------------------------------------------------------
+#
 
 
 def _mesh_positions_from_gltf(doc: dict, mesh_idx: int) -> np.ndarray:
@@ -715,9 +683,9 @@ def test_assemble_gltf_map_material_is_mostly_unlit():
     assert mat["pbrMetallicRoughness"]["baseColorFactor"][0] < 0.5
 
 
-# ---------------------------------------------------------------------------
+#
 # tile_cache.py
-# ---------------------------------------------------------------------------
+#
 
 
 @pytest.mark.mytral

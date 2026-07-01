@@ -52,37 +52,6 @@ class TrackPoint:
     heart_rate: int = 0
 
 
-@dataclasses.dataclass
-class TrackSummary:
-    """Aggregate statistics for a GPS track.
-
-    Attributes
-    ----------
-    distance_m : float
-        Total track distance in metres.
-    elevation_up_m : float
-        Total elevation gain in metres.
-    elevation_down_m : float
-        Total elevation loss in metres (positive value).
-    duration_s : float
-        Total elapsed time in seconds.
-    min_elevation_m : float
-        Lowest point in metres.
-    max_elevation_m : float
-        Highest point in metres.
-    point_count : int
-        Number of track points.
-    """
-
-    distance_m: float = 0.0
-    elevation_up_m: float = 0.0
-    elevation_down_m: float = 0.0
-    duration_s: float = 0.0
-    min_elevation_m: float = 0.0
-    max_elevation_m: float = 0.0
-    point_count: int = 0
-
-
 def points_from_parquet(parquet_bytes: bytes) -> list[TrackPoint]:
     """Build track points from a normalized recording Parquet.
 
@@ -192,56 +161,6 @@ def simplify_track(
     if len(points) < 3:
         return list(points)
     return _rdp(points, epsilon_m)
-
-
-def track_summary(points: list[TrackPoint]) -> TrackSummary:
-    """Compute aggregate statistics for a track.
-
-    Matches GPXWorker.getTrackSummary() in TopoLibrary.
-
-    Parameters
-    ----------
-    points : list[TrackPoint]
-        Track points (typically after simplification).
-
-    Returns
-    -------
-    TrackSummary
-        Computed statistics.
-    """
-    if not points:
-        return TrackSummary()
-
-    total_dist = 0.0
-    ele_up = 0.0
-    ele_down = 0.0
-    min_ele = points[0].elevation
-    max_ele = points[0].elevation
-    duration = 0.0
-
-    for i in range(1, len(points)):
-        prev = points[i - 1]
-        curr = points[i]
-        total_dist += coordinates.haversine_m(prev.lat, prev.lon, curr.lat, curr.lon)
-        delta = curr.elevation - prev.elevation
-        if delta > 0:
-            ele_up += delta
-        else:
-            ele_down += abs(delta)
-        min_ele = min(min_ele, curr.elevation)
-        max_ele = max(max_ele, curr.elevation)
-        if prev.timestamp and curr.timestamp:
-            duration += curr.timestamp - prev.timestamp
-
-    return TrackSummary(
-        distance_m=total_dist,
-        elevation_up_m=ele_up,
-        elevation_down_m=ele_down,
-        duration_s=duration,
-        min_elevation_m=min_ele,
-        max_elevation_m=max_ele,
-        point_count=len(points),
-    )
 
 
 def normalize_elevation(
