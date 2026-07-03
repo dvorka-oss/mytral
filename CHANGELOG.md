@@ -5,6 +5,7 @@
 This MyTraL **minor** release brings:
 
 ### Added
+- Added activity bookmarks - bookmark any activity from its detail page.,
 - Added an `Elevation` aspect to the `This vs. Last` page, comparing weekly, monthly,
   and yearly elevation gain. The weekly and monthly charts also show a dashed red
   `Everesting` (8848 m) reference line so athletes can see whether their cumulative
