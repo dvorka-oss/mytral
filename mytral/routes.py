@@ -3501,8 +3501,16 @@ def bookmark_activity(key):
 
     form = forms.EmptyForm()
     if form.validate_on_submit():
-        ds.create_bookmark(user_id=user_id, activity_key=key)
-        flask.flash(message="Activity bookmarked", category="success")
+        user_profile = ds.profile(user_id)
+        try:
+            ds.get_activity(
+                user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+            )
+        except ValueError:
+            flask.flash(message="Bookmark error - activity not found", category="error")
+        else:
+            ds.create_bookmark(user_id=user_id, activity_key=key)
+            flask.flash(message="Activity bookmarked", category="success")
     else:
         flask.flash(message="Bookmark error - form validation error", category="error")
 
@@ -4110,8 +4118,10 @@ def list_activities_bookmarks():
             )
         except ValueError:
             app_logger.warning(
-                "Bookmarked activity no longer exists", activity_key=activity_key
+                "Bookmarked activity no longer exists, removing bookmark",
+                activity_key=activity_key,
             )
+            ds.delete_bookmark(user_id=user_id, activity_key=activity_key)
 
     activities_weekdays = {
         a.key: cals.WEEKDAY_INDEX_2_STR.get(
