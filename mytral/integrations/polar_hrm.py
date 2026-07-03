@@ -969,10 +969,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             prelim_avg_speed = (distance_m / duration_s) * 3.6
             if sport_str == commons.AT_RUN and prelim_avg_speed > 25.0:
                 # running at > 25 km/h is world-record pace — this is a ride
-                sport_str = commons.guess_activity_type(prelim_avg_speed)
+                sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
             elif sport_str == commons.AT_GYM and prelim_avg_speed > 0:
                 # "exercise" with distance/time/speed data — guess real type
-                sport_str = commons.guess_activity_type(prelim_avg_speed)
+                sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
 
         # determine src_key — prefer hrm filename; fall back to synthetic key
         src_key = (

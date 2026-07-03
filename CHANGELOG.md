@@ -5,7 +5,10 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added an `Elevation` aspect to the `This vs. Last` page, comparing weekly, monthly,
+  and yearly elevation gain. The weekly and monthly charts also show a dashed red
+  `Everesting` (8848 m) reference line so athletes can see whether their cumulative
+  climbing reaches Mt. Everest peak.
 
 ### Changed
 - .
