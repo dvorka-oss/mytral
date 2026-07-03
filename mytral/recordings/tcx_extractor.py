@@ -381,7 +381,7 @@ def extract_tcx_summary(tcx_data: bytes) -> RecordingSummary:
 
     # fallback: guess activity type from pace when Sport is missing/unrecognized
     if summary.activity_type_key == commons.AT_WORKOUT and summary.avg_speed:
-        summary.activity_type_key = commons.guess_activity_type_from_pace(
+        summary.activity_type_key = commons.guess_activity_type_from_avg_speed(
             summary.avg_speed
         )
 

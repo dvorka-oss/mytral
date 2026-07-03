@@ -84,6 +84,10 @@ def _apply_y_axis_formatter(fig, aspect: commons.StatsAspect) -> None:
             fig.yaxis.formatter = bokeh_models.CustomJSTickFormatter(
                 code="return tick + ' km';"
             )
+        case commons.StatsAspect.ELEVATION:
+            fig.yaxis.formatter = bokeh_models.CustomJSTickFormatter(
+                code="return tick + ' m';"
+            )
 
 
 def _apply_y_axis_formatter_for_chart_type(fig, chart_type: ChartType) -> None:
@@ -140,6 +144,8 @@ def _add_hover_tool_with_tooltips(
             tooltips = "@y{int} km"
         case commons.StatsAspect.KGS:
             tooltips = "@y{int} kg"
+        case commons.StatsAspect.ELEVATION:
+            tooltips = "@y{int} m"
         case commons.StatsAspect.ACTIVITIES:
             tooltips = "@y{int} activities"
         case _:
@@ -147,6 +153,24 @@ def _add_hover_tool_with_tooltips(
 
     fig.add_tools(
         bokeh_models.HoverTool(tooltips=tooltips, renderers=renderers, mode=mode)
+    )
+
+
+EVERESTING_M = 8848  # height of Mt. Everest in meters
+
+
+def _add_everesting_line(fig, aspect: commons.StatsAspect, x_min, x_max) -> None:
+    """draw a dashed red Everesting (8848 m) reference line for elevation charts."""
+    if commons.StatsAspect.ELEVATION != aspect:
+        return
+    fig.line(
+        [x_min, x_max],
+        [EVERESTING_M, EVERESTING_M],
+        line_color="red",
+        line_dash="dashed",
+        line_width=2,
+        line_alpha=0.7,
+        legend_label="Everesting (8848 m)",
     )
 
 
@@ -2529,6 +2553,8 @@ def last_vs_this_month(
 
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
+    _add_everesting_line(fig, aspect, min(x), max(x))
+
     script, div = bokeh_embed.components(fig)
 
     return script, div
@@ -2589,6 +2615,8 @@ def last_vs_this_week(
         fig.legend.location = "top_left"
 
     _add_hover_tool_with_tooltips(fig, aspect, [last_w, this_w])
+
+    _add_everesting_line(fig, aspect, 1, 7)
 
     script, div = bokeh_embed.components(fig)
 
