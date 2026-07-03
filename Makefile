@@ -311,7 +311,7 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	uv run python -m mytral.run
 endif
 
-run-preproduction: .venv ## run MyTraL server on Linux w/ DEMO data w/ production settings
+run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data w/ production settings
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/pre-production \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \

@@ -226,7 +226,7 @@ AT_PLAN = "plan"  # TODO deprecated
 #
 
 
-def guess_activity_type_from_pace(avg_speed_kmh: float) -> str:
+def guess_activity_type_from_avg_speed(avg_speed_kmh: float) -> str:
     """Guess activity type from average speed in km/h.
 
     Parameters

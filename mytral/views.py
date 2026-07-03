@@ -516,12 +516,19 @@ class CalendarHeatmap:
                         count += 1
             return count
 
+        def _sum_as(activities: list, value_of) -> float:
+            """Sum value_of(activity) over non-meta activities."""
+            return sum(
+                value_of(a)
+                for a in activities
+                if not self.activity_types.is_meta(a.activity_type_key)
+            )
+
         if aspect == commons.StatsAspect.ACTIVITIES:
             return [_count_as(a) for a in week_as]
         elif aspect == commons.StatsAspect.DISTANCE:
             result = [
-                sum([self.get_ukm_for_activity(a) for a in activities])
-                for activities in week_as
+                _sum_as(activities, self.get_ukm_for_activity) for activities in week_as
             ]
             # 0 padding
             if len(result) == 7:
@@ -531,13 +538,17 @@ class CalendarHeatmap:
             return result + [0] * (7 - len(result))
         elif aspect == commons.StatsAspect.DURATION:
             return [
-                sum([a.duration_seconds for a in activities]) for activities in week_as
+                _sum_as(activities, lambda a: a.duration_seconds)
+                for activities in week_as
             ]
         elif aspect == commons.StatsAspect.KGS:
-            return [sum([a.exercise_kgs for a in activities]) for activities in week_as]
+            return [
+                _sum_as(activities, lambda a: a.exercise_kgs) for activities in week_as
+            ]
         elif aspect == commons.StatsAspect.ELEVATION:
             return [
-                sum([a.elevation_gain for a in activities]) for activities in week_as
+                _sum_as(activities, lambda a: a.elevation_gain)
+                for activities in week_as
             ]
 
         raise ValueError(f"Unsupported aspect: {aspect}")
