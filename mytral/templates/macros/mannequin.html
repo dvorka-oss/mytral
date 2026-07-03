@@ -36,12 +36,10 @@
 
 {# ---- per-region <g>: same class contract as before, one place ---- #}
 {% macro _mnq_group(r, mode, highlights, injury_highlights, picker_id) -%}
-    <g id="{{ picker_id }}-{{ r.part_id }}" data-part-id="{{ r.part_id }}" {%- if r.muscle_key %}data-muscle-key="{{ r.muscle_key }}"{% endif %}
-data-name="{{ r.label }}" {%- if mode == 'injury' %} class="mnq
-{% if r.part_id in injury_highlights %}body-injured{% endif %}
-" {%- elif mode == 'display' %} class="mnq
-{% if r.muscle_key and highlights.get(r.muscle_key) %}{{ highlights.get(r.muscle_key) }}{% endif %}
-" {%- else %} class="mnq" {%- endif %}>
+    <g id="{{ picker_id }}-{{ r.part_id }}"
+       data-part-id="{{ r.part_id }}"{% if r.muscle_key %} data-muscle-key="{{ r.muscle_key }}"{% endif %}
+       data-name="{{ r.label }}"
+       class="mnq{% if mode == "injury" and r.part_id in injury_highlights %} body-injured{% elif mode == "display" and r.muscle_key and highlights.get(r.muscle_key) %} {{ highlights.get(r.muscle_key) }}{% endif %}">
 {%- for d in r.paths %}
     <path d="{{ d }}" />
 {% endfor -%}

@@ -23,10 +23,6 @@ from mytral import muscle_groups
 from mytral import routes
 from mytral import settings
 
-# the 3 picker-only part-ids the legacy macro exposed but the symptom
-# region map does not validate (kept for backward compatibility)
-_PICKER_ONLY_PART_IDS = {"front-abs", "front-obliques-l", "front-obliques-r"}
-
 
 def _all_regions():
     return list(anatomy.FRONT_REGIONS) + list(anatomy.BACK_REGIONS)
@@ -53,16 +49,17 @@ def test_anatomy_muscle_keys_are_canonical():
 
 @pytest.mark.mytral
 def test_anatomy_covers_all_body_part_ids():
-    # GIVEN the 60 part-ids the injury / sickness system depends on
-    expected = set(settings._ALL_BODY_PART_IDS) | _PICKER_ONLY_PART_IDS
+    # GIVEN the part-ids the injury / sickness system depends on
+    expected = set(settings._ALL_BODY_PART_IDS)
     # WHEN collecting the part-ids the geometry emits
     emitted = {region.part_id for region in _all_regions()}
-    # THEN the geometry covers exactly that set (no orphaned injuries)
+    # THEN the geometry covers exactly that set (no orphaned injuries, and no
+    # picker-only ids that silently fail body-part validation on save)
     assert emitted == expected, {
         "missing": sorted(expected - emitted),
         "unexpected": sorted(emitted - expected),
     }
-    print("DONE: anatomy covers all 60 body-part ids")
+    print("DONE: anatomy covers all body-part ids")
 
 
 @pytest.mark.mytral

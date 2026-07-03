@@ -46,6 +46,7 @@ from mytral import commons
 from mytral import ff
 from mytral import forms
 from mytral import insights
+from mytral import muscle_groups
 from mytral import ninjas
 from mytral import notifications as notif_mod
 from mytral import onboarding
@@ -4493,55 +4494,41 @@ def list_activities_for_date(year, month, day):
         for a in activities
     }
 
-    # aggregate muscle groups for day heat-map
+    # muscle heat-map for the day, calibrated against the user's own
+    # trailing history so "hot" means unusually high for this user
     activity_types_registry = ds.list_activity_types(user_id=user_id)
     exercises_registry = ds.list_exercises(
         user_id=user_id,
         dataset_name=ds.profile(user_id).dataset_name,
     )
-    muscle_counts: dict[str, int] = {}
-    muscle_secondary: set[str] = set()
-    for activity in activities:
-        # muscles from activity type
-        at = activity_types_registry.activity_types_by_key.get(
-            activity.activity_type_key
-        )
-        if at:
-            for key in at.muscle_groups or []:
-                muscle_counts[key] = muscle_counts.get(key, 0) + 1
-            for key in at.muscle_groups_secondary or []:
-                muscle_secondary.add(key)
-        # muscles from individual exercises inside the activity
-        for ex_entity in activity.exercises or []:
-            ex = exercises_registry.exercise_by_key.get(
-                ex_entity.name
-            ) or exercises_registry.exercise_by_name.get(ex_entity.name)
-            if ex:
-                for key in ex.muscle_groups or []:
-                    muscle_counts[key] = muscle_counts.get(key, 0) + 1
-                for key in ex.muscle_groups_secondary or []:
-                    muscle_secondary.add(key)
+    day_stats = muscle_groups.compute_daily_muscle_stats(
+        activities, activity_types_registry, exercises_registry
+    )
 
-    def _intensity_class(count: int) -> str:
-        if count >= 10:
-            return "state-active intensity-5"
-        if count >= 7:
-            return "state-active intensity-4"
-        if count >= 4:
-            return "state-active intensity-3"
-        if count >= 2:
-            return "state-active intensity-2"
-        return "state-active intensity-1"
+    viewed_date = datetime.date(int(year), int(month), int(day))
+    history_start = viewed_date - datetime.timedelta(
+        days=muscle_groups.HEATMAP_HISTORY_WINDOW_DAYS
+    )
+    all_activities = ds.list_activities(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    )
+    history_by_date = muscle_groups.group_activities_by_date(
+        a
+        for a in all_activities
+        if history_start
+        <= datetime.date(a.when_year, a.when_month, a.when_day)
+        <= viewed_date
+    )
+    historical_counts_by_day = [
+        muscle_groups.compute_daily_muscle_stats(
+            day_activities, activity_types_registry, exercises_registry
+        ).counts
+        for day_activities in history_by_date.values()
+    ]
 
-    # primary muscles: cool-to-hot load heatmap by occurrence count; secondary-only
-    # muscles render at the coolest step so the whole figure reads as one ramp.
-    # a muscle that is both primary and secondary keeps its primary count
-    day_muscle_highlights: dict[str, str] = {}
-    for k, v in muscle_counts.items():
-        day_muscle_highlights[k] = _intensity_class(v)
-    for k in muscle_secondary:
-        if k not in day_muscle_highlights:
-            day_muscle_highlights[k] = "state-active intensity-1"
+    day_muscle_highlights = muscle_groups.build_day_muscle_highlights(
+        day_stats, historical_counts_by_day
+    )
 
     # PREVIOUS / NEXT day navigation
     try:
