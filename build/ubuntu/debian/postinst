@@ -10,7 +10,15 @@ PREFIX=/opt/mytral
 VENV=${PREFIX}/venv
 UV=${PREFIX}/bin/uv
 WHEEL=$(find "${PREFIX}" -name "mytral-*.whl" | head -1)
+if [ -z "${WHEEL}" ] || [ ! -f "${WHEEL}" ]; then
+    echo "mytral: bundled wheel not found under ${PREFIX}" >&2
+    exit 1
+fi
 REQUIREMENTS=${PREFIX}/requirements.txt
+if [ ! -f "${REQUIREMENTS}" ]; then
+    echo "mytral: requirements.txt not found at ${REQUIREMENTS}" >&2
+    exit 1
+fi
 
 # pinned uv release
 UV_VERSION=0.7.8
