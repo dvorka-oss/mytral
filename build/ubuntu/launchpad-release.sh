@@ -38,7 +38,13 @@ set -euo pipefail
 # - Launchpad release directory must exist:
 #   ~/p/mytral/launchpad
 # - MYTRAL_SRC must point to the MyTraL Git source directory to be released.
-# - Set DRY_RUN=true to build packages without uploading to Launchpad.
+# - Set SKIP_UPLOAD=true to build packages without uploading to Launchpad
+#   (DRY_RUN is a deprecated alias for SKIP_UPLOAD, kept for backward compatibility).
+#
+# USAGE:
+#   ./launchpad-release.sh                        # loop: build + upload every supported Ubuntu version
+#   ./launchpad-release.sh <ubuntu_codename>       # build ONLY that version, upload skipped (local test build)
+#   SKIP_UPLOAD=false ./launchpad-release.sh <ubuntu_codename>  # build AND upload ONLY that version
 
 export MYTRAL_SRC=/home/dvorka/p/mytral/git/mytral
 export MYTRAL_RELEASE_DIR=/home/dvorka/p/mytral/launchpad
@@ -53,9 +59,21 @@ print(data['project']['authors'][0]['email'])
 # the loop increments it before each build, so 0 > first build gets .1
 PATCH_VERSION=12
 
-# set to true to skip the final dput upload step
-export DRY_RUN="${DRY_RUN:-false}"
-#export DRY_RUN="true"
+# set to true to skip the final dput upload step (the source/binary .deb are
+# still built for real - nothing about this is a "dry" run, hence the rename)
+# tracked separately so the single-version branch below can tell an explicit
+# caller override apart from "not set" and pick its own default accordingly
+SKIP_UPLOAD_EXPLICITLY_SET=false
+if [ -n "${SKIP_UPLOAD+x}" ] || [ -n "${DRY_RUN+x}" ]
+then
+    SKIP_UPLOAD_EXPLICITLY_SET=true
+fi
+
+export SKIP_UPLOAD="${SKIP_UPLOAD:-${DRY_RUN:-false}}"
+if [ -n "${DRY_RUN:-}" ]
+then
+    echo "WARNING: DRY_RUN is deprecated, use SKIP_UPLOAD instead" >&2
+fi
 
 # ############################################################################
 # # Check dependencies #
@@ -277,11 +295,11 @@ function releaseForParticularUbuntuVersion() {
     # upload source package to Launchpad PPA
     local CHANGES_FILE="mytral_${MYTRAL_FULL_VERSION}_source.changes"
     echo "Before dput push: $(pwd)"
-    if [ "${DRY_RUN}" = "false" ]
+    if [ "${SKIP_UPLOAD}" = "false" ]
     then
         dput "ppa:ultradvorka/sport" "${CHANGES_FILE}"
     else
-        echo "DRY_RUN=true: skipping dput upload of ${CHANGES_FILE}"
+        echo "SKIP_UPLOAD=true: skipping dput upload of ${CHANGES_FILE}"
     fi
 
     cd ..
@@ -347,13 +365,44 @@ fi
 #   jammy noble plucky questing
 # future:
 #   resolute
-# for UBUNTU_VERSION in noble
-for UBUNTU_VERSION in trusty xenial bionic focal jammy noble questing resolute
-do
+SUPPORTED_UBUNTU_VERSIONS=(trusty xenial bionic focal jammy noble questing resolute)
+
+# optional CLI arg: build a single Ubuntu version; upload is skipped by default
+# unless the caller explicitly sets SKIP_UPLOAD=false
+SINGLE_UBUNTU_VERSION="${1:-}"
+
+if [ -n "${SINGLE_UBUNTU_VERSION}" ]
+then
+    KNOWN_VERSION=false
+    for UBUNTU_VERSION in "${SUPPORTED_UBUNTU_VERSIONS[@]}"
+    do
+        [ "${UBUNTU_VERSION}" = "${SINGLE_UBUNTU_VERSION}" ] && KNOWN_VERSION=true
+    done
+    if [ "${KNOWN_VERSION}" = "false" ]
+    then
+        echo "ERROR: unsupported Ubuntu version: ${SINGLE_UBUNTU_VERSION}" >&2
+        echo "       supported versions: ${SUPPORTED_UBUNTU_VERSIONS[*]}" >&2
+        exit 1
+    fi
+
+    # default to a local-only build for a single version unless the caller
+    # explicitly asked to upload it via SKIP_UPLOAD=false
+    if [ "${SKIP_UPLOAD_EXPLICITLY_SET}" = "false" ]
+    then
+        SKIP_UPLOAD=true
+    fi
+    echo "Building MyTraL for a single Ubuntu version only: ${SINGLE_UBUNTU_VERSION} (upload $([ "${SKIP_UPLOAD}" = "true" ] && echo "skipped" || echo "enabled"))"
     PATCH_VERSION=$((PATCH_VERSION + 1))
     VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
-    echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION} (${VERSIONED_BASE_VERSION})"
-    releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
-done
+    releaseForParticularUbuntuVersion "${SINGLE_UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
+else
+    for UBUNTU_VERSION in "${SUPPORTED_UBUNTU_VERSIONS[@]}"
+    do
+        PATCH_VERSION=$((PATCH_VERSION + 1))
+        VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
+        echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION} (${VERSIONED_BASE_VERSION})"
+        releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
+    done
+fi
 
 # eof
