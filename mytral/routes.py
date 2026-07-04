@@ -4559,7 +4559,6 @@ def list_activities_for_date(year, month, day):
         "day-get.html",
         user_profile=user_profile,
         activities=activities,
-        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=activity_types_registry,
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
