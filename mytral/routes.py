@@ -4509,9 +4509,9 @@ def list_activities_for_date(year, month, day):
     history_start = viewed_date - datetime.timedelta(
         days=muscle_groups.HEATMAP_HISTORY_WINDOW_DAYS
     )
-    all_activities = ds.list_activities(
+    all_activities = ds.all_activities(
         user_id=user_id, dataset_name=user_profile.dataset_name
-    )
+    ).values()
     history_by_date = muscle_groups.group_activities_by_date(
         a
         for a in all_activities

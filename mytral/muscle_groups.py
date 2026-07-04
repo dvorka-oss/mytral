@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """Canonical muscle group definitions and daily heat-map calibration.
 
-This module defines the 14 standard strength-training muscle groups used
+This module defines the 14 canonical muscle groups (+ 2 supplementary) used
 throughout MyTraL for exercise annotation, activity type classification,
 and the daily muscle heat-map visualization. It also computes the heat-map
 itself: how often each muscle group is targeted on a given day, and how that
