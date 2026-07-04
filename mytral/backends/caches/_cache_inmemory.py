@@ -76,6 +76,7 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
         self._goals: settings.UserGoals | None = None
         self._laps: settings.UserLaps | None = None
         self._outfits: settings.UserOutfits | None = None
+        self._bookmarks: settings.UserBookmarks | None = None
         self._strava_gear: settings.StravaUserGear | None = None
         self._symptoms: settings.UserSymptoms | None = None
 
@@ -334,6 +335,15 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
         self._outfits = outfits
         return self._outfits
 
+    def bookmarks(self) -> settings.UserBookmarks | None:
+        return self._bookmarks
+
+    def set_bookmarks(
+        self, bookmarks: settings.UserBookmarks
+    ) -> settings.UserBookmarks:
+        self._bookmarks = bookmarks
+        return self._bookmarks
+
     def component_templates(self) -> settings.UserComponentTemplates | None:
         return self._component_templates
 
@@ -393,6 +403,7 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
         self._goals = None
         self._laps = None
         self._outfits = None
+        self._bookmarks = None
         self._strava_gear = None
         self._symptoms = None
 
@@ -492,6 +503,8 @@ class InMemoryMytralUserCache(cache.MytralUserCache):
             total_size += sys.getsizeof(self._strava_gear)
         if self._outfits:
             total_size += sys.getsizeof(self._outfits)
+        if self._bookmarks:
+            total_size += sys.getsizeof(self._bookmarks)
         if self._goals:
             total_size += sys.getsizeof(self._goals)
         if self._activity_types:

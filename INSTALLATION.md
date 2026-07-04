@@ -2,8 +2,8 @@
 
 Install:
 
-* [Linux (Snap)](#install-on-linux-using-snap)
 * [Linux (Flatpak)](#install-on-linux-using-flatpak)
+* [Linux (Snap)](#install-on-linux-using-snap)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
 * [Windows (Installer)](#install-on-windows-using-installer)
 * [Windows (ZIP)](#install-on-windows-using-zip)

@@ -27,6 +27,12 @@
                         <a href="{{ url_for('this_vs_last') }}?aspect=duration&period=month" class="btn {{ 'btn-primary' if (aspect=='duration' and period=='month') else 'btn-outline-primary' }}">M</a>
                         <a href="{{ url_for('this_vs_last') }}?aspect=duration&period=year" class="btn {{ 'btn-primary' if (aspect=='duration' and period=='year') else 'btn-outline-primary' }}">Y</a>
                     </div>
+                    <div class="btn-group me-2 mb-2" role="group" aria-label="Elevation">
+                        <span class="btn btn-light disabled fw-bold">Elevation</span>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=elevation&period=week" class="btn {{ 'btn-primary' if (aspect=='elevation' and period=='week') else 'btn-outline-primary' }}">W</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=elevation&period=month" class="btn {{ 'btn-primary' if (aspect=='elevation' and period=='month') else 'btn-outline-primary' }}">M</a>
+                        <a href="{{ url_for('this_vs_last') }}?aspect=elevation&period=year" class="btn {{ 'btn-primary' if (aspect=='elevation' and period=='year') else 'btn-outline-primary' }}">Y</a>
+                    </div>
                     <div class="btn-group mb-2" role="group" aria-label="Kilograms">
                         <span class="btn btn-light disabled fw-bold">kg</span>
                         <a href="{{ url_for('this_vs_last') }}?aspect=kgs&period=week" class="btn {{ 'btn-primary' if (aspect=='kgs' and period=='week') else 'btn-outline-primary' }}">W</a>
@@ -72,7 +78,7 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p class="text-muted">
-                Compare this and last week, month, and year activities by count, distance, duration, and kg.
+                Compare this and last week, month, and year activities by count, distance, duration, elevation, and kg.
             </p>
         </div>
     </div>

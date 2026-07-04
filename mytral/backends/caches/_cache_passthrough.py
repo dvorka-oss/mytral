@@ -155,6 +155,9 @@ class PassthroughUserCache(cache.MytralUserCache):
     def outfits(self) -> settings.UserOutfits | None:
         return None
 
+    def bookmarks(self) -> settings.UserBookmarks | None:
+        return None
+
     def component_templates(self) -> settings.UserComponentTemplates | None:
         return None
 
@@ -240,6 +243,11 @@ class PassthroughUserCache(cache.MytralUserCache):
 
     def set_outfits(self, outfits: settings.UserOutfits) -> settings.UserOutfits:
         return outfits
+
+    def set_bookmarks(
+        self, bookmarks: settings.UserBookmarks
+    ) -> settings.UserBookmarks:
+        return bookmarks
 
     def set_component_templates(
         self, templates: settings.UserComponentTemplates

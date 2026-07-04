@@ -2427,12 +2427,15 @@ class Symptom:
         )
 
 
-_BODY_PARTS_BY_REGION: dict[str, list[str]] = {
+BODY_PARTS_BY_REGION: dict[str, list[str]] = {
     "head": ["front-head", "back-head"],
     "neck": ["front-neck", "back-neck"],
     "shoulder_left": ["front-shoulder-l", "back-shoulder-l"],
     "shoulder_right": ["front-shoulder-r", "back-shoulder-r"],
     "chest": ["front-chest"],
+    "abs": ["front-abs"],
+    "obliques_left": ["front-obliques-l"],
+    "obliques_right": ["front-obliques-r"],
     "upper_back": ["back-upper", "back-lats-r", "back-lats-l"],
     "lower_back": ["back-lower"],
     "arm_left": ["front-arm-l", "back-arm-l"],
@@ -2461,90 +2464,89 @@ _BODY_PARTS_BY_REGION: dict[str, list[str]] = {
 
 _ALL_BODY_PART_IDS: set[str] = {
     body_part_id
-    for region_body_parts in _BODY_PARTS_BY_REGION.values()
+    for region_body_parts in BODY_PARTS_BY_REGION.values()
     for body_part_id in region_body_parts
 }
 
 _BOOTSTRAP_SYMPTOM_BODY_PARTS_BY_NAME: dict[str, list[str]] = {
-    "allergy": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
-    "asthma": _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["upper_back"],
-    "bronchitis": _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["upper_back"],
-    Symptom.S_CAUGHT: _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
-    Symptom.S_COLD: _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
+    "allergy": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
+    "asthma": BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["upper_back"],
+    "bronchitis": BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["upper_back"],
+    Symptom.S_CAUGHT: BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
+    Symptom.S_COLD: BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
     "covid": (
-        _BODY_PARTS_BY_REGION["chest"]
-        + _BODY_PARTS_BY_REGION["upper_back"]
-        + _BODY_PARTS_BY_REGION["head"]
+        BODY_PARTS_BY_REGION["chest"]
+        + BODY_PARTS_BY_REGION["upper_back"]
+        + BODY_PARTS_BY_REGION["head"]
     ),
-    "diarrhea": _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["lower_back"],
-    "fever": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["chest"],
+    "diarrhea": BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["lower_back"],
+    "fever": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["chest"],
     "flu": (
-        _BODY_PARTS_BY_REGION["head"]
-        + _BODY_PARTS_BY_REGION["neck"]
-        + _BODY_PARTS_BY_REGION["chest"]
+        BODY_PARTS_BY_REGION["head"]
+        + BODY_PARTS_BY_REGION["neck"]
+        + BODY_PARTS_BY_REGION["chest"]
     ),
     "food poisoning": (
-        _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["lower_back"]
+        BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["lower_back"]
     ),
     "gastroenteritis": (
-        _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["lower_back"]
+        BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["lower_back"]
     ),
-    "headache": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
-    "heartburn": _BODY_PARTS_BY_REGION["chest"],
+    "headache": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
+    "heartburn": BODY_PARTS_BY_REGION["chest"],
     "influenza": (
-        _BODY_PARTS_BY_REGION["head"]
-        + _BODY_PARTS_BY_REGION["neck"]
-        + _BODY_PARTS_BY_REGION["chest"]
+        BODY_PARTS_BY_REGION["head"]
+        + BODY_PARTS_BY_REGION["neck"]
+        + BODY_PARTS_BY_REGION["chest"]
     ),
-    "migraine": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
+    "migraine": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
     "muscle pain": (
-        _BODY_PARTS_BY_REGION["upper_back"]
-        + _BODY_PARTS_BY_REGION["lower_back"]
-        + _BODY_PARTS_BY_REGION["thigh_left"]
-        + _BODY_PARTS_BY_REGION["thigh_right"]
+        BODY_PARTS_BY_REGION["upper_back"]
+        + BODY_PARTS_BY_REGION["lower_back"]
+        + BODY_PARTS_BY_REGION["thigh_left"]
+        + BODY_PARTS_BY_REGION["thigh_right"]
     ),
-    "nausea": _BODY_PARTS_BY_REGION["chest"],
+    "nausea": BODY_PARTS_BY_REGION["chest"],
     Symptom.S_PAIN: (
-        _BODY_PARTS_BY_REGION["lower_back"]
-        + _BODY_PARTS_BY_REGION["shoulder_left"]
-        + _BODY_PARTS_BY_REGION["shoulder_right"]
+        BODY_PARTS_BY_REGION["lower_back"]
+        + BODY_PARTS_BY_REGION["shoulder_left"]
+        + BODY_PARTS_BY_REGION["shoulder_right"]
     ),
-    "pneumonia": _BODY_PARTS_BY_REGION["chest"] + _BODY_PARTS_BY_REGION["upper_back"],
-    "pressure": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["chest"],
+    "pneumonia": BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["upper_back"],
+    "pressure": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["chest"],
     "rash": (
-        _BODY_PARTS_BY_REGION["chest"]
-        + _BODY_PARTS_BY_REGION["arm_left"]
-        + _BODY_PARTS_BY_REGION["arm_right"]
+        BODY_PARTS_BY_REGION["chest"]
+        + BODY_PARTS_BY_REGION["arm_left"]
+        + BODY_PARTS_BY_REGION["arm_right"]
     ),
-    "reflux": _BODY_PARTS_BY_REGION["chest"],
-    "sinusitis": _BODY_PARTS_BY_REGION["head"] + _BODY_PARTS_BY_REGION["neck"],
-    "sore throat": _BODY_PARTS_BY_REGION["neck"],
-    "stomach ache": _BODY_PARTS_BY_REGION["chest"]
-    + _BODY_PARTS_BY_REGION["lower_back"],
+    "reflux": BODY_PARTS_BY_REGION["chest"],
+    "sinusitis": BODY_PARTS_BY_REGION["head"] + BODY_PARTS_BY_REGION["neck"],
+    "sore throat": BODY_PARTS_BY_REGION["neck"],
+    "stomach ache": BODY_PARTS_BY_REGION["chest"] + BODY_PARTS_BY_REGION["lower_back"],
     Symptom.S_TENDON_PAIN: (
-        _BODY_PARTS_BY_REGION["elbow_left"]
-        + _BODY_PARTS_BY_REGION["elbow_right"]
-        + _BODY_PARTS_BY_REGION["knee_left"]
-        + _BODY_PARTS_BY_REGION["knee_right"]
+        BODY_PARTS_BY_REGION["elbow_left"]
+        + BODY_PARTS_BY_REGION["elbow_right"]
+        + BODY_PARTS_BY_REGION["knee_left"]
+        + BODY_PARTS_BY_REGION["knee_right"]
     ),
     Symptom.S_THROMBOSIS: (
-        _BODY_PARTS_BY_REGION["calf_left"]
-        + _BODY_PARTS_BY_REGION["calf_right"]
-        + _BODY_PARTS_BY_REGION["thigh_left"]
-        + _BODY_PARTS_BY_REGION["thigh_right"]
+        BODY_PARTS_BY_REGION["calf_left"]
+        + BODY_PARTS_BY_REGION["calf_right"]
+        + BODY_PARTS_BY_REGION["thigh_left"]
+        + BODY_PARTS_BY_REGION["thigh_right"]
     ),
-    "toothache": _BODY_PARTS_BY_REGION["head"],
+    "toothache": BODY_PARTS_BY_REGION["head"],
     "torn muscle": (
-        _BODY_PARTS_BY_REGION["thigh_left"]
-        + _BODY_PARTS_BY_REGION["thigh_right"]
-        + _BODY_PARTS_BY_REGION["calf_left"]
-        + _BODY_PARTS_BY_REGION["calf_right"]
+        BODY_PARTS_BY_REGION["thigh_left"]
+        + BODY_PARTS_BY_REGION["thigh_right"]
+        + BODY_PARTS_BY_REGION["calf_left"]
+        + BODY_PARTS_BY_REGION["calf_right"]
     ),
-    "vomiting": _BODY_PARTS_BY_REGION["chest"],
+    "vomiting": BODY_PARTS_BY_REGION["chest"],
 }
 
 
-def _validate_body_part_ids(body_parts: list[str]) -> list[str]:
+def validate_body_part_ids(body_parts: list[str]) -> list[str]:
     return [body_part for body_part in body_parts if body_part in _ALL_BODY_PART_IDS]
 
 
@@ -2603,7 +2605,7 @@ class UserSymptoms:
                 Symptom(
                     name=symptom_name,
                     key=generate_bootstrap_uuid(symptom_name),
-                    body_parts=_validate_body_part_ids(
+                    body_parts=validate_body_part_ids(
                         _BOOTSTRAP_SYMPTOM_BODY_PARTS_BY_NAME[symptom_name]
                     ),
                 )
@@ -3770,6 +3772,70 @@ class UserOutfits:
             outfit = Outfit.from_dict(outfit_dict)
             outfits.add(outfit)
         return outfits
+
+
+#
+# User activity bookmarks
+#
+
+
+class UserBookmarks:
+    """Container for a user's ordered activity bookmarks.
+
+    Position in `activity_keys` is the bookmark order - no separate `order`
+    field is needed since a bookmark is just a reference to an activity.
+
+    """
+
+    def __init__(self) -> None:
+        self.activity_keys: list[str] = []
+
+    def is_bookmarked(self, activity_key: str) -> bool:
+        """Check whether given activity is bookmarked."""
+        return activity_key in self.activity_keys
+
+    def add(self, activity_key: str) -> None:
+        """Add activity to bookmarks (no-op if already bookmarked)."""
+        if activity_key not in self.activity_keys:
+            self.activity_keys.append(activity_key)
+
+    def delete(self, activity_key: str) -> None:
+        """Remove activity from bookmarks (no-op if not bookmarked)."""
+        if activity_key in self.activity_keys:
+            self.activity_keys.remove(activity_key)
+
+    def move_up(self, activity_key: str) -> None:
+        """Move activity one position up (no-op if absent or already first)."""
+        if activity_key not in self.activity_keys:
+            return
+        index = self.activity_keys.index(activity_key)
+        if index > 0:
+            self.activity_keys[index], self.activity_keys[index - 1] = (
+                self.activity_keys[index - 1],
+                self.activity_keys[index],
+            )
+
+    def move_down(self, activity_key: str) -> None:
+        """Move activity one position down (no-op if absent or already last)."""
+        if activity_key not in self.activity_keys:
+            return
+        index = self.activity_keys.index(activity_key)
+        if index < len(self.activity_keys) - 1:
+            self.activity_keys[index], self.activity_keys[index + 1] = (
+                self.activity_keys[index + 1],
+                self.activity_keys[index],
+            )
+
+    def to_dict(self) -> list:
+        """Convert bookmarks to list of activity keys."""
+        return list(self.activity_keys)
+
+    @classmethod
+    def from_dict(cls, bookmarks_data: list | None) -> Self:
+        """Create UserBookmarks instance from list of activity keys."""
+        bookmarks = cls()
+        bookmarks.activity_keys = list(bookmarks_data) if bookmarks_data else []
+        return bookmarks
 
 
 #

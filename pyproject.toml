@@ -86,6 +86,11 @@ select = ["E", "F", "W"]
 # which is useful when environment variables or paths must be set up first.
 extend-ignore = ["E402"]
 
+# anatomy.py is generated (make/anatomy/build_anatomy.py) and holds long SVG
+# path-data string literals that cannot be wrapped; exempt it from line length.
+[tool.ruff.lint.per-file-ignores]
+"mytral/anatomy.py" = ["E501"]
+
 # Jinja linting
 [tool.djlint]
 profile = "jinja"
