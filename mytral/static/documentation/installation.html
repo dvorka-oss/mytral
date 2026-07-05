@@ -210,15 +210,16 @@
                         <div id="overview" class="card mb-3"><div class="card-body"><p>Install:</p>
 <ul>
 <li><a href="#install-on-linux-using-flatpak">Linux (Flatpak)</a></li>
-<li><a href="#install-on-linux-using-snap">Linux (Snap)</a></li>
+<li><a href="#install-on-linux-using-snap-from-snap-store">Linux (Snap Store)</a></li>
+<li><a href="#install-on-linux-using-snap">Linux (download)</a></li>
 <li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
-<li><a href="#install-on-windows-using-installer">Windows (Installer)</a></li>
-<li><a href="#install-on-windows-using-zip">Windows (ZIP)</a></li>
+<li><a href="#install-on-windows-using-installer">Windows (installer)</a></li>
+<li><a href="#install-on-windows-using-zip">Windows (zip)</a></li>
 </ul>
 <p>Build:</p>
 <ul>
 <li><a href="#build-binary-on-ubuntu">Ubuntu (binary)</a></li>
-<li><a href="#build--deb-on-ubuntu">Ubuntu (.deb)</a></li>
+<li><a href="#build--deb-on-ubuntu">Ubuntu (deb)</a></li>
 <li><a href="#build-snap-on-linux">Snap (package)</a></li>
 <li><a href="#build-flatpak-on-linux">Flatpak (bundle)</a></li>
 <li><a href="#build-binary-on-windows">Windows (binary)</a></li>
@@ -280,10 +281,11 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 # example: mytral-1.51.0.exe
 </code></pre></div>
 
-</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap">Install on Linux using Snap</h2>
-<p>Snap works across all major Linux distributions and keeps MyTraL up to date
-automatically. MyTraL uses <strong>classic confinement</strong> so it can open a native desktop
-window via a browser.</p>
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap-from-snap-store">Install on Linux using Snap from Snap Store</h2>
+<p>The easiest way to install MyTraL on Linux is from the
+<a href="https://snapcraft.io/mytral">Snap Store</a>. Snap works across all major Linux
+distributions and keeps MyTraL up to date automatically. This package uses <strong>strict
+confinement</strong> and is published straight to the Snap Store.</p>
 <p>Install <code>Snapd</code> (if not already installed):</p>
 <p><strong>Ubuntu/Debian:</strong></p>
 <div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
@@ -305,8 +307,45 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">en
 sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>snapd
 </code></pre></div>
 
-<p>Install MyTraL from the Snap Store (classic confinement requires the <code>--classic</code> flag):</p>
-<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>mytral<span class="w"> </span>--classic
+<p>Install MyTraL from the Snap Store:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>mytral
+</code></pre></div>
+
+<p>Start MyTraL from the application menu or run:</p>
+<div class="codehilite"><pre><span></span><code>mytral
+</code></pre></div>
+
+<p>MyTraL starts the local server and opens its UI in your <strong>default browser</strong> (the same
+experience as the Flatpak package).</p>
+<p><strong>Data storage</strong></p>
+<p>Under strict confinement MyTraL stores its data inside the snap's per-user common
+directory:</p>
+<div class="codehilite"><pre><span></span><code>~/snap/mytral/common/data/   (data)
+</code></pre></div>
+
+<p>Note: <code>sudo snap remove mytral</code> deletes this directory. Snapd keeps an automatic
+snapshot for ~31 days, but a later reinstall does not restore it automatically (use
+<code>snap restore</code> to recover). To keep a portable copy, use MyTraL's export feature.</p>
+<p><strong>Upgrade:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>refresh<span class="w"> </span>mytral
+</code></pre></div>
+
+<p><strong>Uninstall:</strong></p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>remove<span class="w"> </span>mytral
+</code></pre></div>
+
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap">Install on Linux using Snap</h2>
+<p>MyTraL is also distributed as a downloadable <strong>classic confinement</strong> snap attached to
+each <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Release</a>. Classic
+confinement lets MyTraL open a native frameless desktop window via a browser and stores
+data in the standard location, but it is not available from the Snap Store - you install
+the downloaded <code>.snap</code> file directly.</p>
+<p>Install <code>Snapd</code> if you have not already (see
+<a href="#install-on-linux-using-snap-from-snap-store">Install on Linux using Snap from Snap Store</a>).</p>
+<p>Download <code>mytral_&lt;version&gt;_amd64.snap</code> from the latest release, then install it with the
+<code>--dangerous</code> (unsigned, sideloaded) and <code>--classic</code> flags:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># example: mytral_1.57.0_amd64.snap</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>--dangerous<span class="w"> </span>--classic<span class="w"> </span>./mytral_1.57.0_amd64.snap
 </code></pre></div>
 
 <p>Start MyTraL from the application menu or run:</p>
@@ -317,14 +356,10 @@ sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">en
 default browser as a normal window; if no browser can be opened at all, it prints the
 URL so you can open it manually.</p>
 <p><strong>Data storage</strong></p>
-<p>Because MyTraL uses classic confinement it stores data in the same location as every
+<p>Because this build uses classic confinement it stores data in the same location as every
 other installation - your data is never locked inside the snap:</p>
 <div class="codehilite"><pre><span></span><code>~/.local/share/mytral/   (data)
 ~/.config/mytral/        (config)
-</code></pre></div>
-
-<p><strong>Upgrade:</strong></p>
-<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>snap<span class="w"> </span>refresh<span class="w"> </span>mytral
 </code></pre></div>
 
 <p><strong>Uninstall:</strong></p>
@@ -735,6 +770,7 @@ mytral-&lt;version&gt;.exe
         <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
 <a href="#install-on-windows-using-installer" class="nav-link">Install on Windows using Installer</a>
 <a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
+<a href="#install-on-linux-using-snap-from-snap-store" class="nav-link">Install on Linux using Snap from Snap Store</a>
 <a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
 <a href="#install-on-linux-using-flatpak" class="nav-link">Install on Linux using Flatpak</a>
 <a href="#build-binary-on-ubuntu" class="nav-link">Build Binary on Ubuntu</a>

@@ -5,6 +5,13 @@
 This MyTraL **minor** release brings:
 
 ### Added
+- Published MyTraL to the Snap Store (snapcraft.io) using **strict** confinement.
+  The Snap Store snap runs the local server and opens the UI in the default browser.
+  Athlete data are stored in `$SNAP_USER_COMMON` (`~/snap/mytral/common`)
+  i.e. are NOT stored in the location used by all other distros - data persist
+  until uninstall (snapd keeps a snapshot for ~31 days after `snap remove`).
+- Added `distro-snap-build-classic` and `distro-snap-install-local-strict` Makefile
+  targets for the two snap confinement variants.
 - Added new body mannequin - from robot-like to realistic anatomical muscle geometry
   adapted from the MIT-licensed `react-native-body-highlighter`.
 - Added activity bookmarks - bookmark any activity from its detail page.,
@@ -17,8 +24,12 @@ This MyTraL **minor** release brings:
 - Redrew the body mannequin with realistic anatomical muscle geometry, used
   everywhere it appears (muscle load, injuries, and sickness). Muscle load now
   renders as a cool-to-hot volume heatmap.
+- The downloadable Snap (GitHub Releases) keeps classic confinement
+  (native window, `~/.local/share/mytral` data),
+  **added** strict confinement Snap build in order to make it to the Snap Store.
 
 ### Documentation
+- Documented both strict and classic Snap installations.
 - Documented the missing `python3-all` build prerequisite for local `.deb` builds
   (`make distro-ubuntu-deb`) in the installation guide.
 

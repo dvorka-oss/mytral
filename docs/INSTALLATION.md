@@ -3,15 +3,16 @@
 Install:
 
 * [Linux (Flatpak)](#install-on-linux-using-flatpak)
-* [Linux (Snap)](#install-on-linux-using-snap)
+* [Linux (Snap Store)](#install-on-linux-using-snap-from-snap-store)
+* [Linux (download)](#install-on-linux-using-snap)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
-* [Windows (Installer)](#install-on-windows-using-installer)
-* [Windows (ZIP)](#install-on-windows-using-zip)
+* [Windows (installer)](#install-on-windows-using-installer)
+* [Windows (zip)](#install-on-windows-using-zip)
 
 Build:
 
 * [Ubuntu (binary)](#build-binary-on-ubuntu)
-* [Ubuntu (.deb)](#build--deb-on-ubuntu)
+* [Ubuntu (deb)](#build--deb-on-ubuntu)
 * [Snap (package)](#build-snap-on-linux)
 * [Flatpak (bundle)](#build-flatpak-on-linux)
 * [Windows (binary)](#build-binary-on-windows)
@@ -100,11 +101,12 @@ mytral-<version>.exe
 
 
 
-## Install on Linux using Snap
+## Install on Linux using Snap from Snap Store
 
-Snap works across all major Linux distributions and keeps MyTraL up to date
-automatically. MyTraL uses **classic confinement** so it can open a native desktop
-window via a browser.
+The easiest way to install MyTraL on Linux is from the
+[Snap Store](https://snapcraft.io/mytral). Snap works across all major Linux
+distributions and keeps MyTraL up to date automatically. This package uses **strict
+confinement** and is published straight to the Snap Store.
 
 Install `Snapd` (if not already installed):
 
@@ -132,10 +134,65 @@ sudo zypper install snapd
 sudo systemctl enable --now snapd
 ```
 
-Install MyTraL from the Snap Store (classic confinement requires the `--classic` flag):
+Install MyTraL from the Snap Store:
 
 ```bash
-sudo snap install mytral --classic
+sudo snap install mytral
+```
+
+Start MyTraL from the application menu or run:
+
+```bash
+mytral
+```
+
+MyTraL starts the local server and opens its UI in your **default browser** (the same
+experience as the Flatpak package).
+
+**Data storage**
+
+Under strict confinement MyTraL stores its data inside the snap's per-user common
+directory:
+
+```
+~/snap/mytral/common/data/   (data)
+```
+
+Note: `sudo snap remove mytral` deletes this directory. Snapd keeps an automatic
+snapshot for ~31 days, but a later reinstall does not restore it automatically (use
+`snap restore` to recover). To keep a portable copy, use MyTraL's export feature.
+
+**Upgrade:**
+
+```bash
+sudo snap refresh mytral
+```
+
+**Uninstall:**
+
+```bash
+sudo snap remove mytral
+```
+
+
+
+## Install on Linux using Snap
+
+MyTraL is also distributed as a downloadable **classic confinement** snap attached to
+each [GitHub Release](https://github.com/dvorka-oss/mytral/releases). Classic
+confinement lets MyTraL open a native frameless desktop window via a browser and stores
+data in the standard location, but it is not available from the Snap Store - you install
+the downloaded `.snap` file directly.
+
+Install `Snapd` if you have not already (see
+[Install on Linux using Snap from Snap Store](#install-on-linux-using-snap-from-snap-store)).
+
+Download `mytral_<version>_amd64.snap` from the latest release, then install it with the
+`--dangerous` (unsigned, sideloaded) and `--classic` flags:
+
+```bash
+# example: mytral_1.57.0_amd64.snap
+sudo snap install --dangerous --classic ./mytral_1.57.0_amd64.snap
 ```
 
 Start MyTraL from the application menu or run:
@@ -150,18 +207,12 @@ URL so you can open it manually.
 
 **Data storage**
 
-Because MyTraL uses classic confinement it stores data in the same location as every
+Because this build uses classic confinement it stores data in the same location as every
 other installation - your data is never locked inside the snap:
 
 ```
 ~/.local/share/mytral/   (data)
 ~/.config/mytral/        (config)
-```
-
-**Upgrade:**
-
-```bash
-sudo snap refresh mytral
 ```
 
 **Uninstall:**
