@@ -706,8 +706,8 @@ distro-snap-build: ## build strict Snap package for the Snap Store (LXD required
 distro-snap-build-classic: ## build classic Snap package for downloadable GitHub Release (LXD required)
 	@./build/snap/build-snap.sh --classic
 
-.PHONY: distro-snap-install-local
-distro-snap-install-local: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
+.PHONY: distro-snap-install-local-classic
+distro-snap-install-local-classic: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
 	@echo "Installing classic Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
@@ -718,8 +718,8 @@ distro-snap-install-local: distro-snap-remove distro-snap-build-classic ## build
 	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
 	echo "DONE Snap installed. Run with: mytral"
 
-.PHONY: distro-snap-install-local-strict
-distro-snap-install-local-strict: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
+.PHONY: distro-snap-install-local
+distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
 	@echo "Installing strict Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
