@@ -100,7 +100,7 @@ def _apply_summary_dict(activity: entities.ActivityEntity, summary_dict: dict) -
         except (ValueError, TypeError):
             pass
 
-    # duration overwrite from summary → also take distance and speed from summary
+    # duration overwrite from summary > also take distance and speed from summary
     duration_from_summary = False
     d_hours = summary_dict.get("hours")
     if d_hours is not None and activity.hours == 0:
@@ -123,7 +123,7 @@ def _apply_summary_dict(activity: entities.ActivityEntity, summary_dict: dict) -
         if summary_dict.get("max_speed"):
             activity.max_speed = summary_dict["max_speed"]
     else:
-        # CSV duration is valid — apply distance/speed independently (only when 0)
+        # CSV duration is valid - apply distance/speed independently (only when 0)
         if summary_dict.get("distance") and activity.distance == 0:
             activity.distance = summary_dict["distance"]
         if summary_dict.get("avg_speed") and activity.avg_speed == 0.0:
@@ -626,7 +626,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
         self.update_progress(10)
 
         if total == 0:
-            self.log("No activities found — import complete")
+            self.log("No activities found - import complete")
             self.update_progress(100)
             return
 
@@ -879,7 +879,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     )
             if gpx_failed:
                 self.log(
-                    f"WARNING: {len(gpx_failed)} GPX-map jobs failed — "
+                    f"WARNING: {len(gpx_failed)} GPX-map jobs failed - "
                     f"some map data may be missing"
                 )
 
@@ -957,7 +957,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
         """Apply import on_conflict strategy by (src, src_key).
 
         Uses year-based loading to avoid pulling every activity in the dataset
-        into memory — only the years that appear in the incoming activities are
+        into memory - only the years that appear in the incoming activities are
         queried.  For a LIFELONG dataset with thousands of activities this
         keeps memory usage proportional to the import size, not the dataset size.
         """
@@ -991,7 +991,7 @@ class StravaArchiveImportTask(tasks.TaskBase):
                     if src and src_key:
                         existing[(src, src_key)] = current.key
         else:
-            # fallback: no year info available — load all (should be rare)
+            # fallback: no year info available - load all (should be rare)
             for current in self._dataset.list_activities(
                 user_id=user_id,
                 dataset_name=dataset_name,

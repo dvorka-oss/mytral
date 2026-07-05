@@ -96,7 +96,7 @@ class FitImportPlugin(plugins.ActivitiesImportPlugin):
                 parquet_data=parquet_bytes,
             )
         except Exception as exc:
-            logger.warning("FIT→Parquet conversion failed for %s: %s", blob_key, exc)
+            logger.warning("FIT>Parquet conversion failed for %s: %s", blob_key, exc)
 
         if extract_summary:
             try:

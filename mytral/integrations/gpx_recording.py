@@ -158,7 +158,7 @@ def import_gpx_recording_bytes(
             parquet_data=parquet_bytes,
         )
     except Exception as exc:
-        log.warning(f"GPX→Parquet conversion failed for {blob_key}: {exc}")
+        log.warning(f"GPX>Parquet conversion failed for {blob_key}: {exc}")
 
     if extract_summary:
         try:

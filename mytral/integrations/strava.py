@@ -20,6 +20,7 @@
 import enum
 import json
 import pathlib
+import urllib.parse
 import uuid
 from datetime import datetime
 
@@ -478,6 +479,7 @@ def auth_get_access_for_refresh_token(
 
 def auth_get_auth_code_url(
     user_profile: settings.UserProfile,
+    state: str,
     mytral_url: str = f"http://127.0.0.1:5000/{URL_AUTH_CALLBACK}",
 ):
     """Get the Strava authentication code.
@@ -486,6 +488,8 @@ def auth_get_auth_code_url(
     ----------
     user_profile : UserProfile
         User profile.
+    state : str
+        Opaque anti-CSRF token echoed back by Strava on the OAuth callback.
     mytral_url : str
         URL where Strava should redirect after the authorization.
         IMPORTANT: domain must be allowed in Strava configuration:
@@ -519,6 +523,7 @@ def auth_get_auth_code_url(
         f"&scope=profile:read_all,activity:read_all"
         # ^ profile:read_all,activity:read_all
         # ^ read (shown on profile)
+        f"&state={urllib.parse.quote(state)}"
     )
     app_logger.info(
         f"URL to AUTHORIZE and get the code with temporal validity:\n{strava_oauth_url}"

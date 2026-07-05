@@ -138,7 +138,7 @@ class TaskManager:
     def _start_timeout_watchdog(self):
         """Start background thread that auto-cancels tasks exceeding max duration.
 
-        Safe to call multiple times — only one watchdog thread is ever started.
+        Safe to call multiple times - only one watchdog thread is ever started.
         """
         if self._watchdog_started:
             return
@@ -177,7 +177,7 @@ class TaskManager:
                                             ],
                                         )
                 except Exception as e:
-                    # log but never crash — watchdog must keep running
+                    # log but never crash - watchdog must keep running
                     self._logger.warning(f"Watchdog error: {e}")
 
         t = threading.Thread(target=watchdog, daemon=True, name="task-watchdog")

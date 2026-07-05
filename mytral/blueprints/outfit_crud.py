@@ -191,7 +191,8 @@ def settings_outfit_create():
 
         activity_choices = ds.list_activity_types(user_id).choices()
         form.activity_type.choices = activity_choices
-        form.activity_type.default = activity_choices[0][0]
+        if activity_choices:
+            form.activity_type.default = activity_choices[0][0]
 
         return flask.render_template(
             JinjaTemplates.CREATE,
@@ -206,7 +207,7 @@ def settings_outfit_create():
             entity = user_settings.Outfit(
                 name=form.name.data,
                 activity_type=form.activity_type.data,
-                description=form.description.data,
+                description=form.description.data or "",
                 count=form.count.data,
                 # key is assigned by the backend
             )
@@ -258,7 +259,8 @@ def settings_outfit_update(key: str):
 
         activity_choices = ds.list_activity_types(user_id).choices()
         form.activity_type.choices = activity_choices
-        form.activity_type.default = activity_choices[0][0]
+        if activity_choices:
+            form.activity_type.default = activity_choices[0][0]
         form.activity_type.data = entity.activity_type
 
         form.name.data = entity.name

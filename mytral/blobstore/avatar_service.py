@@ -267,7 +267,7 @@ class AvatarBlobService:
         blob_key : str
             Blob key returned from a previous upload.
         thumbnail : bool
-            When ``True``, returns the 40×40 thumbnail variant.
+            When ``True``, returns the 40x40 thumbnail variant.
 
         Returns
         -------
@@ -335,7 +335,7 @@ class AvatarBlobService:
         blob_key : str
             Blob key returned from a previous upload.
         thumbnail : bool
-            When ``True``, returns the 40×40 thumbnail variant.
+            When ``True``, returns the 40x40 thumbnail variant.
 
         Returns
         -------

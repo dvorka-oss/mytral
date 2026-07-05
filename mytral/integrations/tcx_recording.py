@@ -111,7 +111,7 @@ def import_tcx_recording_bytes(
             parquet_data=parquet_bytes,
         )
     except Exception as exc:
-        log.warning(f"TCX→Parquet conversion failed for {blob_key}: {exc}")
+        log.warning(f"TCX>Parquet conversion failed for {blob_key}: {exc}")
 
     if extract_summary:
         try:

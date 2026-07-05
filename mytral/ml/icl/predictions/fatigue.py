@@ -57,7 +57,7 @@ class IclFatiguePredictor:
 
             - ``available`` (bool): whether a prediction was produced.
             - ``label`` (str | None): fatigue class label.
-            - ``readiness_score`` (int | None): readiness score 0–100.
+            - ``readiness_score`` (int | None): readiness score 0-100.
             - ``reason`` (str): explanation when unavailable.
         """
         if not icl_manager.is_tabpfn_installed():

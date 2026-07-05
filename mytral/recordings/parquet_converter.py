@@ -21,20 +21,20 @@ format-agnostic and loaded at analysis time by the chart rendering code.
 
 Schema
 ------
-ts_unix_ms : Int64        — Unix epoch milliseconds (timezone-agnostic)
-hr         : Int32 (null) — heart rate (bpm)
-speed      : Float64 (null) — speed (km/h)
-cadence    : Int32 (null) — cadence (rpm/spm)
-altitude   : Float64 (null) — altitude (metres)
-lat        : Float64 (null) — latitude (degrees)
-lon        : Float64 (null) — longitude (degrees)
-power      : Float64 (null) — power (W)
-has_speed  : Boolean — file-level flag stored on every row
+ts_unix_ms : Int64        - Unix epoch milliseconds (timezone-agnostic)
+hr         : Int32 (null) - heart rate (bpm)
+speed      : Float64 (null) - speed (km/h)
+cadence    : Int32 (null) - cadence (rpm/spm)
+altitude   : Float64 (null) - altitude (metres)
+lat        : Float64 (null) - latitude (degrees)
+lon        : Float64 (null) - longitude (degrees)
+power      : Float64 (null) - power (W)
+has_speed  : Boolean - file-level flag stored on every row
 has_cadence : Boolean
 has_altitude : Boolean
 has_gps    : Boolean
 has_power  : Boolean
-source_format : Utf8 — "fit" / "gpx" / "tcx" / "hrm"
+source_format : Utf8 - "fit" / "gpx" / "tcx" / "hrm"
 """
 
 import datetime

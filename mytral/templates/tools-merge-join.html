@@ -29,18 +29,21 @@
                 <div class="card-header">
                     <h3 class="card-title"><b>Merge All Datasets</b></h3>
                     <div class="card-actions">
-                        <a href="{{ url_for('tool_merge_all_datasets') }}" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-git-merge" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M7 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                <path d="M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                <path d="M17 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
-                                <path d="M7 8l0 8"></path>
-                                <path d="M7 8a4 4 0 0 0 4 4h4"></path>
-                            </svg>
-                            Merge All
-                            <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
-                        </a>
+                        <form method="post" action="{{ url_for('tool_merge_all_datasets') }}" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-git-merge" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M7 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                    <path d="M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                    <path d="M17 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                    <path d="M7 8l0 8"></path>
+                                    <path d="M7 8a4 4 0 0 0 4 4h4"></path>
+                                </svg>
+                                Merge All
+                                <span class="badge bg-red text-red-fg badge-notification badge-pill">EXPERT</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 <div class="card-body">

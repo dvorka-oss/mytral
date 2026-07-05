@@ -38,7 +38,7 @@ class StravaResyncAllActivitiesTask(tasks.TaskBase):
     """
 
     TASK_TYPE = "strava_resync_all"
-    TASK_DISPLAY_NAME = "Strava — Re-sync All Activities"
+    TASK_DISPLAY_NAME = "Strava - Re-sync All Activities"
     ENCRYPTED_PARAM_KEYS = ["access_token", "refresh_token", "client_secret"]
 
     def __init__(

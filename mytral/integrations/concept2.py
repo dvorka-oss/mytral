@@ -157,7 +157,7 @@ class Concept2ActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
     "Type"
         not imported (always "Indoor Rower" in exported data)
     "Ranked"
-        [ranked, intensity] ``Yes`` → ``ranked=True``, ``intensity="race"``
+        [ranked, intensity] ``Yes`` > ``ranked=True``, ``intensity="race"``
     "Comments"
         [description] if present: ``(...)``
 

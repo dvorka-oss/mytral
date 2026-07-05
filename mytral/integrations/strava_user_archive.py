@@ -204,7 +204,7 @@ class StravaUserArchiveActivitiesImportPlugin(plugins.ActivitiesImportPlugin):
         # %I = Hour (12-hour clock) as a zero-padded decimal (e.g., 04 or 4)
         # %M = Minute as a zero-padded decimal (e.g., 55)
         # %S = Second as a zero-padded decimal (e.g., 18)
-        # %p = Locale’s equivalent of either AM or PM.
+        # %p = Locale's equivalent of either AM or PM.
         dt_format = "%b %d, %Y, %I:%M:%S %p"
 
         try:

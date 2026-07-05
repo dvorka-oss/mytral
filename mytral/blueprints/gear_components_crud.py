@@ -652,24 +652,6 @@ def settings_gear_component_unretire(gear_key: str, component_key: str):
     return flask.redirect(flask.url_for("settings_gear_get", key=gear_key))
 
 
-def api_component_templates():
-    """Get component templates (AJAX endpoint)."""
-    user_id = flask.session.get(COOKIE_USER)
-    category = flask.request.args.get("category", "")
-
-    if user_id:
-        all_templates = ds.list_component_templates(user_id=user_id).templates
-    else:
-        all_templates = settings.COMPONENT_TEMPLATES
-
-    templates_data = []
-    for template in all_templates:
-        if not category or template.category == category or template.category == "all":
-            templates_data.append(template.to_dict())
-
-    return flask.jsonify(templates_data)
-
-
 #
 # SERVICE ENTRY
 #
@@ -687,9 +669,9 @@ def settings_gear_component_service_update(gear_key, component_key, service_inde
         return flask.redirect(flask.url_for("login"))
 
     user_profile = ds.profile(user_id)
-    gear = ds.get_gear(user_id, gear_key, user_profile.dataset_name)
-
-    if not gear:
+    try:
+        gear = ds.get_gear(user_id, gear_key, user_profile.dataset_name)
+    except Exception:
         flask.flash("Gear not found", "error")
         return flask.redirect(flask.url_for("settings_gear_list"))
 
@@ -752,6 +734,11 @@ def settings_gear_component_service_update(gear_key, component_key, service_inde
 
             flask.flash("Service entry updated successfully", "success")
             return flask.redirect(flask.url_for("settings_gear_update", key=gear_key))
+        else:
+            flask.flash(
+                message="Service record error - form validation error",
+                category="error",
+            )
 
     return flask.redirect(flask.url_for("settings_gear_update", key=gear_key))
 
@@ -768,9 +755,9 @@ def settings_gear_component_service_delete(gear_key, component_key, service_inde
         return flask.redirect(flask.url_for("login"))
 
     user_profile = ds.profile(user_id)
-    gear = ds.get_gear(user_id, gear_key, user_profile.dataset_name)
-
-    if not gear:
+    try:
+        gear = ds.get_gear(user_id, gear_key, user_profile.dataset_name)
+    except Exception:
         flask.flash("Gear not found", "error")
         return flask.redirect(flask.url_for("settings_gear_list"))
 

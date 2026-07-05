@@ -65,9 +65,9 @@ class UserProfileStats:
     def _estimate_resting_hr(age: int) -> int:
         """Estimate resting HR for a trained athlete based on age.
 
-        There is no gold-standard formula — RHR reflects training adaptation,
+        There is no gold-standard formula - RHR reflects training adaptation,
         not a fixed mathematical output of age/weight.  This heuristic returns
-        a value in the 40–60 bpm range typical of trained athletes, with a
+        a value in the 40-60 bpm range typical of trained athletes, with a
         mild age correlation (older athletes tend to have slightly higher RHR).
 
         Parameters
@@ -78,9 +78,9 @@ class UserProfileStats:
         Returns
         -------
         int
-            Estimated resting HR in BPM (clamped to 40–60).
+            Estimated resting HR in BPM (clamped to 40-60).
         """
-        # base 50 bpm at age 30, ±0.15 bpm per year of age
+        # base 50 bpm at age 30, +/-0.15 bpm per year of age
         estimated = round(50 + (age - 30) * 0.15)
         # clamp to the trained-athlete range
         if estimated < 40:

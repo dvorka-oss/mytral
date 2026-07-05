@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import secrets
 import uuid
 
 import flask
@@ -172,12 +173,17 @@ def strava_api_secrets():
     )
 
 
-@flask_app.route("/strava/api-secrets/reset")
+@flask_app.route("/strava/api-secrets/reset", methods=["POST"])
 def strava_api_secrets_reset():
     """Clear both Strava API client credentials."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
     user_profile = ds.profile(user_id)
 
     user_profile.strava_client_id = ""
@@ -209,8 +215,12 @@ def strava_auth_start():
         case strava.AuthMentorAdvice.GET_REFRESH_TOKEN:
             # get URL from Strava service to be used for auth (includes auth token)
             flask.flash(message=msg, category="info")
+            # anti-CSRF state echoed back on the OAuth callback
+            state = secrets.token_urlsafe(16)
+            flask.session["strava_oauth_state"] = state
             url = strava.auth_get_auth_code_url(
                 user_profile=user_profile,
+                state=state,
                 mytral_url=f"{flask.request.host_url}{strava.URL_AUTH_CALLBACK}",
             )
             return flask.redirect(url)
@@ -234,12 +244,17 @@ def strava_auth_start():
     return flask.redirect(flask.url_for("strava_api_developer"))
 
 
-@flask_app.route("/strava/auth-reset")
+@flask_app.route("/strava/auth-reset", methods=["POST"])
 def strava_auth_reset():
     """Reset access and refresh tokens."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
     user_profile = ds.profile(user_id)
 
     # purge Strava tokens
@@ -261,6 +276,16 @@ def strava_auth_redirect():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    # verify anti-CSRF state before exchanging the authorization code
+    expected_state = flask.session.pop("strava_oauth_state", None)
+    received_state = flask.request.args.get("state")
+    if not expected_state or received_state != expected_state:
+        flask.flash(
+            message="Strava authentication error: invalid or missing state",
+            category="error",
+        )
+        return flask.redirect(flask.url_for("strava_api_developer"))
 
     auth_code = flask.request.args.get("code")
     if not auth_code:
@@ -299,12 +324,17 @@ def strava_auth_redirect():
     return flask.redirect(flask.url_for("strava_api_developer"))
 
 
-@flask_app.route("/strava/synchronization/new/new")
+@flask_app.route("/strava/synchronization/new/new", methods=["POST"])
 def strava_sync_new_to_new():
     """Synchronize ONLY NEW activities from Strava service."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
     user_profile = ds.profile(user_id)
 
     ds.cache_evict(user_id)
@@ -341,7 +371,7 @@ def strava_sync_new_to_new():
         # switch to the new dataset
         user_profile.add_dataset(new_dataset_name)
         user_profile.dataset_name = new_dataset_name
-        ds.update_profile(user_id)
+        ds.update_profile(user_profile)
 
     return flask.redirect(flask.url_for("home"))
 

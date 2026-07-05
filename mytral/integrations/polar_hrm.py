@@ -48,12 +48,12 @@ POLAR_HRM_TASK_TYPE = "polar_hrm_import"
 
 _ENCODING = "windows-1250"
 
-# binary-file magic prefix — skip these files without attempting text parsing
+# binary-file magic prefix - skip these files without attempting text parsing
 _BINARY_MAGIC = b"PolarData"
 
 # TODO this is wrong - every user has their own sport index mapping;
 #   need to read from each user's PDD files and cache the mapping per user
-# Polar activity_type_key index → MyTraL activity_type_key string
+# Polar activity_type_key index > MyTraL activity_type_key string
 _SPORT_MAP: dict[int, str] = {
     1: commons.AT_RUN,  # Running
     2: commons.AT_RIDE,  # Cycling (road)
@@ -408,7 +408,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
         ]
         result["note"] = "\n".join(note_lines)
 
-        # ---- [Summary-TH] — kcal ----
+        # ---- [Summary-TH] - kcal ----
         summary_th_lines = [
             line for line in section_lines.get("Summary-TH", []) if line.strip()
         ]
@@ -422,7 +422,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
                     kcal = 0
         result["kcal"] = kcal
 
-        # ---- [Trip] — speed / elevation ----
+        # ---- [Trip] - speed / elevation ----
         trip_lines = [
             line.strip() for line in section_lines.get("Trip", []) if line.strip()
         ]
@@ -464,15 +464,15 @@ def parse_hrm(path: pathlib.Path) -> dict:
         result["min_hr"] = hr_dict["min_hr"]
         result["elevation_min"] = hr_dict["elevation_min"]
         # prefer HRData max altitude (always meters); fall back to Trip max
-        # (Trip elevation may be in cm for some devices → 100× inflation)
+        # (Trip elevation may be in cm for some devices > 100x inflation)
         result["elevation_max"] = hr_dict["elevation_max"] or elevation_max_trip
         # HRData-derived speed/elevation: the [Trip] section values for
         # ``max_speed_kmh`` and ``elevation_gain`` are unreliable for S720i
         # exports, so derive these from the per-row HRData time series.
         # The raw Trip values (``max_speed_kmh``, ``elevation_gain``) are
-        # kept above — they are still used by the cm-detection heuristic in
+        # kept above - they are still used by the cm-detection heuristic in
         # ``_build_activity`` (gradient check needs the raw Trip elevation_gain
-        # to detect 100× cm inflation).  Consumers should use the ``*_hrdata``
+        # to detect 100x cm inflation).  Consumers should use the ``*_hrdata``
         # fields for display and validation.
         # preserve HRData elevation max for cross-reference (always meters)
         result["elevation_max_hrmdata"] = hr_dict["elevation_max"]
@@ -527,7 +527,7 @@ def parse_pdd(path: pathlib.Path) -> list[dict]:
         elif current:
             sections.setdefault(current, []).append(line)
 
-    # ---- [DayInfo] — date ----
+    # ---- [DayInfo] - date ----
     day_date = 0
     day_lines = [line for line in sections.get("DayInfo", []) if line.strip()]
     # skip header line (first line); second line has date
@@ -562,10 +562,10 @@ def parse_pdd(path: pathlib.Path) -> list[dict]:
                 pass
 
         # first tab-row is a block header (version, 1, num_rows, num_cols, type, flags)
-        # the 12 actual data rows follow — index them as rows[0..11]
+        # the 12 actual data rows follow - index them as rows[0..11]
         rows = all_rows[1:] if len(all_rows) > 1 else []
 
-        # extract fields (design doc table, spec row N → rows[N] after header skip)
+        # extract fields (design doc table, spec row N > rows[N] after header skip)
         start_time_s = rows[0][4] if len(rows) > 0 and len(rows[0]) > 4 else 0
         duration_s = rows[0][5] if len(rows) > 0 and len(rows[0]) > 5 else 0
         sport_index = rows[1][0] if len(rows) > 1 and len(rows[1]) > 0 else 0
@@ -636,7 +636,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
     Parsed HRM time-series data (HR, speed, cadence, altitude) is cached in
     ``_hrm_data_cache`` (keyed by ``src_key`` = HRM filename).  The caller
-    (task or route) reads this cache to generate FIT blobs after persistence —
+    (task or route) reads this cache to generate FIT blobs after persistence -
     the plugin itself does NOT write to the blobstore.
     """
 
@@ -948,7 +948,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         distance_m = exercise.get("distance_m", 0)
 
         # detect elevation values stored in cm (some Polar devices store Trip
-        # elevation in cm instead of meters → 100× inflation)
+        # elevation in cm instead of meters > 100x inflation)
         if elevation_gain > 0 and distance_m > 0:
             gradient_m_per_km = elevation_gain / (distance_m / 1000)
             if gradient_m_per_km > 150:
@@ -968,13 +968,13 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         if duration_s > 0 and distance_m > 0:
             prelim_avg_speed = (distance_m / duration_s) * 3.6
             if sport_str == commons.AT_RUN and prelim_avg_speed > 25.0:
-                # running at > 25 km/h is world-record pace — this is a ride
+                # running at > 25 km/h is world-record pace - this is a ride
                 sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
             elif sport_str == commons.AT_GYM and prelim_avg_speed > 0:
-                # "exercise" with distance/time/speed data — guess real type
+                # "exercise" with distance/time/speed data - guess real type
                 sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
 
-        # determine src_key — prefer hrm filename; fall back to synthetic key
+        # determine src_key - prefer hrm filename; fall back to synthetic key
         src_key = (
             hrm_filename
             if hrm_filename

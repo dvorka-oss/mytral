@@ -96,15 +96,15 @@ class MyTraLConfigPaths:
 
     # Cross-desktop group (XDG) Base Directory Specification
     # (https://specifications.freedesktop.org/basedir-spec/latest/)
-    # ──────────────────────────────────────────────────────────────────────────────────
+    # ----------------------------------------------------------------------------------
     # Purpose        Env variable        Linux default           MyTraL subdirectory
-    # ───────────── ─────────────────── ─────────────────────── ────────────────────────
+    # ------------- ------------------- ----------------------- ------------------------
     # User data      XDG_DATA_HOME       ~/.local/share          ~/.local/share/mytral/
     # Config         XDG_CONFIG_HOME     ~/.config               ~/.config/mytral/
     # Cache / work   XDG_CACHE_HOME      ~/.cache                ~/.cache/mytral/
     # State (logs.)  XDG_STATE_HOME      ~/.local/state          ~/.local/state/mytral/
     # Tmp files      TMPDIR              /tmp                    /tmp/mytral/
-    # ──────────────────────────────────────────────────────────────────────────────────
+    # ----------------------------------------------------------------------------------
 
     APP_NAME = "mytral"
 
@@ -580,7 +580,7 @@ class MytralConfig:
         self.blobstore_filesystem_subdir: str = "blobs"
 
         # upload size limits
-        # 20 MiB: typical GPX files are 100–500 KB; 20 MiB covers ultra-marathon
+        # 20 MiB: typical GPX files are 100-500 KB; 20 MiB covers ultra-marathon
         # tracks with 1-second polling (~10 MB) plus a generous safety margin
         self.blobstore_max_gpx_size_bytes: int = 20 * 1024 * 1024
         # 5 MiB: FIT files are compact binary; 5 MiB covers ~8 hours of 5-second polling
@@ -592,11 +592,11 @@ class MytralConfig:
         self.blobstore_max_photo_size_bytes: int = 25 * 1024 * 1024
         # 50 photos per activity: one batch per session, prevents runaway storage
         self.blobstore_max_photo_count_per_activity: int = 50
-        # 250 MiB per request: allows a full batch of 10 × 25 MiB photos at once
+        # 250 MiB per request: allows a full batch of 10 x 25 MiB photos at once
         self.blobstore_max_photo_request_bytes: int = 250 * 1024 * 1024
         # 4096 px: preserves quality for large-screen display without wasting space
         self.blobstore_photo_max_dimension_px: int = 4096
-        # 1440 px: sharp feed-card display up to 720 CSS px wide on 2× HiDPI screens
+        # 1440 px: sharp feed-card display up to 720 CSS px wide on 2x HiDPI screens
         self.blobstore_thumbnail_max_dimension_px: int = 1440
 
         # MinIO blobstore
@@ -830,7 +830,7 @@ class MytralPersistenceFsConfig:
     DIR_TASKS = "tasks"
     FILENAME_CFG = "config.json"
 
-    # class-level migration cache — survives across instances
+    # class-level migration cache - survives across instances
     _migrate_cache: bool | None = None
     _cached_data_spec_version: str | None = None
 

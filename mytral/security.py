@@ -180,7 +180,7 @@ def decrypt_strava_secrets(profile_dict: dict, enc_key: str) -> None:
             try:
                 strava[plain_field] = decrypt(enc_val, enc_key)
             except ValueError:
-                # key mismatch or corrupt value – fall back to whatever is stored
+                # key mismatch or corrupt value - fall back to whatever is stored
                 pass
 
 

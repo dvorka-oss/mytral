@@ -21,6 +21,7 @@ import datetime
 import functools
 import json
 import traceback
+import urllib.parse
 import uuid
 
 import bleach
@@ -122,6 +123,55 @@ def _bbox_from_points(points: list[tuple[float, float]]) -> list[float]:
         max(latitudes),
         max(longitudes),
     ]
+
+
+def _reset_activity_blobs(activity: entities_mod.ActivityEntity) -> None:
+    """Clear all blob references on a cloned/copied activity.
+
+    Blobs resolve by ``(user_id, blob_key)``, so a plain ``copy.deepcopy`` of an
+    activity makes the copy share the source's physical photos/recordings.  A
+    clone must start with empty blob references, otherwise deleting blobs from
+    one activity corrupts the other.
+    """
+    activity.recorded_blob_keys = []
+    activity.recorded_parquet_keys = {}
+    activity.photo_blob_keys = []
+    activity.highlight_photo_blob_key = ""
+
+
+def _int_or_400(value: str | int | None) -> int:
+    """Parse an int from a user-supplied route/query param or abort with 400."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        flask.abort(400)
+
+
+def _safe_redirect_target(target: str | None, fallback: str) -> str:
+    """Return target only if it is a same-host URL, else the fallback.
+
+    Prevents open-redirect via an attacker-controlled ``Referer`` header.
+    """
+    if not target:
+        return fallback
+    host = urllib.parse.urlparse(flask.request.host_url)
+    dest = urllib.parse.urlparse(urllib.parse.urljoin(flask.request.host_url, target))
+    if dest.scheme in ("http", "https") and dest.netloc == host.netloc:
+        return target
+    return fallback
+
+
+def _pace_to_seconds(pace: str) -> int:
+    """Convert a ``M:SS`` pace string to total seconds for correct numeric sorting.
+
+    Pace strings are not zero-padded (``9:45`` vs ``12:05``), so a lexicographic
+    sort mis-orders them.  Empty/invalid paces sort last.
+    """
+    minutes, _, seconds = (pace or "").partition(":")
+    try:
+        return int(minutes) * 60 + int(seconds)
+    except ValueError:
+        return 10**9
 
 
 def _activity_map_data(
@@ -1231,7 +1281,7 @@ def tasks_list():
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
 
-    # validate result_route endpoints — stale routes from deleted pages
+    # validate result_route endpoints - stale routes from deleted pages
     # would cause BuildError when the template tries url_for()
     view_functions = set(flask.current_app.view_functions.keys())
     for t in all_tasks:
@@ -1257,7 +1307,10 @@ def task_detail(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    task = app_task_manager.executor.get_status(task_id, user_id)
+    try:
+        task = app_task_manager.executor.get_status(task_id, user_id)
+    except Exception:
+        flask.abort(404)
     logs = app_task_manager.executor.get_logs(task_id, user_id, tail=1000)
 
     return flask.render_template(
@@ -1307,7 +1360,10 @@ def task_download_log(task_id):
     if not user_id:
         return flask.redirect(flask.url_for("login"))
 
-    logs = app_task_manager.executor.get_logs(task_id, user_id, tail=10000)
+    try:
+        logs = app_task_manager.executor.get_logs(task_id, user_id, tail=10000)
+    except Exception:
+        flask.abort(404)
     content = "\n".join(logs)
     return flask.Response(
         content,
@@ -1358,6 +1414,8 @@ def api_task_logs(task_id):
         return flask.jsonify({"error": "Not authenticated"}), 401
 
     tail = flask.request.args.get("tail", default=100, type=int)
+    # guard against a negative tail, which would silently drop the newest lines
+    tail = max(tail, 0)
 
     try:
         logs = app_task_manager.executor.get_logs(task_id, user_id, tail=tail)
@@ -1465,11 +1523,10 @@ def notifications_clear():
     notif_storage = notif_mod.store
     notif_storage.clear_all(user_id)
 
-    # redirect back to the page the user came from
-    referrer = flask.request.referrer
-    if referrer:
-        return flask.redirect(referrer)
-    return flask.redirect(flask.url_for("home"))
+    # redirect back to the page the user came from (same-host only)
+    return flask.redirect(
+        _safe_redirect_target(flask.request.referrer, flask.url_for("home"))
+    )
 
 
 def _avatar_service() -> blob_pkg.AvatarBlobService:
@@ -1550,7 +1607,7 @@ def delete_user_avatar():
 
 @flask_app.route("/profile/avatar", methods=["GET"])
 def get_user_avatar():
-    """Serve the user's full-size (200×200) avatar JPEG."""
+    """Serve the user's full-size (200x200) avatar JPEG."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         flask.abort(404)
@@ -1570,7 +1627,7 @@ def get_user_avatar():
 
 @flask_app.route("/profile/avatar/thumbnail", methods=["GET"])
 def get_user_avatar_thumbnail():
-    """Serve the user's 40×40 avatar thumbnail JPEG."""
+    """Serve the user's 40x40 avatar thumbnail JPEG."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         flask.abort(404)
@@ -1722,18 +1779,17 @@ def athlete_metrics_update():
                 label = field.label.text if field and field.label else field_name
                 for error in field_errors:
                     app_logger.warning(
-                        "athlete_metrics_update(): validation error - field=%s "
-                        "label=%r error=%s",
-                        field_name,
-                        label,
-                        error,
+                        "athlete_metrics_update(): validation error",
+                        field=field_name,
+                        label=label,
+                        error=error,
                     )
                 invalid_fields.append(label or field_name)
 
             if invalid_fields:
                 flask.flash(
                     message=(
-                        f"Invalid metrics data — please fix: "
+                        f"Invalid metrics data - please fix: "
                         f"{', '.join(invalid_fields)}"
                     ),
                     category="error",
@@ -1979,12 +2035,16 @@ def settings():
         return flask.redirect(flask.url_for("home"))
 
 
-@flask_app.route("/settings/gear/merge/strava", methods=["GET"])
+@flask_app.route("/settings/gear/merge/strava", methods=["POST"])
 def settings_gear_merge_strava():
     """Merge Strava gear to user profile gear."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
 
     # load strava gear
     gear_strava = ds.list_strava_gear(user_id=user_id)
@@ -2153,11 +2213,11 @@ def _create_activity(
         form.activity_type_key.process(form.activity_type_key.default)
 
         if year:
-            form.when_year.data = int(year)
+            form.when_year.data = _int_or_400(year)
         if month:
-            form.when_month.data = int(month)
+            form.when_month.data = _int_or_400(month)
         if day:
-            form.when_day.data = int(day)
+            form.when_day.data = _int_or_400(day)
 
     else:
         flask.flash(
@@ -2736,37 +2796,43 @@ def _update_activity(key: str, template: str):
         # exercises
         if db_entity.exercises:
             for e in db_entity.exercises:
-                exercise_form = forms.AddActivityExerciseForm()
-                exercise_form.exercise_name = e.name or ""
-                exercise_form.weight = e.weight or 0.0
-                exercise_form.series = e.series or 0
-                exercise_form.repetitions = e.repetitions or 0
-                exercise_form.duration = e.duration or 0
-                exercise_form.rest = e.rest or 0
-                form.exercises.append_entry(exercise_form)
+                form.exercises.append_entry(
+                    {
+                        "exercise_name": e.name or "",
+                        "weight": e.weight or 0.0,
+                        "series": e.series or 0,
+                        "repetitions": e.repetitions or 0,
+                        "duration": e.duration or 0,
+                        "rest": e.rest or 0,
+                    }
+                )
 
         # symptoms
         if db_entity.sickness_symptoms:
             for s in db_entity.sickness_symptoms:
-                symptom_form = forms.AddActivitySymptomForm()
-                symptom_form.symptom = s.symptom or ""
-                symptom_form.side = s.side or ""
-                symptom_form.body_part = s.body_part or ""
-                symptom_form.health = s.health or 0
-                form.sickness_symptoms.append_entry(symptom_form)
+                form.sickness_symptoms.append_entry(
+                    {
+                        "symptom": s.symptom or "",
+                        "side": s.side or "",
+                        "body_part": s.body_part or "",
+                        "health": s.health or 0,
+                    }
+                )
 
         # laps
         if hasattr(db_entity, "laps") and db_entity.laps:
             for lap in db_entity.laps:
-                lap_form = forms.AddActivityLapForm()
-                lap_form.lap_name = lap.name or ""
-                lap_form.distance = lap.distance or 0
                 total_seconds = lap.duration or 0
-                lap_form.hours = total_seconds // 3600
-                lap_form.minutes = (total_seconds % 3600) // 60
-                lap_form.seconds = total_seconds % 60
-                lap_form.comment = lap.comment or ""
-                form.laps.append_entry(lap_form)
+                form.laps.append_entry(
+                    {
+                        "lap_name": lap.name or "",
+                        "distance": lap.distance or 0,
+                        "hours": total_seconds // 3600,
+                        "minutes": (total_seconds % 3600) // 60,
+                        "seconds": total_seconds % 60,
+                        "comment": lap.comment or "",
+                    }
+                )
 
         form.hours.data = db_entity.hours
         form.minutes.data = db_entity.minutes
@@ -2972,11 +3038,15 @@ def update_activity_sick(key):
     return _update_activity(key=key, template="activity-update.html")
 
 
-@flask_app.route("/app/activities/<key>/clone-to-new", methods=["GET", "POST"])
+@flask_app.route("/app/activities/<key>/clone-to-new", methods=["POST"])
 def clone_to_new_activity(key):
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
 
     user_profile = ds.profile(user_id)
 
@@ -2984,23 +3054,19 @@ def clone_to_new_activity(key):
         user_id=user_id, dataset_name=user_profile.dataset_name, key=key
     )
 
-    if flask.request.method == "GET":
-        new_entity = copy.deepcopy(db_entity)
+    new_entity = copy.deepcopy(db_entity)
+    new_entity.key = ds.create_key()
+    # a clone must not share the source's physical blobs
+    _reset_activity_blobs(new_entity)
 
-        new_entity.key = ds.create_key()
+    ds.create_activity(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        entity=new_entity,
+    )
 
-        ds.create_activity(
-            user_id=user_id,
-            dataset_name=user_profile.dataset_name,
-            entity=new_entity,
-        )
-
-        flask.flash(message="Activity cloned to date range", category="success")
-        return flask.redirect(flask.url_for("update_activity", key=new_entity.key))
-
-    # else
-    flask.flash(message="Activity update error - unsupported method", category="error")
-    return flask.redirect(flask.url_for("home"))
+    flask.flash(message="Activity cloned", category="success")
+    return flask.redirect(flask.url_for("update_activity", key=new_entity.key))
 
 
 @flask_app.route("/app/activities/<key>/extend-to-range", methods=["GET", "POST"])
@@ -3057,6 +3123,8 @@ def extend_to_date_range(key):
                 new_entity.when_year = current_date.year
                 new_entity.when_month = current_date.month
                 new_entity.when_day = current_date.day
+                # each extended copy must not share the source's physical blobs
+                _reset_activity_blobs(new_entity)
 
                 ds.create_activity(
                     user_id=user_id,
@@ -3098,7 +3166,8 @@ def update_exercise(key, index):
     if flask.request.method == "POST":
         form = forms.UpdateActivityExerciseForm()
         form.activity_key.data = key
-        if form.series.data == 0 and form.repetitions.data > 0:
+        # data may be None when the field is blank/unparseable (validated below)
+        if form.series.data == 0 and (form.repetitions.data or 0) > 0:
             form.series.data = 1
         if form.validate_on_submit():
             entity = ds.get_activity(
@@ -3211,7 +3280,10 @@ def delete_exercise(key, index):
     entity = ds.get_activity(
         user_id=user_id, dataset_name=user_profile.dataset_name, key=key
     )
-    exercise_entity = entity.exercises[int(index) - 1]
+    index = _parse_positive_int_param(index)
+    if index > len(entity.exercises):
+        flask.abort(404)
+    exercise_entity = entity.exercises[index - 1]
 
     # Look up display name from user's exercises list
     exercise_key = exercise_entity.name
@@ -3289,8 +3361,9 @@ def update_symptom(key, index):
                 (s.key, s.name)
                 for s in ds.list_symptoms(user_id).symptoms_by_key.values()
             ]
-            form.symptom.default = (
-                default_symptom or ds.list_symptoms(user_id).default_symptom().key
+            symptoms = ds.list_symptoms(user_id)
+            form.symptom.default = default_symptom or (
+                symptoms.default_symptom().key if not symptoms.empty() else ""
             )
             form.symptom.process(form.symptom.default)
             form.side.data = symptom_entity.side
@@ -3349,7 +3422,10 @@ def delete_symptom(key, index):
     entity = ds.get_activity(
         user_id=user_id, dataset_name=user_profile.dataset_name, key=key
     )
-    symptom_entity = entity.sickness_symptoms[int(index) - 1]
+    index = _parse_positive_int_param(index)
+    if index > len(entity.sickness_symptoms):
+        flask.abort(404)
+    symptom_entity = entity.sickness_symptoms[index - 1]
 
     # Look up display name from user's symptoms list
     symptom_key = symptom_entity.symptom
@@ -3543,7 +3619,9 @@ def unbookmark_activity(key):
         flask.flash(message="Bookmark error - form validation error", category="error")
 
     return flask.redirect(
-        flask.request.referrer or flask.url_for("get_activity", key=key)
+        _safe_redirect_target(
+            flask.request.referrer, flask.url_for("get_activity", key=key)
+        )
     )
 
 
@@ -3626,7 +3704,7 @@ def sync_strava_activity(key):
     try:
         app_task_manager.executor.submit(task)
         flask.flash(
-            "Strava activity sync started — check Tasks for progress.", "success"
+            "Strava activity sync started - check Tasks for progress.", "success"
         )
     except Exception as exc:
         flask.flash(f"Could not start sync: {exc}", "danger")
@@ -3874,7 +3952,7 @@ def list_activities_year(year):
         case "elevation":
             activities = sorted(activities, key=lambda a: a.elevation_gain)
         case "pace":
-            activities = sorted(activities, key=lambda a: a.pace or "99:99")
+            activities = sorted(activities, key=lambda a: _pace_to_seconds(a.pace))
         case "source":
             activities = sorted(activities, key=lambda a: a.src or "")
         case _:
@@ -3905,7 +3983,7 @@ def list_activities_year(year):
             born_year=user_profile.born_year,
             born_month=user_profile.born_month,
             born_day=user_profile.born_day,
-            year=int(year),
+            year=year_int,
         )
         if year
         else 0
@@ -3979,7 +4057,7 @@ def list_activities_year(year):
         stats=ds.activities_stats(
             user_id=user_id, dataset_name=user_profile.dataset_name
         ),
-        year=int(year),
+        year=year_int,
         years=list(
             reversed(
                 [
@@ -4254,8 +4332,8 @@ def list_activities_prs():
         )
 
     # group by activity type; within each activity_type_key handle two kinds of events:
-    #   distance-based: fixed distance, varying duration → best = min duration
-    #   time-trial:     fixed duration, varying distance → best = max distance
+    #   distance-based: fixed distance, varying duration > best = min duration
+    #   time-trial:     fixed duration, varying distance > best = max distance
     unique_activity_types = sorted(set(e["activity_type"] for e in pr_entries))
     prs_by_activity_type = {}
     for sport in unique_activity_types:
@@ -4314,7 +4392,7 @@ def list_activities_paces():
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
         sort_by_when=True,
-        filter_year=int(filter_year) if filter_year else None,
+        filter_year=_int_or_400(filter_year) if filter_year else None,
     )
     activity_types = ds.list_activity_types(user_id=user_id)
 
@@ -4479,12 +4557,14 @@ def list_activities_for_date(year, month, day):
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    year, month, day = _int_or_400(year), _int_or_400(month), _int_or_400(day)
+
     activities = ds.list_activities(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
-        filter_year=int(year),
-        filter_month=int(month),
-        filter_day=int(day),
+        filter_year=year,
+        filter_month=month,
+        filter_day=day,
     )
 
     activities_weekdays = {
@@ -4505,7 +4585,7 @@ def list_activities_for_date(year, month, day):
         activities, activity_types_registry, exercises_registry
     )
 
-    viewed_date = datetime.date(int(year), int(month), int(day))
+    viewed_date = datetime.date(year, month, day)
     history_start = viewed_date - datetime.timedelta(
         days=muscle_groups.HEATMAP_HISTORY_WINDOW_DAYS
     )
@@ -4532,9 +4612,7 @@ def list_activities_for_date(year, month, day):
 
     # PREVIOUS / NEXT day navigation
     try:
-        (prev_year, prev_month, prev_day) = cals.get_yesterday(
-            int(year), int(month), int(day)
-        )
+        (prev_year, prev_month, prev_day) = cals.get_yesterday(year, month, day)
     except Exception as ex:
         app_logger.error(f"Unable to get yesterday for given date: {ex}")
         (prev_year, prev_month, prev_day) = (
@@ -4544,9 +4622,7 @@ def list_activities_for_date(year, month, day):
         )
 
     try:
-        (next_year, next_month, next_day) = cals.get_tomorrow(
-            int(year), int(month), int(day)
-        )
+        (next_year, next_month, next_day) = cals.get_tomorrow(year, month, day)
     except Exception as ex:
         app_logger.error(f"Unable to get tomorrow for given date: {ex}")
         (next_year, next_month, next_day) = (
@@ -4590,8 +4666,8 @@ def list_activities_for_month_day(month, day):
     activities = ds.list_activities(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
-        filter_month=int(month),
-        filter_day=int(day),
+        filter_month=_int_or_400(month),
+        filter_day=_int_or_400(day),
         sort_by_when=True,
     )
 
@@ -4713,12 +4789,14 @@ def copy_day(year, month, day):
         return flask.redirect(flask.url_for("login"))
     user_profile = ds.profile(user_id)
 
+    year, month, day = _int_or_400(year), _int_or_400(month), _int_or_400(day)
+
     source_activities = ds.list_activities(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
-        filter_year=int(year),
-        filter_month=int(month),
-        filter_day=int(day),
+        filter_year=year,
+        filter_month=month,
+        filter_day=day,
     )
 
     if not source_activities:
@@ -4760,6 +4838,8 @@ def copy_day(year, month, day):
             new_activity.when_day = target_day
             new_activity.when = f"{target_year}-{target_month:02d}-{target_day:02d}"
             new_activity.key = ds.create_key()
+            # copied activity must not share the source's physical blobs
+            _reset_activity_blobs(new_activity)
 
             ds.create_activity(
                 user_id=user_id,
@@ -4830,7 +4910,11 @@ def y2y_month_perspective():
         include_meta=True,
     )
     referential_year = ds_stats.year_max
-    this_month = int(datetime.date.today().month)
+    today = datetime.date.today()
+    this_month = today.month
+    # year-to-date truncation only makes sense when the referential (latest data)
+    # year is the actual current calendar year - a past year is already complete
+    is_current_year = referential_year == today.year
 
     if not ds_stats.years:
         return flask.render_template(
@@ -4857,7 +4941,7 @@ def y2y_month_perspective():
             aspect=commons.StatsAspect.DURATION, activity_types=activity_types
         )
 
-        if year == referential_year and this_month < 12:
+        if year == referential_year and is_current_year and this_month < 12:
             for month_idx in range(this_month + 1, 13):
                 year_data_distance[month_idx] = 0.0
                 year_data_duration[month_idx] = 0
@@ -4874,7 +4958,7 @@ def y2y_month_perspective():
     for m in data:
         for year in data[m]:
             if year != referential_year:
-                if cals.MONTH_STR_2_INDEX[m] > this_month:
+                if is_current_year and cals.MONTH_STR_2_INDEX[m] > this_month:
                     data[m][year][2] = ""
                     continue
 
@@ -5302,7 +5386,7 @@ def insight_sickness_heatmap():
 
 
 #
-# Blob store routes – activity recordings and photos
+# Blob store routes - activity recordings and photos
 #
 
 
@@ -5435,8 +5519,8 @@ def download_activity_recording(activity_key: str, blob_uuid: str):
             as_attachment=True,
             download_name=_sanitize_download_name(raw_name),
         )
-    except (blob_pkg.BlobValidationError, blob_pkg.BlobNotFoundError) as exc:
-        msg = f"Avatar upload failed: {exc}"
+    except blob_pkg.BlobStoreError as exc:
+        msg = f"Recording download failed: {exc}"
         app_logger.error(msg, user_id=user_id, traceback=traceback.format_exc())
         flask.flash(message=msg, category="error")
         return flask.redirect(flask.url_for("get_activity", key=activity_key))
@@ -5518,8 +5602,8 @@ def reprocess_activity_recording(activity_key: str, blob_uuid: str):
 def upload_activity_photos(activity_key: str):
     """Upload one or more photos to an activity.
 
-    GET  – render upload form
-    POST – process uploaded files
+    GET  - render upload form
+    POST - process uploaded files
     """
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:

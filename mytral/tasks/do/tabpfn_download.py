@@ -31,14 +31,14 @@ class TabPFNDownloadTask(tasks.TaskBase):
     Checks made before initiating the HTTP download:
 
     1. ``tabpfn`` package is importable.
-    2. ``scikit-learn`` (``sklearn``) is importable — a common missing dep when
+    2. ``scikit-learn`` (``sklearn``) is importable - a common missing dep when
        the server was started before ``uv sync --group ml`` completed.
     3. Weights are not already cached.
     4. A download is not already in progress.
     """
 
     TASK_TYPE = "tabpfn_download"
-    TASK_DISPLAY_NAME = "TabPFN — Download Model Weights"
+    TASK_DISPLAY_NAME = "TabPFN - Download Model Weights"
 
     def __init__(
         self,
@@ -73,13 +73,13 @@ class TabPFNDownloadTask(tasks.TaskBase):
         self.log(f"[{TabPFNDownloadTask.TASK_DISPLAY_NAME}] starting")
         self.update_progress(5)
 
-        # check 1 — skip if weights already present (fast path, no import needed)
+        # check 1 - skip if weights already present (fast path, no import needed)
         if icl_manager.is_weights_cached():
-            self.log("Model weights are already cached — nothing to do.")
+            self.log("Model weights are already cached - nothing to do.")
             self.update_progress(100)
             return
 
-        # check 2 — guard against concurrent downloads
+        # check 2 - guard against concurrent downloads
         if icl_manager.is_download_in_progress():
             self.log(
                 "A download is already in progress (possibly from another user). "
@@ -88,7 +88,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
             self.update_progress(100)
             return
 
-        # check 3 — tabpfn package and deps (including sklearn) must be importable
+        # check 3 - tabpfn package and deps (including sklearn) must be importable
         if not icl_manager.is_tabpfn_installed():
             msg = (
                 "tabpfn package is not installed. "
@@ -136,7 +136,7 @@ class TabPFNDownloadTask(tasks.TaskBase):
             self.log(f"[{TabPFNDownloadTask.TASK_DISPLAY_NAME}] DONE")
         except Exception as exc:
             icl_manager.set_failed(str(exc))
-            self.log(f"ERROR: download failed — {exc}")
+            self.log(f"ERROR: download failed - {exc}")
             raise
 
 

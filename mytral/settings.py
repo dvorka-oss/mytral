@@ -2911,7 +2911,7 @@ _BOOTSTRAP_EXERCISE_DEFAULTS_BY_NAME: dict[str, _BootstrapExerciseDefaults] = {
     "barbell row": _BootstrapExerciseDefaults(
         description=_exercise_howto(
             setup=(
-                "Stand hip-width, hinge at the hips, and keep torso about 45° "
+                "Stand hip-width, hinge at the hips, and keep torso about 45 degrees "
                 "with a neutral spine."
             ),
             execution=(
@@ -3173,7 +3173,9 @@ _BOOTSTRAP_EXERCISE_DEFAULTS_BY_NAME: dict[str, _BootstrapExerciseDefaults] = {
             setup=(
                 "Place feet shoulder-width on platform and keep lower back against pad."
             ),
-            execution="Lower sled until knees are around 90°, then press back up.",
+            execution=(
+                "Lower sled until knees are around 90 degrees, then press back up."
+            ),
             breathing="Inhale on the way down, exhale as you press.",
             form_cue="Keep knees tracking over toes and avoid locking out hard.",
         ),
@@ -3223,7 +3225,7 @@ _BOOTSTRAP_EXERCISE_DEFAULTS_BY_NAME: dict[str, _BootstrapExerciseDefaults] = {
             setup="Hands just outside shoulder width, body in a straight plank.",
             execution="Lower chest toward floor, then press back to start.",
             breathing="Inhale down, exhale up.",
-            form_cue="Keep elbows around 45° and avoid dropping your hips.",
+            form_cue="Keep elbows around 45 degrees and avoid dropping your hips.",
         ),
         weight=60.0,
         tags=("upper body", "push", "compound", "bodyweight", "conditioning"),
@@ -3985,41 +3987,41 @@ class UserGoals:
 
 @dataclasses.dataclass
 class AthleteMetrics:
-    """Athlete performance metrics — set by the athlete or estimated by MyTraL.
+    """Athlete performance metrics - set by the athlete or estimated by MyTraL.
 
     Convention: metric = 0 means "not set". e_metric is always populated
     with either the athlete-set value or a MyTraL estimate.
 
-    All e_* fields are transient and never persisted — they are recomputed
+    All e_* fields are transient and never persisted - they are recomputed
     on every load by athlete_metrics.resolve().
     """
 
     #
-    # Persisted fields (set by athlete — 0 means not set)
+    # Persisted fields (set by athlete - 0 means not set)
     #
 
-    # maximum heart rate (BPM) — 0 = not set
+    # maximum heart rate (BPM) - 0 = not set
     max_hr: int = 0
-    # anaerobic threshold HR / LTHR (BPM) — 0 = not set
+    # anaerobic threshold HR / LTHR (BPM) - 0 = not set
     anaerobic_threshold_hr: int = 0
-    # aerobic threshold HR / LT1 (BPM) — 0 = not set
+    # aerobic threshold HR / LT1 (BPM) - 0 = not set
     aerobic_threshold_hr: int = 0
-    # functional threshold power (Watts) — 0 = not set
+    # functional threshold power (Watts) - 0 = not set
     ftp: float = 0.0
-    # VO2 Max (mL/kg/min) — 0 = not set
+    # VO2 Max (mL/kg/min) - 0 = not set
     vo2max: float = 0.0
-    # HRV overnight RMSSD (ms) — 0 = not set
+    # HRV overnight RMSSD (ms) - 0 = not set
     hrv_rmssd: float = 0.0
-    # FatMax (g/hr) — 0 = not set
+    # FatMax (g/hr) - 0 = not set
     fat_max: float = 0.0
     # zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     z1_high: int = 0
     z2_high: int = 0
     z3_high: int = 0
     z4_high: int = 0
     # power zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     pz1_high: int = 0
     pz2_high: int = 0
     pz3_high: int = 0
@@ -4039,7 +4041,7 @@ class AthleteMetrics:
     e_vo2max: float = dataclasses.field(default=0.0, repr=False)
     e_hrv_rmssd: float = dataclasses.field(default=0.0, repr=False)
     e_fat_max: float = dataclasses.field(default=0.0, repr=False)
-    # always derived from e_ftp and weight — never stored
+    # always derived from e_ftp and weight - never stored
     e_power_to_weight: float = dataclasses.field(default=0.0, repr=False)
 
     #

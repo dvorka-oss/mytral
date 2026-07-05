@@ -49,7 +49,7 @@ def _fit_directory_blob_job(job_key: int, job_dir: pathlib.Path) -> None:
 
     Reads ``job_dir/input/payload.json`` which provides a list of FIT file
     paths.  For each file the worker extracts the activity summary, builds an
-    activity dict, uploads the recording and converts to Parquet — all inside
+    activity dict, uploads the recording and converts to Parquet - all inside
     an isolated sandbox blobstore.
 
     On failure writes ``job_dir/output/error.json``.
@@ -353,7 +353,7 @@ class FitDirectoryImportTask(tasks.TaskBase):
         self.update_progress(10)
         self.check_cancellation()
 
-        # run bulldozer — all heavy work happens here in parallel
+        # run bulldozer - all heavy work happens here in parallel
         bzz.run(job_dirs=job_dirs, job_function=_fit_directory_blob_job)
         self.check_cancellation()
 

@@ -47,7 +47,7 @@ class StravaActivitySyncTask(tasks.TaskBase):
     """
 
     TASK_TYPE = "strava_sync_activity"
-    TASK_DISPLAY_NAME = "Strava — Activity Synchronization"
+    TASK_DISPLAY_NAME = "Strava - Activity Synchronization"
     ENCRYPTED_PARAM_KEYS = ["access_token", "refresh_token", "client_secret"]
 
     def __init__(

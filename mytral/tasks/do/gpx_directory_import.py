@@ -278,7 +278,7 @@ class GpxDirectoryImportTask(tasks.TaskBase):
                     entity=activity,
                 )
                 self.log(f"Updated activity from {gpx_path.name}")
-            # else: on_conflict == "new_key" — fall through to create with new key
+            # else: on_conflict == "new_key" - fall through to create with new key
 
         # create activity if not overriding
         if not existing_key or on_conflict != "override":

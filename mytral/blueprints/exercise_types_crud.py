@@ -77,7 +77,7 @@ class CreateExerciseTypeForm(flask_wtf.FlaskForm):
 
     weight = wtforms.FloatField(
         label="Default weight (kg)",
-        validators=[validators.NumberRange(0, 500)],
+        validators=[validators.Optional(), validators.NumberRange(0, 500)],
         default=0.0,
     )
 
@@ -91,7 +91,7 @@ class CreateExerciseTypeForm(flask_wtf.FlaskForm):
 
     count = wtforms.IntegerField(
         label="",
-        validators=[validators.NumberRange(0, 50_000)],
+        validators=[validators.Optional(), validators.NumberRange(0, 50_000)],
         default=0,
     )
 
@@ -306,7 +306,7 @@ def settings_exercises_create():
         return flask.redirect(flask.url_for("login"))
 
     if flask.request.method == "GET":
-        form = UpdateExerciseTypeForm()
+        form = CreateExerciseTypeForm()
 
         return flask.render_template(
             JinjaTemplates.CREATE,
@@ -319,7 +319,7 @@ def settings_exercises_create():
         )
 
     elif flask.request.method == "POST":
-        form = UpdateExerciseTypeForm()
+        form = CreateExerciseTypeForm()
         if form.validate_on_submit():
             tags_str = form.tags.data or ""
             tags_list = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
@@ -592,7 +592,17 @@ def settings_exercises_upload_photo(key: str):
         return flask.redirect(flask.url_for("login"))
 
     upload_form = forms.UploadEntityPhotoForm(prefix="epu")
-    entity = ds.get_exercise(user_id=user_id, key=key)
+    try:
+        entity = ds.get_exercise(user_id=user_id, key=key)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} photo upload error - unable to get "
+                f"{NAME_ENTITY.lower()} with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
     if flask.request.method == "GET":
         return flask.render_template(

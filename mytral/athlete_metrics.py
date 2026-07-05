@@ -57,14 +57,14 @@ REST_HR_DEFAULT: int = 60
 # power-duration anchor table: (duration_minutes, fraction_of_ftp).
 # Each entry represents the fraction of FTP an athlete can sustain for that
 # duration in a genuine all-out effort. Values are linearly interpolated.
-# Basis: activity_types-science literature + "2.5 h ≈ 75–82% FTP" coaching rule.
+# Basis: activity_types-science literature + "2.5 h ~= 75-82% FTP" coaching rule.
 POWER_DURATION_ANCHORS: list[tuple[float, float]] = [
     (10.0, 1.150),  # 10 min: VO2max territory
-    (20.0, 1.053),  # 20 min: standard field-test protocol (avg × 0.95 = FTP)
+    (20.0, 1.053),  # 20 min: standard field-test protocol (avg x 0.95 = FTP)
     (60.0, 1.000),  # 60 min: FTP by definition
     (90.0, 0.900),  # 90 min: empirical coaching rule
     (120.0, 0.850),  # 2h: empirical coaching rule
-    (150.0, 0.785),  # 2.5h: midpoint of 75–82% hint
+    (150.0, 0.785),  # 2.5h: midpoint of 75-82% hint
     (240.0, 0.720),  # 4h: ultra-endurance extrapolation
 ]
 
@@ -163,11 +163,11 @@ def estimate_ftp_from_activities(
 ) -> float:
     """Estimate FTP using a unified power-duration model across all activities.
 
-    For every qualifying activity (has avg_watts > 0, duration 10–240 min), a FTP
+    For every qualifying activity (has avg_watts > 0, duration 10-240 min), a FTP
     candidate is derived by scaling avg_watts by the inverse of the power-duration
     fraction at that effort length. The best (highest) candidate is returned.
 
-    A 20-min effort at X W produces X / 1.053 ≈ X × 0.95 — identical to the
+    A 20-min effort at X W produces X / 1.053 ~= X x 0.95 - identical to the
     classic field-test formula. A 2.5-hour effort at Y W produces Y / 0.785,
     correctly scaling up to a FTP estimate.
 
@@ -294,7 +294,7 @@ def calculate_zones(
     Returns
     -------
     list[tuple[int, int]]
-        List of 5 (low, high) BPM tuples for zones Z1–Z5.
+        List of 5 (low, high) BPM tuples for zones Z1-Z5.
 
     """
     lthr = e_anaerobic_threshold_hr
@@ -317,7 +317,7 @@ def calculate_power_zones(e_ftp: float) -> list[tuple[int, int]]:
     Returns
     -------
     list[tuple[int, int]]
-        List of 7 (low, high) watt tuples for zones PZ1–PZ7.
+        List of 7 (low, high) watt tuples for zones PZ1-PZ7.
 
     """
     zones = []

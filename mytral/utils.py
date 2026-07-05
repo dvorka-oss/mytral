@@ -30,7 +30,7 @@ def getenv_bool(name: str, default: bool = False) -> bool:
     everything else (including an unset variable) as ``False``.
 
     ``bool(os.getenv(...))`` is intentionally avoided because it evaluates any
-    non-empty string — including ``"false"`` and ``"0"`` — as ``True``.
+    non-empty string - including ``"false"`` and ``"0"`` - as ``True``.
 
     Parameters
     ----------

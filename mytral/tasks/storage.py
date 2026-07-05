@@ -48,7 +48,7 @@ class TaskStorage:
         Parameters
         ----------
         lock_key : str
-            Lock identifier (unused — kept for call-site compatibility).
+            Lock identifier (unused - kept for call-site compatibility).
 
         Returns
         -------

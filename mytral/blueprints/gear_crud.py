@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 from datetime import date
-from datetime import datetime
 
 import flask
 import flask_wtf
@@ -107,12 +106,6 @@ class CreateGearForm(flask_wtf.FlaskForm):
         description="Weight of the gear in kilograms (e.g., 8.2 for a bike)",
         validators=[validators.Optional(), validators.NumberRange(min=0)],
         default=0.0,
-    )
-    since = wtforms.IntegerField(
-        label="Since",
-        description="Year when you started using this gear",
-        validators=[validators.NumberRange(1900, 2100)],
-        default=datetime.now().year,
     )
     comment = wtforms.TextAreaField(
         label="Description",
@@ -543,7 +536,17 @@ def settings_gear_upload_photo(key: str):
 
     upload_form = forms.UploadEntityPhotoForm(prefix="epu")
     dataset_name = ds.profile(user_id).dataset_name
-    entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    try:
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} photo upload error - unable to get "
+                f"{NAME_ENTITY.lower()} with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
     if flask.request.method == "GET":
         return flask.render_template(
@@ -807,41 +810,40 @@ def settings_gear_delete(key: str):
 
     if flask.request.method == "POST":
         if form.validate_on_submit():
-            if form.validate_on_submit():
+            try:
+                # best-effort blob cleanup before deleting entity
                 try:
-                    # best-effort blob cleanup before deleting entity
-                    try:
-                        dataset_name = ds.profile(user_id).dataset_name
-                        entity = ds.get_gear(
-                            user_id=user_id, key=key, dataset_name=dataset_name
-                        )
-                        svc = _entity_photo_service()
-                        for bk in entity.photo_blob_keys:
-                            svc.delete_photo(user_id, bk)
-                    except Exception:
-                        pass
-
-                    ds.delete_gear(
-                        user_id=user_id,
-                        key=key,
-                        dataset_name=ds.profile(user_id).dataset_name,
+                    dataset_name = ds.profile(user_id).dataset_name
+                    entity = ds.get_gear(
+                        user_id=user_id, key=key, dataset_name=dataset_name
                     )
-                    flask.flash(message=f"{NAME_ENTITY} deleted", category="success")
-                    return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
-                except Exception as e:
-                    flask.flash(
-                        message=(
-                            f"{NAME_ENTITY} delete error - {NAME_ENTITY} key {key}: {e}"
-                        ),
-                        category="error",
-                    )
-                    return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+                    svc = _entity_photo_service()
+                    for bk in entity.photo_blob_keys:
+                        svc.delete_photo(user_id, bk)
+                except Exception:
+                    pass
 
-            flask.flash(
-                message=f"{NAME_ENTITY} delete error - form validation error",
-                category="error",
-            )
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+                ds.delete_gear(
+                    user_id=user_id,
+                    key=key,
+                    dataset_name=ds.profile(user_id).dataset_name,
+                )
+                flask.flash(message=f"{NAME_ENTITY} deleted", category="success")
+                return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            except Exception as e:
+                flask.flash(
+                    message=(
+                        f"{NAME_ENTITY} delete error - {NAME_ENTITY} key {key}: {e}"
+                    ),
+                    category="error",
+                )
+                return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+
+        flask.flash(
+            message=f"{NAME_ENTITY} delete error - form validation error",
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
     # GET
     try:

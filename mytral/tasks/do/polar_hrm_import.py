@@ -285,7 +285,7 @@ class PolarHrmImportTask(tasks.TaskBase):
         self.check_cancellation()
 
         if total == 0:
-            self.log("No activities found — import complete")
+            self.log("No activities found - import complete")
             self.update_progress(100)
             return
 
@@ -350,10 +350,10 @@ class PolarHrmImportTask(tasks.TaskBase):
                 )
         if failed_jobs:
             raise RuntimeError(
-                f"Bulldozer jobs {failed_jobs} failed — see log for details"
+                f"Bulldozer jobs {failed_jobs} failed - see log for details"
             )
 
-        self.log("All Bulldozer jobs DONE — merging blobstores...")
+        self.log("All Bulldozer jobs DONE - merging blobstores...")
         self.update_progress(50)
 
         # PHASE 3: merge sandbox blobstores into main blobstore ------------

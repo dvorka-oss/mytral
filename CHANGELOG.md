@@ -11,7 +11,32 @@ This MyTraL **minor** release brings:
 - .
 
 ### Fixed
-- .
+- Cloning/copying/extending an activity no longer shares the source's photos and
+  recordings, so deleting one no longer corrupts the other.
+- Fixed a crash when switching to a freshly created dataset after a Strava sync
+  or a date-range filter (wrong argument passed to profile update).
+- Login now validates the submitted form (CSRF and field validators are enforced).
+- Strava OAuth callback now validates a `state` token to prevent OAuth CSRF.
+- State-changing actions (clone activity, Strava token/secret reset, dataset
+  merge/optimize/filter) are now POST-only with CSRF protection.
+- Merge-all-datasets and date-range filter now persist the active dataset switch.
+- Invalid date/number URL parameters now return 400 instead of a 500 error.
+- Deleting/viewing an out-of-range exercise or symptom now returns 404, not 500.
+- Editing an exercise with blank repetitions no longer crashes.
+- Missing/deleted task pages now return 404 instead of 500.
+- Recording download now handles storage errors gracefully and shows the correct
+  message; a negative log `tail` no longer drops the newest lines.
+- Year-to-date month comparison no longer blanks months when the latest data year
+  is a past year.
+- Pace sorting now orders paces numerically (e.g. 9:45 before 10:00).
+- Single-file FIT/GPX/TCX import no longer leaves an orphan activity when the
+  upload fails.
+- Various CRUD forms (gear, goal, exercise, outfit, activity/lap/symptom types,
+  gear components) now handle missing keys and empty inputs without 500 errors.
+- Avatar upload now rejects non-image files; notification redirect is same-host only.
+- Merging Strava gear is now a CSRF-protected POST action.
+- Replaced non-ASCII typographic characters across the codebase with ASCII
+  equivalents (sport icons and accented names are kept).
 
 ### Documentation
 - .

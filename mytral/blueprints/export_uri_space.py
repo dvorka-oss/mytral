@@ -59,4 +59,13 @@ def tool_export_profile_zip():
     # export all user data in as ZIP archive
     ds.export(user_id=user_id, archive_path=zip_path, export_format="zip")
 
+    @flask.after_this_request
+    def _cleanup_zip(response):
+        # remove the temporary archive once the response has been sent
+        try:
+            zip_path.unlink()
+        except OSError:
+            pass
+        return response
+
     return flask.send_file(zip_path, as_attachment=True)

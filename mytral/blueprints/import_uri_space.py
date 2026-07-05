@@ -120,7 +120,7 @@ def _find_activity_conflict(
 
     """
     if activity.src_key:
-        # match by src + src_key — look only at the same year for performance
+        # match by src + src_key - look only at the same year for performance
         year_activities = ds.list_activities(
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
@@ -248,7 +248,7 @@ def _import_activities_to_dataset(
                     )
                     imported_count += 1
                     continue
-                # else: on_conflict == ON_CONFLICT_NEW_KEY — fall through to create
+                # else: on_conflict == ON_CONFLICT_NEW_KEY - fall through to create
 
             app_logger.info(
                 f"Importing converted {source_desc} activity: '{a.name}' / {a.key}"
@@ -401,7 +401,7 @@ def _import_all_entities_to_dataset(
                         )
                         imported_count += 1
                         continue
-                    # else: ON_CONFLICT_NEW_KEY — reassign key and fall through
+                    # else: ON_CONFLICT_NEW_KEY - reassign key and fall through
 
                     if on_conflict == ON_CONFLICT_NEW_KEY:
                         entity.key = str(uuid.uuid4())
@@ -432,6 +432,14 @@ def _import_all_entities_to_dataset(
                     ds.create_outfit(user_id=user_id, outfit=entity)
                 elif entity_type == plugins.MytralEntityType.SYMPTOMS:
                     ds.create_symptom(user_id=user_id, symptom=entity)
+                else:
+                    app_logger.warning(
+                        f"Skipping unhandled {source_desc} entity type",
+                        entity_type=entity_type.value,
+                        name=name,
+                        key=key,
+                    )
+                    continue
                 imported_count += 1
             except Exception as e:
                 app_logger.error(
@@ -471,6 +479,79 @@ def _update_entity(user_id: str, user_profile, entity_type, entity) -> None:
         ds.update_outfit(user_id=user_id, outfit=entity)
     elif entity_type == plugins.MytralEntityType.SYMPTOMS:
         ds.update_symptom(user_id=user_id, symptom=entity)
+
+
+def _upload_recording_and_queue_task(
+    user_id: str,
+    user_profile,
+    activity,
+    uploaded_file,
+    original_filename: str,
+    content_type: str,
+    task_type: str,
+    source_label: str,
+) -> str | None:
+    """Upload a recording blob and queue its processing task.
+
+    The activity is expected to be already persisted.  If the blob upload or
+    task submission fails, the just-created activity is deleted to avoid an
+    orphan, an error is flashed, and ``None`` is returned.
+
+    Returns
+    -------
+    str | None
+        The queued task ID on success, or ``None`` on failure.
+
+    """
+    blob_svc = _blob_svc_module.ActivityBlobService(
+        store=mytral.app_blobstore,
+        dataset=ds,
+        config=app_config,
+    )
+    try:
+        meta = blob_svc.upload_recording(
+            user_id=user_id,
+            activity_key=activity.key,
+            uploaded_file=uploaded_file,
+            original_filename=original_filename,
+            content_type=content_type,
+        )
+        task_entity = tasks.TaskEntity(
+            key=str(uuid.uuid4()),
+            user_id=user_id,
+            task_type=task_type,
+            status=tasks.TaskStatus.QUEUED,
+            created_at=datetime.datetime.now(),
+            started_at=None,
+            completed_at=None,
+            error_message=None,
+            error_type=None,
+            error_traceback=None,
+            progress=0,
+            parameters={
+                "user_id": user_id,
+                "dataset_name": user_profile.dataset_name,
+                "activity_key": activity.key,
+                "source_blob_uuid": meta.blob_key,
+                "blob_key": meta.blob_key,
+                "extract_summary": True,
+            },
+            is_cancelled=False,
+            result_route="get_activity",
+            result_route_kwargs={"key": activity.key},
+        )
+        return app_task_manager.executor.submit(task_entity)
+    except Exception as exc:
+        app_logger.exception(
+            f"Failed to queue {source_label} import task", error=str(exc)
+        )
+        ds.delete_activity(
+            user_id=user_id,
+            dataset_name=user_profile.dataset_name,
+            key=activity.key,
+        )
+        flask.flash(f"Failed to start {source_label} import: {exc}", "error")
+        return None
 
 
 #
@@ -818,9 +899,12 @@ def tool_import_mytral_json():
         correlation_id=correlation_id,
     )
     total_converted = sum(len(v) for v in entities_by_type.values())
-    entity_type_label = (
-        next(iter(entities_by_type)).value if entities_by_type else "unknown"
-    )
+    if len(entities_by_type) == 1:
+        entity_type_label = next(iter(entities_by_type)).value
+    elif entities_by_type:
+        entity_type_label = "multiple types"
+    else:
+        entity_type_label = "unknown"
     app_logger.info(
         "MyTraL JSON CONVERTED to entities",
         correlation_id=correlation_id,
@@ -1069,44 +1153,18 @@ def tool_import_fit():
         entity=activity,
     )
 
-    blob_svc = _blob_svc_module.ActivityBlobService(
-        store=mytral.app_blobstore,
-        dataset=ds,
-        config=app_config,
-    )
-    meta = blob_svc.upload_recording(
+    task_id = _upload_recording_and_queue_task(
         user_id=user_id,
-        activity_key=activity.key,
+        user_profile=user_profile,
+        activity=activity,
         uploaded_file=fit_file.stream,
         original_filename=fit_file.filename or "import.fit",
         content_type=fit_file.content_type or "application/octet-stream",
-    )
-
-    task_entity = tasks.TaskEntity(
-        key=str(uuid.uuid4()),
-        user_id=user_id,
         task_type=fit_import.FitImportTask.TASK_TYPE,
-        status=tasks.TaskStatus.QUEUED,
-        created_at=datetime.datetime.now(),
-        started_at=None,
-        completed_at=None,
-        error_message=None,
-        error_type=None,
-        error_traceback=None,
-        progress=0,
-        parameters={
-            "user_id": user_id,
-            "dataset_name": user_profile.dataset_name,
-            "activity_key": activity.key,
-            "source_blob_uuid": meta.blob_key,
-            "blob_key": meta.blob_key,
-            "extract_summary": True,
-        },
-        is_cancelled=False,
-        result_route="get_activity",
-        result_route_kwargs={"key": activity.key},
+        source_label="FIT",
     )
-    task_id = app_task_manager.executor.submit(task_entity)
+    if task_id is None:
+        return flask.redirect(flask.url_for("tool_import"))
     flask.flash(
         f"FIT import queued (task {task_id}) for activity {activity.key}", "success"
     )
@@ -1150,44 +1208,18 @@ def tool_import_gpx():
         entity=activity,
     )
 
-    blob_svc = _blob_svc_module.ActivityBlobService(
-        store=mytral.app_blobstore,
-        dataset=ds,
-        config=app_config,
-    )
-    meta = blob_svc.upload_recording(
+    task_id = _upload_recording_and_queue_task(
         user_id=user_id,
-        activity_key=activity.key,
+        user_profile=user_profile,
+        activity=activity,
         uploaded_file=gpx_file.stream,
         original_filename=gpx_file.filename or "import.gpx",
         content_type=gpx_file.content_type or "application/gpx+xml",
-    )
-
-    task_entity = tasks.TaskEntity(
-        key=str(uuid.uuid4()),
-        user_id=user_id,
         task_type=gpx_import.GpxImportTask.TASK_TYPE,
-        status=tasks.TaskStatus.QUEUED,
-        created_at=datetime.datetime.now(),
-        started_at=None,
-        completed_at=None,
-        error_message=None,
-        error_type=None,
-        error_traceback=None,
-        progress=0,
-        parameters={
-            "user_id": user_id,
-            "dataset_name": user_profile.dataset_name,
-            "activity_key": activity.key,
-            "source_blob_uuid": meta.blob_key,
-            "blob_key": meta.blob_key,
-            "extract_summary": True,
-        },
-        is_cancelled=False,
-        result_route="get_activity",
-        result_route_kwargs={"key": activity.key},
+        source_label="GPX",
     )
-    task_id = app_task_manager.executor.submit(task_entity)
+    if task_id is None:
+        return flask.redirect(flask.url_for("tool_import"))
     flask.flash(
         f"GPX import queued (task {task_id}) for activity {activity.key}", "success"
     )
@@ -1231,44 +1263,18 @@ def tool_import_tcx():
         entity=activity,
     )
 
-    blob_svc = _blob_svc_module.ActivityBlobService(
-        store=mytral.app_blobstore,
-        dataset=ds,
-        config=app_config,
-    )
-    meta = blob_svc.upload_recording(
+    task_id = _upload_recording_and_queue_task(
         user_id=user_id,
-        activity_key=activity.key,
+        user_profile=user_profile,
+        activity=activity,
         uploaded_file=tcx_file.stream,
         original_filename=tcx_file.filename or "import.tcx",
         content_type=tcx_file.content_type or "application/octet-stream",
-    )
-
-    task_entity = tasks.TaskEntity(
-        key=str(uuid.uuid4()),
-        user_id=user_id,
         task_type=tcx_import.TcxImportTask.TASK_TYPE,
-        status=tasks.TaskStatus.QUEUED,
-        created_at=datetime.datetime.now(),
-        started_at=None,
-        completed_at=None,
-        error_message=None,
-        error_type=None,
-        error_traceback=None,
-        progress=0,
-        parameters={
-            "user_id": user_id,
-            "dataset_name": user_profile.dataset_name,
-            "activity_key": activity.key,
-            "source_blob_uuid": meta.blob_key,
-            "blob_key": meta.blob_key,
-            "extract_summary": True,
-        },
-        is_cancelled=False,
-        result_route="get_activity",
-        result_route_kwargs={"key": activity.key},
+        source_label="TCX",
     )
-    task_id = app_task_manager.executor.submit(task_entity)
+    if task_id is None:
+        return flask.redirect(flask.url_for("tool_import"))
     flask.flash(
         f"TCX import queued (task {task_id}) for activity {activity.key}", "success"
     )

@@ -405,7 +405,7 @@ def settings_activity_types_update(key: str):
             entity.is_exercise = form.is_exercise.data
             entity.is_regen = form.is_regen.data
             entity.is_meta = form.is_meta.data
-            entity.is_built_in = form.is_built_in.data
+            entity.is_built_in = False  # activity created by user cannot be built-in
             entity.emoji = form.emoji.data
             entity.color = form.color.data
             entity.meta_activity_type = form.meta_activity_type.data or ""

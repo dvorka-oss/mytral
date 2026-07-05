@@ -216,6 +216,9 @@ def login():
 
     elif flask.request.method == "POST":
         form = forms.LogInForm()
+        if not form.validate_on_submit():
+            flask.flash(message="Login error - invalid submission", category="error")
+            return flask.redirect(flask.url_for("login"))
         user_name = form.username.data
 
         if not app_ds.is_user_name(user_name=user_name):
@@ -230,11 +233,15 @@ def login():
                     or not isinstance(new_username, str)
                     or re.match(pattern, new_username) is None
                 ):
-                    raise ValueError(
-                        f"Invalid username: '{new_username}' -  it must be a string "
-                        f"starting with a letter and containing only letters, digits "
-                        f"and hyphens"
+                    flask.flash(
+                        message=(
+                            f"Invalid username: '{new_username}' - it must be a string "
+                            f"starting with a letter and containing only letters, "
+                            f"digits and hyphens"
+                        ),
+                        category="error",
                     )
+                    return flask.redirect(flask.url_for("login"))
 
                 # TODO make this method and reuse throughout the code
                 if (
@@ -242,10 +249,14 @@ def login():
                     or not isinstance(new_password, str)
                     or len(new_password) < 8
                 ):
-                    raise ValueError(
-                        "Invalid password - it must be a string containing at least "
-                        "8 characters"
+                    flask.flash(
+                        message=(
+                            "Invalid password - it must be a string containing at "
+                            "least 8 characters"
+                        ),
+                        category="error",
                     )
+                    return flask.redirect(flask.url_for("login"))
 
                 app_logger.info(
                     f"Login: creating user profile for the new user: "
@@ -260,7 +271,7 @@ def login():
                     password_enc=new_password_enc,
                 )
             else:
-                msg = f"Login error - unknown user '{user_name}' - sign-up please"
+                msg = "Login error - incorrect username or password - sign-up please"
                 app_logger.error(msg, user_name=user_name)
                 flask.flash(message=msg, category="error")
                 return flask.redirect(flask.url_for("signup"))
@@ -282,13 +293,16 @@ def login():
                 elif not security.verify_password(
                     form.password.data, user_profile.password_enc
                 ):
-                    flask.flash(message="Incorrect password", category="error")
+                    flask.flash(
+                        message="Login error - incorrect username or password",
+                        category="error",
+                    )
                     return flask.redirect(flask.url_for("login"))
             else:
-                msg = f"Login error - unknown user '{user_name}' - sign-up please"
+                msg = "Login error - incorrect username or password - sign-up please"
                 app_logger.error(msg, user_name=user_name)
                 flask.flash(message=msg, category="error")
-                return flask.redirect(flask.url_for("home"))
+                return flask.redirect(flask.url_for("signup"))
 
         # POST
         flask.session[COOKIE_USER] = user_id

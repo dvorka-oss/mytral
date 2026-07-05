@@ -107,11 +107,15 @@ def tools_prune():
         return flask.redirect(flask.url_for("home"))
 
 
-@flask_app.route("/app/tools/dataset/optimize")
+@flask_app.route("/app/tools/dataset/optimize", methods=["POST"])
 def tool_optimize_dataset():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
 
     ds.cache_evict(user_id)
 
@@ -122,11 +126,15 @@ def tool_optimize_dataset():
     return flask.redirect(flask.url_for("list_activities_year", year=0))
 
 
-@flask_app.route("/app/tools/dataset/fix/gear")
+@flask_app.route("/app/tools/dataset/fix/gear", methods=["POST"])
 def tool_dataset_gear():
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
 
     ds.cache_evict(user_id)
 
@@ -137,13 +145,17 @@ def tool_dataset_gear():
     return flask.redirect(flask.url_for("list_activities_year", year=0))
 
 
-@flask_app.route("/app/tools/datasets/merge/all")
+@flask_app.route("/app/tools/datasets/merge/all", methods=["POST"])
 def tool_merge_all_datasets():
     """Merge all datasets into the main - lifelong - dataset."""
 
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
 
     ds.cache_evict(user_id)
 
@@ -156,14 +168,16 @@ def tool_merge_all_datasets():
     )
 
     # switch to the merged dataset
-    ds.profile(user_id).dataset_name = dataset_name
+    user_profile = ds.profile(user_id)
+    user_profile.dataset_name = dataset_name
+    ds.update_profile(user_profile)
 
     return flask.redirect(flask.url_for("home"))
 
 
 @flask_app.route("/app/tools/merge", methods=["GET", "POST"])
 def tools_merge():
-    """Merge & Join — combine activities across datasets."""
+    """Merge & Join - combine activities across datasets."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
@@ -231,9 +245,17 @@ def tools_merge():
         return flask.redirect(flask.url_for("home"))
 
 
-@flask_app.route("/app/tools/join")
+@flask_app.route("/app/tools/join", methods=["POST"])
 def tools_join():
     """Redirect to unified Merge & Join page."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if not form.validate_on_submit():
+        flask.abort(403)
+
     return flask.redirect(flask.url_for("tools_merge"))
 
 
@@ -277,7 +299,7 @@ def tools_filter():
 
             # switch to filtered dataset & force reload
             user_profile.dataset_name = dst_ds_name
-            ds.update_profile(user_id)
+            ds.update_profile(user_profile)
 
             return flask.redirect(flask.url_for("home"))
 
@@ -352,7 +374,7 @@ def tools_optimize():
     elif flask.request.method == "GET":
         # build activity type choices with usage counts
         # bypass list_activity_types cache which may hold zero-count data from
-        # init_user_cache — _load_activity_types always computes fresh counts
+        # init_user_cache - _load_activity_types always computes fresh counts
         ats = ds._load_activity_types(
             user_id=user_id, dataset_name=user_profile.dataset_name
         )

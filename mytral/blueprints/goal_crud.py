@@ -418,7 +418,17 @@ def settings_goal_upload_photo(key: str):
         return flask.redirect(flask.url_for("login"))
 
     upload_form = forms.UploadEntityPhotoForm(prefix="epu")
-    entity = ds.get_goal(user_id=user_id, key=key)
+    try:
+        entity = ds.get_goal(user_id=user_id, key=key)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} photo upload error - unable to get "
+                f"{NAME_ENTITY.lower()} with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
     if flask.request.method == "GET":
         return flask.render_template(

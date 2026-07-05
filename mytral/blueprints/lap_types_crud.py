@@ -94,12 +94,6 @@ class CreateLapTypeForm(flask_wtf.FlaskForm):
         default=0,
     )
 
-    count = wtforms.IntegerField(
-        label="",
-        validators=[validators.NumberRange(0, 50_000)],
-        default=0,
-    )
-
     # key is handled by the backend
 
     submit = wtforms.SubmitField("Create")
@@ -211,7 +205,7 @@ def settings_laps_create():
             )
             entity = user_settings.Lap(
                 name=form.name.data,
-                description=form.description.data,
+                description=form.description.data or "",
                 default_distance=form.default_distance.data,
                 default_duration=default_duration,
             )

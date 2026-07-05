@@ -117,7 +117,7 @@ class StravaGearSyncTask(tasks.TaskBase):
     """
 
     TASK_TYPE = "strava_sync_gear"
-    TASK_DISPLAY_NAME = "Strava — Gear Sync"
+    TASK_DISPLAY_NAME = "Strava - Gear Sync"
     ENCRYPTED_PARAM_KEYS = ["access_token", "client_secret"]
 
     def __init__(
@@ -195,7 +195,7 @@ class StravaGearSyncTask(tasks.TaskBase):
 
 
 #
-# Module-level helpers — shared between StravaGearSyncTask and run_gear_sync_and_relink
+# Module-level helpers - shared between StravaGearSyncTask and run_gear_sync_and_relink
 #
 
 

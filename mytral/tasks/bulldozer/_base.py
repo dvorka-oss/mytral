@@ -154,7 +154,7 @@ class SubtaskBulldozer:
             if exitcode != 0:
                 self.logger.error(
                     f"  Subtask {self.subtask_key}: job {job_key} exited with "
-                    f"non-zero exit code {exitcode} — the process may have "
+                    f"non-zero exit code {exitcode} - the process may have "
                     f"crashed before writing error.json"
                 )
 

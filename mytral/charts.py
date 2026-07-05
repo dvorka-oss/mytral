@@ -347,7 +347,7 @@ def me_symptoms_scatter(
 
     # build one ColumnDataSource per symptom for clean legend entries
     year_label = "All Years" if year == 0 else str(year)
-    title = f"Symptom Health Over Time — {year_label}"
+    title = f"Symptom Health Over Time - {year_label}"
 
     width = VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT
 
@@ -359,7 +359,7 @@ def me_symptoms_scatter(
         x_range_start = today - datetime.timedelta(days=365)
         x_range_end = today + datetime.timedelta(days=15)
     else:
-        # specific past year: show full Jan 1 – Dec 31 of that year
+        # specific past year: show full Jan 1 - Dec 31 of that year
         x_range_start = datetime.datetime(year, 1, 1)
         x_range_end = datetime.datetime(year, 12, 31)
 
@@ -418,10 +418,10 @@ def me_symptoms_scatter(
         ]
         health_vals = [inj["health"] for inj in sym_injuries]
         body_parts = [
-            (inj.get("body_part") or "—").replace("_", " ").title()
+            (inj.get("body_part") or "-").replace("_", " ").title()
             for inj in sym_injuries
         ]
-        sides = [inj.get("side") or "—" for inj in sym_injuries]
+        sides = [inj.get("side") or "-" for inj in sym_injuries]
         date_strs = [d.strftime("%d %b %Y") for d in dates]
         sym_names = [_symptom_name(sym_key)] * len(dates)
 
@@ -1013,7 +1013,7 @@ def _build_overlay_chart(
     has_altitude = rec.has_altitude
     has_power = rec.has_power
 
-    # convert None → NaN for Bokeh (avoids gaps rendering as zero)
+    # convert None > NaN for Bokeh (avoids gaps rendering as zero)
     def _nan(v):
         return float("nan") if v is None else v
 
@@ -1362,7 +1362,7 @@ def _build_ridge_chart(
                         )
                     )
 
-        # filled area under the line — y1 references a source field (required by Bokeh)
+        # filled area under the line - y1 references a source field (required by Bokeh)
         panel.varea(
             x="ts",
             y1=f"{field}_base",
@@ -1397,7 +1397,7 @@ def _build_ridge_chart(
 
         panels.append((panel, line))
 
-    # shared Span instance — all CrosshairTool instances update the same model,
+    # shared Span instance - all CrosshairTool instances update the same model,
     # so hovering any swimlane draws the vertical line across every panel
     shared_vspan = bokeh_models.Span(
         dimension="height",
@@ -1406,7 +1406,7 @@ def _build_ridge_chart(
         line_width=1,
     )
 
-    # all-channel tooltip shown by every panel — uses shared ColumnDataSource
+    # all-channel tooltip shown by every panel - uses shared ColumnDataSource
     all_tooltips = [("Time", "@ts{%H:%M:%S}")]
     for f, _r, lbl, u, _ in channels:
         all_tooltips.append((lbl, f"@{f} {u}"))
@@ -1424,7 +1424,7 @@ def _build_ridge_chart(
 
     panel_figs = [p for p, _ in panels]
 
-    # mini range-selector (hr line only) — shows full activity, box = current viewport
+    # mini range-selector (hr line only) - shows full activity, box = current viewport
     select = bokeh_plt.figure(
         title="Drag the selection box to zoom the chart above",
         height=110,
@@ -1524,7 +1524,7 @@ def _build_hr_zones_chart(
     """Build a horizontal bar chart showing time spent in each HR zone.
 
     Each sample in the FIT file represents one second of activity. HR values
-    are classified into zones Z1–Z5 using the athlete's resolved e_z* boundaries.
+    are classified into zones Z1-Z5 using the athlete's resolved e_z* boundaries.
     The chart uses the same colour scheme as the Athlete Metrics page.
 
     Parameters
@@ -1548,7 +1548,7 @@ def _build_hr_zones_chart(
         (athlete_metrics.e_z5_low, athlete_metrics.e_z5_high),
     ]
 
-    # count seconds per zone (1 FIT record ≈ 1 second)
+    # count seconds per zone (1 FIT record ~= 1 second)
     zone_seconds = [0, 0, 0, 0, 0]
     valid_hr = False
     for hr in rec.hr_values:
@@ -1594,7 +1594,7 @@ def _build_hr_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Heart Rate Zones — {time_str}",
+        title=f"Time in Heart Rate Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -1666,7 +1666,7 @@ def _build_cadence_histogram_chart(rec: RecordingData) -> tuple[str, Any] | None
     minutes = [cnt / 60.0 for cnt in counts]
     bottoms = edges[:-1]
     tops = edges[1:]
-    labels = [f"{int(lo)}–{int(hi)}" for lo, hi in zip(bottoms, tops)]
+    labels = [f"{int(lo)}-{int(hi)}" for lo, hi in zip(bottoms, tops)]
 
     # display highest cadence bin at the top
     y_range = labels[::-1]
@@ -1724,7 +1724,7 @@ def _build_power_zones_chart(
     """Build a horizontal bar chart showing time spent in each power zone.
 
     Each sample in the FIT file represents one second of activity. Power values
-    are classified into zones PZ1–PZ7 using the athlete's resolved e_pz* boundaries.
+    are classified into zones PZ1-PZ7 using the athlete's resolved e_pz* boundaries.
 
     Parameters
     ----------
@@ -1753,7 +1753,7 @@ def _build_power_zones_chart(
     if not any(high > 0 for _, high in zone_boundaries):
         return None
 
-    # count seconds per zone (1 FIT record ≈ 1 second)
+    # count seconds per zone (1 FIT record ~= 1 second)
     zone_seconds = [0, 0, 0, 0, 0, 0, 0]
     valid_power = False
     for pwr in rec.power_values:
@@ -1799,7 +1799,7 @@ def _build_power_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Power Zones — {time_str}",
+        title=f"Time in Power Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -1837,10 +1837,10 @@ def _build_power_curve_chart(
 
     Computes the maximum rolling average power for each duration from 1 second
     to the nearest completed hour of the activity (minimum 1 hour). For example:
-    - 30 min activity → shows 1s to 30min
-    - 1h 15min activity → shows 1s to 1h
-    - 2h 30min activity → shows 1s to 2h
-    - 5h activity → shows 1s to 5h
+    - 30 min activity > shows 1s to 30min
+    - 1h 15min activity > shows 1s to 1h
+    - 2h 30min activity > shows 1s to 2h
+    - 5h activity > shows 1s to 5h
 
     Parameters
     ----------
@@ -2270,7 +2270,7 @@ def activity_fit_charts(
     tuple[tuple | None, ...] (9 elements)
         ``(overlay, ridge, hr_zones, cadence_hist, power_zones, power_curve,
            power_ts, hr_ts, speed_cadence_ts)``
-        — each element is either ``(script, div)`` or ``None`` when the
+        - each element is either ``(script, div)`` or ``None`` when the
         recording has no usable samples or the required data is unavailable.
     """
     if not recording.timestamps:
@@ -3398,7 +3398,7 @@ def trimp_composite(
     )
 
     fig = bokeh_plt.figure(
-        title="Training Impulse (TRIMP) — Daily Load and Balance",
+        title="Training Impulse (TRIMP) - Daily Load and Balance",
         x_axis_type="datetime",
         x_axis_label="Date",
         y_axis_label="TRIMP points",
@@ -4639,7 +4639,7 @@ def weekday_activity_heatmap(
         width=width,
         height=cell_height * len(sports) + 120,
         toolbar_location="below",
-        title="Activity Frequency Heatmap — Weekday × Sport",
+        title="Activity Frequency Heatmap - Weekday x Sport",
     )
     fig.sizing_mode = "scale_width"
     fig.toolbar.logo = None
