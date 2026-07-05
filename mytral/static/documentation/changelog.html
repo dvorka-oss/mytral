@@ -227,11 +227,37 @@
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
-<li>.</li>
+<li>Documented the missing <code>python3-all</code> build prerequisite for local <code>.deb</code> builds
+  (<code>make distro-ubuntu-deb</code>) in the installation guide.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>.</li>
+<li>Fixed Ubuntu PPA/<code>.deb</code> installation on Ubuntu releases that do not ship Python 3.12
+  as the system interpreter (<code>trusty</code> through <code>focal</code>) - <code>postinst</code> now uses <code>uv</code> to
+  provision a self-contained Python 3.12 under <code>/opt/mytral</code>, independent of the host's
+  system Python.</li>
+<li>Fixed <code>.deb</code> package <code>Architecture</code> metadata (<code>all</code> -&gt; <code>amd64 arm64</code>) to match what
+  <code>postinst</code>'s <code>uv</code> bootstrap actually supports, so <code>apt</code> refuses unsupported
+  architectures upfront instead of installing a package that fails during configure.</li>
+<li>Fixed <code>.deb</code> <code>postinst</code> failing with an unclear <code>uv pip install</code> error when the
+  bundled wheel or <code>requirements.txt</code> was missing - it now fails fast with a clear
+  message.</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul>
+<li>Hardened <code>.deb</code> <code>postinst</code>: the downloaded <code>uv</code> binary is now verified against a
+  pinned <code>sha256</code> checksum before extraction, closing a supply-chain gap where a
+  tampered or corrupted release asset would otherwise be executed as root during
+  package installation.</li>
+</ul>
+<h3 id="infrastructure">Infrastructure</h3>
+<ul>
+<li>Rewrote <code>build/ubuntu/launchpad-release.sh</code> to accept an optional Ubuntu codename
+  argument, building (and optionally uploading) a single distribution instead of
+  always looping over every supported version.</li>
+<li>Added a <code>UBUNTU_VERSION</code> parameter (default <code>noble</code>) to <code>make distro-ubuntu-deb</code>, and
+  a new <code>make distro-launchpad-release-version</code> target to build and upload a single
+  Ubuntu version's PPA package.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1560"><a href="https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0">1.56.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
@@ -599,7 +625,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>DRY of Jinja templates - new macros and includes.</li>
 </ul>
-<h3 id="security">Security</h3>
+<h3 id="security_1">Security</h3>
 <ul>
 <li>Moved Flask <code>SECRET_KEY</code> to <code>MYTRAL_SECRET_KEY</code> (with a random per-start fallback +
   warning) and restricted CORS origins via <code>MYTRAL_CORS_ORIGINS</code>.</li>
@@ -634,7 +660,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
   re-reads after the first request. Both methods are now overridden so every request
   always reloads activity data from the filesystem.</li>
 </ul>
-<h3 id="infrastructure">Infrastructure</h3>
+<h3 id="infrastructure_1">Infrastructure</h3>
 <ul>
 <li>All dependencies and dev dependency group items pinned with <code>~=</code> in <code>pyproject.toml</code>.</li>
 <li>Security: upgraded <code>bokeh</code> 3.6.3 → 3.8.2 (CVE-2026-21883), <code>flask</code> 3.1.0 → 3.1.3
@@ -675,7 +701,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>End to end review of sources to ensure AGPL license omnipresence.</li>
 <li>SpaceShip.com deployment documentation and artifacts.</li>
 </ul>
-<h3 id="infrastructure_1">Infrastructure</h3>
+<h3 id="infrastructure_2">Infrastructure</h3>
 <ul>
 <li>Switched from <code>black</code>, <code>isort</code> and <code>flake8</code> to <code>ruff</code> for configurability and speed.</li>
 <li>Code quality toolchain configuration moved from files to <code>pyproject.toml</code>.</li>
@@ -738,7 +764,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Improved TCoO calculation to include all component costs.</li>
 <li>Activity creation/update now tracks component usage automatically.</li>
 </ul>
-<h3 id="infrastructure_2">Infrastructure</h3>
+<h3 id="infrastructure_3">Infrastructure</h3>
 <ul>
 <li>Added web application distribution build.</li>
 <li>Rewritten desktop application executable build.</li>
@@ -763,7 +789,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>Route data model entity, forms and HTML pages.</li>
 </ul>
-<h3 id="infrastructure_3">Infrastructure</h3>
+<h3 id="infrastructure_4">Infrastructure</h3>
 <ul>
 <li>Version management with the single source of truth (SSOT) approach.</li>
 </ul>
@@ -789,7 +815,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>Training calendar view.</li>
 <li>Activity filtering and search functionality.</li>
 </ul>
-<h3 id="security_1">Security</h3>
+<h3 id="security_2">Security</h3>
 <ul>
 <li>Secure password hashing for user accounts.</li>
 <li>Session management with Flask-Login.</li>
@@ -807,7 +833,7 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <li>User guide for training log features.</li>
 <li>Development setup guide.</li>
 </ul>
-<h3 id="infrastructure_4">Infrastructure</h3>
+<h3 id="infrastructure_5">Infrastructure</h3>
 <ul>
 <li>Flask-based web server configuration.</li>
 <li>Deployment configuration for PythonAnywhere.</li>
@@ -881,6 +907,8 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#documentation" class="nav-link ms-3">Documentation</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
+<a href="#security" class="nav-link ms-3">Security</a>
+<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
 <a href="#1560" class="nav-link">1.56.0</a>
 <a href="#added_1" class="nav-link ms-3">Added</a>
 <a href="#changed_1" class="nav-link ms-3">Changed</a>
@@ -928,15 +956,15 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#160" class="nav-link">1.6.0</a>
 <a href="#added_10" class="nav-link ms-3">Added</a>
 <a href="#performance_3" class="nav-link ms-3">Performance</a>
-<a href="#security" class="nav-link ms-3">Security</a>
+<a href="#security_1" class="nav-link ms-3">Security</a>
 <a href="#fixed_11" class="nav-link ms-3">Fixed</a>
-<a href="#infrastructure" class="nav-link ms-3">Infrastructure</a>
+<a href="#infrastructure_1" class="nav-link ms-3">Infrastructure</a>
 <a href="#150" class="nav-link">1.5.0</a>
 <a href="#added_11" class="nav-link ms-3">Added</a>
 <a href="#removed_1" class="nav-link ms-3">Removed</a>
 <a href="#fixed_12" class="nav-link ms-3">Fixed</a>
 <a href="#documentation_7" class="nav-link ms-3">Documentation</a>
-<a href="#infrastructure_1" class="nav-link ms-3">Infrastructure</a>
+<a href="#infrastructure_2" class="nav-link ms-3">Infrastructure</a>
 <a href="#140" class="nav-link">1.4.0</a>
 <a href="#added_12" class="nav-link ms-3">Added</a>
 <a href="#132" class="nav-link">1.3.2</a>
@@ -947,19 +975,19 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#120" class="nav-link">1.2.0</a>
 <a href="#added_15" class="nav-link ms-3">Added</a>
 <a href="#changed_5" class="nav-link ms-3">Changed</a>
-<a href="#infrastructure_2" class="nav-link ms-3">Infrastructure</a>
+<a href="#infrastructure_3" class="nav-link ms-3">Infrastructure</a>
 <a href="#110" class="nav-link">1.1.0</a>
 <a href="#added_16" class="nav-link ms-3">Added</a>
 <a href="#changed_6" class="nav-link ms-3">Changed</a>
 <a href="#removed_2" class="nav-link ms-3">Removed</a>
-<a href="#infrastructure_3" class="nav-link ms-3">Infrastructure</a>
+<a href="#infrastructure_4" class="nav-link ms-3">Infrastructure</a>
 <a href="#documentation_8" class="nav-link ms-3">Documentation</a>
 <a href="#100" class="nav-link">1.0.0</a>
 <a href="#added_17" class="nav-link ms-3">Added</a>
-<a href="#security_1" class="nav-link ms-3">Security</a>
+<a href="#security_2" class="nav-link ms-3">Security</a>
 <a href="#performance_4" class="nav-link ms-3">Performance</a>
 <a href="#documentation_9" class="nav-link ms-3">Documentation</a>
-<a href="#infrastructure_4" class="nav-link ms-3">Infrastructure</a>
+<a href="#infrastructure_5" class="nav-link ms-3">Infrastructure</a>
 <a href="#001" class="nav-link">0.0.1</a>
 <a href="#added_18" class="nav-link ms-3">Added</a>
 <a href="#000-2014-09-12" class="nav-link">0.0.0 - 2014-09-12</a>

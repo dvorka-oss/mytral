@@ -19,10 +19,34 @@ This MyTraL **minor** release brings:
   renders as a cool-to-hot volume heatmap.
 
 ### Documentation
-- .
+- Documented the missing `python3-all` build prerequisite for local `.deb` builds
+  (`make distro-ubuntu-deb`) in the installation guide.
 
 ### Fixed
-- .
+- Fixed Ubuntu PPA/`.deb` installation on Ubuntu releases that do not ship Python 3.12
+  as the system interpreter (`trusty` through `focal`) - `postinst` now uses `uv` to
+  provision a self-contained Python 3.12 under `/opt/mytral`, independent of the host's
+  system Python.
+- Fixed `.deb` package `Architecture` metadata (`all` -> `amd64 arm64`) to match what
+  `postinst`'s `uv` bootstrap actually supports, so `apt` refuses unsupported
+  architectures upfront instead of installing a package that fails during configure.
+- Fixed `.deb` `postinst` failing with an unclear `uv pip install` error when the
+  bundled wheel or `requirements.txt` was missing - it now fails fast with a clear
+  message.
+
+### Security
+- Hardened `.deb` `postinst`: the downloaded `uv` binary is now verified against a
+  pinned `sha256` checksum before extraction, closing a supply-chain gap where a
+  tampered or corrupted release asset would otherwise be executed as root during
+  package installation.
+
+### Infrastructure
+- Rewrote `build/ubuntu/launchpad-release.sh` to accept an optional Ubuntu codename
+  argument, building (and optionally uploading) a single distribution instead of
+  always looping over every supported version.
+- Added a `UBUNTU_VERSION` parameter (default `noble`) to `make distro-ubuntu-deb`, and
+  a new `make distro-launchpad-release-version` target to build and upload a single
+  Ubuntu version's PPA package.
 
 
 
