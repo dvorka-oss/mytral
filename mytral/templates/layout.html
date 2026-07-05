@@ -130,6 +130,16 @@
                 </div>
                 {% endif %}
 
+                {% if ff.can("POLAR_FLOW_IMPORT") and user_profile.polar_flow_client_id and user_profile.polar_flow_client_secret %}
+                <div class="nav-item">
+                  <a href="{{ url_for('polar_flow_api_developer') }}" class="nav-link px-0 position-relative" title="Synchronize activities with Polar Flow" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <span class="position-relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heartbeat"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" /><path d="M3 12h5l1 -3l2 6l1 -3h5" /></svg>
+                    </span>
+                  </a>
+                </div>
+                {% endif %}
+
                 {# background tasks shortcut #}
                 <div class="nav-item">
                   <a href="{{ url_for('tasks_list') }}" class="nav-link px-0" title="Background Tasks" data-bs-toggle="tooltip" data-bs-placement="bottom">

@@ -4203,6 +4203,10 @@ class UserProfile:
     KEY_CODE = "code"
     KEY_AUTH_UNTIL = "auth_until"
 
+    KEY_POLAR_FLOW = "polar_flow"
+    KEY_POLAR_USER_ID = "polar_user_id"
+    KEY_MEMBER_ID = "member_id"
+
     KEY_ONBOARDING_STATE = "onboarding_state"
     KEY_ACOACH = "acoach"
     KEY_ICL = "icl"
@@ -4241,6 +4245,13 @@ class UserProfile:
         strava_refresh_token = strava.get(UserProfile.KEY_REFRESH_TOKEN, "")
         strava_code = strava.get(UserProfile.KEY_CODE, "")
         strava_auth_until = strava.get(UserProfile.KEY_AUTH_UNTIL, 0)
+
+        polar_flow = profile_dict.get(UserProfile.KEY_POLAR_FLOW, {})
+        polar_flow_client_id = polar_flow.get(UserProfile.KEY_CLIENT_ID, "")
+        polar_flow_client_secret = polar_flow.get(UserProfile.KEY_CLIENT_SECRET, "")
+        polar_flow_access_token = polar_flow.get(UserProfile.KEY_ACCESS_TOKEN, "")
+        polar_flow_user_id = polar_flow.get(UserProfile.KEY_POLAR_USER_ID, "")
+        polar_flow_member_id = polar_flow.get(UserProfile.KEY_MEMBER_ID, "")
 
         onboarding_state = profile_dict.get(UserProfile.KEY_ONBOARDING_STATE)
         acoach_settings = ai_settings.ACoachSettings.from_dict(
@@ -4282,6 +4293,11 @@ class UserProfile:
             strava_refresh_token=strava_refresh_token,
             strava_code=strava_code,
             strava_auth_until=strava_auth_until,
+            polar_flow_client_id=polar_flow_client_id,
+            polar_flow_client_secret=polar_flow_client_secret,
+            polar_flow_access_token=polar_flow_access_token,
+            polar_flow_user_id=polar_flow_user_id,
+            polar_flow_member_id=polar_flow_member_id,
             onboarding_state=onboarding_state,
             acoach_settings=acoach_settings,
             user_icl_settings=user_icl_settings,
@@ -4319,6 +4335,13 @@ class UserProfile:
                 UserProfile.KEY_REFRESH_TOKEN: self.strava_refresh_token,
                 UserProfile.KEY_CODE: self.strava_code,
                 UserProfile.KEY_AUTH_UNTIL: self.strava_auth_until,
+            },
+            UserProfile.KEY_POLAR_FLOW: {
+                UserProfile.KEY_CLIENT_ID: self.polar_flow_client_id,
+                UserProfile.KEY_CLIENT_SECRET: self.polar_flow_client_secret,
+                UserProfile.KEY_ACCESS_TOKEN: self.polar_flow_access_token,
+                UserProfile.KEY_POLAR_USER_ID: self.polar_flow_user_id,
+                UserProfile.KEY_MEMBER_ID: self.polar_flow_member_id,
             },
             UserProfile.KEY_ONBOARDING_STATE: self.onboarding_state,
             UserProfile.KEY_ACOACH: self.acoach_settings.to_dict()
@@ -4361,6 +4384,11 @@ class UserProfile:
         strava_refresh_token: str = "",
         strava_code: str = "",
         strava_auth_until: int = 0,
+        polar_flow_client_id: str = "",
+        polar_flow_client_secret: str = "",
+        polar_flow_access_token: str = "",
+        polar_flow_user_id: str = "",
+        polar_flow_member_id: str = "",
         onboarding_state: dict | None = None,
         acoach_settings: ai_settings.ACoachSettings | None = None,
         user_icl_settings: icl_settings.IclSettings | None = None,
@@ -4424,6 +4452,13 @@ class UserProfile:
         self.strava_code = strava_code
         self.strava_auth_until = strava_auth_until
         self.strava_auth_until_str = ""
+
+        # Polar Flow (AccessLink API) - long-lived token, no refresh/expiry
+        self.polar_flow_client_id = polar_flow_client_id
+        self.polar_flow_client_secret = polar_flow_client_secret
+        self.polar_flow_access_token = polar_flow_access_token
+        self.polar_flow_user_id = polar_flow_user_id
+        self.polar_flow_member_id = polar_flow_member_id
 
         # onboarding state
         if onboarding_state is None:

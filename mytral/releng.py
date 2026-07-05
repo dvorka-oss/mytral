@@ -25,6 +25,7 @@ class FeatureFlags:
     PFN_PREDICTIONS = "PFN_PREDICTIONS"
     GSHEETS_DVORKA_IMPORT = "GSHEETS_DVORKA_IMPORT"
     STRAVA_API_IMPORT = "STRAVA_API_IMPORT"
+    POLAR_FLOW_IMPORT = "POLAR_FLOW_IMPORT"
     TASKS_DEV = "TASKS_DEV"  # features, like Hello World! tasks, for tasks development
     ACOACHES = "ACOACHES"
 
@@ -34,6 +35,7 @@ class FeatureFlags:
     ENV_PFN_PREDICTIONS = f"{ENV_FF_PREFIX}_{PFN_PREDICTIONS}"
     ENV_GSHEETS_DVORKA_IMPORT = f"{ENV_FF_PREFIX}_{GSHEETS_DVORKA_IMPORT}"
     ENV_STRAVA_API_IMPORT = f"{ENV_FF_PREFIX}_{STRAVA_API_IMPORT}"
+    ENV_POLAR_FLOW_IMPORT = f"{ENV_FF_PREFIX}_{POLAR_FLOW_IMPORT}"
     ENV_TASKS_DEV = f"{ENV_FF_PREFIX}_{TASKS_DEV}"
     ENV_ACOACHES = f"{ENV_FF_PREFIX}_{ACOACHES}"
 
@@ -53,6 +55,9 @@ class FeatureFlags:
             ),
             FeatureFlags.STRAVA_API_IMPORT: utils.getenv_bool(
                 name=FeatureFlags.ENV_STRAVA_API_IMPORT, default=True
+            ),
+            FeatureFlags.POLAR_FLOW_IMPORT: utils.getenv_bool(
+                name=FeatureFlags.ENV_POLAR_FLOW_IMPORT, default=False
             ),
             FeatureFlags.TASKS_DEV: utils.getenv_bool(FeatureFlags.ENV_TASKS_DEV),
             FeatureFlags.ACOACHES: utils.getenv_bool(FeatureFlags.ENV_ACOACHES),

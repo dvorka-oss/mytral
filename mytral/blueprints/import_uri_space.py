@@ -495,6 +495,7 @@ def tool_import():
         import_gsheets_all_years_csv_form=forms.ImportGsheetsAllYearsCsvForm(),
         import_mytral_json_form=forms.ImportMytralJsonForm(),
         import_polar_hrm_form=forms.ImportPolarHrmForm(),
+        import_polar_flow_export_form=forms.ImportPolarFlowExportForm(),
         import_strava_archive_form=forms.ImportStravaArchiveForm(),
         import_fit_form=_build_fit_import_form(user_id),
         import_gpx_form=_build_gpx_import_form(user_id),

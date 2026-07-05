@@ -292,6 +292,46 @@ class StravaSecretsForm(flask_wtf.FlaskForm):
     submit = wtforms.SubmitField("Save Secrets")
 
 
+class PolarFlowSecretsForm(flask_wtf.FlaskForm):
+    """Form for setting encrypted Polar Flow (AccessLink) API client credentials."""
+
+    client_id = wtforms.StringField(
+        label="Polar Flow API Client ID",
+        validators=[validators.DataRequired(), validators.Length(min=1, max=128)],
+        default="",
+    )
+
+    client_secret = wtforms.PasswordField(
+        label="Polar Flow API Client Secret",
+        validators=[validators.DataRequired(), validators.Length(min=1, max=256)],
+        default="",
+    )
+
+    submit = wtforms.SubmitField("Save Secrets")
+
+
+class ImportPolarFlowExportForm(flask_wtf.FlaskForm):
+    """Form for importing the Polar Flow "Download your data" (GDPR) export ZIP."""
+
+    archive = flask_wtf.file.FileField(
+        label="Polar Flow export ZIP",
+        validators=[
+            flask_wtf.file.FileRequired(),
+            flask_wtf.file.FileAllowed(["zip"], "Only .zip files are accepted."),
+        ],
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import Polar Flow Export")
+
+
 class SettingsForm(flask_wtf.FlaskForm):
     new_dataset_file = wtforms.StringField(
         label="",

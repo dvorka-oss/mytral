@@ -195,6 +195,101 @@ STRAVA_TO_MYTRAL_AT = {
 STRAVA_GEAR_PREFIX_ID = "strava-gear-id:"
 
 #
+# POLAR FLOW (AccessLink API + GDPR export)
+#
+# Polar exercise summaries carry a "sport" (and "detailed-sport-info") string in
+# UPPER_SNAKE_CASE, e.g. "RUNNING", "TRAIL_RUNNING", "INDOOR_CYCLING". Keys below are
+# normalized to lowercase; lookups must lowercase the Polar value first. Unknown sports
+# fall back to commons.AT_WORKOUT (see POLAR_FLOW_DEFAULT_AT).
+#
+
+POLAR_FLOW_DEFAULT_AT = commons.AT_WORKOUT
+
+POLAR_FLOW_TO_MYTRAL_AT = {
+    "running": commons.AT_RUN,
+    "jogging": commons.AT_RUN,
+    "road_running": commons.AT_RUN,
+    "treadmill_running": commons.AT_RUN_VIRTUAL,
+    "indoor_running": commons.AT_RUN_VIRTUAL,
+    "trail_running": commons.AT_RUN_TRAIL,
+    "cycling": commons.AT_RIDE,
+    "road_cycling": commons.AT_RIDE,
+    "mountain_biking": commons.AT_RIDE_MOUNTAIN,
+    "gravel_cycling": commons.AT_RIDE_GRAVEL,
+    "indoor_cycling": commons.AT_RIDE_VIRTUAL,
+    "e_biking": commons.AT_RIDE_E,
+    "swimming": commons.AT_SWIM,
+    "pool_swimming": commons.AT_SWIM,
+    "open_water_swimming": commons.AT_SWIM,
+    "walking": commons.AT_WALK,
+    "nordic_walking": commons.AT_WALK,
+    "hiking": commons.AT_HIKE,
+    "mountain_hiking": commons.AT_HIKE,
+    "rowing": commons.AT_ROW,
+    "indoor_rowing": commons.AT_ROW_ERG,
+    "strength_training": commons.AT_GYM,
+    "functional_training": commons.AT_GYM,
+    "core": commons.AT_GYM,
+    "circuit_training": commons.AT_HIIT,
+    "high_intensity_interval_training": commons.AT_HIIT,
+    "yoga": commons.AT_YOGA,
+    "pilates": commons.AT_PILATES,
+    "crossfit": commons.AT_CROSSFIT,
+    "cross_country_skiing": commons.AT_SKI_F,
+    "classic_cross_country_skiing": commons.AT_SKI_DP,
+    "freestyle_cross_country_skiing": commons.AT_SKI_F,
+    "downhill_skiing": commons.AT_SKI_DOWNHILL,
+    "alpine_skiing": commons.AT_SKI_DOWNHILL,
+    "backcountry_skiing": commons.AT_SKI_BACKCOUNTRY,
+    "snowboarding": commons.AT_SNOWBOARD,
+    "snowshoeing": commons.AT_SNOWSHOE,
+    "ice_skating": commons.AT_SKATE_ICE,
+    "inline_skating": commons.AT_SKATE_INLINE,
+    "roller_skiing": commons.AT_RS_F,
+    "skateboarding": commons.AT_SKATEBOARD,
+    "kayaking": commons.AT_KAYAK,
+    "canoeing": commons.AT_CANOEING,
+    "stand_up_paddling": commons.AT_PADDLE,
+    "rock_climbing": commons.AT_CLIMB_ROCK,
+    "elliptical": commons.AT_ELLIPTICAL,
+    "stair_stepper": commons.AT_STAIR_STEPPER,
+    "dancing": commons.AT_DANCE,
+    "badminton": commons.AT_BADMINTON,
+    "tennis": commons.AT_TENNIS,
+    "table_tennis": commons.AT_TABLETENNIS,
+    "squash": commons.AT_SQUASH,
+    "padel": commons.AT_PADDLE,
+    "basketball": commons.AT_BASKETBALL,
+    "soccer": commons.AT_SOCCER,
+    "football": commons.AT_SOCCER,
+    "volleyball": commons.AT_VOLLEYBALL,
+    "golf": commons.AT_GOLF,
+    "wheelchair": commons.AT_WHEELCHAIR,
+}
+
+
+def polar_flow_activity_type(sport: str, valid_activity_type_ids: list[str]) -> str:
+    """Map a Polar Flow ``sport`` string to a MyTraL activity type key.
+
+    Parameters
+    ----------
+    sport : str
+        Polar Flow sport value (any case), e.g. ``RUNNING`` or ``Trail_Running``.
+    valid_activity_type_ids : list[str]
+        User's known activity type keys; if ``sport`` already matches one, it wins.
+
+    Returns
+    -------
+    str
+        MyTraL activity type key (falls back to :data:`POLAR_FLOW_DEFAULT_AT`).
+    """
+    normalized = (sport or "").strip().lower()
+    if normalized in valid_activity_type_ids:
+        return normalized
+    return POLAR_FLOW_TO_MYTRAL_AT.get(normalized, POLAR_FLOW_DEFAULT_AT)
+
+
+#
 # FIT
 #
 # - https://github.com/garmin/fit-python-sdk/blob/main/garmin_fit_sdk/profile.py

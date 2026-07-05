@@ -29,6 +29,7 @@ Big thanks to 3rd party [FLOSS](https://en.wikipedia.org/wiki/Free_and_open-sour
 * Jordan Russell and Martijn Laan ([Inno Setup](https://jrsoftware.org/isinfo.php) - Windows installer compiler)
 * Hartmut Goebel, Giovanni Bajo, David Vierra, David Cortesi, and Martin Zibricky ([PyInstaller](https://pyinstaller.org/) - desktop installer)
 * Holger Krekel ([pytest](https://pytest.org/) - Python testing that brings joy)
+* Polar ([accesslink-example-python](https://github.com/polarofficial/accesslink-example-python) - reference for the Polar Flow AccessLink OAuth2 + transaction flow)
 
 See [licenses](./licenses) folder for 3rd party content licensing details.
 

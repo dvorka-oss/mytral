@@ -99,6 +99,16 @@
                                 #}
                                 Strava
                             </a>
+                            {% if ff.can("POLAR_FLOW_IMPORT") %}
+                            <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-polar-flow">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heartbeat me-2">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                    <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
+                                    <path d="M3 12h5l1 -3l2 6l1 -3h5" />
+                                </svg>
+                                Polar Flow
+                            </a>
+                            {% endif %}
                             <a href="#" class="list-group-item list-group-item-action d-flex align-items-center" data-section="section-tcx">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-map-route me-2">
                                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -580,6 +590,65 @@
                                             </div>
                                         </div>
                                         {{ import_polar_hrm_form.submit(class="btn btn-primary") }}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# ## Polar Flow ############################################# #}
+                        {% if ff.can("POLAR_FLOW_IMPORT") %}
+                        <div id="section-polar-flow" class="import-section d-none">
+                            <h2 class="mb-4">Polar Flow</h2>
+                            <p class="card-subtitle mb-3">Import your training data from <a href="https://flow.polar.com/" class="link-primary" target="_blank">Polar Flow</a> via the official Polar AccessLink API and the account data export.</p>
+
+                            <div class="card card-md">
+                                <div class="card-body">
+                                    <div class="h3">Polar AccessLink API (Developer Personal Access)</div>
+                                    <p class="card-subtitle">
+                                        Connect to your personal account using the
+                                        <a href="https://www.polar.com/accesslink-api/" class="link-primary" target="_blank">Polar AccessLink API</a>.
+                                        You register a personal API client and access
+                                        <b>your own data exclusively</b>. The API syncs new
+                                        training going forward; it does <b>not</b> backfill
+                                        history.
+                                    </p>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('polar_flow_api_developer') }}" class="btn btn-primary">
+                                            Polar Flow API (developer)
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card card-md mt-3">
+                                <div class="card-body">
+                                    <div class="h3">Polar Flow Export ZIP (Historical Backfill)</div>
+                                    <p class="card-subtitle mb-3">
+                                        Import your full history from a
+                                        <a href="https://account.polar.com" class="link-primary" target="_blank">Polar Flow "Download your data"</a>
+                                        (GDPR) export. Request the export from your Polar
+                                        account, wait for the email, then upload the
+                                        <code>polar-user-data-export*.zip</code> file below.
+                                    </p>
+                                    <form method="POST" action="{{ url_for('polar_flow_import_export_zip') }}" enctype="multipart/form-data">
+                                        {{ import_polar_flow_export_form.hidden_tag() }}
+                                        <div class="mb-3">
+                                            {{ import_polar_flow_export_form.archive.label(class="form-label") }}
+                                            {{ import_polar_flow_export_form.archive(class="form-control") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ import_polar_flow_export_form.on_conflict.label.text }}</label>
+                                            <div class="d-flex gap-3">
+                                                {% for subfield in import_polar_flow_export_form.on_conflict %}
+                                                    <label class="form-check">
+                                                        {{ subfield(class="form-check-input") }}
+                                                        <span class="form-check-label">{{ subfield.label.text }}</span>
+                                                    </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {{ import_polar_flow_export_form.submit(class="btn btn-primary") }}
                                     </form>
                                 </div>
                             </div>

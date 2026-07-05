@@ -8,7 +8,12 @@ This MyTraL **minor** release brings:
 - .
 
 ### Added
-- .
+- Added a Polar Flow integration: sync new training from Polar Flow
+  (flow.polar.com) via the official Polar AccessLink API (transaction model, no
+  duplicates), and backfill full history from the Polar "Download your data"
+  (GDPR) export ZIP. Gated behind the `MYTRAL_FF_POLAR_FLOW_IMPORT` feature flag.
+  See `POLAR_FLOW.md` for the design and setup steps. This is separate from the
+  existing Polar Precision Performance (.hrm/.pdd) import.
 
 ### Fixed
 - .
