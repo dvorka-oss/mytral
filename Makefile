@@ -677,6 +677,46 @@ distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
+# MACOS: macOS .dmg distribution (Apple Silicon / arm64 only, local builds only)
+#
+# Must run on macOS - relies on `sips`, `iconutil`, and `hdiutil`, which are
+# only available on macOS. Produces an unsigned app bundle and .dmg; see
+# docs/INSTALLATION.md for the Gatekeeper workaround end users need.
+#
+
+.PHONY: distro-desktop-build-macos
+distro-desktop-build-macos: ## build macOS app bundle (MyTraL.app) - must run on macOS (arm64)
+	@./build/macos-dmg/build-app.sh
+
+.PHONY: distro-macos-dmg-clean
+distro-macos-dmg-clean: ## clean macOS .dmg build artifacts
+	@./build/macos-dmg/clean.sh
+
+.PHONY: distro-macos-dmg-build
+distro-macos-dmg-build: distro-desktop-build-macos ## build macOS .dmg installer - must run on macOS (arm64)
+	@./build/macos-dmg/build-dmg.sh
+
+.PHONY: distro-macos-dmg-path
+distro-macos-dmg-path: ## show path to built macOS .dmg
+	@ls distro/macos-dmg/mytral-*.dmg 2>/dev/null || echo "No macOS .dmg built yet"
+
+.PHONY: distro-macos-dmg-install-local
+distro-macos-dmg-install-local: distro-macos-dmg-build ## build the .dmg and install MyTraL.app to /Applications (must run on macOS)
+	@echo "Installing MyTraL.app to /Applications..."
+	@DMG_FILE=$$(ls distro/macos-dmg/mytral-*.dmg 2>/dev/null | head -1); \
+	if [ -z "$$DMG_FILE" ]; then \
+		echo "Error: macOS .dmg not found. Run 'make distro-macos-dmg-build' first."; \
+		exit 1; \
+	fi; \
+	MOUNT_DIR=$$(mktemp -d); \
+	hdiutil attach "$$DMG_FILE" -mountpoint "$$MOUNT_DIR" -nobrowse -quiet; \
+	rm -rf "/Applications/MyTraL.app"; \
+	cp -R "$$MOUNT_DIR/MyTraL.app" /Applications/; \
+	hdiutil detach "$$MOUNT_DIR" -quiet; \
+	rmdir "$$MOUNT_DIR"; \
+	echo "DONE MyTraL.app installed to /Applications"
+
+#
 # SNAP: Snap package distribution (local builds only)
 #
 # Prerequisites:
@@ -904,7 +944,7 @@ release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-
 	@echo "ALL Win distribution packages built for release"
 
 .PHONY: release-distros-macos
-release-distros-macos:  ## build all MACOS distribution packages for release
+release-distros-macos: clean distro-macos-dmg-clean distro-macos-dmg-build ## build all MACOS distribution packages for release
 	@echo "ALL MacOS distribution packages built for release"
 
 #

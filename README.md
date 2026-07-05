@@ -25,6 +25,7 @@ Install:
 * [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
 * [Windows (installer)](INSTALLATION.md#install-on-windows-using-installer)
 * [Windows (zip)](INSTALLATION.md#install-on-windows-using-zip)
+* [macOS (dmg)](INSTALLATION.md#install-on-macos-using-dmg)
 
 Build:
 
@@ -34,6 +35,7 @@ Build:
 * [Flatpak (bundle)](INSTALLATION.md#build-flatpak-on-linux)
 * [Windows (installer)](INSTALLATION.md#build-windows-installer)
 * [Windows (binary)](INSTALLATION.md#build-binary-on-windows)
+* [macOS (dmg)](INSTALLATION.md#build-macos-dmg)
 
 Run:
 
