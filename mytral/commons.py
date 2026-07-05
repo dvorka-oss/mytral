@@ -29,6 +29,11 @@ DATASET_NAME_MAIN = "lifelong"
 # default user name (desktop app installation)
 DEFAULT_USER_NAME = "dvorka"
 
+# default user auto-created on the first DESKTOP boot when no user exists yet
+DEFAULT_DESKTOP_USER_NAME = "athlete"
+DEFAULT_DESKTOP_USER_DISPLAY_NAME = "MyTraL Athlete"
+DEFAULT_DESKTOP_USER_PASSWORD = "changeit"
+
 #
 # DATASETS & PERSISTENCE
 #

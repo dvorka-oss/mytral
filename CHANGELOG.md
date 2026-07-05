@@ -8,10 +8,14 @@ This MyTraL **minor** release brings:
 - .
 
 ### Added
-- .
+- Smooth first start for the desktop application: when no user profile exists
+  yet, a default `athlete` user ("MyTraL Athlete") is auto-created and
+  auto-logged in, landing straight on the dashboard - no sign-up/login step
+  required. Logging out disables auto-login until the next explicit login,
+  so a second/third user can be added or logged into from the login page.
 
 ### Fixed
-- .
+- Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
 
 ### Documentation
 - .

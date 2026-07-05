@@ -32,11 +32,14 @@ SECURITY related configuration of MyTraL desktop:
       so that the init steps (which would be potentially unsafe for webapp) can be done.
       This env var / setting cannot be changed on desktop.
   - DEFAULT USER
-    - User ``mytral`` / ``mytral`` w/ auto login enabled is auto created on
-      the first boot so that the desktop application can AUTO LOGIN as that user.
+    - User ``athlete`` (display name "MyTraL Athlete") w/ auto login enabled
+      is auto created on the first boot - only when no user profile exists
+      yet - so that the desktop application can AUTO LOGIN as that user.
       - SECURITY: user can change default user password
       - SECURITY: user can disable auto login.
       - SECURITY: user can create new / other users.
+      - SECURITY: logging out disables auto login until the next explicit
+        login, so a shared machine is not silently logged back in.
   - AUTO LOGIN
     - If user logs-in with username (account) which has enabled auto login,
       then the password is not checked and user is let in. This flag can be set

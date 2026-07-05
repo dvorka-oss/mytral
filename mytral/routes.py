@@ -74,6 +74,10 @@ COOKIE_TOKEN = "mytral_token"
 # the resolution is detected on login and stored in session the cookie,
 # empty value means that the user is not using mobile device
 COOKIE_MOBILE = "mytral_mobile"
+# desktop only: set on logout to suppress the automatic re-login on the
+# next /login page load, so the user can pick/create another account;
+# cleared again on the next successful login/sign-up
+COOKIE_AUTO_LOGIN_SUPPRESSED = "mytral_auto_login_suppressed"
 # aspects
 ASPECT_LIST = "list"
 ASPECT_WEIGHT = "weight"

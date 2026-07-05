@@ -1081,6 +1081,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         user_id: str = "",
         user_display_name: str = "",
         password_enc: str = "",
+        auto_login: bool = False,
     ):
         self.user_dir(user_id)
 
@@ -1100,6 +1101,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
                 born_day=commons.BOOTSTRAP_BORN_DAY,
                 height=commons.BOOTSTRAP_HEIGHT_CM,
                 gender=True,
+                auto_login=auto_login,
             )
         )
 

@@ -31,6 +31,7 @@ from mytral import forms
 from mytral import security
 from mytral import settings as user_settings
 from mytral.migrations import FsPersistenceMigrations
+from mytral.routes import COOKIE_AUTO_LOGIN_SUPPRESSED
 from mytral.routes import COOKIE_MOBILE
 from mytral.routes import COOKIE_TOKEN
 from mytral.routes import COOKIE_USER
@@ -162,6 +163,8 @@ def signup():
             # log user in - store user_id (UUID) not username
             flask.session[COOKIE_USER] = user_id
             flask.session[COOKIE_TOKEN] = uuid.uuid4()
+            # a fresh, explicit login re-enables auto-login for the next boot
+            flask.session.pop(COOKIE_AUTO_LOGIN_SUPPRESSED, None)
 
             flask.flash(
                 message=f"Welcome {new_username}! Your account has been created.",
@@ -204,7 +207,24 @@ def login():
 
         auto_login_usernames = []
         if app_config.incarnation == config.MytralIncarnation.DESKTOP:
-            auto_login_usernames = list(ds.list_profile_names(auto_login=True).keys())
+            auto_login_profiles = ds.list_profile_names(auto_login=True)
+            auto_login_usernames = list(auto_login_profiles.keys())
+
+            # smooth first start / single-user desktop: silently log in as the
+            # sole auto-login user, unless the user just logged out on purpose
+            if len(auto_login_profiles) == 1 and not flask.session.get(
+                COOKIE_AUTO_LOGIN_SUPPRESSED, False
+            ):
+                user_name, user_id = next(iter(auto_login_profiles.items()))
+
+                flask.session[COOKIE_USER] = user_id
+                flask.session[COOKIE_TOKEN] = str(uuid.uuid4())
+
+                flask.flash(
+                    message=f"Auto logged in as user '{user_name}'",
+                    category="success",
+                )
+                return flask.redirect(flask.url_for("home"))
 
         return flask.render_template(
             "log-in.html",
@@ -294,6 +314,8 @@ def login():
         flask.session[COOKIE_USER] = user_id
         # safe foo token to client cookies
         flask.session[COOKIE_TOKEN] = str(uuid.uuid4())
+        # a fresh, explicit login re-enables auto-login for the next boot
+        flask.session.pop(COOKIE_AUTO_LOGIN_SUPPRESSED, None)
 
         # if the page width is <800px, then switch to mobile view
         app_logger.debug(f"Storing page width to session: {form.page_width.data}")
@@ -362,6 +384,9 @@ def logout():
     flask.session.pop(COOKIE_TOKEN, None)
     if user_id:
         ds.cache_evict(user_id=user_id)
+    # desktop: suppress auto-login so the user can pick/create another account
+    if app_config.incarnation == config.MytralIncarnation.DESKTOP:
+        flask.session[COOKIE_AUTO_LOGIN_SUPPRESSED] = True
     return flask.redirect(flask.url_for("login"))
 
 
