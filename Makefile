@@ -96,6 +96,8 @@ USER_HOME := $(shell echo $$HOME)
 PLATFORM := $(shell uname -s)
 # DeepSeek API key (for vibe coding with DeepSeek)
 DEEPSEEK_API_KEY ?= $(shell pass show deepseek/apikey20260605)
+# Ubuntu version for local .deb build (see distro-ubuntu-deb)
+UBUNTU_VERSION ?= noble
 
 #
 # HELP
@@ -311,8 +313,8 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	uv run python -m mytral.run
 endif
 
-run-preproduction: .venv ## run MyTraL server on Linux w/ DEMO data w/ production settings
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/demo \
+run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data w/ production settings
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/pre-production \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
@@ -587,20 +589,28 @@ distro-pad-refresh: ## refresh PAD.xml release fields (version, date, changelog,
 # DISTRIBUTION: Ubuntu PPA @ Launchpad
 #
 
-distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
+distro-launchpad-release:  ## build & upload Ubuntu PPA package for Launchpad, every supported Ubuntu version
 	@cd build/ubuntu && \
 	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
 	cd $(USER_HOME)/p/mytral/launchpad && \
 	./launchpad-release.sh
 	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
 
+.PHONY: distro-launchpad-release-version
+distro-launchpad-release-version: ## build & upload Ubuntu PPA package for ONE Ubuntu version; usage: make distro-launchpad-release-version UBUNTU_VERSION=jammy
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	SKIP_UPLOAD=false ./launchpad-release.sh $(UBUNTU_VERSION)
+	@echo "DONE: Ubuntu PPA package for $(UBUNTU_VERSION) released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
 .PHONY: distro-ubuntu-deb
-distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
+distro-ubuntu-deb: ## build Ubuntu .deb package locally for one distro, no upload (output to distro/deb/); override with UBUNTU_VERSION=jammy
 	@mkdir -p $(DIR_DISTRO_DEB)
 	@cd build/ubuntu && \
 	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
 	cd $(USER_HOME)/p/mytral/launchpad && \
-	DRY_RUN=true ./launchpad-release.sh
+	./launchpad-release.sh $(UBUNTU_VERSION)
 	@find $(USER_HOME)/p/mytral/launchpad -name "mytral_*.deb" | \
 	    xargs ls -t | head -1 | xargs -I{} cp -v {} $(DIR_DISTRO_DEB)/
 	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"
@@ -689,19 +699,35 @@ distro-snap-remove: ## remove locally installed Snap (requires sudo)
 	@echo "DONE Snap removed"
 
 .PHONY: distro-snap-build
-distro-snap-build: ## build Snap package (LXD required; see build/snap/build-snap.sh)
+distro-snap-build: ## build strict Snap package for the Snap Store (LXD required)
 	@./build/snap/build-snap.sh
 
+.PHONY: distro-snap-build-classic
+distro-snap-build-classic: ## build classic Snap package for downloadable GitHub Release (LXD required)
+	@./build/snap/build-snap.sh --classic
+
+.PHONY: distro-snap-install-local-classic
+distro-snap-install-local-classic: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
+	@echo "Installing classic Snap package locally..."
+	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
+	if [ -z "$$SNAP_FILE" ]; then \
+		echo "Error: Snap package not found. Run 'make distro-snap-build-classic' first."; \
+		exit 1; \
+	fi; \
+	echo "Note: This command requires sudo privileges for snap install"; \
+	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	echo "DONE Snap installed. Run with: mytral"
+
 .PHONY: distro-snap-install-local
-distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install Snap locally (for testing, requires sudo)
-	@echo "Installing Snap package locally..."
+distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
+	@echo "Installing strict Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
 		echo "Error: Snap package not found. Run 'make distro-snap-build' first."; \
 		exit 1; \
 	fi; \
 	echo "Note: This command requires sudo privileges for snap install"; \
-	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
+	sudo snap install --dangerous "$$SNAP_FILE"; \
 	echo "DONE Snap installed. Run with: mytral"
 
 .PHONY: distro-snap-path
@@ -709,9 +735,9 @@ distro-snap-path: ## show path to built snap package
 	@ls distro/snap/mytral_*.snap 2>/dev/null || echo "No snap package built yet"
 
 .PHONY: distro-snap-upload
-distro-snap-upload: ## upload Snap package to Snap Store
+distro-snap-upload: distro-snap-build ## upload strict Snap package to the Snap Store (amd64)
 	@echo "Uploading Snap package to Snap Store..."
-	snapcraft upload --release=stable mytral_$(MYTRAL_VERSION)_amd64.snap
+	snapcraft upload --release=stable distro/snap/mytral_$(MYTRAL_VERSION)_amd64.snap
 
 #
 # FLATPAK: Flatpak package distribution (local builds only)
@@ -871,7 +897,7 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 # RELEASE
 #
 
-release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build distro-flatpak-build ## build all LINUX distribution packages for release
+release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build-classic distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
 release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release

@@ -30,3 +30,12 @@ print('\n'.join(deps))" > debian/mytral/opt/mytral/requirements.txt
 
 override_dh_auto_test:
 	# tests require an active virtualenv — skip in package build environment
+
+override_dh_auto_clean:
+	# pybuild's dh_auto_clean unconditionally rmtree's any top-level directory
+	# literally named 'build', assuming it is a Python build-artifact dir - but
+	# ours is the tracked packaging-scripts tree (windows/flatpak/snap/deb/...),
+	# so stash it aside and restore it once the real clean is done
+	mv build .build-packaging-stash
+	dh_auto_clean
+	mv .build-packaging-stash build

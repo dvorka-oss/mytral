@@ -80,6 +80,7 @@ os.environ["MYTRAL_AUTO_ACCOUNT_CREATE"] = "true"
 
 from mytral import app_config
 from mytral import app_logger
+from mytral import desktop_browser
 from mytral import routes
 from mytral import version
 from mytral.blueprints import acoach_uri_space
@@ -268,6 +269,16 @@ MyTraL: My Trailing Log - Desktop Edition
     log.setLevel(logging.DEBUG if app_config.debug else logging.ERROR)
 
     try:
+        if desktop_browser.use_portal_browser():
+            # sandboxed packaging (Snap strict / Flatpak): cannot launch a host browser
+            # as a native window, so open the UI in the default browser via the portal
+            app_logger.info("Portal browser mode - opening UI in the default browser")
+            server_thread = start_flask_in_background()
+            url = f"http://{app_config.host}:{app_config.port}"
+            webbrowser.open(url)
+            server_thread.join()
+            return
+
         from flaskwebgui import FlaskUI
 
         app_logger.info("Launching MyTraL Desktop application...")

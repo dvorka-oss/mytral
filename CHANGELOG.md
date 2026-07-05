@@ -1,6 +1,64 @@
 # Changelog
 
-## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...HEAD)
+## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Published MyTraL to the Snap Store at https://snapcraft.io using **strict**
+  confinement. The Snap Store snap runs the local server and opens the UI in the
+  default browser. Athlete data are stored in `$SNAP_USER_COMMON`
+  (`~/snap/mytral/common`) i.e. are NOT stored in the location used by all other
+  distros - data persist until uninstall (snapd keeps a snapshot for ~31 days
+  after `snap remove`).
+- Added new body mannequin - from robot-like to realistic anatomical muscle
+  geometry adapted from the MIT-licensed `react-native-body-highlighter`.
+- Added activity bookmarks - bookmark any activity from its detail page.
+- Added an `Elevation` aspect to the `This vs. Last` and `Charts` pages,
+  comparing weekly, monthly, and yearly elevation gain. The weekly and monthly
+  charts also show a dashed red `Everesting` (8848 m) reference line so athletes
+  can see whether their cumulative climbing reaches Mt. Everest peak.
+
+### Changed
+- Redrew the body mannequin with realistic anatomical muscle geometry, used
+  everywhere it appears (muscle load, injuries, and sickness). Muscle load now
+  renders as a cool-to-hot volume heatmap.
+
+### Documentation
+- Documented both strict and classic Snap installations.
+- Documented the missing `python3-all` build prerequisite for local `.deb` builds
+  (`make distro-ubuntu-deb`) in the installation guide.
+
+### Fixed
+- Fixed Ubuntu PPA/`.deb` installation on Ubuntu releases that do not ship
+  Python 3.12 as the system interpreter (`trusty` through `focal`) - `postinst`
+  now uses `uv` to provision a self-contained Python 3.12 under `/opt/mytral`,
+  independent of the host's system Python.
+- Fixed `.deb` package `Architecture` metadata (`all` -> `amd64 arm64`) to match
+  what `postinst`'s `uv` bootstrap actually supports, so `apt` refuses
+  unsupported architectures upfront instead of installing a package that fails
+  during configure.
+- Fixed `.deb` `postinst` failing with an unclear `uv pip install` error when
+  the bundled wheel or `requirements.txt` was missing - it now fails fast with a
+  clear message.
+
+### Security
+- Hardened `.deb` `postinst`: the downloaded `uv` binary is now verified against
+  a pinned `sha256` checksum before extraction, closing a supply-chain gap where
+  a tampered or corrupted release asset would otherwise be executed as root
+  during package installation.
+
+### Infrastructure
+- Rewrote `build/ubuntu/launchpad-release.sh` to accept an optional Ubuntu
+  codename argument, building (and optionally uploading) a single distribution
+  instead of always looping over every supported version.
+- Added a `UBUNTU_VERSION` parameter (default `noble`) to `make
+  distro-ubuntu-deb`, and a new `make distro-launchpad-release-version` target
+  to build and upload a single Ubuntu version's PPA package.
+
+
+
+## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0)
 
 This MyTraL **minor** release brings:
 

@@ -32,6 +32,7 @@ import structlog
 from bokeh.embed import components as bokeh_components
 
 import mytral
+from mytral import anatomy
 from mytral import app_config
 from mytral import app_ds
 from mytral import app_logger
@@ -45,6 +46,7 @@ from mytral import commons
 from mytral import ff
 from mytral import forms
 from mytral import insights
+from mytral import muscle_groups
 from mytral import ninjas
 from mytral import notifications as notif_mod
 from mytral import onboarding
@@ -256,6 +258,15 @@ app_task_manager.init_app(flask_app, task_timeout_s=app_config.task_timeout)
 # make application RD_ONLY if activities sync is in progress
 sync_guard_module.register_sync_guard(flask_app)
 sync_guard_module.inject_sync_status(flask_app)
+
+# expose mannequin anatomy geometry to templates (macros, imported without
+# `with context`, can only see true Jinja globals - not context processors)
+flask_app.jinja_env.globals["MANNEQUIN_FRONT"] = anatomy.FRONT_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_BACK"] = anatomy.BACK_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_OUTLINE"] = anatomy.FRONT_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_BACK_OUTLINE"] = anatomy.BACK_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_VIEWBOX"] = anatomy.FRONT_VIEWBOX
+flask_app.jinja_env.globals["MANNEQUIN_BACK_VIEWBOX"] = anatomy.BACK_VIEWBOX
 
 #
 # Flask app decorators
@@ -3487,7 +3498,52 @@ def get_activity(key):
         next_month=next_month,
         next_day=next_day,
         activity_map_data=activity_map_data,
+        is_bookmarked=ds.list_bookmarks(user_id).is_bookmarked(a.key),
         form=form,
+    )
+
+
+@flask_app.route("/app/activities/<key>/bookmark", methods=["POST"])
+def bookmark_activity(key):
+    """Add activity to the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        user_profile = ds.profile(user_id)
+        try:
+            ds.get_activity(
+                user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+            )
+        except ValueError:
+            flask.flash(message="Bookmark error - activity not found", category="error")
+        else:
+            ds.create_bookmark(user_id=user_id, activity_key=key)
+            flask.flash(message="Activity bookmarked", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("get_activity", key=key))
+
+
+@flask_app.route("/app/activities/<key>/unbookmark", methods=["POST"])
+def unbookmark_activity(key):
+    """Remove activity from the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        ds.delete_bookmark(user_id=user_id, activity_key=key)
+        flask.flash(message="Bookmark removed", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(
+        flask.request.referrer or flask.url_for("get_activity", key=key)
     )
 
 
@@ -4053,6 +4109,72 @@ def list_activities_diary():
     )
 
 
+@flask_app.route("/activities/bookmarks")
+def list_activities_bookmarks():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+    dataset_name = user_profile.dataset_name
+
+    bookmarks = ds.list_bookmarks(user_id=user_id)
+
+    activities = []
+    for activity_key in list(bookmarks.activity_keys):
+        try:
+            activities.append(
+                ds.get_activity(
+                    user_id=user_id, dataset_name=dataset_name, key=activity_key
+                )
+            )
+        except ValueError:
+            app_logger.warning(
+                "Bookmarked activity no longer exists, removing bookmark",
+                activity_key=activity_key,
+            )
+            ds.delete_bookmark(user_id=user_id, activity_key=activity_key)
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a in activities
+    }
+
+    return flask.render_template(
+        "activity-bookmarks.html",
+        user_profile=user_profile,
+        activities=activities,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=dataset_name),
+        activities_weekdays=activities_weekdays,
+        is_mobile=flask.session.get(COOKIE_MOBILE),
+        form=forms.EmptyForm(),
+    )
+
+
+@flask_app.route(
+    "/app/activities/bookmarks/<activity_key>/move/<direction>", methods=["POST"]
+)
+def move_activity_bookmark(activity_key, direction):
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        try:
+            ds.move_bookmark(
+                user_id=user_id, activity_key=activity_key, direction=direction
+            )
+        except ValueError:
+            flask.flash(message="Invalid bookmark move direction", category="error")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("list_activities_bookmarks"))
+
+
 @flask_app.route("/activities/prs")
 def list_activities_prs():
     user_id = flask.session.get(COOKIE_USER)
@@ -4372,54 +4494,41 @@ def list_activities_for_date(year, month, day):
         for a in activities
     }
 
-    # aggregate muscle groups for day heat-map
+    # muscle heat-map for the day, calibrated against the user's own
+    # trailing history so "hot" means unusually high for this user
     activity_types_registry = ds.list_activity_types(user_id=user_id)
     exercises_registry = ds.list_exercises(
         user_id=user_id,
         dataset_name=ds.profile(user_id).dataset_name,
     )
-    muscle_counts: dict[str, int] = {}
-    muscle_secondary: set[str] = set()
-    for activity in activities:
-        # muscles from activity type
-        at = activity_types_registry.activity_types_by_key.get(
-            activity.activity_type_key
-        )
-        if at:
-            for key in at.muscle_groups or []:
-                muscle_counts[key] = muscle_counts.get(key, 0) + 1
-            for key in at.muscle_groups_secondary or []:
-                muscle_secondary.add(key)
-        # muscles from individual exercises inside the activity
-        for ex_entity in activity.exercises or []:
-            ex = exercises_registry.exercise_by_key.get(
-                ex_entity.name
-            ) or exercises_registry.exercise_by_name.get(ex_entity.name)
-            if ex:
-                for key in ex.muscle_groups or []:
-                    muscle_counts[key] = muscle_counts.get(key, 0) + 1
-                for key in ex.muscle_groups_secondary or []:
-                    muscle_secondary.add(key)
+    day_stats = muscle_groups.compute_daily_muscle_stats(
+        activities, activity_types_registry, exercises_registry
+    )
 
-    def _intensity_class(count: int) -> str:
-        if count >= 10:
-            return "state-active intensity-5"
-        if count >= 7:
-            return "state-active intensity-4"
-        if count >= 4:
-            return "state-active intensity-3"
-        if count >= 2:
-            return "state-active intensity-2"
-        return "state-active intensity-1"
+    viewed_date = datetime.date(int(year), int(month), int(day))
+    history_start = viewed_date - datetime.timedelta(
+        days=muscle_groups.HEATMAP_HISTORY_WINDOW_DAYS
+    )
+    all_activities = ds.all_activities(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    ).values()
+    history_by_date = muscle_groups.group_activities_by_date(
+        a
+        for a in all_activities
+        if history_start
+        <= datetime.date(a.when_year, a.when_month, a.when_day)
+        <= viewed_date
+    )
+    historical_counts_by_day = [
+        muscle_groups.compute_daily_muscle_stats(
+            day_activities, activity_types_registry, exercises_registry
+        ).counts
+        for day_activities in history_by_date.values()
+    ]
 
-    # primary muscles: use intensity scale (green); secondary: amber
-    # a muscle that appears as both primary and secondary → primary wins
-    day_muscle_highlights: dict[str, str] = {}
-    for k, v in muscle_counts.items():
-        day_muscle_highlights[k] = _intensity_class(v)
-    for k in muscle_secondary:
-        if k not in day_muscle_highlights:
-            day_muscle_highlights[k] = "state-secondary"
+    day_muscle_highlights = muscle_groups.build_day_muscle_highlights(
+        day_stats, historical_counts_by_day
+    )
 
     # PREVIOUS / NEXT day navigation
     try:
@@ -4450,7 +4559,6 @@ def list_activities_for_date(year, month, day):
         "day-get.html",
         user_profile=user_profile,
         activities=activities,
-        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=activity_types_registry,
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -5106,6 +5214,16 @@ def charts_year(year):
             cal_heatmap=cal_heatmap,
             year=year_int,
             cumulative=bool(chart_type == charts.ChartType.SUM_KG.value),
+            is_mobile_view=flask.session.get(COOKIE_MOBILE),
+        )
+    elif chart_type in [
+        charts.ChartType.ELEVATION.value,
+        charts.ChartType.SUM_ELEVATION.value,
+    ]:
+        script, div = charts.total_elevation_per_week_in_year(
+            cal_heatmap=cal_heatmap,
+            year=year_int,
+            cumulative=bool(chart_type == charts.ChartType.SUM_ELEVATION.value),
             is_mobile_view=flask.session.get(COOKIE_MOBILE),
         )
     elif chart_type == charts.ChartType.WEIGHT.value:

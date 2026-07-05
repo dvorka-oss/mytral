@@ -5,7 +5,7 @@
 # Run: mytral
 
 name: mytral
-version: '1.56.0'
+version: '1.57.0'
 title: MyTraL
 summary: Sovereign athlete training log - train smarter, not harder
 description: |
@@ -32,7 +32,7 @@ description: |
   MyTraL puts your data back in your hands.
 
 grade: stable
-confinement: classic
+confinement: strict
 base: core24
 license: AGPL-3.0
 contact: martin.dvorak@mindforger.com
@@ -50,11 +50,25 @@ environment:
   MYTRAL_INCARNATION: DESKTOP
   MYTRAL_USER_REGISTRATION: "true"
   MYTRAL_ENABLE_CACHE: "true"
+  # strict-only wiring (removed by build-snap.sh --classic):
+  # store data in the version-independent per-user common dir (no manual review)
+  MYTRAL_DATA_DIR: $SNAP_USER_COMMON
+  # strict cannot launch a host browser - open the UI via the desktop portal instead
+  MYTRAL_DESKTOP_BROWSER: portal
 
 apps:
   mytral:
-    command: bin/mytral-wrapper
+    command: bin/mytral-strict
     desktop: meta/gui/mytral.desktop
+    plugs:
+      - network        # Strava / Concept2 / Polar / Google Sheets import
+      - network-bind   # local Flask server binds 127.0.0.1:5151
+      - desktop        # portal, fonts, themes, xdg-open shim (opens host browser)
+      - desktop-legacy
+      - wayland
+      - x11            # fallback session
+      - opengl
+      - home           # import FIT/GPX/TCX from non-hidden $HOME paths (~/Downloads)
 
 parts:
   mytral:
@@ -78,8 +92,11 @@ parts:
       craftctl default
       pip install "flaskwebgui~=1.0.0" "psutil>=5.9,<6.0"
       mkdir -p "$SNAPCRAFT_PART_INSTALL/bin"
+      # stage both launchers; the active one is selected by the apps.mytral command key
+      # (bin/mytral-strict for strict, bin/mytral-wrapper for classic)
+      cp "$SNAPCRAFT_PART_SRC/build/snap/mytral-strict" "$SNAPCRAFT_PART_INSTALL/bin/mytral-strict"
       cp "$SNAPCRAFT_PART_SRC/build/snap/mytral-wrapper" "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
-      chmod +x "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
+      chmod +x "$SNAPCRAFT_PART_INSTALL/bin/mytral-strict" "$SNAPCRAFT_PART_INSTALL/bin/mytral-wrapper"
 
   desktop-assets:
     plugin: dump

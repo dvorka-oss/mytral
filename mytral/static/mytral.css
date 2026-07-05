@@ -178,32 +178,34 @@ table.mytral-table-center {
 
 .mannequin-wrapper { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 .mannequin-panel   { flex: 0 0 auto; }
-.mannequin-panel svg { display: block; }
+.mannequin-panel svg { display: block; overflow: visible; }
 
-/* base shape */
-.mnq { fill: #dde3ea; stroke: #8b96a6; stroke-width: 1; transition: fill .2s, opacity .2s, stroke .15s; }
+/* body silhouette under the muscles */
+.mannequin-outline { fill: #cdd6e1; stroke: #aeb9c7; stroke-width: 2; }
 
-/* states */
+/* base muscle: muted relief so the body always reads as sculpted */
+.mnq { fill: #bcc6d3; stroke: #9aa6b6; stroke-width: 1.2; transition: fill .25s, opacity .25s, stroke .15s, filter .25s; }
+
+/* categorical states (exercise / activity-type preview) */
 .mnq.state-active    { fill: #2fb344; stroke: #1a7431; }
 .mnq.state-secondary { fill: #f59f00; stroke: #b36d00; }
-.mnq.state-injured   { fill: #d63939; stroke: #922020; opacity: .75; }
-.mnq.state-inactive  { fill: #dde3ea; stroke: #8b96a6; }
+.mnq.state-inactive  { fill: #bcc6d3; stroke: #9aa6b6; }
 
-/* intensity overlays (stacked on state-active / state-secondary) */
-.mnq.intensity-1 { opacity: .30; }
-.mnq.intensity-2 { opacity: .50; }
-.mnq.intensity-3 { opacity: .70; }
-.mnq.intensity-4 { opacity: .85; }
-.mnq.intensity-5 { opacity: 1.00; }
+/* muscle-load VOLUME heatmap: state-active + intensity-N gives a cool-to-hot ramp */
+.mnq.state-active.intensity-1 { fill: #2f86c5; stroke: #1f5e8c; opacity: 1; }
+.mnq.state-active.intensity-2 { fill: #23b89a; stroke: #178069; opacity: 1; }
+.mnq.state-active.intensity-3 { fill: #9ed64a; stroke: #6f9a2f; opacity: 1; }
+.mnq.state-active.intensity-4 { fill: #f6c244; stroke: #c9971a; opacity: 1; filter: drop-shadow(0 0 4px rgba(246,194,68,.55)); }
+.mnq.state-active.intensity-5 { fill: #e23b4e; stroke: #a3222f; opacity: 1; filter: drop-shadow(0 0 5px rgba(226,59,78,.6)); }
 
 /* picker interaction */
-.mnq.picker-hover     { stroke: #206bc4; stroke-width: 2; cursor: pointer; }
+.mnq.picker-hover     { stroke: #206bc4; stroke-width: 2.4; cursor: pointer; }
 .mnq.picker-primary   { fill: #2fb344; stroke: #1a7431; stroke-width: 2; opacity: 1; }
 .mnq.picker-secondary { fill: #f59f00; stroke: #b36d00; stroke-width: 2; opacity: 1; }
 
-/* injury (backward compat with /me page) */
-.mnq.body-injured       { fill: #dc3545; stroke: #a71d2a; opacity: .7; }
-.mnq.body-injured:hover { opacity: .9; cursor: pointer; }
+/* injury / sickness (/me page, symptom preview) */
+.mnq.body-injured       { fill: #dc3545; stroke: #a71d2a; filter: drop-shadow(0 0 4px rgba(220,53,69,.5)); }
+.mnq.body-injured:hover { cursor: pointer; }
 
 
 /* legend */

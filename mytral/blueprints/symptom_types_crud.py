@@ -214,7 +214,9 @@ def settings_symptoms_create():
         form = UpdateSymptomForm()
         if form.validate_on_submit():
             body_parts_csv = flask.request.form.get("body_parts", "")
-            body_parts = [p for p in body_parts_csv.split(",") if p.strip()]
+            body_parts = user_settings.validate_body_part_ids(
+                [p for p in body_parts_csv.split(",") if p.strip()]
+            )
             entity = user_settings.Symptom(
                 name=form.name.data,
                 body_parts=body_parts,
@@ -283,7 +285,9 @@ def settings_symptoms_update(key: str):
             body_parts_csv = flask.request.form.get("body_parts", "")
             entity.name = form.name.data or ""
             entity.description = form.description.data or ""
-            entity.body_parts = [p for p in body_parts_csv.split(",") if p.strip()]
+            entity.body_parts = user_settings.validate_body_part_ids(
+                [p for p in body_parts_csv.split(",") if p.strip()]
+            )
 
             ds.update_symptom(user_id=user_id, symptom=entity)
 

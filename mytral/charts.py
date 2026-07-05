@@ -42,6 +42,8 @@ from mytral.recordings.models import RecordingData
 BOKEH_WEEK_DAYS = ["Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"]
 VIEW_WIDTH_DEFAULT = 1100
 VIEW_WIDTH_MOBILE = 500
+EVERESTING_M = 8848  # height of Mt. Everest in meters
+EVERESTING_RANGE_PADDING = 1.05  # headroom so the reference line is never clipped
 
 
 class ChartType(enum.Enum):
@@ -51,6 +53,8 @@ class ChartType(enum.Enum):
     SUM_KG = "sum_kg"
     HOUR = "hour"
     SUM_HOUR = "sum_hour"
+    ELEVATION = "elevation"
+    SUM_ELEVATION = "sum_elevation"
     WEIGHT = "weight"
     RESTING_HR = "resting_hr"
     TRIMP = "trimp"
@@ -84,6 +88,10 @@ def _apply_y_axis_formatter(fig, aspect: commons.StatsAspect) -> None:
             fig.yaxis.formatter = bokeh_models.CustomJSTickFormatter(
                 code="return tick + ' km';"
             )
+        case commons.StatsAspect.ELEVATION:
+            fig.yaxis.formatter = bokeh_models.CustomJSTickFormatter(
+                code="return tick + ' m';"
+            )
 
 
 def _apply_y_axis_formatter_for_chart_type(fig, chart_type: ChartType) -> None:
@@ -105,6 +113,8 @@ def _apply_y_axis_formatter_for_chart_type(fig, chart_type: ChartType) -> None:
         aspect = commons.StatsAspect.KGS
     elif chart_type in [ChartType.KM, ChartType.SUM_KM]:
         aspect = commons.StatsAspect.DISTANCE
+    elif chart_type == ChartType.ELEVATION:
+        aspect = commons.StatsAspect.ELEVATION
     if aspect is not None:
         _apply_y_axis_formatter(fig, aspect)
 
@@ -112,7 +122,7 @@ def _apply_y_axis_formatter_for_chart_type(fig, chart_type: ChartType) -> None:
 def _create_line_with_data_source(
     fig, x: list, y: list, aspect: commons.StatsAspect, color: str, **kwargs
 ) -> bokeh_models.GlyphRenderer:
-    """create a line with optional data source for duration tooltips."""
+    """create a line with optional data source for duration/elevation tooltips."""
     if commons.StatsAspect.DURATION == aspect:
         return fig.line(
             color=color,
@@ -121,6 +131,18 @@ def _create_line_with_data_source(
                     "x": x,
                     "y": y,
                     "strtime": [cals.seconds_to_chart_time(s) for s in y],
+                }
+            ),
+            **kwargs,
+        )
+    elif commons.StatsAspect.ELEVATION == aspect:
+        return fig.line(
+            color=color,
+            source=ColumnDataSource(
+                {
+                    "x": x,
+                    "y": y,
+                    "everest_pct": [v / EVERESTING_M * 100.0 for v in y],
                 }
             ),
             **kwargs,
@@ -140,6 +162,8 @@ def _add_hover_tool_with_tooltips(
             tooltips = "@y{int} km"
         case commons.StatsAspect.KGS:
             tooltips = "@y{int} kg"
+        case commons.StatsAspect.ELEVATION:
+            tooltips = "@y{int} m (@everest_pct{0.0}% of Everest)"
         case commons.StatsAspect.ACTIVITIES:
             tooltips = "@y{int} activities"
         case _:
@@ -147,6 +171,31 @@ def _add_hover_tool_with_tooltips(
 
     fig.add_tools(
         bokeh_models.HoverTool(tooltips=tooltips, renderers=renderers, mode=mode)
+    )
+
+
+def _add_everesting_line(
+    fig, aspect: commons.StatsAspect, y_max: float, x_min, x_max
+) -> None:
+    """draw a dashed red Everesting (8848 m) reference line for elevation charts."""
+    if commons.StatsAspect.ELEVATION != aspect:
+        return
+    # explicit y-range so the line has headroom and is never clipped above
+    # the visible frame, regardless of how small the actual elevation is
+    fig.y_range = bokeh_models.Range1d(
+        start=0, end=max(y_max, EVERESTING_M) * EVERESTING_RANGE_PADDING
+    )
+    # a real 2-point line (not an annotation) so Bokeh reliably draws both
+    # the line and its legend entry - an empty-data glyph is not rendered
+    # in the legend by Bokeh's client-side JS
+    fig.line(
+        [x_min, x_max],
+        [EVERESTING_M, EVERESTING_M],
+        line_color="red",
+        line_dash="dashed",
+        line_width=2,
+        line_alpha=0.7,
+        legend_label="Everesting (8848 m)",
     )
 
 
@@ -2493,34 +2542,34 @@ def last_vs_this_month(
 
     # last last
     x = list(llast_data.keys())
-    y = list(llast_data.values())
+    llast_y = list(llast_data.values())
     if commons.StatsAspect.DISTANCE == aspect:
-        y = [v / 1000.0 for v in y]
+        llast_y = [v / 1000.0 for v in llast_y]
     color = "gray"
     llast_w = _create_line_with_data_source(
-        fig, x, y, aspect, color, alpha=0.5, legend_label="last last month"
+        fig, x, llast_y, aspect, color, alpha=0.5, legend_label="last last month"
     )
-    fig.scatter(x, y, color=color)
+    fig.scatter(x, llast_y, color=color)
 
     # last
-    y = list(last_data.values())
+    last_y = list(last_data.values())
     if commons.StatsAspect.DISTANCE == aspect:
-        y = [v / 1000.0 for v in y]
+        last_y = [v / 1000.0 for v in last_y]
     color = "black"
     last_w = _create_line_with_data_source(
-        fig, x, y, aspect, color, alpha=0.5, legend_label="last month"
+        fig, x, last_y, aspect, color, alpha=0.5, legend_label="last month"
     )
-    fig.scatter(x, y, color=color)
+    fig.scatter(x, last_y, color=color)
 
     # this
-    y = list(this_data.values())
+    this_y = list(this_data.values())
     if commons.StatsAspect.DISTANCE == aspect:
-        y = [v / 1000.0 for v in y]
+        this_y = [v / 1000.0 for v in this_y]
     color = "green"
     this_w = _create_line_with_data_source(
-        fig, x, y, aspect, color, line_width=2, legend_label="this month"
+        fig, x, this_y, aspect, color, line_width=2, legend_label="this month"
     )
-    fig.scatter(x, y, color=color)
+    fig.scatter(x, this_y, color=color)
 
     if is_mobile_view:
         fig.legend.visible = False
@@ -2528,6 +2577,10 @@ def last_vs_this_month(
         fig.legend.location = "top_left"
 
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
+
+    _add_everesting_line(
+        fig, aspect, max(llast_y + last_y + this_y, default=0), x[0], x[-1]
+    )
 
     script, div = bokeh_embed.components(fig)
 
@@ -2568,20 +2621,20 @@ def last_vs_this_week(
 
     # last
     x = list(range(1, 8))
-    y = list(itertools.accumulate(data[0]))
+    last_y = list(itertools.accumulate(data[0]))
     color = "gray"
     last_w = _create_line_with_data_source(
-        fig, x, y, aspect, color, alpha=0.5, legend_label="last week"
+        fig, x, last_y, aspect, color, alpha=0.5, legend_label="last week"
     )
-    fig.scatter(x, y, color=color)
+    fig.scatter(x, last_y, color=color)
 
     # this
-    y = list(itertools.accumulate(data[1]))
+    this_y = list(itertools.accumulate(data[1]))
     color = "green"
     this_w = _create_line_with_data_source(
-        fig, x, y, aspect, color, line_width=2, legend_label="this week"
+        fig, x, this_y, aspect, color, line_width=2, legend_label="this week"
     )
-    fig.scatter(x, y, color=color)
+    fig.scatter(x, this_y, color=color)
 
     if is_mobile_view:
         fig.legend.visible = False
@@ -2589,6 +2642,8 @@ def last_vs_this_week(
         fig.legend.location = "top_left"
 
     _add_hover_tool_with_tooltips(fig, aspect, [last_w, this_w])
+
+    _add_everesting_line(fig, aspect, max(last_y + this_y, default=0), x[0], x[-1])
 
     script, div = bokeh_embed.components(fig)
 
@@ -3686,6 +3741,13 @@ def _weekly_totals(
                     "y": [0 for _ in range(min_week, max_week)],
                 }
             }
+        elif chart_type == ChartType.ELEVATION:
+            fig_data = {
+                ChartType.ELEVATION.value: {
+                    "x": [i for i in range(min_week, max_week)],
+                    "y": [0 for _ in range(min_week, max_week)],
+                }
+            }
         else:
             fig_data = {
                 ChartType.KM.value: {
@@ -3713,6 +3775,11 @@ def _weekly_totals(
             elif chart_type in [ChartType.KG, ChartType.SUM_KG]:
                 kgs = cal_heatmap.week_stats[year][w][views.CalendarHeatmap.KEY_KG]
                 fig_data[ChartType.KG.value]["y"][w - 1] = kgs
+            elif chart_type == ChartType.ELEVATION:
+                elevation = cal_heatmap.week_stats[year][w][
+                    views.CalendarHeatmap.KEY_ELEVATION
+                ]
+                fig_data[ChartType.ELEVATION.value]["y"][w - 1] = elevation
             else:
                 meters = cal_heatmap.week_stats[year][w][views.CalendarHeatmap.KEY_M]
                 fig_data[ChartType.KM.value]["y"][w - 1] = meters / 1000.0
@@ -3781,6 +3848,8 @@ def _weekly_totals(
                 tooltips = "@y{int} km"
             case ChartType.KG | ChartType.SUM_KG:
                 tooltips = "@y{int} kg"
+            case ChartType.ELEVATION:
+                tooltips = "@y{int} m"
             case ChartType.WEIGHT:
                 tooltips = "@y{0.0} kg"
             case _:
@@ -3862,6 +3931,27 @@ def total_kg_per_week_in_year(
         cal_heatmap=cal_heatmap,
         year=year,
         chart_type=ChartType.KG,
+        cumulative=cumulative,
+        is_mobile_view=is_mobile_view,
+    )
+
+
+def total_elevation_per_week_in_year(
+    cal_heatmap: views.CalendarHeatmap,
+    year: int,
+    cumulative: bool = False,
+    is_mobile_view: bool = False,
+) -> tuple[str, Any]:
+    """Total **elevation** per week in given year chart:
+
+    x: week
+    y: total elevation gain (m) per week
+
+    """
+    return _weekly_totals(
+        cal_heatmap=cal_heatmap,
+        year=year,
+        chart_type=ChartType.ELEVATION,
         cumulative=cumulative,
         is_mobile_view=is_mobile_view,
     )

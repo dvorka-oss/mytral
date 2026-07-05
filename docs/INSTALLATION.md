@@ -2,15 +2,19 @@
 
 Install:
 
-* [Linux (Snap)](#install-on-linux-using-snap)
+* [Linux (Flatpak)](#install-on-linux-using-flatpak)
+* [Linux (Snap Store)](#install-on-linux-using-snap-from-snap-store)
+* [Linux (download)](#install-on-linux-using-snap)
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
-* [Windows (Installer)](#install-on-windows-using-installer)
-* [Windows (ZIP)](#install-on-windows-using-zip)
+* [Windows (installer)](#install-on-windows-using-installer)
+* [Windows (zip)](#install-on-windows-using-zip)
 
 Build:
 
 * [Ubuntu (binary)](#build-binary-on-ubuntu)
-* [Ubuntu (.deb)](#build--deb-on-ubuntu)
+* [Ubuntu (deb)](#build--deb-on-ubuntu)
+* [Snap (package)](#build-snap-on-linux)
+* [Flatpak (bundle)](#build-flatpak-on-linux)
 * [Windows (binary)](#build-binary-on-windows)
 * [Windows (installer)](#build-windows-installer)
 
@@ -97,13 +101,12 @@ mytral-<version>.exe
 
 
 
-## Install on Linux using Snap
+## Install on Linux using Snap from Snap Store
 
-Snap works across all major Linux distributions and keeps MyTraL up to date automatically.
-MyTraL uses **classic confinement** so it can open a native desktop window via Chrome/Chromium.
-
-**Prerequisite:** Chrome or Chromium must be installed — MyTraL opens its UI in a frameless
-Chrome window (not as a browser tab).
+The easiest way to install MyTraL on Linux is from the
+[Snap Store](https://snapcraft.io/mytral). Snap works across all major Linux
+distributions and keeps MyTraL up to date automatically.
+This package uses **strict confinement** and is published straight to the Snap Store.
 
 Install `Snapd` (if not already installed):
 
@@ -131,10 +134,10 @@ sudo zypper install snapd
 sudo systemctl enable --now snapd
 ```
 
-Install MyTraL from the Snap Store (classic confinement requires the `--classic` flag):
+Install MyTraL from the Snap Store:
 
 ```bash
-sudo snap install mytral --classic
+sudo snap install mytral
 ```
 
 Start MyTraL from the application menu or run:
@@ -143,18 +146,21 @@ Start MyTraL from the application menu or run:
 mytral
 ```
 
-MyTraL opens as a native desktop window. If Chrome/Chromium is not found it falls back to
-printing the URL so you can open it manually in any browser.
+MyTraL starts the local server and opens its UI in your **default browser**.
 
 **Data storage**
 
-Because MyTraL uses classic confinement it stores data in the same location as every
-other installation - your data is never locked inside the snap:
+Under strict confinement MyTraL stores its data inside the snap's per-user common
+directory:
 
 ```
-~/.local/share/mytral/   (data)
-~/.config/mytral/        (config)
+~/snap/mytral/common/data/
 ```
+
+Note: `sudo snap remove mytral` deletes this directory. Snapd keeps an automatic
+snapshot for ~31 days, but a later reinstall does not restore it automatically
+(use `snap restore` to recover). To keep a portable copy, use MyTraL's export
+feature.
 
 **Upgrade:**
 
@@ -167,6 +173,146 @@ sudo snap refresh mytral
 ```bash
 sudo snap remove mytral
 ```
+
+
+
+## Install on Linux using Snap
+
+MyTraL is also distributed as a downloadable **classic confinement** snap
+attached to each [GitHub Release](https://github.com/dvorka-oss/mytral/releases).
+Classic confinement lets MyTraL open a native frameless desktop window via a
+browser and store data in the standard location, but it is not available from
+the Snap Store - you install the downloaded `.snap` file directly.
+
+Install `Snapd` if you have not already
+(see [Install on Linux using Snap from Snap Store](#install-on-linux-using-snap-from-snap-store)).
+
+Download `mytral_<version>_amd64.snap` from the latest [GitHub release](https://github.com/dvorka-oss/mytral/releases),
+then install it with the `--dangerous` (unsigned, sideloaded) and `--classic` flags:
+
+```bash
+# example: mytral_1.57.0_amd64.snap
+sudo snap install --dangerous --classic ./mytral_1.57.0_amd64.snap
+```
+
+Start MyTraL from the application menu or run:
+
+```bash
+mytral
+```
+
+or
+
+```bash
+snap run mytral
+```
+
+With a browser MyTraL opens as a frameless desktop window. Otherwise it opens in
+your default browser as a normal window; if no browser can be opened at all, it
+prints the URL so you can open it manually.
+
+**Data storage**
+
+Because this build uses classic confinement it stores data in the same location as every
+other installation - your data is never locked inside the snap:
+
+```
+~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
+```
+
+**Uninstall:**
+
+```bash
+sudo snap remove mytral
+```
+
+
+
+## Install on Linux using Flatpak
+
+Flatpak works across all major Linux distributions. MyTraL runs as a sandboxed
+local web app and opens its UI in your **default browser**
+(via the desktop portal) - no extra permissions and no host access required.
+
+Install `flatpak` (if not already installed):
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install flatpak
+```
+
+**Fedora:**
+```bash
+sudo dnf install flatpak
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S flatpak
+```
+
+**openSUSE:**
+```bash
+sudo zypper install flatpak
+```
+
+Add the Flathub remote (one-time):
+
+```bash
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+Install the local bundle from [GitHub Releases](https://github.com/dvorka-oss/mytral/releases):
+
+```bash
+flatpak install --user ./mytral-<version>.flatpak
+
+# example: flatpak install --user ./mytral-1.56.0.flatpak
+```
+
+The bundle is self-contained:
+
+* If the required `org.freedesktop.Platform` runtime is missing, Flatpak offers
+  to fetch it from Flathub automatically - you do **not** need to configure
+  Flathub first.
+* If you prefer, you can still add the Flathub remote with the `remote-add`
+  command above.
+
+Start MyTraL from the application menu or run:
+
+```bash
+flatpak run fitness.mytral.Mytral
+```
+
+MyTraL starts a local server and opens its UI in **your default browser**.
+
+**Data storage**
+
+Like the in other MyTraL editions, MyTraL stores your data in the standard shared
+location - it is never locked inside the Flatpak sandbox, so it is shared with every
+other MyTraL installation (binary/PPA/Snap/*) and survives uninstalling the Flatpak:
+
+```
+~/.local/share/mytral/   (data)
+~/.config/mytral/        (config)
+```
+
+**Upgrade:**
+
+```bash
+flatpak update fitness.mytral.Mytral
+```
+
+**Uninstall:**
+
+```bash
+flatpak uninstall fitness.mytral.Mytral
+```
+
+Your data in `~/.local/share/mytral/` is **not** removed by uninstalling - delete
+that directory manually if you want to remove it.
 
 
 
@@ -230,7 +376,7 @@ make distro-desktop-install
 Install prerequisites:
 
 ```
-sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
+sudo apt install dh-python python3-all pybuild-plugin-pyproject python3-hatchling
 ```
 
 Build `.deb`:
@@ -240,6 +386,125 @@ make distro-ubuntu-deb
 ```
 
 Find `.deb` package in the directory printed by the `make` target.
+
+
+
+## Build Snap on Linux
+
+Install prerequisites (Snapcraft, plus LXD for isolated container builds):
+
+```bash
+sudo snap install snapcraft --classic
+sudo snap install lxd
+sudo lxd init --auto
+sudo usermod -aG lxd $USER
+```
+
+After adding yourself to the `lxd` group, log out and back in (or run `newgrp lxd`)
+so the new group membership takes effect.
+
+Build the Snap package:
+
+```bash
+make distro-snap-build
+```
+
+The package is created at:
+
+```
+distro/snap/mytral_<version>_amd64.snap
+```
+
+Show the path to the built package:
+
+```bash
+make distro-snap-path
+```
+
+Build and install it locally for testing (requires sudo; Snap uses classic
+confinement, so the `--classic` flag is applied automatically):
+
+```bash
+make distro-snap-install-local
+```
+
+Run MyTraL:
+
+```bash
+mytral
+```
+
+**Clean Snap artifacts:**
+
+```bash
+make distro-snap-clean
+```
+
+**Remove the locally installed Snap:**
+
+```bash
+make distro-snap-remove
+```
+
+Publish to the Snap Store (maintainers only):
+
+```bash
+make distro-snap-upload
+```
+
+
+
+## Build Flatpak on Linux
+
+Install prerequisites:
+
+```bash
+sudo apt install flatpak flatpak-builder
+```
+
+Add the Flathub remote and install the runtime and SDK (the build targets
+Python 3.12 via the `24.08` runtime):
+
+```bash
+flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install --user flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+```
+
+Build the Flatpak bundle:
+
+```bash
+make distro-flatpak-build
+```
+
+The single-file bundle is created at:
+
+```
+distro/flatpak/mytral-<version>.flatpak
+```
+
+Build and install it locally for testing (user scope):
+
+```bash
+make distro-flatpak-install-local
+```
+
+Run MyTraL:
+
+```bash
+flatpak run fitness.mytral.Mytral
+```
+
+**Clean Flatpak artifacts:**
+
+```bash
+make distro-flatpak-clean
+```
+
+**Remove the locally installed Flatpak:**
+
+```bash
+make distro-flatpak-remove
+```
 
 
 
