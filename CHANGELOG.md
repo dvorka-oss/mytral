@@ -14,7 +14,7 @@ This MyTraL **minor** release brings:
 - Added new body mannequin - from robot-like to realistic anatomical muscle
   geometry adapted from the MIT-licensed `react-native-body-highlighter`.
 - Added activity bookmarks - bookmark any activity from its detail page.
-- Added an `Elevation` aspect to the `This vs. Last` and `Chargs` pages,
+- Added an `Elevation` aspect to the `This vs. Last` and `Charts` pages,
   comparing weekly, monthly, and yearly elevation gain. The weekly and monthly
   charts also show a dashed red `Everesting` (8848 m) reference line so athletes
   can see whether their cumulative climbing reaches Mt. Everest peak.
