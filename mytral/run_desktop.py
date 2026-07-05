@@ -80,6 +80,7 @@ os.environ["MYTRAL_AUTO_ACCOUNT_CREATE"] = "true"
 
 from mytral import app_config
 from mytral import app_logger
+from mytral import desktop_browser
 from mytral import routes
 from mytral import version
 from mytral.blueprints import acoach_uri_space
@@ -102,23 +103,6 @@ from mytral.blueprints import symptom_types_crud
 from mytral.blueprints import tabpfn_uri_space
 from mytral.blueprints import tools_uri_space
 from mytral.blueprints import trimp_uri_space
-
-# value of MYTRAL_DESKTOP_BROWSER that selects the portal browser mode (Snap strict /
-# Flatpak sandboxes, where host browsers cannot be launched as a native window)
-DESKTOP_BROWSER_PORTAL = "portal"
-
-
-def use_portal_browser() -> bool:
-    """Whether to open the UI via the default browser instead of a native window.
-
-    Returns True when ``MYTRAL_DESKTOP_BROWSER`` is ``portal`` - the mode used by
-    sandboxed packaging (Snap strict, Flatpak) that cannot exec a host browser. The UI
-    then opens in the user's default browser via the desktop portal / ``xdg-open``.
-    """
-    return (
-        os.environ.get("MYTRAL_DESKTOP_BROWSER", "").strip().lower()
-        == DESKTOP_BROWSER_PORTAL
-    )
 
 
 def configure_pyinstaller_paths():
@@ -285,7 +269,7 @@ MyTraL: My Trailing Log - Desktop Edition
     log.setLevel(logging.DEBUG if app_config.debug else logging.ERROR)
 
     try:
-        if use_portal_browser():
+        if desktop_browser.use_portal_browser():
             # sandboxed packaging (Snap strict / Flatpak): cannot launch a host browser
             # as a native window, so open the UI in the default browser via the portal
             app_logger.info("Portal browser mode - opening UI in the default browser")

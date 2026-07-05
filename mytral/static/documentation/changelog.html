@@ -211,10 +211,11 @@
 <p>This MyTraL <strong>minor</strong> release brings:</p>
 <h3 id="added">Added</h3>
 <ul>
-<li>Published MyTraL to the Snap Store (snapcraft.io) using strict confinement.
+<li>Published MyTraL to the Snap Store (snapcraft.io) using <strong>strict</strong> confinement.
   The Snap Store snap runs the local server and opens the UI in the default browser.
-  Athlete data are stored in <code>$SNAP_USER_COMMON</code> (<code>~/snap/mytral/common</code>) i.e. are
-  NOT stored in the location used by all other distros + are retained for 30 days only.</li>
+  Athlete data are stored in <code>$SNAP_USER_COMMON</code> (<code>~/snap/mytral/common</code>)
+  i.e. are NOT stored in the location used by all other distros - data persist
+  until uninstall (snapd keeps a snapshot for ~31 days after <code>snap remove</code>).</li>
 <li>Added <code>distro-snap-build-classic</code> and <code>distro-snap-install-local-strict</code> Makefile
   targets for the two snap confinement variants.</li>
 <li>Added new body mannequin - from robot-like to realistic anatomical muscle geometry

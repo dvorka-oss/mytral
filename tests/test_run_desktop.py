@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import pytest
 
-from mytral import run_desktop
+from mytral import desktop_browser
 
 
 @pytest.mark.mytral
@@ -24,7 +24,7 @@ def test_use_portal_browser_true_when_env_is_portal(monkeypatch):
     # GIVEN MYTRAL_DESKTOP_BROWSER set to portal (Snap strict / Flatpak)
     monkeypatch.setenv("MYTRAL_DESKTOP_BROWSER", "portal")
     # WHEN the launcher decides the window mode
-    result = run_desktop.use_portal_browser()
+    result = desktop_browser.use_portal_browser()
     # THEN it selects the portal browser path
     assert result is True
 
@@ -34,7 +34,7 @@ def test_use_portal_browser_is_case_insensitive(monkeypatch):
     # GIVEN the env var set with surrounding whitespace and mixed case
     monkeypatch.setenv("MYTRAL_DESKTOP_BROWSER", "  Portal  ")
     # WHEN the launcher decides the window mode
-    result = run_desktop.use_portal_browser()
+    result = desktop_browser.use_portal_browser()
     # THEN it still selects the portal browser path
     assert result is True
 
@@ -44,7 +44,7 @@ def test_use_portal_browser_false_when_unset(monkeypatch):
     # GIVEN MYTRAL_DESKTOP_BROWSER not set (classic snap / PyInstaller desktop)
     monkeypatch.delenv("MYTRAL_DESKTOP_BROWSER", raising=False)
     # WHEN the launcher decides the window mode
-    result = run_desktop.use_portal_browser()
+    result = desktop_browser.use_portal_browser()
     # THEN it keeps the native app-window path
     assert result is False
 
@@ -54,6 +54,6 @@ def test_use_portal_browser_false_for_other_value(monkeypatch):
     # GIVEN MYTRAL_DESKTOP_BROWSER set to a non-portal value
     monkeypatch.setenv("MYTRAL_DESKTOP_BROWSER", "native")
     # WHEN the launcher decides the window mode
-    result = run_desktop.use_portal_browser()
+    result = desktop_browser.use_portal_browser()
     # THEN it keeps the native app-window path
     assert result is False
