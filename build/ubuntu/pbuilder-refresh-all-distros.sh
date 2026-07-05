@@ -23,7 +23,8 @@ set -euo pipefail
 # current :
 #   (trusty) xenial bionic (cosmic disco eoan) focal (groovy) hirsute impish noble
 #   plucky questing resolute
-for DISTRO in trusty xenial bionic focal jammy noble plucky questing resolute
+for DISTRO in plucky questing resolute
+#for DISTRO in trusty xenial bionic focal jammy noble plucky questing resolute
 do
     # pbuilder-dist stores the base tarball at ~/pbuilder/${DISTRO}-base.tgz automatically
     pbuilder-dist "${DISTRO}" create

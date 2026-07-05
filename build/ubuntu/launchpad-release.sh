@@ -57,7 +57,7 @@ print(data['project']['authors'][0]['email'])
 
 # set to the highest patch number already uploaded for this release;
 # the loop increments it before each build, so 0 > first build gets .1
-PATCH_VERSION=12
+PATCH_VERSION=18
 
 # set to true to skip the final dput upload step (the source/binary .deb are
 # still built for real - nothing about this is a "dry" run, hence the rename)
@@ -350,22 +350,35 @@ else
     gpg-agent --daemon
 fi
 
+#
+# Ubuntu versions
+#
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
 # https://wiki.ubuntu.com/Releases
-# obsolete:
+#
+# OBSOLETE:
 #   precise quantal saucy utopic vivid wily yakkety artful cosmic disco eoan
 #   groovy hirsute impish oracular
-# the Python runtime of distro version does not matter: postinst uses uv
-# to provision a self-contained Python 3.12 regardless of the system interpreter:
+#
+# UNSUPPORTED:
 #   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling
 #   xenial (16.04): debhelper 10, no pybuild-plugin-pyproject, no python3-hatchling
 #   bionic (18.04): debhelper 11, no pybuild-plugin-pyproject, no python3-hatchling
 #   focal  (20.04): debhelper 12, no pybuild-plugin-pyproject, no python3-hatchling
-# current (build-time deps available; uv handles the 3.12 runtime at install):
-#   jammy noble plucky questing
-# future:
-#   resolute
-SUPPORTED_UBUNTU_VERSIONS=(trusty xenial bionic focal jammy noble questing resolute)
+#   ...
+#   MyTraL's debian/control's Build-Depends
+#     (debhelper >= 13, pybuild-plugin-pyproject, python3-hatchling)
+#   do NOT exist in these Ubuntu versions, so sbuild fails at dependency-resolution
+#   before any compilation starts - the *build-time* tooling above is unavailable
+#   on these series
+#
+# CURRENT:
+#   22.04 24.04 25.04  25.10    26.04
+#   jammy noble plucky questing resolute
+#   ...
+#   current (build-time deps available; uv handles the 3.12 runtime at install)
+#
+SUPPORTED_UBUNTU_VERSIONS=(jammy noble plucky questing resolute)
 
 # optional CLI arg: build a single Ubuntu version; upload is skipped by default
 # unless the caller explicitly sets SKIP_UPLOAD=false
