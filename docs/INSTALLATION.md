@@ -375,7 +375,7 @@ make distro-desktop-install
 Install prerequisites:
 
 ```
-sudo apt install dh-python pybuild-plugin-pyproject python3-hatchling
+sudo apt install dh-python python3-all pybuild-plugin-pyproject python3-hatchling
 ```
 
 Build `.deb`:

@@ -269,6 +269,10 @@ class ActivitiesStats:
             for a in self.activities:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.exercise_kgs
+        elif commons.StatsAspect.ELEVATION == aspect:
+            for a in self.activities:
+                if activity_types.is_sport(a.activity_type_key):
+                    totals[a.when_day] += a.elevation_gain
         else:
             # aspect: activities count
             for a in self.activities:
@@ -303,6 +307,10 @@ class ActivitiesStats:
             for a in self.activities:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.exercise_kgs
+        elif commons.StatsAspect.ELEVATION == aspect:
+            for a in self.activities:
+                if activity_types.is_sport(a.activity_type_key):
+                    totals[a.when_month] += a.elevation_gain
         else:
             # aspect: activities count
             for a in self.activities:

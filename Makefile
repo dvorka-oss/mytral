@@ -96,6 +96,8 @@ USER_HOME := $(shell echo $$HOME)
 PLATFORM := $(shell uname -s)
 # DeepSeek API key (for vibe coding with DeepSeek)
 DEEPSEEK_API_KEY ?= $(shell pass show deepseek/apikey20260605)
+# Ubuntu version for local .deb build (see distro-ubuntu-deb)
+UBUNTU_VERSION ?= noble
 
 #
 # HELP
@@ -311,8 +313,8 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data
 	uv run python -m mytral.run
 endif
 
-run-preproduction: .venv ## run MyTraL server on Linux w/ DEMO data w/ production settings
-	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/demo \
+run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data w/ production settings
+	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/pre-production \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
@@ -587,20 +589,28 @@ distro-pad-refresh: ## refresh PAD.xml release fields (version, date, changelog,
 # DISTRIBUTION: Ubuntu PPA @ Launchpad
 #
 
-distro-launchpad-release:  ## build Ubuntu PPA package for Launchpad
+distro-launchpad-release:  ## build & upload Ubuntu PPA package for Launchpad, every supported Ubuntu version
 	@cd build/ubuntu && \
 	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
 	cd $(USER_HOME)/p/mytral/launchpad && \
 	./launchpad-release.sh
 	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
 
+.PHONY: distro-launchpad-release-version
+distro-launchpad-release-version: ## build & upload Ubuntu PPA package for ONE Ubuntu version; usage: make distro-launchpad-release-version UBUNTU_VERSION=jammy
+	@cd build/ubuntu && \
+	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
+	cd $(USER_HOME)/p/mytral/launchpad && \
+	SKIP_UPLOAD=false ./launchpad-release.sh $(UBUNTU_VERSION)
+	@echo "DONE: Ubuntu PPA package for $(UBUNTU_VERSION) released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
+
 .PHONY: distro-ubuntu-deb
-distro-ubuntu-deb: ## build Ubuntu .deb package locally (output to distro/deb/)
+distro-ubuntu-deb: ## build Ubuntu .deb package locally for one distro, no upload (output to distro/deb/); override with UBUNTU_VERSION=jammy
 	@mkdir -p $(DIR_DISTRO_DEB)
 	@cd build/ubuntu && \
 	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
 	cd $(USER_HOME)/p/mytral/launchpad && \
-	DRY_RUN=true ./launchpad-release.sh
+	./launchpad-release.sh $(UBUNTU_VERSION)
 	@find $(USER_HOME)/p/mytral/launchpad -name "mytral_*.deb" | \
 	    xargs ls -t | head -1 | xargs -I{} cp -v {} $(DIR_DISTRO_DEB)/
 	@echo "DONE: .deb package in file://$(CURDIR)/$(DIR_DISTRO_DEB)"

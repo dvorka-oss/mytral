@@ -574,7 +574,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
             total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
             if total_s > 0:
                 summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
-                summary.activity_type_key = commons.guess_activity_type_from_pace(
+                summary.activity_type_key = commons.guess_activity_type_from_avg_speed(
                     summary.avg_speed
                 )
             else:
@@ -599,7 +599,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
         total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
         if total_s > 0:
             summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
-            summary.activity_type_key = commons.guess_activity_type_from_pace(
+            summary.activity_type_key = commons.guess_activity_type_from_avg_speed(
                 summary.avg_speed
             )
         else:
