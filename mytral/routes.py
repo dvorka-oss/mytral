@@ -4120,7 +4120,7 @@ def list_activities_bookmarks():
     bookmarks = ds.list_bookmarks(user_id=user_id)
 
     activities = []
-    for activity_key in bookmarks.activity_keys:
+    for activity_key in list(bookmarks.activity_keys):
         try:
             activities.append(
                 ds.get_activity(
@@ -5214,6 +5214,16 @@ def charts_year(year):
             cal_heatmap=cal_heatmap,
             year=year_int,
             cumulative=bool(chart_type == charts.ChartType.SUM_KG.value),
+            is_mobile_view=flask.session.get(COOKIE_MOBILE),
+        )
+    elif chart_type in [
+        charts.ChartType.ELEVATION.value,
+        charts.ChartType.SUM_ELEVATION.value,
+    ]:
+        script, div = charts.total_elevation_per_week_in_year(
+            cal_heatmap=cal_heatmap,
+            year=year_int,
+            cumulative=bool(chart_type == charts.ChartType.SUM_ELEVATION.value),
             is_mobile_view=flask.session.get(COOKIE_MOBILE),
         )
     elif chart_type == charts.ChartType.WEIGHT.value:
