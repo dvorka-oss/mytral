@@ -211,30 +211,25 @@
 <p>This MyTraL <strong>minor</strong> release brings:</p>
 <h3 id="added">Added</h3>
 <ul>
-<li>Published MyTraL to the Snap Store (snapcraft.io) using <strong>strict</strong> confinement.
-  The Snap Store snap runs the local server and opens the UI in the default browser.
-  Athlete data are stored in <code>$SNAP_USER_COMMON</code> (<code>~/snap/mytral/common</code>)
-  i.e. are NOT stored in the location used by all other distros - data persist
-  until uninstall (snapd keeps a snapshot for ~31 days after <code>snap remove</code>).</li>
-<li>Added <code>distro-snap-build-classic</code> and <code>distro-snap-install-local-strict</code> Makefile
-  targets for the two snap confinement variants.</li>
-<li>Added new body mannequin - from robot-like to realistic anatomical muscle geometry
-  adapted from the MIT-licensed <code>react-native-body-highlighter</code>.</li>
+<li>Published MyTraL to the Snap Store at https://snapcraft.io using <strong>strict</strong>
+  confinement. The Snap Store snap runs the local server and opens the UI in the
+  default browser. Athlete data are stored in <code>$SNAP_USER_COMMON</code>
+  (<code>~/snap/mytral/common</code>) i.e. are NOT stored in the location used by all other
+  distros - data persist until uninstall (snapd keeps a snapshot for ~31 days
+  after <code>snap remove</code>).</li>
+<li>Added new body mannequin - from robot-like to realistic anatomical muscle
+  geometry adapted from the MIT-licensed <code>react-native-body-highlighter</code>.</li>
 <li>Added activity bookmarks - bookmark any activity from its detail page.</li>
-<li>Added an <code>Elevation</code> aspect to the <code>This vs. Last</code> page, comparing weekly, monthly,
-  and yearly elevation gain. The weekly and monthly charts also show a dashed red
-  <code>Everesting</code> (8848 m) reference line so athletes can see whether their cumulative
-  climbing reaches Mt. Everest peak.</li>
-<li>Added an <code>elevation</code> and weekly elevation chart to the Charts page.</li>
+<li>Added an <code>Elevation</code> aspect to the <code>This vs. Last</code> and <code>Chargs</code> pages,
+  comparing weekly, monthly, and yearly elevation gain. The weekly and monthly
+  charts also show a dashed red <code>Everesting</code> (8848 m) reference line so athletes
+  can see whether their cumulative climbing reaches Mt. Everest peak.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
 <li>Redrew the body mannequin with realistic anatomical muscle geometry, used
   everywhere it appears (muscle load, injuries, and sickness). Muscle load now
   renders as a cool-to-hot volume heatmap.</li>
-<li>The downloadable Snap (GitHub Releases) keeps classic confinement
-  (native window, <code>~/.local/share/mytral</code> data),
-  <strong>added</strong> strict confinement Snap build in order to make it to the Snap Store.</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
@@ -244,32 +239,33 @@
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>Fixed Ubuntu PPA/<code>.deb</code> installation on Ubuntu releases that do not ship Python 3.12
-  as the system interpreter (<code>trusty</code> through <code>focal</code>) - <code>postinst</code> now uses <code>uv</code> to
-  provision a self-contained Python 3.12 under <code>/opt/mytral</code>, independent of the host's
-  system Python.</li>
-<li>Fixed <code>.deb</code> package <code>Architecture</code> metadata (<code>all</code> -&gt; <code>amd64 arm64</code>) to match what
-  <code>postinst</code>'s <code>uv</code> bootstrap actually supports, so <code>apt</code> refuses unsupported
-  architectures upfront instead of installing a package that fails during configure.</li>
-<li>Fixed <code>.deb</code> <code>postinst</code> failing with an unclear <code>uv pip install</code> error when the
-  bundled wheel or <code>requirements.txt</code> was missing - it now fails fast with a clear
-  message.</li>
+<li>Fixed Ubuntu PPA/<code>.deb</code> installation on Ubuntu releases that do not ship
+  Python 3.12 as the system interpreter (<code>trusty</code> through <code>focal</code>) - <code>postinst</code>
+  now uses <code>uv</code> to provision a self-contained Python 3.12 under <code>/opt/mytral</code>,
+  independent of the host's system Python.</li>
+<li>Fixed <code>.deb</code> package <code>Architecture</code> metadata (<code>all</code> -&gt; <code>amd64 arm64</code>) to match
+  what <code>postinst</code>'s <code>uv</code> bootstrap actually supports, so <code>apt</code> refuses
+  unsupported architectures upfront instead of installing a package that fails
+  during configure.</li>
+<li>Fixed <code>.deb</code> <code>postinst</code> failing with an unclear <code>uv pip install</code> error when
+  the bundled wheel or <code>requirements.txt</code> was missing - it now fails fast with a
+  clear message.</li>
 </ul>
 <h3 id="security">Security</h3>
 <ul>
-<li>Hardened <code>.deb</code> <code>postinst</code>: the downloaded <code>uv</code> binary is now verified against a
-  pinned <code>sha256</code> checksum before extraction, closing a supply-chain gap where a
-  tampered or corrupted release asset would otherwise be executed as root during
-  package installation.</li>
+<li>Hardened <code>.deb</code> <code>postinst</code>: the downloaded <code>uv</code> binary is now verified against
+  a pinned <code>sha256</code> checksum before extraction, closing a supply-chain gap where
+  a tampered or corrupted release asset would otherwise be executed as root
+  during package installation.</li>
 </ul>
 <h3 id="infrastructure">Infrastructure</h3>
 <ul>
-<li>Rewrote <code>build/ubuntu/launchpad-release.sh</code> to accept an optional Ubuntu codename
-  argument, building (and optionally uploading) a single distribution instead of
-  always looping over every supported version.</li>
-<li>Added a <code>UBUNTU_VERSION</code> parameter (default <code>noble</code>) to <code>make distro-ubuntu-deb</code>, and
-  a new <code>make distro-launchpad-release-version</code> target to build and upload a single
-  Ubuntu version's PPA package.</li>
+<li>Rewrote <code>build/ubuntu/launchpad-release.sh</code> to accept an optional Ubuntu
+  codename argument, building (and optionally uploading) a single distribution
+  instead of always looping over every supported version.</li>
+<li>Added a <code>UBUNTU_VERSION</code> parameter (default <code>noble</code>) to <code>make
+  distro-ubuntu-deb</code>, and a new <code>make distro-launchpad-release-version</code> target
+  to build and upload a single Ubuntu version's PPA package.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1560"><a href="https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0">1.56.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
