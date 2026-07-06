@@ -33,16 +33,6 @@ Tarball:
 # Install
 Install MyTraL desktop application.
 
-### First launch
-
-The desktop application is ready to use right after install - no sign-up or
-login is needed. On the very first start, when no user profile exists yet, a
-default `athlete` user ("MyTraL Athlete") is created automatically and you are
-logged straight into the dashboard. You can rename this user, change its
-password, or create additional users from the profile page at any time.
-Logging out disables auto-login until you log back in explicitly, so the
-login page lets you pick an existing user or add a new one.
-
 
 
 ## Install on Ubuntu from PPA

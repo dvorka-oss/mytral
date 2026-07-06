@@ -38,8 +38,8 @@ SECURITY related configuration of MyTraL desktop:
       - SECURITY: user can change default user password
       - SECURITY: user can disable auto login.
       - SECURITY: user can create new / other users.
-      - SECURITY: logging out disables auto login until the next explicit
-        login, so a shared machine is not silently logged back in.
+      - SECURITY: logging out disables auto login until the next explicit login,
+        so that user can add a new account(s).
   - AUTO LOGIN
     - If user logs-in with username (account) which has enabled auto login,
       then the password is not checked and user is let in. This flag can be set
