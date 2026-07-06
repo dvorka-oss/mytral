@@ -150,9 +150,7 @@ div.heat_comment_only {
     background-color: #4682B4;
 }
 
-/* "today" marker: a banana-yellow ring drawn inside the cell, so it is never
-   clipped by the scrollable calendar (even on the top row) and stays visible in
-   any theme */
+/* heatmap today marker */
 div.heat_today {
     box-shadow: inset 0 0 0 2px #ffe135;
 }
