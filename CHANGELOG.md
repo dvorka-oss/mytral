@@ -8,7 +8,9 @@ This MyTraL **minor** release brings:
 - .
 
 ### Added
-- .
+- Calendar and sickness heatmaps now mark today with a yellow rectangle so the
+  current week and day stand out, and each sickness day's tooltip now reads like
+  `2026-05-25: 3x sick` instead of a bare count.
 
 ### Fixed
 - .
