@@ -8,11 +8,16 @@ This MyTraL **minor** release brings:
 - .
 
 ### Added
-- Smooth first start for the desktop application: when no user profile exists
-  yet, a default `athlete` user ("MyTraL Athlete") is auto-created and
-  auto-logged in, landing straight on the dashboard - no sign-up/login step
-  required. Logging out disables auto-login until the next explicit login,
-  so a second/third user can be added or logged into from the login page.
+
+- Improved the first login experience in MyTraL DESKTOP incarnation: when no
+  user profile exists yet, a default `athlete` user ("MyTraL Athlete") is
+  auto-created and auto-logged in, landing straight on the dashboard - no
+  sign-up/login step required. Logging out disables auto-login until the next
+  explicit login, so a second/third user can be added or logged into from the
+  login page.
+- Calendar and sickness heatmaps now mark today with a yellow rectangle so the
+  current week and day stand out, and each sickness day's tooltip now reads like
+  `2026-05-25: 3x sick` instead of a bare count.
 
 ### Fixed
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.

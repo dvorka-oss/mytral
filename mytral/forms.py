@@ -1839,7 +1839,7 @@ class ImportPolarHrmForm(flask_wtf.FlaskForm):
         label="Data directory",
         description=(
             "Absolute path to the directory that contains year sub-directories "
-            "with .hrm and .pdd files (e.g. /path/to/John/)."
+            "with .hrm and .pdd files."
         ),
         validators=[validators.DataRequired()],
     )
