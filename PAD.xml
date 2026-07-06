@@ -34,9 +34,9 @@
 	</Company_Info>
 	<Program_Info>
 		<Program_Name>MyTraL</Program_Name>
-		<Program_Version>1.56.0</Program_Version>
-		<Program_Release_Month>06</Program_Release_Month>
-		<Program_Release_Day>26</Program_Release_Day>
+		<Program_Version>1.58.0</Program_Version>
+		<Program_Release_Month>07</Program_Release_Month>
+		<Program_Release_Day>06</Program_Release_Day>
 		<Program_Release_Year>2026</Program_Release_Year>
 		<Program_Cost_Dollars>0</Program_Cost_Dollars>
 		<Program_Cost_Other_Code>0</Program_Cost_Other_Code>
@@ -46,7 +46,7 @@
 		<Program_Install_Support>Install and Uninstall</Program_Install_Support>
 		<Program_OS_Support>Win11,Win10,WinOther,Linux</Program_OS_Support>
 		<Program_Language>English</Program_Language>
-		<Program_Change_Info>Removed the Waitress WSGI server from the desktop edition. The desktop app serves a single local, so it now uses Flask's built-in threaded server - this removes a dependency and simplifies installation and packaging across Snap, PPA, and the Windows installer.; Updated bleach from 6.3 to 6.4.; Updated cryptography from 46.0 to 48.0.; Updated msgpack from 1.0 to 1.2.; Updated pytest (dev) from 8.4 to 9.0.</Program_Change_Info>
+		<Program_Change_Info>MyTraL 1.58.0 minor release.</Program_Change_Info>
 		<Program_Specific_Category>Home &amp; Hobby</Program_Specific_Category>
 		<Program_Category_Class>Home &amp; Hobby::Sports</Program_Category_Class>
 		<Program_Categories>Sports, Fitness, Health, Training</Program_Categories>

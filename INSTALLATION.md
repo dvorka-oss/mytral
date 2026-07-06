@@ -108,31 +108,10 @@ The easiest way to install MyTraL on Linux is from the
 distributions and keeps MyTraL up to date automatically.
 This package uses **strict confinement** and is published straight to the Snap Store.
 
-Install `Snapd` (if not already installed):
+Install `Snapd` (if not already installed) by following the official guide for
+your distribution:
 
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install snapd
-```
-
-**Fedora:**
-```bash
-sudo dnf install snapd
-sudo ln -s /var/lib/snapd/snap /snap
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S snapd
-sudo systemctl enable --now snapd.socket
-```
-
-**openSUSE:**
-```bash
-sudo zypper install snapd
-sudo systemctl enable --now snapd
-```
+* [Installing snapd](https://snapcraft.io/docs/tutorials/install-the-daemon/)
 
 Install MyTraL from the Snap Store:
 
