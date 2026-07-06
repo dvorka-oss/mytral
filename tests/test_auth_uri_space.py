@@ -55,6 +55,73 @@ def test_login_get_auto_logs_in_when_single_desktop_auto_login_user(monkeypatch)
 
 
 @pytest.mark.mytral
+def test_login_get_auto_migrates_before_auto_login(monkeypatch):
+    # GIVEN a desktop installation with one auto-login user and a pending
+    # data migration that succeeds
+    monkeypatch.setattr(
+        auth_uri_space.app_config, "incarnation", config.MytralIncarnation.DESKTOP
+    )
+    monkeypatch.setattr(
+        auth_uri_space.ds,
+        "list_profile_names",
+        lambda auto_login=False: {"athlete": "user-1"},
+    )
+    calls = {"migrated": False}
+
+    def _fake_migration():
+        calls["migrated"] = True
+        return True
+
+    monkeypatch.setattr(auth_uri_space, "_run_fs_migration", _fake_migration)
+
+    with auth_uri_space.flask_app.test_request_context("/login", method="GET"):
+        # WHEN
+        response = auth_uri_space.login()
+
+        # THEN - migration ran first, then the user was silently logged in
+        assert calls["migrated"] is True
+        assert response.status_code == 302
+        assert response.location == flask.url_for("home")
+        assert flask.session[auth_uri_space.COOKIE_USER] == "user-1"
+
+    print("DONE: GET /login runs data migration before auto-login")
+
+
+@pytest.mark.mytral
+def test_login_get_does_not_auto_login_when_migration_fails(monkeypatch):
+    # GIVEN a desktop installation with one auto-login user and a pending
+    # data migration that fails
+    monkeypatch.setattr(
+        auth_uri_space.app_config, "incarnation", config.MytralIncarnation.DESKTOP
+    )
+    monkeypatch.setattr(
+        auth_uri_space.ds,
+        "list_profile_names",
+        lambda auto_login=False: {"athlete": "user-1"},
+    )
+    monkeypatch.setattr(auth_uri_space, "_run_fs_migration", lambda: False)
+    monkeypatch.setattr(
+        auth_uri_space.config.MytralPersistenceFsConfig,
+        "is_migrate",
+        lambda self: True,
+    )
+    captured = {}
+    monkeypatch.setattr(flask, "render_template", _fake_render_template(captured))
+
+    with auth_uri_space.flask_app.test_request_context("/login", method="GET"):
+        # WHEN
+        response = auth_uri_space.login()
+
+        # THEN - no silent login; the login page (with migration UI) is shown
+        assert response == "ok"
+        assert captured["template_name"] == "log-in.html"
+        assert captured["context"]["is_migrate"] is True
+        assert auth_uri_space.COOKIE_USER not in flask.session
+
+    print("DONE: GET /login does not auto-login when data migration fails")
+
+
+@pytest.mark.mytral
 def test_login_get_does_not_auto_login_when_suppressed_after_logout(monkeypatch):
     # GIVEN a desktop installation where auto-login was just suppressed (logout)
     monkeypatch.setattr(

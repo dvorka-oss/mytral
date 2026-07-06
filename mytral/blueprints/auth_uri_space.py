@@ -186,6 +186,46 @@ def signup():
     return flask.redirect(flask.url_for("signup"))
 
 
+def _run_fs_migration() -> bool:
+    """Run any pending filesystem data migration.
+
+    Reads the current data spec version from disk (bypassing the cache),
+    runs any applicable migration steps and persists the new data spec
+    version to config.json.
+
+    Returns
+    -------
+    bool :
+        True if the data is at the current spec afterwards (migration
+        succeeded or none was needed), False if a migration was attempted
+        but failed.
+    """
+    # force a fresh read from disk (bypass cache)
+    config.MytralPersistenceFsConfig.invalidate_cache()
+    cfg = config.MytralPersistenceFsConfig(app_config)
+
+    if not cfg.is_migrate():
+        return True
+
+    try:
+        migrations = FsPersistenceMigrations(
+            logger=app_logger, cfg=cfg, ds=mytral.app_ds
+        )
+        migrations.migrate()
+
+        # persist the updated data spec version to config.json
+        cfg.update_data_spec_version()
+
+        # invalidate cache so the next disk read sees the updated state
+        config.MytralPersistenceFsConfig.invalidate_cache()
+        return True
+    except Exception as ex:
+        app_logger.error(
+            f"Data migration failed: {ex}", traceback=traceback.format_exc()
+        )
+        return False
+
+
 @flask_app.route("/login", methods=["GET", "POST"])
 def login():
     # MyTraL (access) token is generated on login by MyTraL server and stored
@@ -215,16 +255,27 @@ def login():
             if len(auto_login_profiles) == 1 and not flask.session.get(
                 COOKIE_AUTO_LOGIN_SUPPRESSED, False
             ):
-                user_name, user_id = next(iter(auto_login_profiles.items()))
+                # a pending data migration must run before we log the sole
+                # user in - keep it non-interactive to preserve the smooth
+                # desktop start, but never proceed on stale data if it fails
+                if _run_fs_migration():
+                    user_name, user_id = next(iter(auto_login_profiles.items()))
 
-                flask.session[COOKIE_USER] = user_id
-                flask.session[COOKIE_TOKEN] = str(uuid.uuid4())
+                    flask.session[COOKIE_USER] = user_id
+                    flask.session[COOKIE_TOKEN] = str(uuid.uuid4())
 
+                    flask.flash(
+                        message=f"Auto logged in as user '{user_name}'",
+                        category="success",
+                    )
+                    return flask.redirect(flask.url_for("home"))
+
+                # migration failed: fall through to the login page, which
+                # surfaces the migration UI and the error to the user
                 flask.flash(
-                    message=f"Auto logged in as user '{user_name}'",
-                    category="success",
+                    message="Data migration failed. Please check the logs.",
+                    category="error",
                 )
-                return flask.redirect(flask.url_for("home"))
 
         return flask.render_template(
             "log-in.html",
@@ -339,39 +390,14 @@ def login_migrate():
     migration steps, updates config.json with the new version, and
     redirects back to the login page.
     """
-    # force a fresh read from disk (bypass cache)
-    config.MytralPersistenceFsConfig.invalidate_cache()
-    cfg = config.MytralPersistenceFsConfig(app_config)
-
-    if not cfg.is_migrate():
-        flask.flash(
-            message="No data migration is needed at this time.",
-            category="info",
-        )
-        return flask.redirect(flask.url_for("login"))
-
-    try:
-        migrations = FsPersistenceMigrations(
-            logger=app_logger, cfg=cfg, ds=mytral.app_ds
-        )
-        migrations.migrate()
-
-        # persist the updated data spec version to config.json
-        cfg.update_data_spec_version()
-
-        # invalidate cache so the next login page GET reads the updated disk state
-        config.MytralPersistenceFsConfig.invalidate_cache()
-
+    if _run_fs_migration():
         flask.flash(
             message="Data migration completed successfully. You can now log in.",
             category="success",
         )
-    except Exception as ex:
-        app_logger.error(
-            f"Data migration failed: {ex}", traceback=traceback.format_exc()
-        )
+    else:
         flask.flash(
-            message=f"Data migration failed: {ex}. Please check the logs.",
+            message="Data migration failed. Please check the logs.",
             category="error",
         )
 
