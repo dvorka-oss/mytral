@@ -162,7 +162,7 @@ def signup():
 
             # log user in - store user_id (UUID) not username
             flask.session[COOKIE_USER] = user_id
-            flask.session[COOKIE_TOKEN] = uuid.uuid4()
+            flask.session[COOKIE_TOKEN] = str(uuid.uuid4())
             # a fresh, explicit login re-enables auto-login for the next boot
             flask.session.pop(COOKIE_AUTO_LOGIN_SUPPRESSED, None)
 

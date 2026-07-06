@@ -26,7 +26,7 @@ PRJ_NAME = "mytral"
 # main applications dataset name
 DATASET_NAME_MAIN = "lifelong"
 
-# default user name (desktop app installation)
+# default user name (tests, development) - IMPROVE: refactor to "athlete"
 DEFAULT_USER_NAME = "dvorka"
 
 # default user auto-created on the first DESKTOP boot when no user exists yet
