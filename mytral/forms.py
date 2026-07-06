@@ -23,6 +23,7 @@ import wtforms
 from wtforms import validators
 
 from mytral import commons
+from mytral import utils
 from mytral.backends import entities
 
 
@@ -656,6 +657,16 @@ class CreateActivityForm(flask_wtf.FlaskForm):
         label="Where",
         description="Location where the activity took place",
         validators=[],
+        default="",
+    )
+    tags = wtforms.StringField(
+        render_kw={"placeholder": "trail, morning, with friends"},
+        label="Tags (comma-separated)",
+        description=(
+            "Labels to make the activity easy to find, separated by commas "
+            "(e.g. trail, morning, with friends)"
+        ),
+        validators=[validators.Optional()],
         default="",
     )
 
@@ -1354,6 +1365,7 @@ def from_activity_form(
     entity.gears = list(form.gears.data) if form.gears.data else []
     entity.outfit = form.outfit.data or ""
     entity.formula = form.formula.data or ""
+    entity.tags = utils.parse_tags_csv(form.tags.data)
     if form.exercises.entries:
         for exercise_form in form.exercises.entries:
             entity.exercises.append(from_activity_exercise_form(exercise_form))

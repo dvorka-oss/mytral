@@ -70,6 +70,19 @@
                         {{ gear.to_dict().get(gear_key, {}).name }}
                         {% endif %}{% if not loop.last %}, {% endif %}
                     {% endfor %}
+                    {% if activity.tags %}
+                    <div class="mt-1">
+                        {% for tag in activity.tags %}
+                        {% if year %}
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', tag=tag) }}" class="text-decoration-none">
+                            <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
+                        </a>
+                        {% else %}
+                        <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </td>
                 <td>
                     {{ activity_types.emoji(activity.activity_type_key) }}
