@@ -118,3 +118,25 @@ def tag_to_color(tag: str) -> str:
     color_index = tag_hash % len(colors)
 
     return colors[color_index]
+
+
+def parse_tags_csv(tags_csv: str | None) -> list[str]:
+    """Parse a comma-separated tags string into a normalized list.
+
+    Parameters
+    ----------
+    tags_csv : str | None
+        raw comma-separated tags input (may be None or empty)
+
+    Returns
+    -------
+    list[str]
+        trimmed, non-empty tags in input order with duplicates removed
+
+    """
+    tags: list[str] = []
+    for tag in (tags_csv or "").split(","):
+        tag = tag.strip()
+        if tag and tag not in tags:
+            tags.append(tag)
+    return tags

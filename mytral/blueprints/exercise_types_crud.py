@@ -25,6 +25,7 @@ from mytral import ff
 from mytral import forms
 from mytral import muscle_groups as mg
 from mytral import settings as user_settings
+from mytral import utils
 from mytral.blobstore import EntityPhotoService
 from mytral.blobstore import exceptions as blob_exc
 from mytral.blobstore import validation as blob_validation
@@ -321,8 +322,7 @@ def settings_exercises_create():
     elif flask.request.method == "POST":
         form = UpdateExerciseTypeForm()
         if form.validate_on_submit():
-            tags_str = form.tags.data or ""
-            tags_list = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+            tags_list = utils.parse_tags_csv(form.tags.data)
             muscle_groups_csv = flask.request.form.get("muscle_groups", "")
             muscle_groups_list = mg.parse_muscle_groups_csv(muscle_groups_csv)
             muscle_groups_secondary_csv = flask.request.form.get(
@@ -507,8 +507,7 @@ def settings_exercises_update(key: str):
     elif flask.request.method == "POST":
         form = UpdateExerciseTypeForm()
         if form.validate_on_submit():
-            tags_str = form.tags.data or ""
-            tags_list = [tag.strip() for tag in tags_str.split(",") if tag.strip()]
+            tags_list = utils.parse_tags_csv(form.tags.data)
             muscle_groups_csv = flask.request.form.get("muscle_groups", "")
             muscle_groups_list = mg.parse_muscle_groups_csv(muscle_groups_csv)
             muscle_groups_secondary_csv = flask.request.form.get(

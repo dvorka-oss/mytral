@@ -2732,6 +2732,7 @@ def _update_activity(key: str, template: str):
         )
         form.outfit.data = db_entity.outfit if hasattr(db_entity, "outfit") else ""
         form.formula.data = db_entity.formula
+        form.tags.data = ", ".join(db_entity.tags) if db_entity.tags else ""
 
         # exercises
         if db_entity.exercises:
@@ -3818,6 +3819,7 @@ def list_activities_year(year):
     filter_intensity = flask.request.args.get("intensity", "")
     filter_type = flask.request.args.get("type", "")
     filter_source = flask.request.args.get("source", "")
+    filter_tag = flask.request.args.get("tag", "")
     aspect = flask.request.args.get("aspect", "feed")
 
     # apply filters
@@ -3847,6 +3849,8 @@ def list_activities_year(year):
             activities = [a for a in activities if a.ranked]
     if filter_source:
         activities = [a for a in activities if a.src == filter_source]
+    if filter_tag:
+        activities = [a for a in activities if filter_tag in (a.tags or [])]
 
     # get sort parameters
     sort_by = flask.request.args.get("sort", "when")
@@ -3916,6 +3920,7 @@ def list_activities_year(year):
     )
     unique_intensities = sorted(set(a.intensity for a in all_activities if a.intensity))
     unique_sources = sorted(set(a.src for a in all_activities if a.src))
+    unique_tags = sorted({tag for a in all_activities for tag in (a.tags or [])})
 
     # calculate year statistics for the cards
     year_total_distance = sum(a.distance for a in activities if a.distance)
@@ -3997,11 +4002,13 @@ def list_activities_year(year):
         unique_activity_types=unique_activity_types,
         unique_intensities=unique_intensities,
         unique_sources=unique_sources,
+        unique_tags=unique_tags,
         filter_activity_type=filter_activity_type,
         filter_gear=filter_gear,
         filter_intensity=filter_intensity,
         filter_type=filter_type,
         filter_source=filter_source,
+        filter_tag=filter_tag,
         sort_by=sort_by,
         sort_order=sort_order,
         aspect=aspect,
@@ -4037,12 +4044,14 @@ def search_activities():
         sort_by_when=True,
     )
 
-    # filter by case-insensitive substring match on name and description
+    # filter by case-insensitive substring match on name, description and tags
     q_lower = q.lower()
     activities = [
         a
         for a in activities
-        if q_lower in (a.name or "").lower() or q_lower in (a.description or "").lower()
+        if q_lower in (a.name or "").lower()
+        or q_lower in (a.description or "").lower()
+        or any(q_lower in tag.lower() for tag in (a.tags or []))
     ]
 
     activities_weekdays = {
