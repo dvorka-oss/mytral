@@ -101,11 +101,16 @@ def changelog_entry(version: str) -> tuple[str, str]:
     release_type = marker.group(1).lower() if marker else version_release_type(version)
     status = RELEASE_STATUS.get(release_type, "Minor Update")
 
-    bullets = collect_bullets(body)
-    summary = "; ".join(bullets) or f"MyTraL {version} release."
+    bullets = [b for b in collect_bullets(body) if not is_placeholder(b)]
+    summary = "; ".join(bullets) or f"MyTraL {version} {release_type} release."
     if len(summary) > MAX_CHANGE_INFO_CHARS:
         summary = summary[: MAX_CHANGE_INFO_CHARS - 1].rstrip() + "…"
     return summary, status
+
+
+def is_placeholder(bullet: str) -> bool:
+    """Return True for empty or ``.``-only changelog stubs (unwritten bullets)."""
+    return not bullet.strip(". ")
 
 
 def collect_bullets(body: list[str]) -> list[str]:
