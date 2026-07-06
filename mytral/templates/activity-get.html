@@ -199,8 +199,9 @@
                 {% if activity_entity.tags %}
                 <div class="mb-4">
                     {% for tag in activity_entity.tags %}
+                    {% set tag_color = tag|tag_to_color %}
                     <a href="{{ url_for('list_activities_year', year=activity_entity.when_year, tag=tag) }}" class="text-decoration-none">
-                        <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
+                        <span class="badge bg-{{ tag_color }} text-{{ tag_color }}-fg">{{ tag }}</span>
                     </a>
                     {% endfor %}
                 </div>

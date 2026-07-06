@@ -73,12 +73,12 @@
                     {% if activity.tags %}
                     <div class="mt-1">
                         {% for tag in activity.tags %}
+                        {% set tag_color = tag|tag_to_color %}
+                        {% set badge %}<span class="badge bg-{{ tag_color }} text-{{ tag_color }}-fg">{{ tag }}</span>{% endset %}
                         {% if year %}
-                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', tag=tag) }}" class="text-decoration-none">
-                            <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
-                        </a>
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', tag=tag) }}" class="text-decoration-none">{{ badge }}</a>
                         {% else %}
-                        <span class="badge bg-{{ tag|tag_to_color }} text-{{ tag|tag_to_color }}-fg">{{ tag }}</span>
+                        {{ badge }}
                         {% endif %}
                         {% endfor %}
                     </div>
