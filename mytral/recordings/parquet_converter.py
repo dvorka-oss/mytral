@@ -43,8 +43,13 @@ import io
 import defusedxml.ElementTree
 import polars
 
+from mytral.recordings import _geo_utils
 from mytral.recordings import tcx_extractor
 from mytral.recordings.models import RecordingData
+
+# half-width (in samples) of the centred window used to estimate speed from a
+# GPS track; a wider window trades responsiveness for less GPS-noise volatility
+_ESPEED_HALF_WINDOW = 12
 
 
 def fit_to_parquet(fit_data: bytes) -> bytes:
@@ -503,6 +508,71 @@ def hrm_to_parquet(hrm_data: dict) -> bytes:
     return buf.getvalue()
 
 
+def _derive_speed_from_gps(
+    timestamps: list[datetime.datetime],
+    lat_values: list[float | None],
+    lon_values: list[float | None],
+    half_window: int = _ESPEED_HALF_WINDOW,
+) -> list[float | None]:
+    """Estimate per-sample speed (km/h) from a GPS track.
+
+    Speed is computed as displacement over a centred time window
+    (``distance(i - w .. i + w) / elapsed(i - w .. i + w)``) rather than between
+    consecutive points, so that GPS position jitter partly cancels instead of
+    compounding into extreme spikes (naive point-to-point speed on 1 s samples
+    routinely reads 150+ km/h on a bike ride).
+
+    Parameters
+    ----------
+    timestamps : list[datetime.datetime]
+        Ordered per-sample timestamps.
+    lat_values : list[float | None]
+        WGS84 latitude per sample (degrees), ``None`` where a fix is missing.
+    lon_values : list[float | None]
+        WGS84 longitude per sample (degrees), ``None`` where a fix is missing.
+    half_window : int
+        Half-width of the centred smoothing window, in samples.
+
+    Returns
+    -------
+    list[float | None]
+        Estimated speed in km/h per sample, ``None`` where it cannot be
+        computed (e.g. a zero-length time window).
+    """
+    n = len(timestamps)
+    if n < 2:
+        return [None] * n
+
+    # cumulative haversine distance (metres) and epoch seconds per sample
+    cum_distance_m = [0.0] * n
+    seconds = [ts.timestamp() for ts in timestamps]
+    prev_lat: float | None = None
+    prev_lon: float | None = None
+    for i in range(n):
+        if i > 0:
+            cum_distance_m[i] = cum_distance_m[i - 1]
+        lat = lat_values[i]
+        lon = lon_values[i]
+        if lat is None or lon is None:
+            continue
+        if prev_lat is not None and prev_lon is not None:
+            cum_distance_m[i] += _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
+        prev_lat, prev_lon = lat, lon
+
+    speed: list[float | None] = []
+    for i in range(n):
+        lo = max(0, i - half_window)
+        hi = min(n - 1, i + half_window)
+        elapsed_s = seconds[hi] - seconds[lo]
+        if elapsed_s > 0:
+            speed.append(
+                round((cum_distance_m[hi] - cum_distance_m[lo]) / elapsed_s * 3.6, 2)
+            )
+        else:
+            speed.append(None)
+    return speed
+
+
 def load_parquet(parquet_data: bytes) -> RecordingData:
     """Deserialise Parquet bytes into a RecordingData for chart rendering.
 
@@ -548,14 +618,25 @@ def load_parquet(parquet_data: bytes) -> RecordingData:
     has_power = bool(df["has_power"][0])
     source_format = str(df["source_format"][0]) if len(df) > 0 else ""
 
+    speed_values = df["speed"].to_list()
+    lat_values = df["lat"].to_list()
+    lon_values = df["lon"].to_list()
+
+    # estimate speed from the GPS track when the device provided none (e.g. GPX)
+    speed_estimated = False
+    if not has_speed and has_gps:
+        speed_values = _derive_speed_from_gps(timestamps, lat_values, lon_values)
+        has_speed = any(v is not None for v in speed_values)
+        speed_estimated = has_speed
+
     return RecordingData(
         timestamps=timestamps,
         hr_values=df["hr"].to_list(),
-        speed_values=df["speed"].to_list(),
+        speed_values=speed_values,
         cadence_values=df["cadence"].to_list(),
         altitude_values=df["altitude"].to_list(),
-        lat_values=df["lat"].to_list(),
-        lon_values=df["lon"].to_list(),
+        lat_values=lat_values,
+        lon_values=lon_values,
         power_values=df["power"].to_list(),
         has_speed=has_speed,
         has_cadence=has_cadence,
@@ -563,4 +644,5 @@ def load_parquet(parquet_data: bytes) -> RecordingData:
         has_gps=has_gps,
         has_power=has_power,
         source_format=source_format,
+        speed_estimated=speed_estimated,
     )
