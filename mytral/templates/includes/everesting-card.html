@@ -1,0 +1,104 @@
+{# Everesting dashboard card - climbed / 8848 m for the top climbing sport.
+   Expects `periods`: dict name -> EverestingProgress for day/week/month/year.
+   Shows Month by default; a client-side D/W/M/Y toggle switches the values
+   without a page reload. #}
+{% set p = periods.month %}
+{% set init_pct = [p.pct, 100]|min %}
+{% set rect_y = 75 - (init_pct / 100 * 70) %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="subheader">
+                Everesting
+                <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Everesting means climbing the height of Mt. Everest (8848 m). This shows how much vertical you have accumulated with your top climbing sport ({{ p.meta_sport_label }}) over the chosen period. Pick a day, week, month, or year - the challenge is yours to define.">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                        <path d="M12 8l0 4"></path>
+                        <path d="M12 16l.01 0"></path>
+                    </svg>
+                </span>
+            </div>
+            <div class="ms-auto">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Everesting period">
+                    {% for name, short, label in [('day', 'D', 'today'), ('week', 'W', 'this week'), ('month', 'M', 'this month'), ('year', 'Y', 'this year')] %}
+                    {% set pp = periods[name] %}
+                    <button type="button"
+                        class="btn everesting-period-btn {{ 'btn-primary' if name == 'month' else 'btn-outline-primary' }}"
+                        data-climbed="{{ pp.climbed_m }}"
+                        data-target="{{ pp.target_m }}"
+                        data-pct="{{ pp.pct }}"
+                        data-eta="{{ pp.eta_days if pp.eta_days is not none else '' }}"
+                        data-summited="{{ '1' if pp.summited else '0' }}"
+                        data-label="{{ label }}">{{ short }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center mt-2">
+            <div class="me-3" style="width: 68px; flex: none;">
+                <svg viewBox="0 0 100 80" width="100%" style="color: var(--tblr-secondary);">
+                    <defs>
+                        <clipPath id="everesting-mtn-clip">
+                            <polygon points="50,5 95,75 5,75"></polygon>
+                        </clipPath>
+                    </defs>
+                    <polygon points="50,5 95,75 5,75" fill="currentColor" opacity="0.15"></polygon>
+                    <rect id="everesting-fill" x="0" y="{{ "%.2f"|format(rect_y) }}" width="100" height="100" clip-path="url(#everesting-mtn-clip)" fill="#d63939" opacity="0.85"></rect>
+                    <polygon points="50,5 95,75 5,75" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"></polygon>
+                </svg>
+            </div>
+            <div class="flex-fill">
+                <div class="h1 mb-0">
+                    <span id="everesting-climbed">{{ "{:,}".format(p.climbed_m) }}</span><span class="text-muted fs-3"> / {{ "{:,}".format(p.target_m) }} m</span>
+                </div>
+                <div class="text-muted small">
+                    <span id="everesting-sport">{{ p.meta_sport_label }}</span> - <span id="everesting-period-label">this month</span>
+                </div>
+                <div class="progress progress-sm mt-2">
+                    <div id="everesting-bar" class="progress-bar bg-red" style="width: {{ "%.1f"|format(init_pct) }}%" role="progressbar" aria-valuenow="{{ "%.0f"|format(init_pct) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-muted small mt-1">
+                    <span id="everesting-pct">{{ "%.1f"|format(p.pct) }}%</span> of Everest<span id="everesting-status">{% if p.summited %} - summited!{% elif p.eta_days %} - summit ETA ~{{ p.eta_days }} days at this pace{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        var buttons = document.querySelectorAll(".everesting-period-btn");
+        var climbedEl = document.getElementById("everesting-climbed");
+        var pctEl = document.getElementById("everesting-pct");
+        var barEl = document.getElementById("everesting-bar");
+        var statusEl = document.getElementById("everesting-status");
+        var labelEl = document.getElementById("everesting-period-label");
+        var fillEl = document.getElementById("everesting-fill");
+        function apply(btn) {
+            var climbed = parseInt(btn.getAttribute("data-climbed"), 10) || 0;
+            var pct = parseFloat(btn.getAttribute("data-pct")) || 0;
+            var eta = btn.getAttribute("data-eta");
+            var summited = btn.getAttribute("data-summited") === "1";
+            var capped = Math.min(100, pct);
+            climbedEl.textContent = climbed.toLocaleString();
+            pctEl.textContent = pct.toFixed(1) + "%";
+            barEl.style.width = capped.toFixed(1) + "%";
+            fillEl.setAttribute("y", (75 - capped / 100 * 70).toFixed(2));
+            labelEl.textContent = btn.getAttribute("data-label");
+            if (summited) {
+                statusEl.textContent = " - summited!";
+            } else if (eta) {
+                statusEl.textContent = " - summit ETA ~" + eta + " days at this pace";
+            } else {
+                statusEl.textContent = "";
+            }
+            buttons.forEach(function (b) {
+                b.classList.toggle("btn-primary", b === btn);
+                b.classList.toggle("btn-outline-primary", b !== btn);
+            });
+        }
+        buttons.forEach(function (b) {
+            b.addEventListener("click", function () { apply(b); });
+        });
+    })();
+</script>

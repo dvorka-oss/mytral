@@ -43,6 +43,7 @@ from mytral import blobstore as blob_pkg
 from mytral import cals
 from mytral import charts
 from mytral import commons
+from mytral import everesting
 from mytral import ff
 from mytral import forms
 from mytral import insights
@@ -645,6 +646,14 @@ def home():
         else None
     )
 
+    # everesting: climbed / 8848 m for the top climbing sport, per period
+    everesting_periods = everesting.dashboard_periods(
+        all_activities, datetime.date.today()
+    )
+    lifetime_vertical_m = everesting.lifetime_vertical_m(all_activities)
+    lifetime_everests = everesting.everests_climbed(lifetime_vertical_m)
+    lifetime_pct_to_space = everesting.pct_to_space(lifetime_vertical_m)
+
     # warnings: gear
     gear_requires_attention = None
     gear = ds.list_gear(
@@ -697,6 +706,11 @@ def home():
         dashboard_longest_activity=dashboard_longest_activity,
         dashboard_most_intense_activity=dashboard_most_intense_activity,
         dashboard_highest_elevation_activity=dashboard_highest_elevation_activity,
+        # everesting
+        everesting_periods=everesting_periods,
+        lifetime_vertical_m=lifetime_vertical_m,
+        lifetime_everests=lifetime_everests,
+        lifetime_pct_to_space=lifetime_pct_to_space,
         # onboarding
         onboarding_active=onboarding_active,
         onboarding_state=onboarding_state,
@@ -741,6 +755,26 @@ def this_vs_last():
         except KeyError:
             flask.abort(400)
 
+    # elevation charts are scoped to a single climbing meta sport; other aspects
+    # aggregate across all sports (meta_sport stays None)
+    meta_sport = None
+    climbing_sports = []
+    if commons.StatsAspect.ELEVATION == aspect:
+        climbing_sports = commons.EVERESTING_CLIMBING_META_SPORTS
+        meta_arg = flask.request.args.get("meta")
+        if meta_arg in climbing_sports:
+            meta_sport = meta_arg
+        else:
+            # default to the sport with the most vertical this year
+            meta_sport = everesting.top_climbing_meta_sport(
+                ds.list_activities(
+                    user_id=user_id,
+                    dataset_name=user_profile.dataset_name,
+                    filter_year=int(year),
+                ),
+                datetime.date.today(),
+            )
+
     # chart
     if commons.StatsPeriod.YEAR == period:
         bokeh_script, bokeh_div = charts.last_vs_this_year(
@@ -748,6 +782,7 @@ def this_vs_last():
             user_id=user_id,
             ds=ds,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
     elif commons.StatsPeriod.MONTH == period:
         bokeh_script, bokeh_div = charts.last_vs_this_month(
@@ -755,6 +790,7 @@ def this_vs_last():
             user_id=user_id,
             ds=ds,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
     else:
         cal_heatmap = views.CalendarHeatmap(
@@ -776,6 +812,7 @@ def this_vs_last():
             heatmap=cal_heatmap,
             aspect=aspect,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
 
     return flask.render_template(
@@ -783,6 +820,11 @@ def this_vs_last():
         user_profile=user_profile,
         div=bokeh_div,
         script=bokeh_script,
+        aspect=aspect.name.lower(),
+        period=period.name.lower(),
+        meta=meta_sport,
+        climbing_sports=climbing_sports,
+        meta_sport_names=commons.M_AT_DISPLAY_NAMES,
     )
 
 

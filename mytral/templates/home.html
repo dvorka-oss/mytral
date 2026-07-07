@@ -415,6 +415,9 @@
                         <a href="{{ url_for('get_activity', key=dashboard_highest_elevation_activity.key) }}" class="text-reset">
                             {{ dashboard_highest_elevation_activity.name or activity_types.name(dashboard_highest_elevation_activity.activity_type_key) }}
                         </a>
+                        {% if dashboard_highest_elevation_activity.everesting_variant %}
+                        <span class="badge bg-purple text-purple-fg ms-1" title="Single-activity Everesting achievement">{{ dashboard_highest_elevation_activity.everesting_variant }}</span>
+                        {% endif %}
                     </div>
                     <div class="text-muted small">{{ "{:,}".format(dashboard_highest_elevation_activity.elevation_gain) }} m · {{ dashboard_highest_elevation_activity.when_year }}</div>
                     {% else %}
@@ -670,6 +673,51 @@
                 </div>
             </div>
         </div>
+    </div>
+    {% endif %}
+
+    {# Row: Everesting (climbed / 8848 m) + lifetime vertical to space #}
+    {% if everesting_periods or lifetime_vertical_m %}
+    <div class="row row-deck row-cards mt-3">
+        {% if everesting_periods %}
+        <div class="col-lg-6">
+            {% set periods = everesting_periods %}
+            {% include "includes/everesting-card.html" %}
+        </div>
+        {% endif %}
+        {% if lifetime_vertical_m %}
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">
+                            Vertical to space
+                            <span class="form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Total elevation you have ever climbed, expressed as full Everests (8848 m each) and as progress toward the Karman line - the edge of space at 100 km up.">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                    <path d="M12 8l0 4"></path>
+                                    <path d="M12 16l.01 0"></path>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="h1 mb-0">
+                        {{ "{:,}".format(lifetime_vertical_m) }}<span class="text-muted fs-3"> m climbed</span>
+                    </div>
+                    <div class="text-muted small">
+                        {{ "%.1f"|format(lifetime_everests) }} Everests in a lifetime
+                    </div>
+                    <div class="progress progress-sm mt-2">
+                        <div class="progress-bar bg-azure" style="width: {{ "%.2f"|format([lifetime_pct_to_space, 100]|min) }}%" role="progressbar" aria-valuenow="{{ "%.0f"|format([lifetime_pct_to_space, 100]|min) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="text-muted small mt-1">
+                        {{ "%.2f"|format(lifetime_pct_to_space) }}% to the Karman line (100 km up)
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 
