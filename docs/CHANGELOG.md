@@ -5,16 +5,25 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
+  card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
+  top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
+  and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
+  full Everests and progress toward the Karman line (the edge of space, 100 km up).
+  Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
+  now earns an Everesting achievement badge shown on the activity, in activity lists,
+  and on the "Highest Climb Ever" card.
 
 ### Changed
-- Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and
-  Nordic Ski) instead of lumping all sports together. The `This vs. Last`
-  elevation view gained a sport selector and shows the 8848 m Everesting
-  reference line scoped to the selected sport (now on the yearly view too).
+- Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
+  Ski) instead of lumping all sports together. The `This vs. Last` elevation view gained
+  a sport selector and shows the 8848 m Everesting reference line scoped to the selected
+  sport (now on the yearly view too).
 
 ### Fixed
-- .
+- Fixed the `This vs. Last` page showing the literal text "None" instead of a
+  chart when the selected sport and period had no data - it now shows a friendly
+  empty state.
 
 ### Documentation
 - .
@@ -35,17 +44,6 @@ This MyTraL **minor** release brings:
 - Calendar and sickness heatmaps now mark today with a yellow rectangle so the
   current week and day stand out, and each sickness day's tooltip now reads like
   `2026-05-25: 3x sick` instead of a bare count.
-<<<<<<< HEAD
-- A redesigned, sport-aware Everesting experience on the dashboard. A new
-  Everesting card tracks how much of Mt. Everest (8848 m of climbing) you have
-  accumulated for your top climbing sport, with a Day/Week/Month/Year toggle, a
-  filling mountain silhouette, and a summit ETA. A companion "Vertical to space"
-  card shows your lifetime climbing as full Everests and progress toward the
-  Karman line (the edge of space, 100 km up). Climbing a full Everest - or a
-  Quarter, Half, Double, or Triple - in a single activity now earns an Everesting
-  achievement badge shown on the activity, in activity lists, and on the
-  "Highest Climb Ever" card.
-=======
 - Added estimated speed to the analysis chart of the activity in case that activity
   recordings (as well as parquet) don't have it.
 - Added tooltip with the elevation, time, distance and grade to the elevation chart
@@ -57,13 +55,9 @@ This MyTraL **minor** release brings:
   See `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed
   on first launch.
   Data is stored in `~/Library/Application Support/mytral/` like every other macOS app.
->>>>>>> dev/1.59.0
 
 ### Fixed
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
-- Fixed the `This vs. Last` page showing the literal text "None" instead of a
-  chart when the selected sport and period had no data - it now shows a friendly
-  empty state.
 
 ### Documentation
 - Documented macOS Apple Silicon (arm64) installation and build.
