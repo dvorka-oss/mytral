@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import calendar
+import contextlib
 import copy
 import dataclasses
 import datetime
@@ -61,6 +62,7 @@ from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import strava
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
+from mytral.recordings import parquet_converter
 from mytral.tasks import _entities as task_entities
 from mytral.tasks import do
 
@@ -128,6 +130,46 @@ def _bbox_from_points(points: list[tuple[float, float]]) -> list[float]:
     ]
 
 
+def _profile_points_with_time(
+    user_id: str,
+    activity: entities_mod.ActivityEntity,
+    blob_svc: blob_svc_module.ActivityBlobService,
+    blob_uuid: str,
+    profile_points: list[tuple[float, float]],
+) -> list:
+    """Inject elapsed time into elevation profile points from the recording.
+
+    Loads the recording Parquet for the given source blob and derives per-point
+    elapsed seconds so the elevation chart can show time on hover.  Returns the
+    original ``(distance, elevation)`` points unchanged when no Parquet or time
+    data is available.
+    """
+    try:
+        result_pair = blob_svc.open_parquet(
+            user_id=user_id,
+            activity_key=activity.key,
+            source_blob_key=blob_uuid,
+        )
+        if result_pair is None:
+            return profile_points
+        parquet_stream, _ = result_pair
+        with contextlib.closing(parquet_stream) as stream:
+            recording = parquet_converter.load_parquet(stream.read())
+        return gpx_extractor.elevation_profile_with_time(
+            profile_points=profile_points,
+            recording=recording,
+        )
+    except Exception:
+        app_logger.warning(
+            "Failed to inject time into elevation profile",
+            user_id=user_id,
+            activity_key=activity.key,
+            blob_key=blob_uuid,
+            traceback=traceback.format_exc(),
+        )
+        return profile_points
+
+
 def _activity_map_data(
     user_id: str,
     activity: entities_mod.ActivityEntity,
@@ -166,7 +208,15 @@ def _activity_map_data(
 
         bbox = list(meta.summary_bbox) if meta.summary_bbox is not None else None
         detail_points: list[tuple[float, float]] | None = None
-        profile_points: list[tuple[float, float]] = list(meta.elevation_profile or [])
+        profile_points: list = list(meta.elevation_profile or [])
+        if include_detail and len(profile_points) > 1:
+            profile_points = _profile_points_with_time(
+                user_id=user_id,
+                activity=activity,
+                blob_svc=blob_svc,
+                blob_uuid=blob_uuid,
+                profile_points=profile_points,
+            )
         if include_detail:
             if meta.full_polyline:
                 try:
@@ -3687,8 +3737,6 @@ def get_activity_analysis(key):
 
     if selected_blob_uuid and selected_blob_uuid in a.recorded_parquet_keys:
         try:
-            from mytral.recordings import parquet_converter as parquet_converter_mod
-
             result_pair = blob_svc.open_parquet(
                 user_id=user_id,
                 activity_key=key,
@@ -3696,8 +3744,9 @@ def get_activity_analysis(key):
             )
             if result_pair is not None:
                 parquet_stream, _ = result_pair
-                parquet_bytes = parquet_stream.read()
-                recording = parquet_converter_mod.load_parquet(parquet_bytes)
+                with contextlib.closing(parquet_stream) as stream:
+                    parquet_bytes = stream.read()
+                recording = parquet_converter.load_parquet(parquet_bytes)
                 parquet_available = True
 
                 # load all activities for FTP estimation
