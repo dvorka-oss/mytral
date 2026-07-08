@@ -964,6 +964,12 @@
             }
         }
 
+        /* Download cards are not flip cards - drop the tall min-height so the
+           sparse Source Code card does not leave a large gap below it */
+        .download-grid-3col .feature-card {
+            min-height: auto;
+        }
+
         /* Features grid: centre a lone card in the middle column */
         @media (min-width: 1100px) {
             .features-grid-3col {
