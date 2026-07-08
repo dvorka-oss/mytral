@@ -5,7 +5,7 @@
 [![Current release](https://img.shields.io/github/release/dvorka-oss/mytral.svg)](https://github.com/dvorka-oss/mytral/releases)
 [![GitHub issues](https://img.shields.io/github/issues/dvorka-oss/mytral.svg?maxAge=360)](https://github.com/dvorka-oss/mytrals/issues)
 [![All releases downloads](https://img.shields.io/github/downloads/dvorka-oss/mytral/total.svg)](https://github.com/dvorka-oss/mytral/releases)
-[![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral)
+<!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
 <!-- [![Flathub](https://img.shields.io/flathub/v/fitness.mytral.Mytral)](https://flathub.org/apps/fitness.mytral.Mytral) -->
 [![License](https://img.shields.io/github/license/dvorka-oss/mytral?color=%24fe0000)](https://github.com/dvorka-oss/mytral/blob/main/LICENSE)
 
