@@ -1,3 +1,4 @@
+#!/bin/bash
 # MyTraL: my trailing log
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
@@ -15,5 +16,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# MyTraL MASTER VERSION (semantic versioning - single source of truth)
-__version__ = "1.58.0"
+# Clean macOS app bundle and .dmg build artifacts
+
+set -e
+
+echo "Cleaning macOS .dmg build artifacts..."
+
+# get script directory and project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
+
+cd "$PROJECT_ROOT"
+
+# remove PyInstaller build artifacts
+rm -rvf build/macos-dmg/__pycache__
+rm -f build/macos-dmg/mytral.spec
+rm -f build/macos-dmg/mytral.icns
+
+# remove the app bundle and the packaged .dmg
+rm -rvf distro/desktop/MyTraL.app
+rm -rvf distro/macos-dmg
+
+echo "Clean complete!"

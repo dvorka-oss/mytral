@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import calendar
+import contextlib
 import copy
 import dataclasses
 import datetime
@@ -61,6 +62,7 @@ from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import strava
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
+from mytral.recordings import parquet_converter
 from mytral.tasks import _entities as task_entities
 from mytral.tasks import do
 
@@ -74,6 +76,10 @@ COOKIE_TOKEN = "mytral_token"
 # the resolution is detected on login and stored in session the cookie,
 # empty value means that the user is not using mobile device
 COOKIE_MOBILE = "mytral_mobile"
+# desktop only: set on logout to suppress the automatic re-login on the
+# next /login page load, so the user can pick/create another account;
+# cleared again on the next successful login/sign-up
+COOKIE_AUTO_LOGIN_SUPPRESSED = "mytral_auto_login_suppressed"
 # aspects
 ASPECT_LIST = "list"
 ASPECT_WEIGHT = "weight"
@@ -124,6 +130,49 @@ def _bbox_from_points(points: list[tuple[float, float]]) -> list[float]:
     ]
 
 
+def _profile_points_with_time(
+    user_id: str,
+    activity: entities_mod.ActivityEntity,
+    blob_svc: blob_svc_module.ActivityBlobService,
+    blob_uuid: str,
+    profile_points: list[tuple[float, float]],
+) -> list[tuple[float, float, float | None]]:
+    """Inject elapsed time into elevation profile points from the recording.
+
+    Loads the recording Parquet for the given source blob and derives per-point
+    elapsed seconds so the elevation chart can show time on hover.  Always
+    returns ``(distance, elevation, elapsed_s)`` triples; ``elapsed_s`` is
+    ``None`` for every point when no Parquet or time data is available.
+    """
+    untimed: list[tuple[float, float, float | None]] = [
+        (point[0], point[1], None) for point in profile_points
+    ]
+    try:
+        result_pair = blob_svc.open_parquet(
+            user_id=user_id,
+            activity_key=activity.key,
+            source_blob_key=blob_uuid,
+        )
+        if result_pair is None:
+            return untimed
+        parquet_stream, _ = result_pair
+        with contextlib.closing(parquet_stream) as stream:
+            recording = parquet_converter.load_parquet(stream.read())
+        return gpx_extractor.elevation_profile_with_time(
+            profile_points=profile_points,
+            recording=recording,
+        )
+    except Exception:
+        app_logger.warning(
+            "Failed to inject time into elevation profile",
+            user_id=user_id,
+            activity_key=activity.key,
+            blob_key=blob_uuid,
+            traceback=traceback.format_exc(),
+        )
+        return untimed
+
+
 def _activity_map_data(
     user_id: str,
     activity: entities_mod.ActivityEntity,
@@ -163,6 +212,15 @@ def _activity_map_data(
         bbox = list(meta.summary_bbox) if meta.summary_bbox is not None else None
         detail_points: list[tuple[float, float]] | None = None
         profile_points: list[tuple[float, float]] = list(meta.elevation_profile or [])
+        timed_profile: list[tuple[float, float, float | None]] | None = None
+        if include_detail and len(profile_points) > 1:
+            timed_profile = _profile_points_with_time(
+                user_id=user_id,
+                activity=activity,
+                blob_svc=blob_svc,
+                blob_uuid=blob_uuid,
+                profile_points=profile_points,
+            )
         if include_detail:
             if meta.full_polyline:
                 try:
@@ -200,7 +258,9 @@ def _activity_map_data(
             "full_polyline": meta.full_polyline,
             "summary_bbox": bbox,
             "track_point_count": meta.track_point_count,
-            "profile_points": profile_points,
+            "profile_points": (
+                timed_profile if timed_profile is not None else profile_points
+            ),
         }
         if include_detail:
             payload["detail_points"] = detail_points or []
@@ -2732,6 +2792,7 @@ def _update_activity(key: str, template: str):
         )
         form.outfit.data = db_entity.outfit if hasattr(db_entity, "outfit") else ""
         form.formula.data = db_entity.formula
+        form.tags.data = ", ".join(db_entity.tags) if db_entity.tags else ""
 
         # exercises
         if db_entity.exercises:
@@ -3682,8 +3743,6 @@ def get_activity_analysis(key):
 
     if selected_blob_uuid and selected_blob_uuid in a.recorded_parquet_keys:
         try:
-            from mytral.recordings import parquet_converter as parquet_converter_mod
-
             result_pair = blob_svc.open_parquet(
                 user_id=user_id,
                 activity_key=key,
@@ -3691,8 +3750,9 @@ def get_activity_analysis(key):
             )
             if result_pair is not None:
                 parquet_stream, _ = result_pair
-                parquet_bytes = parquet_stream.read()
-                recording = parquet_converter_mod.load_parquet(parquet_bytes)
+                with contextlib.closing(parquet_stream) as stream:
+                    parquet_bytes = stream.read()
+                recording = parquet_converter.load_parquet(parquet_bytes)
                 parquet_available = True
 
                 # load all activities for FTP estimation
@@ -3818,6 +3878,7 @@ def list_activities_year(year):
     filter_intensity = flask.request.args.get("intensity", "")
     filter_type = flask.request.args.get("type", "")
     filter_source = flask.request.args.get("source", "")
+    filter_tag = flask.request.args.get("tag", "")
     aspect = flask.request.args.get("aspect", "feed")
 
     # apply filters
@@ -3847,6 +3908,8 @@ def list_activities_year(year):
             activities = [a for a in activities if a.ranked]
     if filter_source:
         activities = [a for a in activities if a.src == filter_source]
+    if filter_tag:
+        activities = [a for a in activities if filter_tag in (a.tags or [])]
 
     # get sort parameters
     sort_by = flask.request.args.get("sort", "when")
@@ -3916,6 +3979,7 @@ def list_activities_year(year):
     )
     unique_intensities = sorted(set(a.intensity for a in all_activities if a.intensity))
     unique_sources = sorted(set(a.src for a in all_activities if a.src))
+    unique_tags = sorted({tag for a in all_activities for tag in (a.tags or [])})
 
     # calculate year statistics for the cards
     year_total_distance = sum(a.distance for a in activities if a.distance)
@@ -3997,11 +4061,13 @@ def list_activities_year(year):
         unique_activity_types=unique_activity_types,
         unique_intensities=unique_intensities,
         unique_sources=unique_sources,
+        unique_tags=unique_tags,
         filter_activity_type=filter_activity_type,
         filter_gear=filter_gear,
         filter_intensity=filter_intensity,
         filter_type=filter_type,
         filter_source=filter_source,
+        filter_tag=filter_tag,
         sort_by=sort_by,
         sort_order=sort_order,
         aspect=aspect,
@@ -4037,12 +4103,14 @@ def search_activities():
         sort_by_when=True,
     )
 
-    # filter by case-insensitive substring match on name and description
+    # filter by case-insensitive substring match on name, description and tags
     q_lower = q.lower()
     activities = [
         a
         for a in activities
-        if q_lower in (a.name or "").lower() or q_lower in (a.description or "").lower()
+        if q_lower in (a.name or "").lower()
+        or q_lower in (a.description or "").lower()
+        or any(q_lower in tag.lower() for tag in (a.tags or []))
     ]
 
     activities_weekdays = {

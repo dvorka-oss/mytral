@@ -61,6 +61,21 @@ class CalendarHeatmap:
             return f"{self.year}/{self.month}/{self.day}"
 
         @property
+        def is_today(self) -> bool:
+            """Whether this cell is today's date.
+
+            The sickness heatmap collapses every year onto the current calendar
+            (cells carry the current year), while the activity heatmap keeps the
+            real year per cell, so a full-date match marks exactly one cell.
+            """
+            today = datetime.date.today()
+            return (self.year, self.month, self.day) == (
+                today.year,
+                today.month,
+                today.day,
+            )
+
+        @property
         def is_active_sick(self):
             return self.is_active and self.is_sick
 

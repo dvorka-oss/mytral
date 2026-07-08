@@ -15,11 +15,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """Tests for mytral.recordings.parquet_converter."""
 
+import datetime
 import io
 
 import polars
 import pytest
 
+from mytral.recordings.parquet_converter import _derive_speed_from_gps
 from mytral.recordings.parquet_converter import fit_to_parquet
 from mytral.recordings.parquet_converter import gpx_to_parquet
 from mytral.recordings.parquet_converter import hrm_to_parquet
@@ -126,6 +128,103 @@ def test_gpx_to_parquet_empty_data():
     df = polars.read_parquet(io.BytesIO(parquet_bytes))
     assert df.is_empty()
     print("gpx_to_parquet empty data: DONE")
+
+
+@pytest.mark.mytral
+def test_derive_speed_from_gps_smooths_gps_noise():
+    """Test that GPS speed estimation dampens single-point position spikes."""
+    # GIVEN - a straight ~constant-speed track (11 m every second, ~40 km/h)
+    #         with one noisy point jumping ~100 m sideways and back
+    base = datetime.datetime(2024, 6, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)
+    n = 40
+    timestamps = [base + datetime.timedelta(seconds=i) for i in range(n)]
+    lats = [50.0 + i * 0.0001 for i in range(n)]
+    lons = [14.0] * n
+    # inject a GPS glitch at the midpoint (~140 m east then back)
+    lons[20] = 14.002
+
+    # WHEN
+    speed = _derive_speed_from_gps(timestamps, lats, lons)
+
+    # THEN - naive point-to-point would spike to hundreds of km/h at the glitch,
+    #        the windowed estimate stays physically plausible
+    assert len(speed) == n
+    assert all(v is not None for v in speed)
+    assert max(speed) < 90.0
+    print("derive_speed_from_gps smooths GPS noise: DONE")
+
+
+@pytest.mark.mytral
+def test_derive_speed_from_gps_single_fix_yields_no_speed():
+    """Test that a track with one valid GPS fix produces no derived speed."""
+    # GIVEN - several samples but only one carrying a position (e.g. TCX with
+    #         Position in a single Trackpoint)
+    base = datetime.datetime(2024, 6, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)
+    n = 5
+    timestamps = [base + datetime.timedelta(seconds=i) for i in range(n)]
+    lats = [None] * n
+    lons = [None] * n
+    lats[2] = 50.0
+    lons[2] = 14.0
+
+    # WHEN
+    speed = _derive_speed_from_gps(timestamps, lats, lons)
+
+    # THEN - no misleading all-zero estimate; every sample is None
+    assert speed == [None] * n
+    print("derive_speed_from_gps single fix yields no speed: DONE")
+
+
+@pytest.mark.mytral
+def test_load_parquet_estimates_speed_from_gps():
+    """Test that load_parquet estimates speed for a GPX track lacking speed."""
+    # GIVEN - a GPX track (has GPS, no native speed channel)
+    gpx = b"""<?xml version="1.0"?>
+<gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk><trkseg>
+    <trkpt lat="50.0000" lon="14.0"><time>2024-06-01T10:00:00Z</time></trkpt>
+    <trkpt lat="50.0001" lon="14.0"><time>2024-06-01T10:00:01Z</time></trkpt>
+    <trkpt lat="50.0002" lon="14.0"><time>2024-06-01T10:00:02Z</time></trkpt>
+    <trkpt lat="50.0003" lon="14.0"><time>2024-06-01T10:00:03Z</time></trkpt>
+    <trkpt lat="50.0004" lon="14.0"><time>2024-06-01T10:00:04Z</time></trkpt>
+  </trkseg></trk>
+</gpx>"""
+
+    # WHEN
+    rec = load_parquet(gpx_to_parquet(gpx))
+
+    # THEN
+    assert rec.has_gps is True
+    assert rec.has_speed is True
+    assert rec.speed_estimated is True
+    assert any(v is not None and v > 0 for v in rec.speed_values)
+    print("load_parquet estimates speed from GPS: DONE")
+
+
+@pytest.mark.mytral
+def test_load_parquet_no_speed_estimation_without_gps():
+    """Test that load_parquet does not estimate speed when GPS is absent."""
+    # GIVEN - an HRM recording: heart rate only, no GPS, no native speed
+    hrm_data = {
+        "rows": [{"hr": 130}, {"hr": 135}, {"hr": 140}],
+        "has_speed": False,
+        "has_cadence": False,
+        "has_altitude": False,
+        "interval_s": 5,
+        "start_hour": 10,
+        "start_minute": 0,
+        "start_second": 0,
+        "date": 20240601,
+    }
+
+    # WHEN
+    rec = load_parquet(hrm_to_parquet(hrm_data))
+
+    # THEN
+    assert rec.has_gps is False
+    assert rec.has_speed is False
+    assert rec.speed_estimated is False
+    print("load_parquet no speed estimation without GPS: DONE")
 
 
 @pytest.mark.mytral
