@@ -1,6 +1,21 @@
 # Changelog
 
-## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...HEAD)
+## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- .
+
+### Fixed
+- .
+
+### Documentation
+- .
+
+
+
+## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
 
 This MyTraL **minor** release brings:
 
@@ -31,6 +46,7 @@ This MyTraL **minor** release brings:
 
 ### Documentation
 - Documented macOS Apple Silicon (arm64) installation and build.
+
 
 
 ## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
