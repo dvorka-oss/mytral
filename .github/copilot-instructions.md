@@ -75,7 +75,6 @@ mytral/
 +-- settings.py          # domain entities: Gear, Goal, Exercise, Outfit, Lap, Symptom, ...
 +-- commons.py           # shared constants, enums, small helpers
 +-- utils.py             # general utilities (getenv_bool, date helpers, ...)
-+-- parsers.py           # input parsing/sanitization
 +-- plugins.py           # import/export plugin architecture (Plugin, PluginType enum)
 +-- charts.py            # Bokeh chart builders
 +-- stats.py             # training statistics computation
@@ -139,7 +138,6 @@ mytral/
 |   `-- settings.py      # AI coach settings entities
 |
 +-- ml/                  # machine learning (xgboost, scikit-learn, tabpfn)
-|   +-- ml_models.py     # ML model wrappers
 |   +-- sick_model.py    # sickness prediction model
 |   `-- icl/             # in-context learning (TabPFN predictions)
 |
