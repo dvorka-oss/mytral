@@ -26,7 +26,7 @@ from mytral.backends import dataset
 
 
 def bootstrap_default_desktop_user(
-    ds: dataset.UserDataset, logger: loggers.MytralStructLogger
+    ds: dataset.UserDataset, logger: loggers.MytralLogger
 ) -> None:
     """Auto-create the default athlete user on the first DESKTOP boot.
 
@@ -40,7 +40,7 @@ def bootstrap_default_desktop_user(
     ds : dataset.UserDataset
         User dataset used to check for existing profiles and register the
         default user.
-    logger : loggers.MytralStructLogger
+    logger : loggers.MytralLogger
         Logger used to record that the default user was created.
 
     """

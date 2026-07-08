@@ -30,7 +30,7 @@ This MyTraL **minor** release brings:
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
 
 ### Documentation
-- Documented macOS Apple Silicin (arm64) installation and build.
+- Documented macOS Apple Silicon (arm64) installation and build.
 
 
 ## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)

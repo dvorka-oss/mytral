@@ -57,7 +57,7 @@ print(data['project']['authors'][0]['email'])
 
 # set to the highest patch number already uploaded for this release;
 # the loop increments it before each build, so 0 > first build gets .1
-PATCH_VERSION=18
+PATCH_VERSION=0
 
 # set to true to skip the final dput upload step (the source/binary .deb are
 # still built for real - nothing about this is a "dry" run, hence the rename)

@@ -104,7 +104,7 @@ def changelog_entry(version: str) -> tuple[str, str]:
     bullets = [b for b in collect_bullets(body) if not is_placeholder(b)]
     summary = "; ".join(bullets) or f"MyTraL {version} {release_type} release."
     if len(summary) > MAX_CHANGE_INFO_CHARS:
-        summary = summary[: MAX_CHANGE_INFO_CHARS - 1].rstrip() + "…"
+        summary = summary[: MAX_CHANGE_INFO_CHARS - 1].rstrip() + "..."
     return summary, status
 
 
