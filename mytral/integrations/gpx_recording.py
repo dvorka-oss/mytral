@@ -19,87 +19,11 @@ import io
 import typing
 
 from mytral import app_logger as logger
-from mytral import app_user_ds
-from mytral import plugins
-from mytral.backends import dataset
 from mytral.backends import entities
 from mytral.blobstore.activity_service import ActivityBlobService
-from mytral.config import MytralConfig
 from mytral.recordings import gpx_extractor
 from mytral.recordings import parquet_converter
 from mytral.recordings.models import RecordingSummary
-
-GPX_IMPORT_SRC = "gpx-import"
-GPX_TASK_TYPE = "gpx_import"
-
-
-class GpxImportPlugin(plugins.ActivitiesImportPlugin):
-    """Import a GPX recording file and attach it to an existing activity.
-
-    The plugin uploads the GPX blob, converts it to Parquet, and optionally
-    extracts summary fields into the activity entity.
-    """
-
-    name = "GPX Recording Import"
-    src = GPX_IMPORT_SRC
-
-    def __init__(self, config: MytralConfig) -> None:
-        self._config = config
-
-    def import_recording(
-        self,
-        user_id: str,
-        activity_key: str,
-        gpx_data: bytes,
-        original_filename: str,
-        blob_svc: ActivityBlobService,
-        *,
-        extract_summary: bool = False,
-    ) -> str:
-        """Upload a GPX file, convert to Parquet, and optionally update summary.
-
-        Parameters
-        ----------
-        user_id : str
-            Owning user identifier.
-        activity_key : str
-            Target activity key.
-        gpx_data : bytes
-            Raw GPX file bytes.
-        original_filename : str
-            Original filename for metadata.
-        blob_svc : ActivityBlobService
-            Blob service instance to use.
-        extract_summary : bool
-            When True, extract fields and update the activity entity.
-
-        Returns
-        -------
-        str
-            Blob UUID of the newly stored GPX recording.
-        """
-
-        def _persist_summary(summary: gpx_extractor.RecordingSummary) -> None:
-            ds: dataset.UserDataset = app_user_ds.get_user_ds(user_id)
-            activity: entities.ActivityEntity = ds.activities.by_key[activity_key]
-            apply_gpx_summary(activity, summary)
-            ds.save_activity(activity)
-
-        return import_gpx_recording_bytes(
-            user_id=user_id,
-            activity_key=activity_key,
-            gpx_data=gpx_data,
-            original_filename=original_filename,
-            blob_svc=blob_svc,
-            extract_summary=extract_summary,
-            summary_handler=_persist_summary if extract_summary else None,
-            polyline_method=getattr(
-                self._config,
-                "gpx_polyline_method",
-                gpx_extractor.GPX_POLYLINE_METHOD,
-            ),
-            log=logger,
-        )
 
 
 def import_gpx_recording_bytes(
@@ -221,27 +145,3 @@ def apply_gpx_summary(
         activity.elevation_gain = summary.elevation_gain
     if summary.name_hint and not activity.name:
         activity.name = summary.name_hint
-
-
-def get_plugin(
-    user_id: str,
-    config: MytralConfig,
-    *,
-    params: typing.Any = None,
-) -> GpxImportPlugin:
-    """Construct a GpxImportPlugin.
-
-    Parameters
-    ----------
-    user_id : str
-        User identifier (unused, retained for plugin interface compatibility).
-    config : MytralConfig
-        Application configuration.
-    params : typing.Any
-        Optional extra parameters (unused).
-
-    Returns
-    -------
-    GpxImportPlugin
-    """
-    return GpxImportPlugin(config)

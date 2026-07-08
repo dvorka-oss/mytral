@@ -20,12 +20,15 @@ import math
 
 import pytest
 
+from mytral.recordings import _geo_utils
 from mytral.recordings.fit_extractor import extract_fit_summary
 from mytral.recordings.gpx_extractor import decode_polyline
+from mytral.recordings.gpx_extractor import elevation_profile_with_time
 from mytral.recordings.gpx_extractor import encode_gps_polylines
 from mytral.recordings.gpx_extractor import extract_elevation_profile
 from mytral.recordings.gpx_extractor import extract_gps_points
 from mytral.recordings.gpx_extractor import extract_gpx_summary
+from mytral.recordings.models import RecordingData
 from mytral.recordings.models import RecordingSummary
 from tests import _given
 
@@ -448,3 +451,78 @@ def test_extract_fit_summary_distance_from_speed_integration():
         f"distance fallback from speed: {summary.distance / 1000:.1f} km,"
         f" avg_speed: {summary.avg_speed} km/h: DONE"
     )
+
+
+@pytest.mark.mytral
+def test_elevation_profile_with_time_interpolates_elapsed_seconds():
+    """Elapsed time is interpolated onto profile points by distance."""
+    # GIVEN a recording with three equally spaced GPS points and known times
+    base = datetime.datetime(2026, 1, 1, 8, 0, 0)
+    recording = RecordingData(
+        timestamps=[
+            base,
+            base + datetime.timedelta(seconds=100),
+            base + datetime.timedelta(seconds=250),
+        ],
+        hr_values=[None, None, None],
+        speed_values=[None, None, None],
+        cadence_values=[None, None, None],
+        altitude_values=[200.0, 210.0, 205.0],
+        lat_values=[50.0000, 50.0010, 50.0020],
+        lon_values=[14.0, 14.0, 14.0],
+        power_values=[None, None, None],
+        has_speed=False,
+        has_cadence=False,
+        has_altitude=True,
+        has_gps=True,
+        has_power=False,
+        source_format="gpx",
+    )
+    segment_m = _geo_utils._haversine_m(50.0000, 14.0, 50.0010, 14.0)
+    profile = [
+        (0.0, 200.0),
+        (segment_m, 210.0),
+        (1.5 * segment_m, 207.5),
+        (2.0 * segment_m, 205.0),
+    ]
+
+    # WHEN
+    enriched = elevation_profile_with_time(profile_points=profile, recording=recording)
+
+    # THEN
+    assert [round(point[2]) for point in enriched] == [0, 100, 175, 250]
+    assert enriched[0][0] == 0.0
+    assert enriched[0][1] == 200.0
+    print("elevation_profile_with_time interpolates elapsed seconds: DONE")
+
+
+@pytest.mark.mytral
+def test_elevation_profile_with_time_without_gps_returns_none_times():
+    """Profile time is None when the recording has no usable GPS samples."""
+    # GIVEN a recording without GPS coordinates
+    base = datetime.datetime(2026, 1, 1, 8, 0, 0)
+    recording = RecordingData(
+        timestamps=[base, base + datetime.timedelta(seconds=60)],
+        hr_values=[120, 125],
+        speed_values=[None, None],
+        cadence_values=[None, None],
+        altitude_values=[None, None],
+        lat_values=[None, None],
+        lon_values=[None, None],
+        power_values=[None, None],
+        has_speed=False,
+        has_cadence=False,
+        has_altitude=False,
+        has_gps=False,
+        has_power=False,
+        source_format="hrm",
+    )
+    profile = [(0.0, 200.0), (100.0, 210.0)]
+
+    # WHEN
+    enriched = elevation_profile_with_time(profile_points=profile, recording=recording)
+
+    # THEN
+    assert all(point[2] is None for point in enriched)
+    assert [(point[0], point[1]) for point in enriched] == profile
+    print("elevation_profile_with_time without GPS returns None times: DONE")

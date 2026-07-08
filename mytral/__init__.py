@@ -18,6 +18,7 @@
 """MyTraL main module: configure and start the web application."""
 
 from mytral import blobstore as _blobstore_pkg
+from mytral import bootstraps
 from mytral import config
 from mytral import loggers
 from mytral import releng
@@ -62,6 +63,12 @@ ff.print(logger=app_logger)
 app_ds = dataset.MyTraLDataset(mytral_config=app_config, logger=app_logger)
 # MyTraL user dataset: persistence agnostic access to the user data
 app_user_ds = app_ds.user()
+
+# smooth first start: auto-create the default athlete user on desktop
+# installations which don't have any user profile yet
+if app_config.incarnation == config.MytralIncarnation.DESKTOP:
+    bootstraps.bootstrap_default_desktop_user(ds=app_user_ds, logger=app_logger)
+
 # blob store for activity attachments (GPX files and photos)
 app_blobstore = _blobstore_pkg.create_blobstore(app_config)
 

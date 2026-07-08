@@ -596,8 +596,8 @@ distro-launchpad-release:  ## build & upload Ubuntu PPA package for Launchpad, e
 	./launchpad-release.sh
 	@echo "DONE: Ubuntu PPA package released to Launchpad in file://$(USER_HOME)/p/mytral/launchpad"
 
-.PHONY: distro-launchpad-release-version
-distro-launchpad-release-version: ## build & upload Ubuntu PPA package for ONE Ubuntu version; usage: make distro-launchpad-release-version UBUNTU_VERSION=jammy
+.PHONY: distro-launchpad-release-one
+distro-launchpad-release-one: ## build & upload Ubuntu PPA package for ONE Ubuntu version; usage: make distro-launchpad-release-version UBUNTU_VERSION=jammy
 	@cd build/ubuntu && \
 	cp -vf ./launchpad-release.sh $(USER_HOME)/p/mytral/launchpad && \
 	cd $(USER_HOME)/p/mytral/launchpad && \
@@ -677,6 +677,46 @@ distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
+# MACOS: macOS .dmg distribution (Apple Silicon / arm64 only)
+#
+# Must run on macOS - relies on `sips`, `iconutil`, and `hdiutil`, which are
+# only available on macOS. Produces an unsigned app bundle and .dmg; see
+# docs/INSTALLATION.md for the Gatekeeper workaround end users need.
+#
+
+.PHONY: distro-desktop-build-macos
+distro-desktop-build-macos: ## build macOS app bundle (MyTraL.app) - must run on macOS (arm64)
+	@./build/macos-dmg/build-app.sh
+
+.PHONY: distro-macos-dmg-clean
+distro-macos-dmg-clean: ## clean macOS .dmg build artifacts
+	@./build/macos-dmg/clean.sh
+
+.PHONY: distro-macos-dmg-build
+distro-macos-dmg-build: distro-desktop-build-macos ## build macOS .dmg installer - must run on macOS (arm64)
+	@./build/macos-dmg/build-dmg.sh
+
+.PHONY: distro-macos-dmg-path
+distro-macos-dmg-path: ## show path to built macOS .dmg
+	@ls distro/macos-dmg/mytral-*.dmg 2>/dev/null || echo "No macOS .dmg built yet"
+
+.PHONY: distro-macos-dmg-install
+distro-macos-dmg-install: distro-macos-dmg-build ## build the .dmg and install MyTraL.app to /Applications (must run on macOS)
+	@echo "Installing MyTraL.app to /Applications..."
+	@DMG_FILE=$$(ls distro/macos-dmg/mytral-*.dmg 2>/dev/null | head -1); \
+	if [ -z "$$DMG_FILE" ]; then \
+		echo "Error: macOS .dmg not found. Run 'make distro-macos-dmg-build' first."; \
+		exit 1; \
+	fi; \
+	MOUNT_DIR=$$(mktemp -d); \
+	hdiutil attach "$$DMG_FILE" -mountpoint "$$MOUNT_DIR" -nobrowse -quiet; \
+	rm -rf "/Applications/MyTraL.app"; \
+	cp -R "$$MOUNT_DIR/MyTraL.app" /Applications/; \
+	hdiutil detach "$$MOUNT_DIR" -quiet; \
+	rmdir "$$MOUNT_DIR"; \
+	echo "DONE MyTraL.app installed to /Applications"
+
+#
 # SNAP: Snap package distribution (local builds only)
 #
 # Prerequisites:
@@ -706,8 +746,8 @@ distro-snap-build: ## build strict Snap package for the Snap Store (LXD required
 distro-snap-build-classic: ## build classic Snap package for downloadable GitHub Release (LXD required)
 	@./build/snap/build-snap.sh --classic
 
-.PHONY: distro-snap-install-local-classic
-distro-snap-install-local-classic: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
+.PHONY: distro-snap-install-classic
+distro-snap-install-classic: distro-snap-remove distro-snap-build-classic ## build and install the CLASSIC Snap locally (for testing, requires sudo)
 	@echo "Installing classic Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
@@ -718,8 +758,8 @@ distro-snap-install-local-classic: distro-snap-remove distro-snap-build-classic 
 	sudo snap install --dangerous --classic "$$SNAP_FILE"; \
 	echo "DONE Snap installed. Run with: mytral"
 
-.PHONY: distro-snap-install-local
-distro-snap-install-local: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
+.PHONY: distro-snap-install
+distro-snap-install: distro-snap-remove distro-snap-build ## build and install the STRICT Snap locally (for testing, requires sudo)
 	@echo "Installing strict Snap package locally..."
 	@SNAP_FILE=$$(ls distro/snap/mytral_*.snap 2>/dev/null | head -1); \
 	if [ -z "$$SNAP_FILE" ]; then \
@@ -768,8 +808,8 @@ distro-flatpak-remove: ## remove locally installed Flatpak
 	flatpak uninstall --user -y fitness.mytral.Mytral || true
 	@echo "DONE Flatpak removed"
 
-.PHONY: distro-flatpak-install-local
-distro-flatpak-install-local: distro-flatpak-build ## build and install Flatpak locally (user scope, for testing)
+.PHONY: distro-flatpak-install
+distro-flatpak-install: distro-flatpak-build ## build and install Flatpak locally (user scope, for testing)
 	@echo "Installing Flatpak bundle locally..."
 	@BUNDLE=$$(ls distro/flatpak/mytral-*.flatpak 2>/dev/null | head -1); \
 	if [ -z "$$BUNDLE" ]; then \
@@ -904,7 +944,7 @@ release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-
 	@echo "ALL Win distribution packages built for release"
 
 .PHONY: release-distros-macos
-release-distros-macos:  ## build all MACOS distribution packages for release
+release-distros-macos: clean distro-macos-dmg-clean distro-macos-dmg-build ## build all MACOS distribution packages for release
 	@echo "ALL MacOS distribution packages built for release"
 
 #

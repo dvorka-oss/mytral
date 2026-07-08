@@ -8,6 +8,7 @@ Install:
 * [Ubuntu (PPA)](#install-on-ubuntu-from-ppa)
 * [Windows (installer)](#install-on-windows-using-installer)
 * [Windows (zip)](#install-on-windows-using-zip)
+* [macOS (dmg)](#install-on-macos-using-dmg)
 
 Build:
 
@@ -17,6 +18,7 @@ Build:
 * [Flatpak (bundle)](#build-flatpak-on-linux)
 * [Windows (binary)](#build-binary-on-windows)
 * [Windows (installer)](#build-windows-installer)
+* [macOS (dmg)](#build-macos-dmg)
 
 Run:
 
@@ -101,6 +103,43 @@ mytral-<version>.exe
 
 
 
+## Install on macOS using DMG
+
+Download the latest `.dmg` from:
+
+* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+
+Open the disk image and drag `MyTraL.app` to `Applications`:
+
+```
+mytral-<version>.dmg
+
+# example: mytral-1.58.0.dmg
+```
+
+This build is **Apple Silicon (arm64) only** and is **not code-signed or
+notarized**. On first launch, macOS Gatekeeper will refuse to open it with a
+"cannot be opened because the developer cannot be verified" (or "is damaged")
+warning. Work around this once, either:
+
+```bash
+xattr -cr /Applications/MyTraL.app
+```
+
+or right-click (Control-click) `MyTraL.app` in Finder, choose `Open`, then
+confirm in the dialog that appears.
+
+Data is stored in:
+
+```
+~/Library/Application Support/mytral/   (data and config)
+~/Library/Caches/mytral/                (cache)
+```
+
+**Uninstall:** drag `MyTraL.app` from `Applications` to the Trash.
+
+
+
 ## Install on Linux using Snap from Snap Store
 
 The easiest way to install MyTraL on Linux is from the
@@ -108,31 +147,10 @@ The easiest way to install MyTraL on Linux is from the
 distributions and keeps MyTraL up to date automatically.
 This package uses **strict confinement** and is published straight to the Snap Store.
 
-Install `Snapd` (if not already installed):
+Install `Snapd` (if not already installed) by following the official guide for
+your distribution:
 
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install snapd
-```
-
-**Fedora:**
-```bash
-sudo dnf install snapd
-sudo ln -s /var/lib/snapd/snap /snap
-```
-
-**Arch Linux:**
-```bash
-sudo pacman -S snapd
-sudo systemctl enable --now snapd.socket
-```
-
-**openSUSE:**
-```bash
-sudo zypper install snapd
-sudo systemctl enable --now snapd
-```
+* [Installing snapd](https://snapcraft.io/docs/tutorials/install-the-daemon/)
 
 Install MyTraL from the Snap Store:
 
@@ -425,7 +443,7 @@ Build and install it locally for testing (requires sudo; Snap uses classic
 confinement, so the `--classic` flag is applied automatically):
 
 ```bash
-make distro-snap-install-local
+make distro-snap-install
 ```
 
 Run MyTraL:
@@ -485,7 +503,7 @@ distro/flatpak/mytral-<version>.flatpak
 Build and install it locally for testing (user scope):
 
 ```bash
-make distro-flatpak-install-local
+make distro-flatpak-install
 ```
 
 Run MyTraL:
@@ -571,6 +589,57 @@ set MYTRAL_ISCC=C:\your\custom\path\ISCC.exe
 
 ```bash
 make distro-windows-clean
+```
+
+
+
+## Build macOS DMG
+
+The macOS `.dmg` is built with `hdiutil` and `iconutil`/`sips` (all bundled
+with macOS - no extra tools to install). Must run on macOS; produces an
+**Apple Silicon (arm64) only**, unsigned app bundle and disk image.
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Install `Python`:
+
+```bash
+uv python install 3.12
+```
+
+Clone Git repository:
+
+```bash
+git clone https://github.com/dvorka-oss/mytral.git
+cd mytral
+```
+
+Build the app bundle and the `.dmg`:
+
+```bash
+make setup distro-macos-dmg-build
+```
+
+The disk image is created at:
+
+```
+distro/macos-dmg/mytral-<version>.dmg
+```
+
+Build and install `MyTraL.app` locally to `/Applications` for testing:
+
+```bash
+make distro-macos-dmg-install
+```
+
+**Clean macOS .dmg artifacts:**
+
+```bash
+make distro-macos-dmg-clean
 ```
 
 

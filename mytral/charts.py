@@ -42,7 +42,7 @@ from mytral.recordings.models import RecordingData
 BOKEH_WEEK_DAYS = ["Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"]
 VIEW_WIDTH_DEFAULT = 1100
 VIEW_WIDTH_MOBILE = 500
-EVERESTING_M = 8848  # height of Mt. Everest in meters
+EVERESTING_M = commons.EVERESTING_M  # height of Mt. Everest in meters
 EVERESTING_RANGE_PADDING = 1.05  # headroom so the reference line is never clipped
 
 
@@ -175,7 +175,12 @@ def _add_hover_tool_with_tooltips(
 
 
 def _add_everesting_line(
-    fig, aspect: commons.StatsAspect, y_max: float, x_min, x_max
+    fig,
+    aspect: commons.StatsAspect,
+    y_max: float,
+    x_min,
+    x_max,
+    meta_sport: str | None = None,
 ) -> None:
     """draw a dashed red Everesting (8848 m) reference line for elevation charts."""
     if commons.StatsAspect.ELEVATION != aspect:
@@ -185,6 +190,9 @@ def _add_everesting_line(
     fig.y_range = bokeh_models.Range1d(
         start=0, end=max(y_max, EVERESTING_M) * EVERESTING_RANGE_PADDING
     )
+    sport = ""
+    if meta_sport:
+        sport = f" - {commons.M_AT_DISPLAY_NAMES.get(meta_sport, meta_sport)}"
     # a real 2-point line (not an annotation) so Bokeh reliably draws both
     # the line and its legend entry - an empty-data glyph is not rendered
     # in the legend by Bokeh's client-side JS
@@ -195,7 +203,7 @@ def _add_everesting_line(
         line_dash="dashed",
         line_width=2,
         line_alpha=0.7,
-        legend_label="Everesting (8848 m)",
+        legend_label=f"Everesting{sport} ({EVERESTING_M} m)",
     )
 
 
@@ -1012,6 +1020,7 @@ def _build_overlay_chart(
     has_cadence = rec.has_cadence
     has_altitude = rec.has_altitude
     has_power = rec.has_power
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
 
     # convert None → NaN for Bokeh (avoids gaps rendering as zero)
     def _nan(v):
@@ -1102,7 +1111,9 @@ def _build_overlay_chart(
             end=max((v for v in speed_values if v is not None), default=50) * 1.15,
         )
         fig.add_layout(
-            bokeh_models.LinearAxis(y_range_name="speed", axis_label="Speed (km/h)"),
+            bokeh_models.LinearAxis(
+                y_range_name="speed", axis_label=f"{speed_label} (km/h)"
+            ),
             "right",
         )
         speed_line = fig.line(
@@ -1111,7 +1122,7 @@ def _build_overlay_chart(
             source=source,
             color="#1971c2",
             line_width=1.5,
-            legend_label="Speed (km/h)",
+            legend_label=f"{speed_label} (km/h)",
             y_range_name="speed",
         )
         extra_renderers.append(speed_line)
@@ -1177,7 +1188,7 @@ def _build_overlay_chart(
 
     tooltips = [("Time", "@ts{%H:%M:%S}"), ("HR", "@hr bpm")]
     if has_speed:
-        tooltips.append(("Speed", "@speed km/h"))
+        tooltips.append((speed_label, "@speed km/h"))
     if has_cadence:
         tooltips.append(("Cadence", "@cadence rpm"))
     if has_altitude:
@@ -1267,11 +1278,7 @@ def _build_ridge_chart(
     has_speed = rec.has_speed
     has_cadence = rec.has_cadence
     has_altitude = rec.has_altitude
-    cadence_values = rec.cadence_values
-    altitude_values = rec.altitude_values
-    has_speed = rec.has_speed
-    has_cadence = rec.has_cadence
-    has_altitude = rec.has_altitude
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
 
     def _nan(v):
         return float("nan") if v is None else v
@@ -1279,7 +1286,7 @@ def _build_ridge_chart(
     # channel definitions: (field, raw_values, label, unit, color)
     all_channels = [
         ("hr", hr_values, "Heart Rate", "bpm", "#e03131"),
-        ("speed", speed_values, "Speed", "km/h", "#1971c2"),
+        ("speed", speed_values, speed_label, "km/h", "#1971c2"),
         ("cadence", cadence_values, "Cadence", "rpm", "#f08c00"),
         ("altitude", altitude_values, "Altitude", "m", "#2f9e44"),
     ]
@@ -2155,6 +2162,8 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
     if not has_speed and not has_cadence:
         return None
 
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
+
     def _nan(v):
         return float("nan") if v is None else v
 
@@ -2191,10 +2200,10 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
             source=source,
             line_width=2,
             color="#1971c2",
-            legend_label="Speed (km/h)",
+            legend_label=f"{speed_label} (km/h)",
         )
         fig.y_range = bokeh_models.Range1d(start=0, end=speed_max)
-        fig.yaxis.axis_label = "Speed (km/h)"
+        fig.yaxis.axis_label = f"{speed_label} (km/h)"
 
     # plot cadence on secondary (right) y-axis
     if has_cadence:
@@ -2220,7 +2229,7 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
 
     tooltips = [("Time", "@ts{%H:%M:%S}")]
     if has_speed:
-        tooltips.append(("Speed", "@speed{0.0} km/h"))
+        tooltips.append((speed_label, "@speed{0.0} km/h"))
     if has_cadence:
         tooltips.append(("Cadence", "@cadence{0} rpm"))
 
@@ -2364,7 +2373,11 @@ def fig_grid_2_html(fig_or_grid) -> tuple[str, Any]:
 
 
 def last_vs_this_year(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
     #
     #  data
@@ -2379,7 +2392,9 @@ def last_vs_this_year(
     )
     # get totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
-    this_data = this_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    this_data = this_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     last_year = this_year - 1
     last_as = ds.list_activities(
@@ -2388,7 +2403,9 @@ def last_vs_this_year(
         filter_year=last_year,
     )
     last_stats = stats.ActivitiesStats(last_as)
-    last_data = last_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    last_data = last_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     llast_year = last_year - 1
     llast_as = ds.list_activities(
@@ -2398,7 +2415,7 @@ def last_vs_this_year(
     )
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_year_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     #
@@ -2460,13 +2477,26 @@ def last_vs_this_year(
 
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(list(this_data.values()) + list(last_data.values()), default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
+
     script, div = bokeh_embed.components(fig)
 
     return script, div
 
 
 def last_vs_this_month(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any] | tuple[None, None]:
     #
     #  data
@@ -2486,7 +2516,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
     this_data = this_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     last_year, last_month = cals.get_last_month()
@@ -2499,7 +2529,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     last_stats = stats.ActivitiesStats(last_as)
     last_data = last_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     llast_year, llast_month = cals.get_last_month(year=last_year, month=last_month)
@@ -2512,7 +2542,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     # hide chart when all three months have no data
@@ -2579,7 +2609,12 @@ def last_vs_this_month(
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
     _add_everesting_line(
-        fig, aspect, max(llast_y + last_y + this_y, default=0), x[0], x[-1]
+        fig,
+        aspect,
+        max(llast_y + last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
     )
 
     script, div = bokeh_embed.components(fig)
@@ -2591,8 +2626,9 @@ def last_vs_this_week(
     heatmap: views.CalendarHeatmap,
     aspect: commons.StatsAspect,
     is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
-    data = heatmap.vs_week_stats(aspect=aspect)
+    data = heatmap.vs_week_stats(aspect=aspect, meta_sport=meta_sport)
 
     fig = bokeh_plt.figure(
         title=f"This week vs. last week {aspect.name.lower()}",
@@ -2643,7 +2679,14 @@ def last_vs_this_week(
 
     _add_hover_tool_with_tooltips(fig, aspect, [last_w, this_w])
 
-    _add_everesting_line(fig, aspect, max(last_y + this_y, default=0), x[0], x[-1])
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
 
     script, div = bokeh_embed.components(fig)
 

@@ -23,8 +23,10 @@ import uuid
 from mytral import tasks
 from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import gpx_recording
+from mytral.integrations import icommons
 from mytral.integrations import strava
 from mytral.tasks.do import strava_commons
+from mytral.tasks.do import strava_gear_sync
 
 
 class StravaActivitySyncTask(tasks.TaskBase):
@@ -272,6 +274,28 @@ class StravaActivitySyncTask(tasks.TaskBase):
             except Exception as exc:
                 self.log(f"Photo fetch failed: {exc}")
 
+        # resolve Strava gear: if this activity still holds an unresolved
+        # "strava-gear-id:X" placeholder, fetch the gear from Strava and relink
+        # so that syncing a single activity also fixes its gear (parity with the
+        # bulk sync paths, which already run gear sync and re-link)
+        gear_resolved = False
+        if any(
+            g.startswith(icommons.STRAVA_GEAR_PREFIX_ID) for g in (activity.gears or [])
+        ):
+            self.log("Activity references unresolved Strava gear - syncing gear...")
+            try:
+                strava_gear_sync.run_gear_sync_and_relink(
+                    creds=creds,
+                    dataset=self._dataset,
+                    user_id=user_id,
+                    dataset_name=dataset_name,
+                    log_fn=self.log,
+                    logger=self.logger,
+                )
+                gear_resolved = True
+            except Exception as exc:
+                self.log(f"Gear sync failed (non-fatal): {exc}")
+
         self.update_progress(100)
 
         # build summary
@@ -284,6 +308,8 @@ class StravaActivitySyncTask(tasks.TaskBase):
             summary_parts.append("recording imported")
         if photos_uploaded:
             summary_parts.append(f"{photos_uploaded} photo(s) imported")
+        if gear_resolved:
+            summary_parts.append("gear resolved")
 
         if summary_parts:
             self.log(f"Synchronization complete: {', '.join(summary_parts)}")

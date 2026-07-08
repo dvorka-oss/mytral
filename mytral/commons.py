@@ -26,8 +26,13 @@ PRJ_NAME = "mytral"
 # main applications dataset name
 DATASET_NAME_MAIN = "lifelong"
 
-# default user name (desktop app installation)
+# default user name (tests, development) - IMPROVE: refactor to "athlete"
 DEFAULT_USER_NAME = "dvorka"
+
+# default user auto-created on the first DESKTOP boot when no user exists yet
+DEFAULT_DESKTOP_USER_NAME = "athlete"
+DEFAULT_DESKTOP_USER_DISPLAY_NAME = "MyTraL Athlete"
+DEFAULT_DESKTOP_USER_PASSWORD = "changeit"
 
 #
 # DATASETS & PERSISTENCE
@@ -420,6 +425,57 @@ def aggregate_by_meta_sport(
 
 
 #
+# EVERESTING
+#
+# - Everesting: climb the height of Mt. Everest (8848 m of elevation gain),
+#   either in a single activity (the real challenge) or accumulated over a
+#   day / week / month / year (a virtual Everest).
+#
+
+EVERESTING_M = 8848  # height of Mt. Everest in meters
+
+# meta sports that produce meaningful vertical (others cannot be "everested")
+EVERESTING_CLIMBING_META_SPORTS = [
+    M_AT_RIDE,
+    M_AT_RUN,
+    M_AT_HIKE,
+    M_AT_SKI,
+]
+
+# single-activity challenge tiers (label, meters of gain in ONE activity),
+# ordered ascending by meters
+EVERESTING_VARIANTS = [
+    ("Quarter Everest", 2212),
+    ("Basecamp", 3500),
+    ("Half Everest", 4424),
+    ("Everesting", 8848),
+    ("Double Everesting", 17696),
+    ("Triple Everesting", 26544),
+]
+
+
+def everesting_variant(elevation_gain: int) -> str | None:
+    """Return the highest single-activity Everesting tier reached, or None.
+
+    Parameters
+    ----------
+    elevation_gain : int
+        Elevation gain of a single activity, in meters.
+
+    Returns
+    -------
+    str | None
+        Label of the highest ``EVERESTING_VARIANTS`` tier whose threshold is
+        met, or ``None`` when the gain is below the smallest tier.
+    """
+    reached = None
+    for label, threshold in EVERESTING_VARIANTS:
+        if elevation_gain >= threshold:
+            reached = label
+    return reached
+
+
+#
 # UNIVERSAL KM COEFFICIENTS
 #
 # - activity km to universal km conversion
@@ -499,3 +555,4 @@ class StatsPeriod(enum.Enum):
     YEAR = enum.auto()
     MONTH = enum.auto()
     WEEK = enum.auto()
+    DAY = enum.auto()
