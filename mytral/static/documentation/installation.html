@@ -215,6 +215,7 @@
 <li><a href="#install-on-ubuntu-from-ppa">Ubuntu (PPA)</a></li>
 <li><a href="#install-on-windows-using-installer">Windows (installer)</a></li>
 <li><a href="#install-on-windows-using-zip">Windows (zip)</a></li>
+<li><a href="#install-on-macos-using-dmg">macOS (dmg)</a></li>
 </ul>
 <p>Build:</p>
 <ul>
@@ -224,6 +225,7 @@
 <li><a href="#build-flatpak-on-linux">Flatpak (bundle)</a></li>
 <li><a href="#build-binary-on-windows">Windows (binary)</a></li>
 <li><a href="#build-windows-installer">Windows (installer)</a></li>
+<li><a href="#build-macos-dmg">macOS (dmg)</a></li>
 </ul>
 <p>Run:</p>
 <ul>
@@ -281,6 +283,32 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 # example: mytral-1.51.0.exe
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-macos-using-dmg">Install on macOS using DMG</h2>
+<p>Download the latest <code>.dmg</code> from:</p>
+<ul>
+<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
+</ul>
+<p>Open the disk image and drag <code>MyTraL.app</code> to <code>Applications</code>:</p>
+<div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;.dmg
+
+# example: mytral-1.58.0.dmg
+</code></pre></div>
+
+<p>This build is <strong>Apple Silicon (arm64) only</strong> and is <strong>not code-signed or
+notarized</strong>. On first launch, macOS Gatekeeper will refuse to open it with a
+"cannot be opened because the developer cannot be verified" (or "is damaged")
+warning. Work around this once, either:</p>
+<div class="codehilite"><pre><span></span><code>xattr<span class="w"> </span>-cr<span class="w"> </span>/Applications/MyTraL.app
+</code></pre></div>
+
+<p>or right-click (Control-click) <code>MyTraL.app</code> in Finder, choose <code>Open</code>, then
+confirm in the dialog that appears.</p>
+<p>Data is stored in:</p>
+<div class="codehilite"><pre><span></span><code>~/Library/Application Support/mytral/   (data and config)
+~/Library/Caches/mytral/                (cache)
+</code></pre></div>
+
+<p><strong>Uninstall:</strong> drag <code>MyTraL.app</code> from <code>Applications</code> to the Trash.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap-from-snap-store">Install on Linux using Snap from Snap Store</h2>
 <p>The easiest way to install MyTraL on Linux is from the
 <a href="https://snapcraft.io/mytral">Snap Store</a>. Snap works across all major Linux
@@ -598,6 +626,39 @@ flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class=
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-windows-clean
 </code></pre></div>
 
+</div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-macos-dmg">Build macOS DMG</h2>
+<p>The macOS <code>.dmg</code> is built with <code>hdiutil</code> and <code>iconutil</code>/<code>sips</code> (all bundled
+with macOS - no extra tools to install). Must run on macOS; produces an
+<strong>Apple Silicon (arm64) only</strong>, unsigned app bundle and disk image.</p>
+<p>Install <code>uv</code>:</p>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</code></pre></div>
+
+<p>Install <code>Python</code>:</p>
+<div class="codehilite"><pre><span></span><code>uv<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12
+</code></pre></div>
+
+<p>Clone Git repository:</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<span class="nb">cd</span><span class="w"> </span>mytral
+</code></pre></div>
+
+<p>Build the app bundle and the <code>.dmg</code>:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>setup<span class="w"> </span>distro-macos-dmg-build
+</code></pre></div>
+
+<p>The disk image is created at:</p>
+<div class="codehilite"><pre><span></span><code>distro/macos-dmg/mytral-&lt;version&gt;.dmg
+</code></pre></div>
+
+<p>Build and install <code>MyTraL.app</code> locally to <code>/Applications</code> for testing:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-macos-dmg-install-local
+</code></pre></div>
+
+<p><strong>Clean macOS .dmg artifacts:</strong></p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>distro-macos-dmg-clean
+</code></pre></div>
+
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="build-binary-on-windows">Build Binary on Windows</h2>
 <p>Install <code>uv</code> to <code>C:\Users\[user]\.local\bin</code>:</p>
 <div class="codehilite"><pre><span></span><code>powershell<span class="w"> </span>-ExecutionPolicy<span class="w"> </span>ByPass<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;irm https://astral.sh/uv/install.ps1 | iex&quot;</span>
@@ -755,6 +816,7 @@ mytral-&lt;version&gt;.exe
         <a href="#install-on-ubuntu-from-ppa" class="nav-link">Install on Ubuntu from PPA</a>
 <a href="#install-on-windows-using-installer" class="nav-link">Install on Windows using Installer</a>
 <a href="#install-on-windows-using-zip" class="nav-link">Install on Windows using ZIP</a>
+<a href="#install-on-macos-using-dmg" class="nav-link">Install on macOS using DMG</a>
 <a href="#install-on-linux-using-snap-from-snap-store" class="nav-link">Install on Linux using Snap from Snap Store</a>
 <a href="#install-on-linux-using-snap" class="nav-link">Install on Linux using Snap</a>
 <a href="#install-on-linux-using-flatpak" class="nav-link">Install on Linux using Flatpak</a>
@@ -763,6 +825,7 @@ mytral-&lt;version&gt;.exe
 <a href="#build-snap-on-linux" class="nav-link">Build Snap on Linux</a>
 <a href="#build-flatpak-on-linux" class="nav-link">Build Flatpak on Linux</a>
 <a href="#build-windows-installer" class="nav-link">Build Windows Installer</a>
+<a href="#build-macos-dmg" class="nav-link">Build macOS DMG</a>
 <a href="#build-binary-on-windows" class="nav-link">Build Binary on Windows</a>
 <a href="#run-using-python-on-ubuntu" class="nav-link">Run using Python on Ubuntu</a>
 <a href="#run-using-docker-on-debian" class="nav-link">Run using Docker on Debian</a>

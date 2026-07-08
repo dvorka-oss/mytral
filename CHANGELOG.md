@@ -5,7 +5,6 @@
 This MyTraL **minor** release brings:
 
 ### Added
-
 - Improved the first login experience in MyTraL DESKTOP incarnation: when no
   user profile exists yet, a default `athlete` user ("MyTraL Athlete") is
   auto-created and auto-logged in, landing straight on the dashboard - no
@@ -19,10 +18,19 @@ This MyTraL **minor** release brings:
   recordings (as well as parquet) don't have it.
 - Added tooltip with the elevation, time, distance and grade to the elevation chart
   on the activity analysis page.
+- Added a macOS `.dmg` desktop distribution, built with PyInstaller and
+  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions workflow
+  run for every release PR. The build targets Apple Silicon (arm64) only and ships
+  unsigned (no Apple Developer certificate).
+  See `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed
+  on first launch.
+  Data is stored in `~/Library/Application Support/mytral/` like every other macOS app.
 
 ### Fixed
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
 
+### Documentation
+- Documented macOS Apple Silicin (arm64) installation and build.
 
 
 ## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
