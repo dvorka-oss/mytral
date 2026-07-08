@@ -677,7 +677,7 @@ distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
-# MACOS: macOS .dmg distribution (Apple Silicon / arm64 only, local builds only)
+# MACOS: macOS .dmg distribution (Apple Silicon / arm64 only)
 #
 # Must run on macOS - relies on `sips`, `iconutil`, and `hdiutil`, which are
 # only available on macOS. Produces an unsigned app bundle and .dmg; see

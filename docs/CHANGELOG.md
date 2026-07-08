@@ -8,7 +8,13 @@ This MyTraL **minor** release brings:
 - .
 
 ### Added
-- .
+- Added a macOS `.dmg` desktop distribution, built with PyInstaller and
+  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions
+  workflow run for every release PR. The build targets **Apple Silicon
+  (arm64) only** and ships **unsigned** (no Apple Developer certificate) -
+  see `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed on
+  first launch. Data is stored in `~/Library/Application Support/mytral/`
+  like every other macOS app.
 
 ### Fixed
 - .
