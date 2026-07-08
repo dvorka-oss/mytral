@@ -5,10 +5,25 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
+  card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
+  top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
+  and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
+  full Everests.
+  Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
+  now earns an Everesting achievement badge shown on the activity, in activity lists,
+  and on the "Highest Climb Ever" card.
+
+### Changed
+- Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
+  Ski) instead of lumping all sports together. The `This vs. Last` elevation view gained
+  a sport selector and shows the 8848 m Everesting reference line scoped to the selected
+  sport (now on the yearly view too).
 
 ### Fixed
-- .
+- Fixed the `This vs. Last` page showing the literal text "None" instead of a
+  chart when the selected sport and period had no data - it now shows a friendly
+  empty state.
 
 ### Documentation
 - .

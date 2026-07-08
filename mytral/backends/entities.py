@@ -338,6 +338,16 @@ class ActivityEntity(DbEntity):
     # map: field (str) -> original value prior to calculation
     transient_fields: dict | None = None
 
+    @property
+    def everesting_variant(self) -> str | None:
+        """Single-activity Everesting tier reached by this activity, or None."""
+        return commons.everesting_variant(self.elevation_gain)
+
+    @property
+    def everested(self) -> bool:
+        """Did this single activity climb a full Everest (8848 m) or more?"""
+        return self.elevation_gain >= commons.EVERESTING_M
+
     def to_dict(self) -> dict:
         return dataclasses.asdict(self)
 

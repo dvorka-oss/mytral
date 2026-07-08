@@ -38,6 +38,16 @@ KJ_2_KCAL = 0.232
 KCAL_2_KJ = 4.1841
 
 
+def _filter_by_meta_sport(
+    activities: list[entities.ActivityEntity], meta_sport: str | None
+) -> list[entities.ActivityEntity]:
+    """Keep only activities of the given meta sport (None keeps all)."""
+    if meta_sport is None:
+        return activities
+    keys = set(commons.AT_TAXONOMY.get(meta_sport, []))
+    return [a for a in activities if a.activity_type_key in keys]
+
+
 # TODO to dataclasses
 
 
@@ -254,28 +264,30 @@ class ActivitiesStats:
         aspect: commons.StatsAspect,
         activity_types: settings.UserActivityTypes,
         cumulative: bool = True,
+        meta_sport: str | None = None,
     ) -> dict:
         totals = {i: 0.0 for i in range(1, 32)}
+        acts = _filter_by_meta_sport(self.activities, meta_sport)
 
         if commons.StatsAspect.DISTANCE == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.distance
         elif commons.StatsAspect.DURATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.duration_seconds
         elif commons.StatsAspect.KGS == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.exercise_kgs
         elif commons.StatsAspect.ELEVATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.elevation_gain
         else:
             # aspect: activities count
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += 1
 
@@ -292,28 +304,30 @@ class ActivitiesStats:
         aspect: commons.StatsAspect,
         activity_types: settings.UserActivityTypes,
         cumulative: bool = True,
+        meta_sport: str | None = None,
     ) -> dict:
         # map: month [1, 12] -> total meters/seconds/kgs/activities
         totals = {i: 0.0 for i in range(1, 13)}
+        acts = _filter_by_meta_sport(self.activities, meta_sport)
         if commons.StatsAspect.DISTANCE == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.distance
         elif commons.StatsAspect.DURATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.duration_seconds
         elif commons.StatsAspect.KGS == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.exercise_kgs
         elif commons.StatsAspect.ELEVATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.elevation_gain
         else:
             # aspect: activities count
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += 1
 

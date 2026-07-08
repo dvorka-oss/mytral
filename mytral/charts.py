@@ -42,7 +42,7 @@ from mytral.recordings.models import RecordingData
 BOKEH_WEEK_DAYS = ["Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"]
 VIEW_WIDTH_DEFAULT = 1100
 VIEW_WIDTH_MOBILE = 500
-EVERESTING_M = 8848  # height of Mt. Everest in meters
+EVERESTING_M = commons.EVERESTING_M  # height of Mt. Everest in meters
 EVERESTING_RANGE_PADDING = 1.05  # headroom so the reference line is never clipped
 
 
@@ -175,7 +175,12 @@ def _add_hover_tool_with_tooltips(
 
 
 def _add_everesting_line(
-    fig, aspect: commons.StatsAspect, y_max: float, x_min, x_max
+    fig,
+    aspect: commons.StatsAspect,
+    y_max: float,
+    x_min,
+    x_max,
+    meta_sport: str | None = None,
 ) -> None:
     """draw a dashed red Everesting (8848 m) reference line for elevation charts."""
     if commons.StatsAspect.ELEVATION != aspect:
@@ -185,6 +190,9 @@ def _add_everesting_line(
     fig.y_range = bokeh_models.Range1d(
         start=0, end=max(y_max, EVERESTING_M) * EVERESTING_RANGE_PADDING
     )
+    sport = ""
+    if meta_sport:
+        sport = f" - {commons.M_AT_DISPLAY_NAMES.get(meta_sport, meta_sport)}"
     # a real 2-point line (not an annotation) so Bokeh reliably draws both
     # the line and its legend entry - an empty-data glyph is not rendered
     # in the legend by Bokeh's client-side JS
@@ -195,7 +203,7 @@ def _add_everesting_line(
         line_dash="dashed",
         line_width=2,
         line_alpha=0.7,
-        legend_label="Everesting (8848 m)",
+        legend_label=f"Everesting{sport} ({EVERESTING_M} m)",
     )
 
 
@@ -2365,7 +2373,11 @@ def fig_grid_2_html(fig_or_grid) -> tuple[str, Any]:
 
 
 def last_vs_this_year(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
     #
     #  data
@@ -2380,7 +2392,9 @@ def last_vs_this_year(
     )
     # get totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
-    this_data = this_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    this_data = this_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     last_year = this_year - 1
     last_as = ds.list_activities(
@@ -2389,7 +2403,9 @@ def last_vs_this_year(
         filter_year=last_year,
     )
     last_stats = stats.ActivitiesStats(last_as)
-    last_data = last_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    last_data = last_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     llast_year = last_year - 1
     llast_as = ds.list_activities(
@@ -2399,7 +2415,7 @@ def last_vs_this_year(
     )
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_year_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     #
@@ -2461,13 +2477,26 @@ def last_vs_this_year(
 
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(list(this_data.values()) + list(last_data.values()), default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
+
     script, div = bokeh_embed.components(fig)
 
     return script, div
 
 
 def last_vs_this_month(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any] | tuple[None, None]:
     #
     #  data
@@ -2487,7 +2516,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
     this_data = this_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     last_year, last_month = cals.get_last_month()
@@ -2500,7 +2529,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     last_stats = stats.ActivitiesStats(last_as)
     last_data = last_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     llast_year, llast_month = cals.get_last_month(year=last_year, month=last_month)
@@ -2513,7 +2542,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     # hide chart when all three months have no data
@@ -2580,7 +2609,12 @@ def last_vs_this_month(
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
     _add_everesting_line(
-        fig, aspect, max(llast_y + last_y + this_y, default=0), x[0], x[-1]
+        fig,
+        aspect,
+        max(llast_y + last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
     )
 
     script, div = bokeh_embed.components(fig)
@@ -2592,8 +2626,9 @@ def last_vs_this_week(
     heatmap: views.CalendarHeatmap,
     aspect: commons.StatsAspect,
     is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
-    data = heatmap.vs_week_stats(aspect=aspect)
+    data = heatmap.vs_week_stats(aspect=aspect, meta_sport=meta_sport)
 
     fig = bokeh_plt.figure(
         title=f"This week vs. last week {aspect.name.lower()}",
@@ -2644,7 +2679,14 @@ def last_vs_this_week(
 
     _add_hover_tool_with_tooltips(fig, aspect, [last_w, this_w])
 
-    _add_everesting_line(fig, aspect, max(last_y + this_y, default=0), x[0], x[-1])
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
 
     script, div = bokeh_embed.components(fig)
 
