@@ -1,8 +1,11 @@
 # Changelog
 
-## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...HEAD)
+## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
 
 This MyTraL **minor** release brings:
+
+### Added
+- .
 
 ### Changed
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and
@@ -10,8 +13,19 @@ This MyTraL **minor** release brings:
   elevation view gained a sport selector and shows the 8848 m Everesting
   reference line scoped to the selected sport (now on the yearly view too).
 
-### Added
+### Fixed
+- .
 
+### Documentation
+- .
+
+
+
+## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
+
+This MyTraL **minor** release brings:
+
+### Added
 - Improved the first login experience in MyTraL DESKTOP incarnation: when no
   user profile exists yet, a default `athlete` user ("MyTraL Athlete") is
   auto-created and auto-logged in, landing straight on the dashboard - no
@@ -21,6 +35,7 @@ This MyTraL **minor** release brings:
 - Calendar and sickness heatmaps now mark today with a yellow rectangle so the
   current week and day stand out, and each sickness day's tooltip now reads like
   `2026-05-25: 3x sick` instead of a bare count.
+<<<<<<< HEAD
 - A redesigned, sport-aware Everesting experience on the dashboard. A new
   Everesting card tracks how much of Mt. Everest (8848 m of climbing) you have
   accumulated for your top climbing sport, with a Day/Week/Month/Year toggle, a
@@ -30,6 +45,19 @@ This MyTraL **minor** release brings:
   Quarter, Half, Double, or Triple - in a single activity now earns an Everesting
   achievement badge shown on the activity, in activity lists, and on the
   "Highest Climb Ever" card.
+=======
+- Added estimated speed to the analysis chart of the activity in case that activity
+  recordings (as well as parquet) don't have it.
+- Added tooltip with the elevation, time, distance and grade to the elevation chart
+  on the activity analysis page.
+- Added a macOS `.dmg` desktop distribution, built with PyInstaller and
+  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions workflow
+  run for every release PR. The build targets Apple Silicon (arm64) only and ships
+  unsigned (no Apple Developer certificate).
+  See `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed
+  on first launch.
+  Data is stored in `~/Library/Application Support/mytral/` like every other macOS app.
+>>>>>>> dev/1.59.0
 
 ### Fixed
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
@@ -38,7 +66,7 @@ This MyTraL **minor** release brings:
   empty state.
 
 ### Documentation
-- .
+- Documented macOS Apple Silicon (arm64) installation and build.
 
 
 

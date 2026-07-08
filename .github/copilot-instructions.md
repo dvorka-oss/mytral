@@ -286,6 +286,25 @@ from mytral import ff                # FeatureFlags - ff.can("FEATURE_NAME")
 - **Production hosting**: pythonanywhere.com.  **Domain**: mytral.fitness.
 - **Desktop packaging**: PyInstaller (via `dependency-groups.desktop`).
 
+## Documentation - source of truth vs generated files
+
+Several files in the repo are **generated** - never edit a generated file
+directly; edit its source and regenerate, or your change is silently lost on the
+next `make` run.
+
+- **`INSTALLATION.md`** (repo root) is the **single source of truth** for install
+  docs. `docs/INSTALLATION.md`, the HTML under `mytral/static/documentation/`,
+  and the public site under `webs/www.mytral.fitness/` are all **generated** from
+  it. Same for `CREDITS.md`, `CHANGELOG.md`, and `LICENSES.md`.
+  - Edit root `INSTALLATION.md`, then run `make doc-sync-data` (copy to `docs/`),
+    `make doc` (HTML docs), or `make www-doc` (public site).
+  - README links resolve relative to the repo root, so they must point at
+    `INSTALLATION.md#anchor` (root), NOT `docs/INSTALLATION.md#anchor`.
+- **`.github/copilot-instructions.md`** is the source of truth for coding-agent
+  instructions. `CLAUDE.md`, `AGENT.md`, `AGENTS.md`, and `DEEPSEEK.md` are
+  **generated copies** of it (see the `cp` targets in the `Makefile`). Edit only
+  `.github/copilot-instructions.md`, then regenerate the copies.
+
 ## Workflow checklist - after every code change
 
 1. `uv run make py-lint` - MUST pass (ruff check + ruff format + isort).
