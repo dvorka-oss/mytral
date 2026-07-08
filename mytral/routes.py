@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import calendar
+import contextlib
 import copy
 import dataclasses
 import datetime
@@ -148,7 +149,8 @@ def _profile_points_with_time(
         if result_pair is None:
             return profile_points
         parquet_stream, _ = result_pair
-        recording = parquet_converter.load_parquet(parquet_stream.read())
+        with contextlib.closing(parquet_stream) as stream:
+            recording = parquet_converter.load_parquet(stream.read())
         return gpx_extractor.elevation_profile_with_time(
             profile_points=profile_points,
             recording=recording,
@@ -3737,7 +3739,8 @@ def get_activity_analysis(key):
             )
             if result_pair is not None:
                 parquet_stream, _ = result_pair
-                parquet_bytes = parquet_stream.read()
+                with contextlib.closing(parquet_stream) as stream:
+                    parquet_bytes = stream.read()
                 recording = parquet_converter.load_parquet(parquet_bytes)
                 parquet_available = True
 
