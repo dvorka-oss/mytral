@@ -4,9 +4,6 @@
 
 This MyTraL **minor** release brings:
 
-### Changed
-- .
-
 ### Added
 
 - Improved the first login experience in MyTraL DESKTOP incarnation: when no
@@ -20,12 +17,11 @@ This MyTraL **minor** release brings:
   `2026-05-25: 3x sick` instead of a bare count.
 - Added estimated speed to the analysis chart of the activity in case that activity
   recordings (as well as parquet) don't have it.
+- Added tooltip with the elevation, time, distance and grade to the elevation chart
+  on the activity analysis page.
 
 ### Fixed
 - Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
-
-### Documentation
-- .
 
 
 
