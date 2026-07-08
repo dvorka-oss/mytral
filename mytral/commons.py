@@ -433,7 +433,6 @@ def aggregate_by_meta_sport(
 #
 
 EVERESTING_M = 8848  # height of Mt. Everest in meters
-EVERESTING_KARMAN_M = 100000  # Karman line - the edge of space, in meters
 
 # meta sports that produce meaningful vertical (others cannot be "everested")
 EVERESTING_CLIMBING_META_SPORTS = [

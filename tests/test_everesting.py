@@ -212,20 +212,18 @@ def test_activity_everested_properties():
 
 
 @pytest.mark.mytral
-def test_lifetime_vertical_and_space():
+def test_lifetime_vertical_and_everests():
     # GIVEN a lifetime of activities
     activities = [
         _activity("a", 2020, 1, 1, commons.AT_RIDE, 8848),
         _activity("b", 2021, 1, 1, commons.AT_RUN, 8848),
     ]
 
-    # WHEN computing lifetime vertical, Everests and % to space
+    # WHEN computing lifetime vertical and Everests
     total = everesting.lifetime_vertical_m(activities)
     everests = everesting.everests_climbed(total)
-    to_space = everesting.pct_to_space(total)
 
     # THEN the totals are consistent with the constants
     assert total == 2 * commons.EVERESTING_M
     assert round(everests, 3) == 2.0
-    assert round(to_space, 4) == round(total / commons.EVERESTING_KARMAN_M * 100.0, 4)
-    print("DONE lifetime vertical, Everests and space are correct")
+    print("DONE lifetime vertical and Everests are correct")

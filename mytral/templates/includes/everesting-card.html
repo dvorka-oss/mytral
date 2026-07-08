@@ -5,7 +5,7 @@
 {% set p = periods.month %}
 {% set init_pct = [p.pct, 100]|min %}
 {% set rect_y = 75 - (init_pct / 100 * 70) %}
-<div class="card">
+<div class="card" id="everesting-card" style="cursor: pointer;" data-href="{{ url_for('this_vs_last') }}?aspect=elevation&period=month" title="View elevation trends">
     <div class="card-body">
         <div class="d-flex align-items-center">
             <div class="subheader">
@@ -100,5 +100,15 @@
         buttons.forEach(function (b) {
             b.addEventListener("click", function () { apply(b); });
         });
+        var card = document.getElementById("everesting-card");
+        if (card) {
+            card.addEventListener("click", function (e) {
+                // let the D/W/M/Y toggle and the info tooltip keep their own clicks
+                if (e.target.closest(".everesting-period-btn") || e.target.closest(".form-help")) {
+                    return;
+                }
+                window.location.href = card.getAttribute("data-href");
+            });
+        }
     })();
 </script>

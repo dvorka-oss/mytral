@@ -708,7 +708,6 @@ def home():
     )
     lifetime_vertical_m = everesting.lifetime_vertical_m(all_activities)
     lifetime_everests = everesting.everests_climbed(lifetime_vertical_m)
-    lifetime_pct_to_space = everesting.pct_to_space(lifetime_vertical_m)
 
     # warnings: gear
     gear_requires_attention = None
@@ -766,7 +765,6 @@ def home():
         everesting_periods=everesting_periods,
         lifetime_vertical_m=lifetime_vertical_m,
         lifetime_everests=lifetime_everests,
-        lifetime_pct_to_space=lifetime_pct_to_space,
         # onboarding
         onboarding_active=onboarding_active,
         onboarding_state=onboarding_state,
@@ -811,6 +809,15 @@ def this_vs_last():
         except KeyError:
             flask.abort(400)
 
+    # this view only renders week / month / year charts; DAY exists for the
+    # dashboard Everesting toggle but has no chart here
+    if period not in {
+        commons.StatsPeriod.WEEK,
+        commons.StatsPeriod.MONTH,
+        commons.StatsPeriod.YEAR,
+    }:
+        flask.abort(400)
+
     # elevation charts are scoped to a single climbing meta sport; other aspects
     # aggregate across all sports (meta_sport stays None)
     meta_sport = None
@@ -821,14 +828,18 @@ def this_vs_last():
         if meta_arg in climbing_sports:
             meta_sport = meta_arg
         else:
-            # default to the sport with the most vertical this year
+            # default to the sport with the most vertical in the selected year;
+            # use a reference date inside that year so the year filter matches
+            # even when the newest data year is not the current calendar year
+            now = datetime.date.today()
+            ref_day = now if now.year == int(year) else datetime.date(int(year), 12, 31)
             meta_sport = everesting.top_climbing_meta_sport(
                 ds.list_activities(
                     user_id=user_id,
                     dataset_name=user_profile.dataset_name,
                     filter_year=int(year),
                 ),
-                datetime.date.today(),
+                ref_day,
             )
 
     # chart

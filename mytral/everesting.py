@@ -202,12 +202,3 @@ def lifetime_vertical_m(activities: list[entities.ActivityEntity]) -> int:
 def everests_climbed(total_m: int) -> float:
     """How many Everests the total vertical represents."""
     return total_m / commons.EVERESTING_M if commons.EVERESTING_M else 0.0
-
-
-def pct_to_space(total_m: int) -> float:
-    """Total vertical as a percentage of the Karman line (edge of space)."""
-    return (
-        total_m / commons.EVERESTING_KARMAN_M * 100.0
-        if commons.EVERESTING_KARMAN_M
-        else 0.0
-    )
