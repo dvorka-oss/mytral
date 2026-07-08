@@ -196,6 +196,17 @@
                     {{ activity_entity.description|markdown }}
                 </div>
 
+                {% if activity_entity.tags %}
+                <div class="mb-4">
+                    {% for tag in activity_entity.tags %}
+                    {% set tag_color = tag|tag_to_color %}
+                    <a href="{{ url_for('list_activities_year', year=activity_entity.when_year, tag=tag) }}" class="text-decoration-none">
+                        <span class="badge bg-{{ tag_color }} text-{{ tag_color }}-fg">{{ tag }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 {% if activity_entity.distance %}
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6 col-lg-3">

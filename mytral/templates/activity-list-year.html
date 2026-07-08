@@ -59,7 +59,7 @@
                 <div class="btn-list">
                     {% if activities|length > 0 %}
                     <div class="btn-group">
-                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='list', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, tag=filter_tag, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                                 <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
@@ -68,7 +68,7 @@
                             </svg>
                             List
                         </a>
-                        <a href="{{ url_for('list_activities_year', year=year, aspect='feed', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('list_activities_year', year=year, aspect='feed', activity_type=filter_activity_type, gear=filter_gear, intensity=filter_intensity, type=filter_type, source=filter_source, tag=filter_tag, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-layout-cards" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                                 <path d="M4 4m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
@@ -205,6 +205,18 @@
                                             {% for src in unique_sources %}
                                                 <option value="{{ src }}" {% if src == filter_source %}selected{% endif %}>
                                                     {{ src }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label class="form-label">Tag</label>
+                                        <select class="form-select" name="tag" onchange="this.form.submit()">
+                                            <option value="">All</option>
+                                            {% for tag in unique_tags %}
+                                                <option value="{{ tag }}" {% if tag == filter_tag %}selected{% endif %}>
+                                                    {{ tag }}
                                                 </option>
                                             {% endfor %}
                                         </select>
@@ -438,6 +450,16 @@
                                                     <span class="mx-2">·</span>
                                                     <a href="{{ url_for('settings_activity_types_get', key=activity.activity_type_key) }}" class="text-reset">{{ activity_types.name(activity.activity_type_key) }}</a>
                                                 </div>
+                                                {% if activity.tags %}
+                                                <div class="mt-1">
+                                                    {% for tag in activity.tags %}
+                                                    {% set tag_color = tag|tag_to_color %}
+                                                    <a href="{{ url_for('list_activities_year', year=year, aspect=aspect, tag=tag) }}" class="text-decoration-none">
+                                                        <span class="badge bg-{{ tag_color }} text-{{ tag_color }}-fg">{{ tag }}</span>
+                                                    </a>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
                                             </div>
                                             <div class="text-end">
                                                 {% if activity.commute %}

@@ -1012,6 +1012,7 @@ def _build_overlay_chart(
     has_cadence = rec.has_cadence
     has_altitude = rec.has_altitude
     has_power = rec.has_power
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
 
     # convert None → NaN for Bokeh (avoids gaps rendering as zero)
     def _nan(v):
@@ -1102,7 +1103,9 @@ def _build_overlay_chart(
             end=max((v for v in speed_values if v is not None), default=50) * 1.15,
         )
         fig.add_layout(
-            bokeh_models.LinearAxis(y_range_name="speed", axis_label="Speed (km/h)"),
+            bokeh_models.LinearAxis(
+                y_range_name="speed", axis_label=f"{speed_label} (km/h)"
+            ),
             "right",
         )
         speed_line = fig.line(
@@ -1111,7 +1114,7 @@ def _build_overlay_chart(
             source=source,
             color="#1971c2",
             line_width=1.5,
-            legend_label="Speed (km/h)",
+            legend_label=f"{speed_label} (km/h)",
             y_range_name="speed",
         )
         extra_renderers.append(speed_line)
@@ -1177,7 +1180,7 @@ def _build_overlay_chart(
 
     tooltips = [("Time", "@ts{%H:%M:%S}"), ("HR", "@hr bpm")]
     if has_speed:
-        tooltips.append(("Speed", "@speed km/h"))
+        tooltips.append((speed_label, "@speed km/h"))
     if has_cadence:
         tooltips.append(("Cadence", "@cadence rpm"))
     if has_altitude:
@@ -1267,11 +1270,7 @@ def _build_ridge_chart(
     has_speed = rec.has_speed
     has_cadence = rec.has_cadence
     has_altitude = rec.has_altitude
-    cadence_values = rec.cadence_values
-    altitude_values = rec.altitude_values
-    has_speed = rec.has_speed
-    has_cadence = rec.has_cadence
-    has_altitude = rec.has_altitude
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
 
     def _nan(v):
         return float("nan") if v is None else v
@@ -1279,7 +1278,7 @@ def _build_ridge_chart(
     # channel definitions: (field, raw_values, label, unit, color)
     all_channels = [
         ("hr", hr_values, "Heart Rate", "bpm", "#e03131"),
-        ("speed", speed_values, "Speed", "km/h", "#1971c2"),
+        ("speed", speed_values, speed_label, "km/h", "#1971c2"),
         ("cadence", cadence_values, "Cadence", "rpm", "#f08c00"),
         ("altitude", altitude_values, "Altitude", "m", "#2f9e44"),
     ]
@@ -2155,6 +2154,8 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
     if not has_speed and not has_cadence:
         return None
 
+    speed_label = "eSpeed" if rec.speed_estimated else "Speed"
+
     def _nan(v):
         return float("nan") if v is None else v
 
@@ -2191,10 +2192,10 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
             source=source,
             line_width=2,
             color="#1971c2",
-            legend_label="Speed (km/h)",
+            legend_label=f"{speed_label} (km/h)",
         )
         fig.y_range = bokeh_models.Range1d(start=0, end=speed_max)
-        fig.yaxis.axis_label = "Speed (km/h)"
+        fig.yaxis.axis_label = f"{speed_label} (km/h)"
 
     # plot cadence on secondary (right) y-axis
     if has_cadence:
@@ -2220,7 +2221,7 @@ def _build_speed_cadence_ts_chart(rec: RecordingData) -> tuple[str, Any] | None:
 
     tooltips = [("Time", "@ts{%H:%M:%S}")]
     if has_speed:
-        tooltips.append(("Speed", "@speed{0.0} km/h"))
+        tooltips.append((speed_label, "@speed{0.0} km/h"))
     if has_cadence:
         tooltips.append(("Cadence", "@cadence{0} rpm"))
 

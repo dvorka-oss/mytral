@@ -85,6 +85,38 @@ def test_json_dataset_new_user_bootstrap_gender_default(tmp_path: pathlib.Path):
 
 
 @pytest.mark.mytral
+def test_json_dataset_register_new_user_auto_login_flag(tmp_path: pathlib.Path):
+    #
+    # GIVEN
+    #
+    data_dir = tmp_path / ".local"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    app_config = config.MytralConfig(
+        port=config.MytralConfig.DEFAULT_PORT,
+        persistence_data_dir=data_dir.absolute(),
+        auto_account_create=True,
+    )
+    mytral_ds = dataset.MyTraLDataset(
+        mytral_config=app_config, logger=loggers.MytralPrintLogger()
+    )
+
+    #
+    # WHEN
+    #
+    mytral_ds.user().register_new_user(
+        user_name="auto-login-user", user_id="auto-login-id", auto_login=True
+    )
+    mytral_ds.user().register_new_user(user_name="regular-user", user_id="regular-id")
+
+    #
+    # THEN
+    #
+    assert mytral_ds.user().profile(user_id="auto-login-id").auto_login is True
+    assert mytral_ds.user().profile(user_id="regular-id").auto_login is False
+    print("DONE: register_new_user propagates the auto_login flag to the profile")
+
+
+@pytest.mark.mytral
 def test_json_dataset_activities(tmp_path: pathlib.Path):
     """Test activities CRUD."""
     #

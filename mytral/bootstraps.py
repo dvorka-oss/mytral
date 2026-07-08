@@ -16,3 +16,47 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """Bootstrap related code."""
+
+import uuid
+
+from mytral import commons
+from mytral import loggers
+from mytral import security
+from mytral.backends import dataset
+
+
+def bootstrap_default_desktop_user(
+    ds: dataset.UserDataset, logger: loggers.MytralStructLogger
+) -> None:
+    """Auto-create the default athlete user on the first DESKTOP boot.
+
+    Smooth first start: DESKTOP incarnation with no user profile on disk yet
+    gets a default user (with auto-login enabled) so that it can go straight
+    to the dashboard, without sign-up/login. Installations which already have
+    at least one profile are left untouched.
+
+    Parameters
+    ----------
+    ds : dataset.UserDataset
+        User dataset used to check for existing profiles and register the
+        default user.
+    logger : loggers.MytralStructLogger
+        Logger used to record that the default user was created.
+
+    """
+    if ds.list_profiles():
+        return
+
+    user_id = str(uuid.uuid4())
+    ds.register_new_user(
+        user_name=commons.DEFAULT_DESKTOP_USER_NAME,
+        user_id=user_id,
+        user_display_name=commons.DEFAULT_DESKTOP_USER_DISPLAY_NAME,
+        password_enc=security.hash_password(commons.DEFAULT_DESKTOP_USER_PASSWORD),
+        auto_login=True,
+    )
+    logger.info(
+        "Bootstrapped default desktop user",
+        user_name=commons.DEFAULT_DESKTOP_USER_NAME,
+        user_id=user_id,
+    )
