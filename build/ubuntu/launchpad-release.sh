@@ -359,6 +359,7 @@ fi
 # OBSOLETE:
 #   precise quantal saucy utopic vivid wily yakkety artful cosmic disco eoan
 #   groovy hirsute impish oracular
+#   plucky
 #
 # UNSUPPORTED:
 #   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling
@@ -373,12 +374,12 @@ fi
 #   on these series
 #
 # CURRENT:
-#   22.04 24.04 25.04  25.10    26.04
-#   jammy noble plucky questing resolute
+#   22.04 24.04 25.10    26.04
+#   jammy noble questing resolute
 #   ...
 #   current (build-time deps available; uv handles the 3.12 runtime at install)
 #
-SUPPORTED_UBUNTU_VERSIONS=(jammy noble plucky questing resolute)
+SUPPORTED_UBUNTU_VERSIONS=(jammy noble questing resolute)
 
 # optional CLI arg: build a single Ubuntu version; upload is skipped by default
 # unless the caller explicitly sets SKIP_UPLOAD=false

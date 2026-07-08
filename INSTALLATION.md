@@ -443,7 +443,7 @@ Build and install it locally for testing (requires sudo; Snap uses classic
 confinement, so the `--classic` flag is applied automatically):
 
 ```bash
-make distro-snap-install-local
+make distro-snap-install
 ```
 
 Run MyTraL:
@@ -503,7 +503,7 @@ distro/flatpak/mytral-<version>.flatpak
 Build and install it locally for testing (user scope):
 
 ```bash
-make distro-flatpak-install-local
+make distro-flatpak-install
 ```
 
 Run MyTraL:
@@ -633,7 +633,7 @@ distro/macos-dmg/mytral-<version>.dmg
 Build and install `MyTraL.app` locally to `/Applications` for testing:
 
 ```bash
-make distro-macos-dmg-install-local
+make distro-macos-dmg-install
 ```
 
 **Clean macOS .dmg artifacts:**
