@@ -88,7 +88,6 @@ mytral/
 +-- onboarding.py        # new-user onboarding checklist logic
 +-- bootstraps.py        # initial data bootstrapping for new accounts
 +-- migrations.py        # data migration between versions
-+-- ext.py               # Flask extensions / third-party integrations
 +-- cli.py               # CLI entry point (uv run mytral)
 +-- run.py               # web server entry point (uv run mytral-web)
 +-- run_desktop.py       # desktop app entry point (uv run mytral-desktop)
