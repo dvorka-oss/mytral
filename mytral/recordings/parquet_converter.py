@@ -516,11 +516,11 @@ def _derive_speed_from_gps(
 ) -> list[float | None]:
     """Estimate per-sample speed (km/h) from a GPS track.
 
-    Speed is computed as displacement over a centred time window
-    (``distance(i - w .. i + w) / elapsed(i - w .. i + w)``) rather than between
-    consecutive points, so that GPS position jitter partly cancels instead of
-    compounding into extreme spikes (naive point-to-point speed on 1 s samples
-    routinely reads 150+ km/h on a bike ride).
+    Speed is computed as average path speed over a centred time window
+    (``distance_along_track(i - w .. i + w) / elapsed(i - w .. i + w)``) rather
+    than between consecutive points, which spreads single-sample GPS spikes over
+    a longer interval (naive point-to-point speed on 1 s samples routinely reads
+    150+ km/h on a bike ride).
 
     Parameters
     ----------
@@ -540,7 +540,12 @@ def _derive_speed_from_gps(
         computed (e.g. a zero-length time window).
     """
     n = len(timestamps)
-    if n < 2:
+    valid_fixes = sum(
+        1
+        for lat, lon in zip(lat_values, lon_values)
+        if lat is not None and lon is not None
+    )
+    if n < 2 or valid_fixes < 2:
         return [None] * n
 
     # cumulative haversine distance (metres) and epoch seconds per sample

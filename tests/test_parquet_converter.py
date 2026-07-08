@@ -155,6 +155,27 @@ def test_derive_speed_from_gps_smooths_gps_noise():
 
 
 @pytest.mark.mytral
+def test_derive_speed_from_gps_single_fix_yields_no_speed():
+    """Test that a track with one valid GPS fix produces no derived speed."""
+    # GIVEN - several samples but only one carrying a position (e.g. TCX with
+    #         Position in a single Trackpoint)
+    base = datetime.datetime(2024, 6, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)
+    n = 5
+    timestamps = [base + datetime.timedelta(seconds=i) for i in range(n)]
+    lats = [None] * n
+    lons = [None] * n
+    lats[2] = 50.0
+    lons[2] = 14.0
+
+    # WHEN
+    speed = _derive_speed_from_gps(timestamps, lats, lons)
+
+    # THEN - no misleading all-zero estimate; every sample is None
+    assert speed == [None] * n
+    print("derive_speed_from_gps single fix yields no speed: DONE")
+
+
+@pytest.mark.mytral
 def test_load_parquet_estimates_speed_from_gps():
     """Test that load_parquet estimates speed for a GPX track lacking speed."""
     # GIVEN - a GPX track (has GPS, no native speed channel)
