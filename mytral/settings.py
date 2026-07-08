@@ -4199,6 +4199,7 @@ class UserProfile:
     KEY_CLIENT_SECRET = "client_secret"
     KEY_CLIENT_SECRET_ENC = "client_secret_enc"
     KEY_ACCESS_TOKEN = "access_token"
+    KEY_ACCESS_TOKEN_ENC = "access_token_enc"
     KEY_REFRESH_TOKEN = "refresh_token"
     KEY_CODE = "code"
     KEY_AUTH_UNTIL = "auth_until"
