@@ -54,6 +54,9 @@ class RecordingData:
         Whether power channel has any non-null values.
     source_format : str
         Recording source format: "fit" | "gpx" | "hrm" | "tcx".
+    speed_estimated : bool
+        Whether the speed channel was estimated from the GPS track rather than
+        provided natively by the recording device (labelled "eSpeed" in the UI).
     """
 
     timestamps: list[datetime.datetime]
@@ -70,6 +73,7 @@ class RecordingData:
     has_gps: bool
     has_power: bool
     source_format: str
+    speed_estimated: bool = False
 
 
 @dataclasses.dataclass

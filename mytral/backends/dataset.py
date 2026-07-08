@@ -94,7 +94,9 @@ class UserDataset(abc.ABC):
         self,
         user_name: str = commons.DEFAULT_USER_NAME,
         user_id: str = "",
+        user_display_name: str = "",
         password_enc: str = "",
+        auto_login: bool = False,
     ):
         """Create new user (sandbox / entries / tables).
 
@@ -104,8 +106,13 @@ class UserDataset(abc.ABC):
             Username.
         user_id : str
             Unique user ID.
+        user_display_name : str
+            Display name shown in the UI.
         password_enc : str
             Encrypted password.
+        auto_login : bool
+            Whether the new profile should have auto-login enabled
+            (DESKTOP incarnation only).
 
         """
         raise NotImplementedError

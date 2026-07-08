@@ -4,25 +4,33 @@
 
 This MyTraL **minor** release brings:
 
-### Changed
-- .
-
 ### Added
+- Improved the first login experience in MyTraL DESKTOP incarnation: when no
+  user profile exists yet, a default `athlete` user ("MyTraL Athlete") is
+  auto-created and auto-logged in, landing straight on the dashboard - no
+  sign-up/login step required. Logging out disables auto-login until the next
+  explicit login, so a second/third user can be added or logged into from the
+  login page.
+- Calendar and sickness heatmaps now mark today with a yellow rectangle so the
+  current week and day stand out, and each sickness day's tooltip now reads like
+  `2026-05-25: 3x sick` instead of a bare count.
+- Added estimated speed to the analysis chart of the activity in case that activity
+  recordings (as well as parquet) don't have it.
+- Added tooltip with the elevation, time, distance and grade to the elevation chart
+  on the activity analysis page.
 - Added a macOS `.dmg` desktop distribution, built with PyInstaller and
-  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions
-  workflow run for every release PR. The build targets Apple Silicon
-  (arm64) only and ships unsigned (no Apple Developer certificate) -
-  see `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed on
-  first launch. Data is stored in `~/Library/Application Support/mytral/`
-  like every other macOS app.
-
+  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions workflow
+  run for every release PR. The build targets Apple Silicon (arm64) only and ships
+  unsigned (no Apple Developer certificate).
+  See `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed
+  on first launch.
+  Data is stored in `~/Library/Application Support/mytral/` like every other macOS app.
 
 ### Fixed
-- .
+- Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
 
 ### Documentation
-- .
-
+- Documented macOS Apple Silicin (arm64) installation and build.
 
 
 ## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
