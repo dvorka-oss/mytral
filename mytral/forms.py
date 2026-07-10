@@ -1951,3 +1951,42 @@ class ImportStravaArchiveForm(flask_wtf.FlaskForm):
                 )
                 return False
         return True
+
+
+class ActivityRecommenderForm(flask_wtf.FlaskForm):
+    """Activity recommender search: activity type and gear are filters; hours/minutes,
+    distance and elevation form the query.  All fields are optional."""
+
+    # filters (choices populated in the route)
+    activity_type_key = wtforms.SelectField(
+        label="Activity type",
+        choices=[],
+        validate_choice=False,
+        default="",
+    )
+    gear_key = wtforms.SelectField(
+        label="Gear",
+        choices=[],
+        validate_choice=False,
+        default="",
+    )
+
+    # query (duration split into hours + minutes)
+    hours = wtforms.IntegerField(
+        label="Hours",
+        validators=[validators.Optional(), validators.NumberRange(0, 168)],
+    )
+    minutes = wtforms.IntegerField(
+        label="Minutes",
+        validators=[validators.Optional(), validators.NumberRange(0, 59)],
+    )
+    distance_km = wtforms.FloatField(
+        label="Distance (km)",
+        validators=[validators.Optional(), validators.NumberRange(0, 100_000)],
+    )
+    elevation_m = wtforms.IntegerField(
+        label="Elevation (m)",
+        validators=[validators.Optional(), validators.NumberRange(0, 100_000)],
+    )
+
+    submit = wtforms.SubmitField("Recommend")

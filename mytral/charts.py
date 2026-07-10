@@ -4737,3 +4737,148 @@ def weekday_activity_heatmap(
 
     script, div = bokeh_embed.components(fig)
     return script, div
+
+
+def _seconds_to_hm(seconds: float) -> str:
+    """Format a duration in seconds as ``HHhMMm``."""
+    total = int(seconds)
+    return f"{total // 3600:02}h{(total % 3600) // 60:02}m"
+
+
+def _cluster_color(cluster: int) -> str:
+    """Categorical colour for a cluster index."""
+    return bokeh_palette[cluster % len(bokeh_palette)]
+
+
+def recommender_cluster_scatter(
+    cluster_result,
+    activity_urls: dict[str, str],
+    activity_types: settings.UserActivityTypes,
+    is_mobile_view: bool = False,
+):
+    """Scatter plot of clustered recommender matches (PCA-projected to 2D).
+
+    Dots are coloured by cluster, hovering shows the activity summary, and clicking a
+    dot opens the activity.  Cluster centroids are drawn as diamonds with a summary
+    tooltip.  Returns a ``(script, div)`` Bokeh components tuple.
+
+    Parameters
+    ----------
+    cluster_result : recommender.ClusterResult
+        Points and centroids to plot.
+    activity_urls : dict[str, str]
+        Map: activity key -> detail-page URL (built by the caller so this stays
+        Flask-free).
+    activity_types : settings.UserActivityTypes
+        Used to resolve activity type names.
+    is_mobile_view : bool
+        True to render for a narrow viewport.
+
+    """
+    points = cluster_result.points
+    point_data = {
+        "x": [p.x for p in points],
+        "y": [p.y for p in points],
+        "color": [_cluster_color(p.cluster) for p in points],
+        "cluster": [f"Cluster {p.cluster + 1}" for p in points],
+        "name": [
+            p.activity.name or activity_types.name(p.activity.activity_type_key)
+            for p in points
+        ],
+        "type": [activity_types.name(p.activity.activity_type_key) for p in points],
+        "date": [
+            f"{p.activity.when_year:04}-{p.activity.when_month:02}-"
+            f"{p.activity.when_day:02}"
+            for p in points
+        ],
+        "distance": [round((p.activity.distance or 0) / 1000.0, 1) for p in points],
+        "duration": [f"{p.activity.hours:02}h{p.activity.minutes:02}m" for p in points],
+        "elevation": [p.activity.elevation_gain or 0 for p in points],
+        "url": [activity_urls.get(p.activity.key, "") for p in points],
+    }
+    source = ColumnDataSource(point_data)
+
+    fig = bokeh_plt.figure(
+        width=VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT,
+        height=500,
+        title="Matching activities clustered",
+        tools="pan,wheel_zoom,box_zoom,reset",
+        toolbar_location="below" if not is_mobile_view else None,
+    )
+    fig.sizing_mode = "scale_width"
+    fig.toolbar.logo = None
+
+    points_renderer = fig.scatter(
+        x="x",
+        y="y",
+        source=source,
+        color="color",
+        size=11,
+        alpha=0.7,
+        legend_field="cluster",
+    )
+
+    centroids = cluster_result.centroids
+    centroid_source = ColumnDataSource(
+        {
+            "x": [c.x for c in centroids],
+            "y": [c.y for c in centroids],
+            "color": [_cluster_color(c.cluster) for c in centroids],
+            "cluster": [f"Cluster {c.cluster + 1}" for c in centroids],
+            "size": [c.size for c in centroids],
+            "avg_distance": [round(c.avg_distance_m / 1000.0, 1) for c in centroids],
+            "avg_duration": [_seconds_to_hm(c.avg_duration_seconds) for c in centroids],
+            "avg_elevation": [round(c.avg_elevation_m) for c in centroids],
+        }
+    )
+    centroid_renderer = fig.scatter(
+        x="x",
+        y="y",
+        source=centroid_source,
+        color="color",
+        marker="diamond",
+        size=24,
+        line_color="black",
+        alpha=0.9,
+    )
+
+    fig.add_tools(
+        bokeh_models.HoverTool(
+            renderers=[points_renderer],
+            tooltips=[
+                ("Activity", "@name"),
+                ("Type", "@type"),
+                ("Date", "@date"),
+                ("Distance", "@distance km"),
+                ("Time", "@duration"),
+                ("Elevation", "@elevation m"),
+                ("Cluster", "@cluster"),
+            ],
+        )
+    )
+    fig.add_tools(
+        bokeh_models.HoverTool(
+            renderers=[centroid_renderer],
+            tooltips=[
+                ("Cluster", "@cluster"),
+                ("Activities", "@size"),
+                ("Avg distance", "@avg_distance km"),
+                ("Avg time", "@avg_duration"),
+                ("Avg elevation", "@avg_elevation m"),
+            ],
+        )
+    )
+    fig.add_tools(
+        bokeh_models.TapTool(
+            renderers=[points_renderer],
+            callback=bokeh_models.OpenURL(url="@url"),
+        )
+    )
+
+    fig.xaxis.axis_label = "Principal component 1"
+    fig.yaxis.axis_label = "Principal component 2"
+    fig.legend.location = "top_right"
+    fig.legend.click_policy = "hide"
+
+    script, div = bokeh_embed.components(fig)
+    return script, div

@@ -779,3 +779,66 @@ def build_feed_bar_chart_data(activities: list) -> list[dict]:
                 day["total_weight"] = activity.weight
 
     return sorted(days.values(), key=lambda d: d["day_of_year"])
+
+
+class ActivityRecommendationView:
+    """Template-friendly wrapper around a scored recommender match."""
+
+    def __init__(self, activity, score, rank, activity_types):
+        self._activity = activity
+        self._score = score
+        self._rank = rank
+        self._activity_types = activity_types
+
+    @classmethod
+    def from_matches(cls, matches, activity_types):
+        """Build a ranked list of views from recommender ``ScoredActivity`` matches."""
+        return [
+            cls(match.activity, match.score, rank, activity_types)
+            for rank, match in enumerate(matches, start=1)
+        ]
+
+    @property
+    def rank(self) -> int:
+        return self._rank
+
+    @property
+    def key(self) -> str:
+        return self._activity.key
+
+    @property
+    def type_key(self) -> str:
+        return self._activity.activity_type_key
+
+    @property
+    def type_name(self) -> str:
+        return self._activity_types.name(self._activity.activity_type_key)
+
+    @property
+    def emoji(self) -> str:
+        return self._activity_types.emoji(self._activity.activity_type_key)
+
+    @property
+    def name(self) -> str:
+        return self._activity.name or self.type_name
+
+    @property
+    def when_date(self) -> str:
+        a = self._activity
+        return f"{a.when_year:04}-{a.when_month:02}-{a.when_day:02}"
+
+    @property
+    def distance_km(self) -> float:
+        return round((self._activity.distance or 0) / 1000.0, 1)
+
+    @property
+    def elevation_gain(self) -> int:
+        return self._activity.elevation_gain or 0
+
+    @property
+    def duration(self) -> str:
+        return f"{self._activity.hours:02}h{self._activity.minutes:02}m"
+
+    @property
+    def score_pct(self) -> float:
+        return round(self._score * 100.0, 1)

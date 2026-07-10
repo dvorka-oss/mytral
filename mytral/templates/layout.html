@@ -609,6 +609,13 @@
                           {% endif %}
 
                           <a class="dropdown-item"
+                            title="Activity Recommender - find activities similar to a target duration/distance/elevation"
+                            href="{{ url_for('activity_recommender') }}"
+                          >
+                            Activity Recommender
+                          </a>
+
+                          <a class="dropdown-item"
                             title="List of ranked activities with Personal Bests"
                             href="{{ url_for('list_activities_prs') }}"
                           >
