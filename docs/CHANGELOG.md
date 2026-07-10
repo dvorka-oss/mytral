@@ -13,6 +13,10 @@ This MyTraL **minor** release brings:
   Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
   now earns an Everesting achievement badge shown on the activity, in activity lists,
   and on the "Highest Climb Ever" card.
+- Added a new Histograms page (reachable from the Charts page) showing the distribution
+  of your activities by distance, time (15-minute bins), and elevation gain. Each
+  histogram can be filtered by activity type (defaulting to Ride) and has tooltips with
+  the bin range and activity count; the time histogram shows durations as `1h03m00s`.
 
 ### Changed
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic

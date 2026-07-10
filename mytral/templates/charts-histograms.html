@@ -1,0 +1,117 @@
+{%extends "layout.html"%}
+{% block content %}
+{% if no_data %}
+<div class="container-xl">
+    <div class="page-header d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Charts</span>
+                <h2 class="page-title">Histograms</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="empty">
+                <div class="empty-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-histogram" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M3 3v18h18"></path>
+                        <path d="M20 18v3"></path>
+                        <path d="M16 16v5"></path>
+                        <path d="M12 13v8"></path>
+                        <path d="M8 16v5"></path>
+                        <path d="M3 11c6 0 5 -5 9 -5s3 5 9 5"></path>
+                    </svg>
+                </div>
+                <p class="empty-title">No histogram data</p>
+                <p class="empty-subtitle text-muted">
+                    No activities available yet. Start logging your activities to see their distributions!
+                </p>
+                <div class="empty-action">
+                    <a href="{{ url_for('create_activity') }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 5l0 14"></path>
+                            <path d="M5 12l14 0"></path>
+                        </svg>
+                        Create your first activity
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="page-header d-print-none" aria-label="Page header">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <span class="page-pretitle">Charts</span>
+                <h2 class="page-title">
+                    Histograms
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <a href="{{ url_for('charts_year', year=0) }}" class="btn btn-primary">Charts</a>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <p class="text-muted">
+                    Distribution of your activities by distance, time, and elevation gain. Pick an activity type to explore how your sessions are spread across each range.
+                </p>
+
+                <form method="get" action="{{ url_for('charts_histograms') }}">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Activity type</label>
+                            <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                {% for s in unique_activity_types %}
+                                    <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                        {{ activity_types.name(s) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% for aspect, chart in histograms.items() %}
+        <div class="card mt-3">
+            <div class="card-body">
+                {% if chart %}
+                    <div class="bokeh">
+                        {{ chart[0] | safe }}
+                        {{ chart[1] | safe }}
+                    </div>
+                {% else %}
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-histogram" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M3 3v18h18"></path>
+                                <path d="M20 18v3"></path>
+                                <path d="M16 16v5"></path>
+                                <path d="M12 13v8"></path>
+                                <path d="M8 16v5"></path>
+                                <path d="M3 11c6 0 5 -5 9 -5s3 5 9 5"></path>
+                            </svg>
+                        </div>
+                        <p class="empty-title">No {{ aspect }} data</p>
+                        <p class="empty-subtitle text-muted">
+                            No {{ aspect }} data for the selected activity type.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
