@@ -13,12 +13,6 @@
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>https://mytral.fitness/docs/architecture.html</loc>
-        <lastmod>2026-06-21</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
         <loc>https://mytral.fitness/docs/changelog.html</loc>
         <lastmod>2026-07-14</lastmod>
         <changefreq>weekly</changefreq>
@@ -33,12 +27,6 @@
     <url>
         <loc>https://mytral.fitness/docs/credits.html</loc>
         <lastmod>2026-07-14</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>https://mytral.fitness/docs/digitalization.html</loc>
-        <lastmod>2026-06-21</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -63,18 +51,6 @@
     <url>
         <loc>https://mytral.fitness/docs/licenses.html</loc>
         <lastmod>2026-07-14</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>https://mytral.fitness/docs/metrics.html</loc>
-        <lastmod>2026-06-21</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>https://mytral.fitness/docs/normalization.html</loc>
-        <lastmod>2026-06-21</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>

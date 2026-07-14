@@ -11,3 +11,26 @@ Options -Indexes
         Header set Cache-Control "no-cache, must-revalidate"
     </FilesMatch>
 </IfModule>
+
+# friendly branded page for not-found URLs
+ErrorDocument 404 /404.html
+
+# clean URLs: serve foo.html for /foo when that file exists (e.g. /docs/licenses)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}\.html -f
+    RewriteRule ^(.+?)/?$ $1.html [L]
+</IfModule>
+
+# hard-block vulnerability-scanner bait: this site serves no PHP and no dotfiles
+<FilesMatch "\.(php|env)">
+    Require all denied
+</FilesMatch>
+RedirectMatch 404 (?i)/(wp-login|wp-admin|wp-content|wp-includes|xmlrpc|administrator|phpinfo)
+
+# serve the Chrome private-prefetch-proxy advice with its required content type
+<Files "traffic-advice">
+    ForceType application/trafficadvice+json
+</Files>

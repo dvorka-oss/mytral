@@ -754,6 +754,7 @@ def generate_html_page(
     html = html.replace('{{TOC}}', toc_html)
     html = html.replace('{{GITHUB_EDIT_URL}}', github_edit_url)
     html = html.replace('{{GITHUB_VIEW_URL}}', github_view_url)
+    html = html.replace('{{MINDFORGER_LINK}}', MINDFORGER_LINK)
 
     # Write output file
     with open(output_file, 'w', encoding='utf-8') as f:
@@ -765,13 +766,14 @@ def mtime_date(path: Path) -> str:
     return datetime.date.fromtimestamp(path.stat().st_mtime).isoformat()
 
 
-def generate_sitemap(www_root: Path, output_dir: Path) -> None:
+def generate_sitemap(www_root: Path, output_dir: Path, doc_pages: set[str]) -> None:
     """
     Generate sitemap.xml at the site root from the homepage and generated docs.
 
     Args:
         www_root: Site root directory (holds index.html and sitemap.xml)
         output_dir: Directory holding the generated documentation HTML pages
+        doc_pages: Filenames of the docs pages actually produced this run
     """
     # loc, lastmod, changefreq, priority
     entries: list[tuple[str, str, str, str]] = []
@@ -782,10 +784,12 @@ def generate_sitemap(www_root: Path, output_dir: Path) -> None:
         entries.append((f"{SITE_BASE_URL}/", mtime_date(index_html), "weekly", "1.0"))
 
     # generated documentation pages
-    for html_file in sorted(output_dir.glob("*.html")):
-        loc = f"{SITE_BASE_URL}/{output_dir.name}/{html_file.name}"
-        changefreq = "weekly" if html_file.stem == "changelog" else "monthly"
-        priority = "0.9" if html_file.stem == "index" else "0.7"
+    for name in sorted(doc_pages):
+        html_file = output_dir / name
+        stem = Path(name).stem
+        loc = f"{SITE_BASE_URL}/{output_dir.name}/{name}"
+        changefreq = "weekly" if stem == "changelog" else "monthly"
+        priority = "0.9" if stem == "index" else "0.7"
         entries.append((loc, mtime_date(html_file), changefreq, priority))
 
     lines = [
@@ -848,7 +852,7 @@ def main():
     template = get_html_template()
 
     # Generate HTML pages for all Markdown files referenced in sitemap
-    generated_count = 0
+    generated_pages: set[str] = set()
     for section in sections:
         # Process section-level source
         if section.source:
@@ -856,7 +860,7 @@ def main():
             if md_file.exists():
                 output_file = output_dir / md_filename_to_html(section.source)
                 generate_html_page(md_file, output_file, sections, template)
-                generated_count += 1
+                generated_pages.add(output_file.name)
 
         # Process item sources
         for item in section.items:
@@ -865,9 +869,15 @@ def main():
                 if md_file.exists():
                     output_file = output_dir / md_filename_to_html(item.source)
                     generate_html_page(md_file, output_file, sections, template)
-                    generated_count += 1
+                    generated_pages.add(output_file.name)
                 else:
                     print(f"Warning: Markdown file not found: {md_file}")
+
+    # remove stale pages left over from earlier runs (not in the current sitemap)
+    for html_file in output_dir.glob('*.html'):
+        if html_file.name not in generated_pages:
+            html_file.unlink()
+            print(f"Removed stale page {html_file.name}")
 
     # Copy PNG files from source to output
     png_files = list(source_dir.glob('*.png'))
@@ -876,10 +886,13 @@ def main():
         shutil.copy2(png_file, output_png)
         print(f"Copied {png_file.name}")
 
-    # generate sitemap.xml at the site root
-    generate_sitemap(output_dir.parent, output_dir)
+    # generate sitemap.xml at the site root from the pages actually produced
+    generate_sitemap(output_dir.parent, output_dir, generated_pages)
 
-    print(f"\nGenerated {generated_count} HTML pages and copied {len(png_files)} images")
+    print(
+        f"\nGenerated {len(generated_pages)} HTML pages "
+        f"and copied {len(png_files)} images"
+    )
     print(f"Output directory: {output_dir}")
 
 
