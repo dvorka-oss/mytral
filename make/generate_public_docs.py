@@ -8,6 +8,7 @@ Features left sidebar navigation and right sidebar table of contents.
 """
 
 import argparse
+import datetime
 import re
 import shutil
 import sys
@@ -22,6 +23,7 @@ import markdown
 GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
 GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
+SITE_BASE_URL = "https://mytral.fitness"
 
 
 @dataclass
@@ -758,6 +760,53 @@ def generate_html_page(
         f.write(html)
 
 
+def mtime_date(path: Path) -> str:
+    """Return a file's last-modified date as an ISO YYYY-MM-DD string."""
+    return datetime.date.fromtimestamp(path.stat().st_mtime).isoformat()
+
+
+def generate_sitemap(www_root: Path, output_dir: Path) -> None:
+    """
+    Generate sitemap.xml at the site root from the homepage and generated docs.
+
+    Args:
+        www_root: Site root directory (holds index.html and sitemap.xml)
+        output_dir: Directory holding the generated documentation HTML pages
+    """
+    # loc, lastmod, changefreq, priority
+    entries: list[tuple[str, str, str, str]] = []
+
+    # homepage
+    index_html = www_root / "index.html"
+    if index_html.exists():
+        entries.append((f"{SITE_BASE_URL}/", mtime_date(index_html), "weekly", "1.0"))
+
+    # generated documentation pages
+    for html_file in sorted(output_dir.glob("*.html")):
+        loc = f"{SITE_BASE_URL}/{output_dir.name}/{html_file.name}"
+        changefreq = "weekly" if html_file.stem == "changelog" else "monthly"
+        priority = "0.9" if html_file.stem == "index" else "0.7"
+        entries.append((loc, mtime_date(html_file), changefreq, priority))
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for loc, lastmod, changefreq, priority in entries:
+        lines.append("    <url>")
+        lines.append(f"        <loc>{loc}</loc>")
+        lines.append(f"        <lastmod>{lastmod}</lastmod>")
+        lines.append(f"        <changefreq>{changefreq}</changefreq>")
+        lines.append(f"        <priority>{priority}</priority>")
+        lines.append("    </url>")
+    lines.append("</urlset>")
+
+    sitemap_path = www_root / "sitemap.xml"
+    with open(sitemap_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"Generated {sitemap_path.name} with {len(entries)} URLs")
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -826,6 +875,9 @@ def main():
         output_png = output_dir / png_file.name
         shutil.copy2(png_file, output_png)
         print(f"Copied {png_file.name}")
+
+    # generate sitemap.xml at the site root
+    generate_sitemap(output_dir.parent, output_dir)
 
     print(f"\nGenerated {generated_count} HTML pages and copied {len(png_files)} images")
     print(f"Output directory: {output_dir}")
