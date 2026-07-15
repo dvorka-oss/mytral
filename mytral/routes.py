@@ -4504,6 +4504,74 @@ def list_activities_paces():
     )
 
 
+@flask_app.route("/charts-histograms")
+def charts_histograms():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # get filter parameters from query string
+    filter_activity_type = flask.request.args.get("activity_type", "")
+    filter_year = flask.request.args.get("year", "")
+
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+    activity_types = ds.list_activity_types(user_id=user_id)
+
+    # activity types and years the user actually has (for the filter dropdowns) -
+    # derived from all activities so that filtering never empties the dropdowns
+    unique_activity_types = sorted(
+        set(
+            a.activity_type_key
+            for a in activities
+            if not activity_types.is_meta(a.activity_type_key)
+        )
+    )
+    years = sorted(
+        set(
+            a.when_year
+            for a in activities
+            if not activity_types.is_meta(a.activity_type_key)
+        ),
+        reverse=True,
+    )
+    if not unique_activity_types:
+        return flask.render_template(
+            "charts-histograms.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
+    # an unknown activity type or year means no filter rather than an empty page
+    if filter_activity_type not in unique_activity_types:
+        filter_activity_type = ""
+    if filter_year not in [str(y) for y in years]:
+        filter_year = ""
+    if filter_year:
+        activities = [a for a in activities if a.when_year == int(filter_year)]
+
+    histograms = charts.activities_histograms(
+        activities=activities,
+        activity_types=activity_types,
+        filter_activity_type=filter_activity_type,
+    )
+
+    return flask.render_template(
+        "charts-histograms.html",
+        user_profile=user_profile,
+        activity_types=activity_types,
+        unique_activity_types=unique_activity_types,
+        filter_activity_type=filter_activity_type,
+        filter_year=filter_year,
+        years=years,
+        histograms=histograms,
+        is_mobile=flask.session.get(COOKIE_MOBILE),
+    )
+
+
 @flask_app.route("/activities/races")
 def list_activities_races():
     user_id = flask.session.get(COOKIE_USER)
@@ -5377,6 +5445,7 @@ def charts_year(year):
         "charts-year.html",
         user_profile=user_profile,
         year=year_int,
+        chart_type=chart_type,
         years=reversed(
             [
                 y
