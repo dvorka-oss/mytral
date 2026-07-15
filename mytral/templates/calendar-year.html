@@ -139,7 +139,7 @@
                                 <th class="text-center">Saturday</th>
                                 <th class="text-center">Sunday</th>
                                 <th class="text-center">meters<br/>hours<br/>kg</th>
-                                <th class="text-center">Weight<br/>Y2Y</th>
+                                <th class="text-center">Elevation<br/>Weight<br/>Y2Y</th>
                             {% endif %}
                         </tr>
                     </thead>
@@ -242,6 +242,11 @@
                                 {% endif %}
                             </td>
                             <td class="text-center">
+                                {% if data.week_stats.get(year,{}).get(week_number,{}).get("elevation",0) > 0 %}
+                                    <div class="text-muted">
+                                        {{ "{:0,}".format(data.week_stats.get(year,{}).get(week_number,{}).get("elevation",0)|int) }}m
+                                    </div>
+                                {% endif %}
                                 {% if data.week_stats.get(year,{}).get(week_number,{}).get("weight",0) > 0 %}
                                     {{ data.week_stats.get(year,{}).get(week_number,{}).get("weight",0)|round(1) }}kg
                                 {% else %}

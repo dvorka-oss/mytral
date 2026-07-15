@@ -13,6 +13,9 @@ This MyTraL **minor** release brings:
   Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
   now earns an Everesting achievement badge shown on the activity, in activity lists,
   and on the "Highest Climb Ever" card.
+- Added weekly elevation gain to the calendar year view. The last column of the
+  calendar table now shows the total elevation climbed each week (in meters) above
+  the weekly weight.
 
 ### Changed
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
