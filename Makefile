@@ -875,6 +875,16 @@ www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
 	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
 
+.PHONY: www-seo-assets
+www-seo-assets: ## generate favicon.ico + 1200x630 og-image.png for www.mytral.fitness
+	@echo "Generating SEO assets..."
+	uv run python make/make_seo_assets.py
+	@echo "DONE SEO assets saved to webs/www.mytral.fitness/"
+
+.PHONY: www-check
+www-check: ## validate built www.mytral.fitness (SEO meta, dead links, sitemap, assets)
+	uv run python make/check_www_seo.py
+
 .PHONY: www-banners
 www-banners: ## generate Snapcraft/store feature banners (outputs to media/banners/)
 	@echo "Generating banners..."

@@ -56,7 +56,7 @@ class JinjaTemplates:
 
 class CreateLapTypeForm(flask_wtf.FlaskForm):
     name = wtforms.StringField(
-        label="Lap name",
+        label="Name",
         validators=[validators.DataRequired()],
     )
 

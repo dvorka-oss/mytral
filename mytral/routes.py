@@ -1175,9 +1175,11 @@ def insight_lifetime_totals():
 
     if aspect == "meta":
         # aggregate top-level totals by meta sport
-        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
-            ds_stats.total_m_per_activity_type,
-            ds_stats.total_seconds_per_activity_type,
+        m_per_meta = commons.aggregate_ints_by_meta_sport(
+            ds_stats.total_m_per_activity_type
+        )
+        s_per_meta = commons.aggregate_ints_by_meta_sport(
+            ds_stats.total_seconds_per_activity_type
         )
         template_vars["total_m_per_meta"] = m_per_meta
         template_vars["total_km_per_meta"] = {
@@ -1186,13 +1188,20 @@ def insight_lifetime_totals():
         template_vars["total_time_per_meta"] = {
             mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
         }
+        template_vars["total_elevation_per_meta"] = (
+            commons.aggregate_ints_by_meta_sport(
+                ds_stats.total_elevation_per_activity_type
+            )
+        )
 
         # aggregate per-year totals by meta sport
         per_year_meta: dict[int, dict] = {}
         for y, year_stats in ds_stats.year.items():
-            ym_m, ym_s = commons.aggregate_by_meta_sport(
-                year_stats.total_m_per_activity_type,
-                year_stats.total_seconds_per_activity_type,
+            ym_m = commons.aggregate_ints_by_meta_sport(
+                year_stats.total_m_per_activity_type
+            )
+            ym_s = commons.aggregate_ints_by_meta_sport(
+                year_stats.total_seconds_per_activity_type
             )
             per_year_meta[y] = {
                 "total_m_per_meta": ym_m,
@@ -1203,6 +1212,9 @@ def insight_lifetime_totals():
                     mk: cals.seconds_to_str_time(seconds)
                     for mk, seconds in ym_s.items()
                 },
+                "total_elevation_per_meta": commons.aggregate_ints_by_meta_sport(
+                    year_stats.total_elevation_per_activity_type
+                ),
             }
         template_vars["per_year_meta"] = per_year_meta
 

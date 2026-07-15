@@ -17,8 +17,17 @@ This MyTraL **minor** release brings:
   of your activities by distance, time (15-minute bins), and elevation gain. Each
   histogram can be filtered by activity type (defaulting to Ride) and has tooltips with
   the bin range and activity count; the time histogram shows durations as `1h03m00s`.
+- Added weekly elevation gain to the calendar year view. The last column of the
+  calendar table now shows the total elevation climbed each week (in meters) above
+  the weekly weight.
+- Added lifetime elevation gain to the Lifetime Totals insight. Both the Sports and
+  Meta Sports views now show the total elevation climbed (in meters) below the
+  duration in every cell, for each sport/meta sport and year as well as the overall
+  totals.
 
 ### Changed
+- Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
+  showing the cumulative elevation gained (in meters) across all activities.
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
   Ski) instead of lumping all sports together. The `This vs. Last` elevation view gained
   a sport selector and shows the 8848 m Everesting reference line scoped to the selected
