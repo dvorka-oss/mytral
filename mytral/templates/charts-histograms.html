@@ -1,4 +1,5 @@
 {%extends "layout.html"%}
+{% import "macros/filters.html" as filters %}
 {% block content %}
 {% if no_data %}
 <div class="container-xl">
@@ -63,6 +64,10 @@
                     Distribution of your activities by distance, time, and elevation gain. Pick an activity type and a year to explore how your sessions are spread across each range.
                 </p>
 
+                {% if years %}
+                {{ filters.year_dropdown('charts_histograms', filter_year, years, {'activity_type': filter_activity_type or None}, with_all=True) }}
+                {% endif %}
+
                 <div class="accordion" id="accordion-default">
                     <div class="accordion-item">
                         <div class="accordion-header">
@@ -77,60 +82,24 @@
                         </div>
                         <div id="collapse-1-default" class="accordion-collapse collapse" data-bs-parent="#accordion-default">
                             <div class="accordion-body">
-                                <div class="row g-3">
-                                    <div class="col-md-2">
-                                        <div class="dropdown mb-3">
-                                            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                {% if filter_activity_type %}{{ activity_types.name(filter_activity_type) }}{% else %}All activities{% endif %}
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    {% if not filter_activity_type %}
-                                                    <span class="dropdown-item active">All</span>
-                                                    {% else %}
-                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', year=filter_year or None) }}">All</a>
-                                                    {% endif %}
-                                                </li>
-                                                {% for s in unique_activity_types %}
-                                                <li>
-                                                    {% if s == filter_activity_type %}
-                                                    <span class="dropdown-item active">{{ activity_types.name(s) }}</span>
-                                                    {% else %}
-                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=s, year=filter_year or None) }}">{{ activity_types.name(s) }}</a>
-                                                    {% endif %}
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    {% if years %}
-                                    <div class="col-md-2">
-                                        <div class="dropdown mb-3">
-                                            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                {% if filter_year %}{{ filter_year }}{% else %}All years{% endif %}
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    {% if not filter_year %}
-                                                    <span class="dropdown-item active">All</span>
-                                                    {% else %}
-                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=filter_activity_type or None) }}">All</a>
-                                                    {% endif %}
-                                                </li>
-                                                {% for y in years %}
-                                                <li>
-                                                    {% if y|string == filter_year %}
-                                                    <span class="dropdown-item active">{{ y }}</span>
-                                                    {% else %}
-                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=filter_activity_type or None, year=y) }}">{{ y }}</a>
-                                                    {% endif %}
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <form method="get" action="{{ url_for('charts_histograms') }}">
+                                    {% if filter_year %}
+                                    <input type="hidden" name="year" value="{{ filter_year }}">
                                     {% endif %}
-                                </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-2">
+                                            <label class="form-label">Activity type</label>
+                                            <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                                                <option value="">All</option>
+                                                {% for s in unique_activity_types %}
+                                                    <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                                        {{ activity_types.name(s) }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>

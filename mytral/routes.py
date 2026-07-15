@@ -5433,6 +5433,7 @@ def charts_year(year):
         "charts-year.html",
         user_profile=user_profile,
         year=year_int,
+        chart_type=chart_type,
         years=reversed(
             [
                 y
