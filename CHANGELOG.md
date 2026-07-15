@@ -16,6 +16,10 @@ This MyTraL **minor** release brings:
 - Added weekly elevation gain to the calendar year view. The last column of the
   calendar table now shows the total elevation climbed each week (in meters) above
   the weekly weight.
+- Added lifetime elevation gain to the Lifetime Totals insight. Both the Sports and
+  Meta Sports views now show the total elevation climbed (in meters) below the
+  duration in every cell, for each sport/meta sport and year as well as the overall
+  totals.
 
 ### Changed
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
