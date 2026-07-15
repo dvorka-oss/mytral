@@ -22,6 +22,8 @@ This MyTraL **minor** release brings:
   totals.
 
 ### Changed
+- Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
+  showing the cumulative elevation gained (in meters) across all activities.
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
   Ski) instead of lumping all sports together. The `This vs. Last` elevation view gained
   a sport selector and shows the 8848 m Everesting reference line scoped to the selected
