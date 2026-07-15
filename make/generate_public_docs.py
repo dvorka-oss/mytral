@@ -24,6 +24,7 @@ GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
 GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
 SITE_BASE_URL = "https://mytral.fitness"
+SITE_OG_IMAGE = "https://mytral.fitness/og-image.png"
 
 
 @dataclass
@@ -271,7 +272,25 @@ def get_html_template() -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}} - MyTraL Documentation</title>
     <meta name="description" content="{{DESCRIPTION}}">
-    <link rel="icon" href="../mytral-logo.png" type="image/png">
+    <link rel="canonical" href="{{CANONICAL}}">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/mytral-logo.png" type="image/png">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="MyTraL">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{TITLE}} - MyTraL Documentation">
+    <meta property="og:description" content="{{DESCRIPTION}}">
+    <meta property="og:url" content="{{CANONICAL}}">
+    <meta property="og:image" content="{{OG_IMAGE}}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{TITLE}} - MyTraL Documentation">
+    <meta name="twitter:description" content="{{DESCRIPTION}}">
+    <meta name="twitter:image" content="{{OG_IMAGE}}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -693,6 +712,41 @@ def extract_title(md_content: str) -> str:
     return "Documentation"
 
 
+def extract_description(md_content: str, title: str, max_length: int = 150) -> str:
+    """
+    Build a plain-text meta description from the first real sentence paragraph.
+
+    Skips headings, images, lists, tables, code and section labels; falls back to
+    a clean title-based default when no prose paragraph is found.
+
+    Args:
+        md_content: Markdown content
+        title: Page title, used for the fallback description
+        max_length: Maximum length of the returned description
+
+    Returns:
+        Plain-text, HTML-attribute-safe description string
+    """
+    for block in re.split(r'\n\s*\n', md_content):
+        text = block.strip()
+        # skip empty blocks, headings, images, lists, tables, code and quotes
+        if not text or text[0] in '#!-*+|>' or text.startswith('```'):
+            continue
+        if re.match(r'^\d+\.', text):
+            continue
+        text = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', text)      # drop images
+        text = re.sub(r'\[([^\]]+)\]\([^)]*\)', r'\1', text)  # links -> link text
+        text = re.sub(r'[*_`#]', '', text)                    # drop md formatting
+        text = re.sub(r'\s+', ' ', text).strip()
+        # require a real sentence, not a short label ending in a colon
+        if len(text) < 40 or text.endswith(':'):
+            continue
+        if len(text) > max_length:
+            text = text[:max_length].rsplit(' ', 1)[0] + '...'
+        return text.replace('&', '&amp;').replace('"', '&quot;')
+    return f"{title} - MyTraL, a private, open-source personal training log."
+
+
 def generate_html_page(
     md_file: Path,
     output_file: Path,
@@ -714,8 +768,9 @@ def generate_html_page(
     with open(md_file, 'r', encoding='utf-8') as f:
         md_content = f.read()
 
-    # Extract title
+    # Extract title and meta description
     title = extract_title(md_content)
+    description = extract_description(md_content, title)
 
     # Convert Markdown to HTML
     md_processor = markdown.Markdown(
@@ -745,10 +800,15 @@ def generate_html_page(
     github_edit_url = f"{GITHUB_BASE_EDIT}{md_file.name}"
     github_view_url = f"{GITHUB_BASE_VIEW}{md_file.name}"
 
+    # canonical page URL (e.g. https://mytral.fitness/docs/installation.html)
+    canonical = f"{SITE_BASE_URL}/{output_file.parent.name}/{output_file.name}"
+
     # Fill template
     html = template
     html = html.replace('{{TITLE}}', title)
-    html = html.replace('{{DESCRIPTION}}', f"{title} - MyTraL Documentation")
+    html = html.replace('{{DESCRIPTION}}', description)
+    html = html.replace('{{CANONICAL}}', canonical)
+    html = html.replace('{{OG_IMAGE}}', SITE_OG_IMAGE)
     html = html.replace('{{SIDEBAR_NAV}}', sidebar_nav)
     html = html.replace('{{CONTENT}}', html_content)
     html = html.replace('{{TOC}}', toc_html)

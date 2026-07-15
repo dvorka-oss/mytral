@@ -15,9 +15,14 @@ Options -Indexes
 # friendly branded page for not-found URLs
 ErrorDocument 404 /404.html
 
-# clean URLs: serve foo.html for /foo when that file exists (e.g. /docs/licenses)
+# clean URLs + default favicon handling
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # point default /favicon.ico requests at the site logo
+    RewriteRule ^favicon\.ico$ /mytral-logo.png [L,R=301]
+
+    # serve foo.html for /foo when that file exists (e.g. /docs/licenses)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}\.html -f
