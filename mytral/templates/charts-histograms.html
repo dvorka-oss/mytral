@@ -49,7 +49,7 @@
             <div class="col">
                 <span class="page-pretitle">Charts</span>
                 <h2 class="page-title">
-                    Histograms
+                    {% if filter_year %}{{ filter_year }} {% endif %}Histograms
                 </h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
@@ -60,24 +60,81 @@
         <div class="card mt-3">
             <div class="card-body">
                 <p class="text-muted">
-                    Distribution of your activities by distance, time, and elevation gain. Pick an activity type to explore how your sessions are spread across each range.
+                    Distribution of your activities by distance, time, and elevation gain. Pick an activity type and a year to explore how your sessions are spread across each range.
                 </p>
 
-                <form method="get" action="{{ url_for('charts_histograms') }}">
-                    <div class="row g-3">
-                        <div class="col-md-2">
-                            <label class="form-label">Activity type</label>
-                            <select class="form-select" name="activity_type" onchange="this.form.submit()">
-                                <option value="">All</option>
-                                {% for s in unique_activity_types %}
-                                    <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
-                                        {{ activity_types.name(s) }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                <div class="accordion" id="accordion-default">
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1-default" aria-expanded="false">
+                                Filter &amp; sort
+                                <div class="accordion-button-toggle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                                        <path d="M6 9l6 6l6 -6"></path>
+                                    </svg>
+                                </div>
+                            </button>
+                        </div>
+                        <div id="collapse-1-default" class="accordion-collapse collapse" data-bs-parent="#accordion-default">
+                            <div class="accordion-body">
+                                <div class="row g-3">
+                                    <div class="col-md-2">
+                                        <div class="dropdown mb-3">
+                                            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                {% if filter_activity_type %}{{ activity_types.name(filter_activity_type) }}{% else %}All activities{% endif %}
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    {% if not filter_activity_type %}
+                                                    <span class="dropdown-item active">All</span>
+                                                    {% else %}
+                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', year=filter_year or None) }}">All</a>
+                                                    {% endif %}
+                                                </li>
+                                                {% for s in unique_activity_types %}
+                                                <li>
+                                                    {% if s == filter_activity_type %}
+                                                    <span class="dropdown-item active">{{ activity_types.name(s) }}</span>
+                                                    {% else %}
+                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=s, year=filter_year or None) }}">{{ activity_types.name(s) }}</a>
+                                                    {% endif %}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    {% if years %}
+                                    <div class="col-md-2">
+                                        <div class="dropdown mb-3">
+                                            <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                {% if filter_year %}{{ filter_year }}{% else %}All years{% endif %}
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    {% if not filter_year %}
+                                                    <span class="dropdown-item active">All</span>
+                                                    {% else %}
+                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=filter_activity_type or None) }}">All</a>
+                                                    {% endif %}
+                                                </li>
+                                                {% for y in years %}
+                                                <li>
+                                                    {% if y|string == filter_year %}
+                                                    <span class="dropdown-item active">{{ y }}</span>
+                                                    {% else %}
+                                                    <a class="dropdown-item" href="{{ url_for('charts_histograms', activity_type=filter_activity_type or None, year=y) }}">{{ y }}</a>
+                                                    {% endif %}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
 
