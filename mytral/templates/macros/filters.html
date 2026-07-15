@@ -1,0 +1,38 @@
+{% import "macros/icons.html" as icons %}
+
+{# Year selector shown above the "Filter & sort" accordion - see activity-list-year.html.
+   endpoint : route to link to
+   year     : currently selected year (empty/0 means all years)
+   years    : selectable years
+   params   : other query parameters to keep when switching year
+   with_all : offer an "All" entry for pages that can show every year at once #}
+{% macro year_dropdown(endpoint, year, years, params={}, with_all=False) %}
+<div class="mb-3">
+    <div class="dropdown">
+        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ icons.icon_calendar() }}
+            Year: {% if year %}{{ year }}{% else %}All{% endif %}
+        </button>
+        <ul class="dropdown-menu">
+            {% if with_all %}
+            <li>
+                {% if not year %}
+                <span class="dropdown-item active">All</span>
+                {% else %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, **params) }}">All</a>
+                {% endif %}
+            </li>
+            {% endif %}
+            {% for y in years %}
+            <li>
+                {% if y|string == year|string %}
+                <span class="dropdown-item active">{{ y }}</span>
+                {% else %}
+                <a class="dropdown-item" href="{{ url_for(endpoint, year=y, **params) }}">{{ y }}</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endmacro %}

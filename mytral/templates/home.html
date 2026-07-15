@@ -141,8 +141,8 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="subheader">
-                            Years Active
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Number of calendar years with recorded training activities ({{ stats.year_min }} to {{ stats.year_max }}). The progress bar shows what percentage of your life (birth to age 100) you've spent actively training, demonstrating your long-term commitment to fitness.">
+                            Total Elevation
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Total elevation gained across all activities and years, measured in meters. This is the cumulative vertical distance of every climb you have recorded.">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                                 <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
                                 <path d="M12 9h.01"></path>
@@ -150,7 +150,7 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="h1 mb-1">{{ stats.years|length }}</div>
+                    <div class="h1 mb-1">{{ "{:,}".format(stats.total_elevation_per_activity_type.values()|sum) }}&nbsp;m</div>
                 </div>
             </div>
         </div>

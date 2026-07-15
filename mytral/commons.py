@@ -389,39 +389,27 @@ AT_TAXONOMY = {
 }
 
 
-def aggregate_by_meta_sport(
-    total_m_per_activity_type: dict[str, int],
-    total_seconds_per_activity_type: dict[str, int],
-) -> tuple[dict[str, int], dict[str, int]]:
-    """Aggregate per-activity-type stats into per-meta-sport totals.
+def aggregate_ints_by_meta_sport(
+    per_activity_type: dict[str, int],
+) -> dict[str, int]:
+    """Aggregate a per-activity-type int map into per-meta-sport totals.
 
     Parameters
     ----------
-    total_m_per_activity_type : dict[str, int]
-        Meters per activity type key.
-    total_seconds_per_activity_type : dict[str, int]
-        Seconds per activity type key.
+    per_activity_type : dict[str, int]
+        Any additive quantity (meters, seconds, elevation, ...) keyed by
+        activity type key.
 
     Returns
     -------
-    tuple[dict[str, int], dict[str, int]]
-        (meters_per_meta_sport, seconds_per_meta_sport) both keyed by
-        M_AT_* keys. Meta sports with zero total meters are included
-        (value 0).
+    dict[str, int]
+        The quantity summed per meta sport, keyed by M_AT_* keys. Meta sports
+        with a zero total are included (value 0).
     """
-    m_per_meta: dict[str, int] = {}
-    s_per_meta: dict[str, int] = {}
-
-    for meta_key, at_keys in AT_TAXONOMY.items():
-        total_m = 0
-        total_s = 0
-        for at_key in at_keys:
-            total_m += total_m_per_activity_type.get(at_key, 0)
-            total_s += total_seconds_per_activity_type.get(at_key, 0)
-        m_per_meta[meta_key] = total_m
-        s_per_meta[meta_key] = total_s
-
-    return m_per_meta, s_per_meta
+    return {
+        meta_key: sum(per_activity_type.get(at_key, 0) for at_key in at_keys)
+        for meta_key, at_keys in AT_TAXONOMY.items()
+    }
 
 
 #

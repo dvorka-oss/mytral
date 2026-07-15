@@ -1,6 +1,7 @@
 {%extends "layout.html"%}
 {% import "macros/maps.html" as maps_macros %}
 {% import "macros/activity_list_table.html" as activity_list_macros %}
+{% import "macros/filters.html" as filters %}
 {% block content %}
     {% if no_data %}
     <div class="container-xl">
@@ -104,31 +105,7 @@
                 </p>
 
                 {% if years %}
-                <div class="mb-3">
-                    <div class="dropdown">
-                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"></path>
-                                <path d="M16 3v4"></path>
-                                <path d="M8 3v4"></path>
-                                <path d="M4 11h16"></path>
-                            </svg>
-                            Year: {{ year }}
-                        </button>
-                        <ul class="dropdown-menu">
-                            {% for y in years %}
-                            <li>
-                                {% if y == year %}
-                                <span class="dropdown-item active">{{ y }}</span>
-                                {% else %}
-                                <a class="dropdown-item" href="{{ url_for('list_activities_year', year=y) }}">{{ y }}</a>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+                {{ filters.year_dropdown('list_activities_year', year, years) }}
                 {% endif %}
 
                 <div class="accordion" id="accordion-default">

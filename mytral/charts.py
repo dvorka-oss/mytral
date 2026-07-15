@@ -18,6 +18,7 @@ import enum
 import itertools
 import json
 import math
+from collections.abc import Callable
 from typing import Any
 
 from bokeh import embed as bokeh_embed
@@ -4432,6 +4433,179 @@ def activity_paces_by_distance(
             script, div = bokeh_embed.components(fig)
 
     return script, div
+
+
+def _duration_label(minutes: float) -> str:
+    """Format a duration given in minutes, dropping an empty hours part.
+
+    The most significant shown unit has no leading zero; the rest are padded to
+    two digits. Examples: ``1h03m02s``, ``3m12s``.
+    """
+    h, m, s = cals.seconds_to_tuple(int(round(minutes * 60)))
+    if h:
+        return f"{h}h{m:02}m{s:02}s"
+    return f"{m}m{s:02}s"
+
+
+def _histogram_components(
+    values: list[float],
+    bin_width: float,
+    title: str,
+    x_axis_label: str,
+    unit: str = "",
+    label_formatter: Callable[[float], str] | None = None,
+) -> tuple[str, Any] | None:
+    """Build a vertical count histogram with equal-width bins.
+
+    Bins ``values`` into intervals of ``bin_width`` spanning 0 to the maximum
+    observed value and renders a Bokeh quad histogram of the activity count per
+    bin.
+
+    Parameters
+    ----------
+    values : list[float]
+        Numeric values to bin (already converted to display units).
+    bin_width : float
+        Width of each bin in display units.
+    title : str
+        Chart title.
+    x_axis_label : str
+        Label for the value axis.
+    unit : str
+        Unit suffix shown in the tooltip range (e.g. ``"km"``); ignored when
+        ``label_formatter`` is set.
+    label_formatter : Callable[[float], str] | None
+        Formats each bin edge for the tooltip range; when ``None`` the raw edge
+        value plus ``unit`` is shown.
+
+    Returns
+    -------
+    tuple[str, Any] | None
+        ``(script, div)`` Bokeh embed components, or ``None`` when there are no
+        values to plot.
+    """
+    clean = [v for v in values if v and v > 0]
+    if not clean:
+        return None
+
+    num_bins = int(max(clean) / bin_width) + 1
+    counts = [0] * num_bins
+    for v in clean:
+        idx = int(v / bin_width)
+        # clamp the maximum value into the last bin
+        if idx >= num_bins:
+            idx = num_bins - 1
+        counts[idx] += 1
+
+    lefts = [i * bin_width for i in range(num_bins)]
+    rights = [(i + 1) * bin_width for i in range(num_bins)]
+    if label_formatter is not None:
+        labels = [
+            f"{label_formatter(lo)}-{label_formatter(hi)}"
+            for lo, hi in zip(lefts, rights)
+        ]
+    else:
+        labels = [f"{lo:g}-{hi:g} {unit}" for lo, hi in zip(lefts, rights)]
+
+    source = ColumnDataSource(
+        data=dict(left=lefts, right=rights, count=counts, label=labels)
+    )
+
+    fig = bokeh_plt.figure(
+        height=320,
+        sizing_mode="stretch_width",
+        tools="save",
+        toolbar_location="above",
+        title=title,
+    )
+    fig.toolbar.logo = None
+
+    fig.quad(
+        left="left",
+        right="right",
+        top="count",
+        bottom=0,
+        source=source,
+        color="#206bc4",
+        alpha=0.85,
+        line_color="white",
+        line_width=1,
+    )
+
+    hover = bokeh_models.HoverTool(
+        tooltips=[
+            ("Range", "@label"),
+            ("Activities", "@count"),
+        ]
+    )
+    fig.add_tools(hover)
+
+    fig.xaxis.axis_label = x_axis_label
+    fig.yaxis.axis_label = "Activities"
+    fig.y_range.start = 0
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = "#e9ecef"
+    fig.outline_line_color = None
+
+    return bokeh_embed.components(fig)
+
+
+def activities_histograms(
+    activities: list[entities.ActivityEntity],
+    activity_types: settings.UserActivityTypes,
+    filter_activity_type: str = "",
+) -> dict[str, tuple[str, Any] | None]:
+    """Build distance/time/elevation activity histograms.
+
+    Skips meta activity types and, when ``filter_activity_type`` is set, keeps
+    only that type, then bins the remaining activities by distance, duration,
+    and elevation gain.
+
+    Parameters
+    ----------
+    activities : list[entities.ActivityEntity]
+        Activities to summarise.
+    activity_types : settings.UserActivityTypes
+        User activity types (used to skip meta types).
+    filter_activity_type : str
+        Keep only this ``activity_type_key`` when set; empty means all types.
+
+    Returns
+    -------
+    dict[str, tuple[str, Any] | None]
+        Histogram ``(script, div)`` pairs keyed ``"distance"``, ``"time"``,
+        ``"elevation"`` (``None`` for aspects without data).
+    """
+    filtered = [
+        a
+        for a in activities
+        if not activity_types.is_meta(a.activity_type_key)
+        and (not filter_activity_type or a.activity_type_key == filter_activity_type)
+    ]
+
+    return {
+        "distance": _histogram_components(
+            [a.distance / 1000.0 for a in filtered if a.distance],
+            bin_width=5,
+            title="Activities by Distance",
+            x_axis_label="Distance (km)",
+            unit="km",
+        ),
+        "time": _histogram_components(
+            [a.duration_seconds / 60.0 for a in filtered if a.duration_seconds],
+            bin_width=15,
+            title="Activities by Time",
+            x_axis_label="Duration (min)",
+            label_formatter=_duration_label,
+        ),
+        "elevation": _histogram_components(
+            [a.elevation_gain for a in filtered if a.elevation_gain],
+            bin_width=100,
+            title="Activities by Elevation Gain",
+            x_axis_label="Elevation gain (m)",
+            unit="m",
+        ),
+    }
 
 
 def goals_eisenhower_matrix(
