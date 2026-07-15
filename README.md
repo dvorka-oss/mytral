@@ -3,7 +3,7 @@
 [![Support on Open Collective](https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective)](https://opencollective.com/dvorka-floss-lab/projects/mytral)
 [![GitHub Actions CI for Ubuntu](https://github.com/dvorka-oss/mytral/actions/workflows/python-tests.yml/badge.svg)](https://github.com/dvorka-oss/mytral/actions)
 [![Current release](https://img.shields.io/github/release/dvorka-oss/mytral.svg)](https://github.com/dvorka-oss/mytral/releases)
-[![GitHub issues](https://img.shields.io/github/issues/dvorka-oss/mytral.svg?maxAge=360)](https://github.com/dvorka-oss/mytrals/issues)
+[![GitHub issues](https://img.shields.io/github/issues/dvorka-oss/mytral.svg?maxAge=360)](https://github.com/dvorka-oss/mytral/issues)
 [![All releases downloads](https://img.shields.io/github/downloads/dvorka-oss/mytral/total.svg)](https://github.com/dvorka-oss/mytral/releases)
 <!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
 <!-- [![Flathub](https://img.shields.io/flathub/v/fitness.mytral.Mytral)](https://flathub.org/apps/fitness.mytral.Mytral) -->
