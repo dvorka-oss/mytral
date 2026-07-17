@@ -16,16 +16,25 @@
 
 """Tests for Polar Flow client, credentials, dedup and rate-limit handling."""
 
+import contextlib
+import io
+import json
 import pathlib
+import urllib.parse
 
 import pytest
+import structlog
 
 from mytral import app_blobstore
 from mytral import app_config
 from mytral import config
+from mytral import loggers
 from mytral import plugins
 from mytral import security
+from mytral import settings
+from mytral.blueprints import polar_flow_uri_space
 from mytral.integrations import polar_flow
+from mytral.routes import flask_app
 from mytral.tasks.do import polar_flow_commons
 from tests import _given
 
@@ -38,13 +47,26 @@ def _noop(*_args, **_kwargs):
 class _FakeResponse:
     """Minimal stand-in for a requests.Response."""
 
-    def __init__(self, status_code, json_body=None, headers=None, content=b""):
+    def __init__(
+        self,
+        status_code,
+        json_body=None,
+        headers=None,
+        content=b"",
+        text="",
+        json_raises=False,
+    ):
         self.status_code = status_code
         self._json = json_body
+        self._json_raises = json_raises
         self.headers = headers or {}
         self.content = content
+        self.text = text
 
     def json(self):
+        if self._json_raises:
+            # mimic requests raising on a body that is not JSON at all
+            raise ValueError("no JSON body")
         return self._json
 
 
@@ -302,3 +324,282 @@ def test_cross_channel_dedup(tmp_path: pathlib.Path, monkeypatch):
     assert dup_match == api_activity.key
     assert other_match is None
     print("DONE: cross-channel natural-key dedup catches the duplicate, not the rest")
+
+
+def _given_polar_profile() -> settings.UserProfile:
+    """Build a user profile with Polar Flow client credentials configured."""
+    return settings.UserProfile(
+        user_id="u1",
+        user="user",
+        email="user@example.com",
+        password_enc="x",
+        dataset_name="main",
+        dataset_names=["main"],
+        polar_flow_client_id="client-id",
+        polar_flow_client_secret="client-secret",
+    )
+
+
+class _FakeProfileDs:
+    """Dataset stub recording the profile handed to update_profile()."""
+
+    def __init__(self):
+        self.updated = None
+
+    def update_profile(self, user_profile):
+        self.updated = user_profile
+        return user_profile
+
+
+@pytest.mark.mytral
+def test_auth_token_exchange_redirect_uri_matches_authorization(monkeypatch):
+    """The token exchange echoes the very redirect_uri sent to authorization.
+
+    Polar rejects the exchange unless redirect_uri is repeated there with the
+    identical value: "Must be specified if redirect_uri was passed to
+    authorization endpoint".
+    """
+    #
+    # GIVEN
+    #
+    user_profile = _given_polar_profile()
+    sent = {}
+
+    def fake_post(url, auth=None, headers=None, data=None):
+        sent["url"] = url
+        sent["auth"] = auth
+        sent["data"] = data
+        return _FakeResponse(200, json_body={"access_token": "tok", "x_user_id": 42})
+
+    monkeypatch.setattr(polar_flow.requests, "post", fake_post)
+
+    #
+    # WHEN
+    #
+    # the authorization step - as served by GET /polar/auth-start
+    with flask_app.test_request_context("http://127.0.0.1:5000/polar/auth-start"):
+        auth_url = polar_flow.auth_get_auth_code_url(
+            user_profile=user_profile,
+            mytral_url=polar_flow_uri_space._auth_callback_url(),
+        )
+    # the token exchange - as served by GET /polar/auth-callback
+    with flask_app.test_request_context(
+        "http://127.0.0.1:5000/polar/auth-callback?code=auth-code"
+    ):
+        polar_flow.auth_exchange_code_for_token(
+            user_profile=user_profile,
+            code="auth-code",
+            mytral_url=polar_flow_uri_space._auth_callback_url(),
+            ds=_FakeProfileDs(),
+            logger=polar_flow.app_logger,
+        )
+
+    #
+    # THEN
+    #
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(auth_url).query)
+    authorization_redirect_uri = query["redirect_uri"][0]
+
+    assert "redirect_uri" in sent["data"], "redirect_uri missing in the token exchange"
+    assert sent["data"]["redirect_uri"] == authorization_redirect_uri
+    assert authorization_redirect_uri == "http://127.0.0.1:5000/polar/auth-callback"
+    # the rest of the documented Polar token contract
+    assert sent["url"] == polar_flow.URL_OAUTH_TOKEN
+    assert sent["auth"] == ("client-id", "client-secret")
+    assert sent["data"]["grant_type"] == "authorization_code"
+    assert sent["data"]["code"] == "auth-code"
+    print("DONE: token exchange echoes the authorization redirect_uri")
+
+
+@pytest.mark.mytral
+def test_auth_token_exchange_persists_token_and_user_id(monkeypatch):
+    """A successful exchange returns and persists the token and Polar user id."""
+    #
+    # GIVEN
+    #
+    user_profile = _given_polar_profile()
+    ds = _FakeProfileDs()
+    monkeypatch.setattr(
+        polar_flow.requests,
+        "post",
+        lambda **_kw: _FakeResponse(
+            200, json_body={"access_token": "polar-token", "x_user_id": 42}
+        ),
+    )
+
+    #
+    # WHEN
+    #
+    token = polar_flow.auth_exchange_code_for_token(
+        user_profile=user_profile,
+        code="auth-code",
+        mytral_url="http://127.0.0.1:5000/polar/auth-callback",
+        ds=ds,
+        logger=polar_flow.app_logger,
+    )
+
+    #
+    # THEN
+    #
+    assert token == "polar-token"
+    assert user_profile.polar_flow_access_token == "polar-token"
+    assert user_profile.polar_flow_user_id == "42"
+    assert ds.updated is user_profile
+    print("DONE: successful exchange persists the token and the Polar user id")
+
+
+@pytest.mark.mytral
+def test_auth_token_exchange_failure_logs_status_and_body(monkeypatch):
+    """A rejected exchange logs Polar's status and error body, then raises."""
+    #
+    # GIVEN
+    #
+    user_profile = _given_polar_profile()
+    body = '{"error":"invalid_grant","error_description":"redirect_uri mismatch"}'
+    monkeypatch.setattr(
+        polar_flow.requests,
+        "post",
+        lambda **_kw: _FakeResponse(
+            400, json_body={"error": "invalid_grant"}, text=body
+        ),
+    )
+    logged = {}
+
+    class _Logger:
+        def error(self, msg, **kwargs):
+            logged["msg"] = msg
+            logged.update(kwargs)
+
+        def debug(self, msg, **kwargs):
+            return None
+
+    #
+    # WHEN
+    #
+    with pytest.raises(ValueError, match="Failed to get Polar Flow access token"):
+        polar_flow.auth_exchange_code_for_token(
+            user_profile=user_profile,
+            code="auth-code",
+            mytral_url="http://127.0.0.1:5000/polar/auth-callback",
+            ds=_FakeProfileDs(),
+            logger=_Logger(),
+        )
+
+    #
+    # THEN
+    #
+    assert logged["status"] == 400
+    assert "invalid_grant" in logged["response"]
+    assert "redirect_uri mismatch" in logged["response"]
+    # a failed exchange must not persist anything
+    assert not user_profile.polar_flow_access_token
+    print("DONE: failed exchange logs the Polar status and error body")
+
+
+@pytest.mark.mytral
+def test_auth_token_exchange_non_json_body_raises(monkeypatch):
+    """A non-JSON error body surfaces as the domain error, not a parse error."""
+    #
+    # GIVEN
+    #
+    user_profile = _given_polar_profile()
+    monkeypatch.setattr(
+        polar_flow.requests,
+        "post",
+        lambda **_kw: _FakeResponse(
+            502, json_raises=True, text="<html>Bad Gateway</html>"
+        ),
+    )
+
+    #
+    # WHEN / THEN
+    #
+    with pytest.raises(ValueError, match="Failed to get Polar Flow access token"):
+        polar_flow.auth_exchange_code_for_token(
+            user_profile=user_profile,
+            code="auth-code",
+            mytral_url="http://127.0.0.1:5000/polar/auth-callback",
+            ds=_FakeProfileDs(),
+            logger=polar_flow.app_logger,
+        )
+    print("DONE: non-JSON token response raises the domain error")
+
+
+def _exchange_and_log_like_the_route(user_profile, logger) -> None:
+    """Mimic /polar/auth-callback: the exchange raises, the route logs it.
+
+    The secret must live only on ``user_profile`` - never in a local - exactly as
+    in the real route, because the log renders the locals of every frame.
+    """
+    try:
+        polar_flow.auth_exchange_code_for_token(
+            user_profile=user_profile,
+            code="auth-code",
+            mytral_url="http://127.0.0.1:5000/polar/auth-callback",
+            ds=_FakeProfileDs(),
+            logger=logger,
+        )
+    except ValueError as exc:
+        logger.exception(
+            "Polar Flow authentication failed",
+            exc_info=True,
+            error=str(exc),
+            user_id=user_profile.user_id,
+        )
+
+
+@pytest.mark.mytral
+def test_auth_failure_logs_stacktrace_without_leaking_secrets(monkeypatch):
+    """The auth failure log carries a stacktrace but no plain-text secrets.
+
+    Regression guard: ``MytralLogger.exception()`` requires ``exc_info``, and the
+    structlog chain renders frame locals - so a secret held in a local variable
+    of any frame in the stack would end up in the log.
+    """
+    #
+    # GIVEN
+    #
+    secret = "SUPER-SECRET-CLIENT-SECRET-42"
+    token = "SUPER-SECRET-ACCESS-TOKEN-99"
+    user_profile = _given_polar_profile()
+    user_profile.polar_flow_client_secret = secret
+    user_profile.polar_flow_access_token = token
+    monkeypatch.setattr(
+        polar_flow.requests,
+        "post",
+        lambda **_kw: _FakeResponse(
+            400, json_body={"error": "invalid_grant"}, text='{"error":"invalid_grant"}'
+        ),
+    )
+
+    saved_config = structlog.get_config()
+    buffer = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buffer):
+            loggers.configure_structlog(debug=False)
+            #
+            # WHEN
+            #
+            _exchange_and_log_like_the_route(
+                user_profile, loggers.MytralStructLogger("test-polar-flow")
+            )
+    finally:
+        structlog.configure(**saved_config)
+
+    #
+    # THEN
+    #
+    events = [json.loads(line) for line in buffer.getvalue().strip().splitlines()]
+    event = events[-1]
+    assert event["event"] == "Polar Flow authentication failed"
+    assert event["level"] == "error"
+    assert event["user_id"] == user_profile.user_id
+    # the stacktrace is rendered as structured frames
+    assert event["exception"], "no stacktrace rendered - exc_info was not honoured"
+    assert event["exception"][0]["exc_type"] == "ValueError"
+    assert event["exception"][0]["frames"]
+    # no plain-text secret anywhere in the log - frame locals included
+    raw = buffer.getvalue()
+    assert secret not in raw, "client secret leaked into the log"
+    assert token not in raw, "access token leaked into the log"
+    print("DONE: auth failure logs a stacktrace and leaks no secrets")

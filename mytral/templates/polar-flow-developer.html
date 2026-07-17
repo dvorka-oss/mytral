@@ -45,6 +45,31 @@
         </div>
     </div>
 
+    {# synchronization is the day-to-day action - it needs authentication, so it
+       shows up only once authenticated #}
+    {% if is_authenticated %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">Synchronize</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                The AccessLink API delivers only exercises recorded <strong>after</strong> you
+                authorized. For historical data, use the
+                <a href="{{ url_for('tool_import') }}" class="link-primary">Polar Flow export (GDPR ZIP) import</a>.
+            </p>
+            <div class="btn-list">
+                <form method="POST" action="{{ url_for('polar_flow_sync_new') }}">
+                    <input type="hidden" name="import_recordings" value="1">
+                    <button type="submit" class="btn btn-primary">
+                        Sync new activities
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="card mb-3">
         <div class="card-header">
             <h3 class="card-title">Authenticate</h3>
@@ -67,27 +92,7 @@
         </div>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-header">
-            <h3 class="card-title">Synchronize</h3>
-        </div>
-        <div class="card-body">
-            <p class="text-muted">
-                The AccessLink API delivers only exercises recorded <strong>after</strong> you
-                authorized. For historical data, use the
-                <a href="{{ url_for('tool_import') }}" class="link-primary">Polar Flow export (GDPR ZIP) import</a>.
-            </p>
-            <div class="btn-list">
-                <form method="POST" action="{{ url_for('polar_flow_sync_new') }}">
-                    <input type="hidden" name="import_recordings" value="1">
-                    <button type="submit" class="btn btn-primary" {% if not is_authenticated %}disabled{% endif %}>
-                        Sync new activities
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    {% if is_authenticated %}
     <div class="card mb-3 border-danger">
         <div class="card-header">
             <h3 class="card-title text-danger">Danger zone</h3>
@@ -101,11 +106,12 @@
             <form method="POST" action="{{ url_for('polar_flow_resync_all_route') }}">
                 <input type="hidden" name="purge_confirmed" value="1">
                 <input type="hidden" name="import_recordings" value="1">
-                <button type="submit" class="btn btn-danger" {% if not is_authenticated %}disabled{% endif %}>
+                <button type="submit" class="btn btn-danger">
                     Purge and re-sync all
                 </button>
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

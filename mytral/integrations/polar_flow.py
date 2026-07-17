@@ -49,6 +49,9 @@ URL_AUTH_CALLBACK = "polar/auth-callback"
 URL_FLOW_TRAINING_BASE = "https://flow.polar.com/training/analysis/"
 OAUTH_SCOPE = "accesslink.read_all"
 
+# max number of characters of an error response body written to the log
+VALUE_LOG_BODY_LIMIT = 500
+
 # entity source (BOTH the API and the GDPR export normalize to this src)
 SRC_POLAR_FLOW = "polar-flow"
 
@@ -214,6 +217,7 @@ def auth_get_auth_code_url(
 def auth_exchange_code_for_token(
     user_profile: settings.UserProfile,
     code: str,
+    mytral_url: str,
     ds,
     logger: loggers.MytralLogger,
 ) -> str:
@@ -228,6 +232,9 @@ def auth_exchange_code_for_token(
         User profile with Polar client credentials and the authorization code.
     code : str
         OAuth2 authorization code from the redirect.
+    mytral_url : str
+        Redirect URL that was passed to the authorization endpoint. Polar requires
+        the very same value here, otherwise it rejects the exchange.
     ds :
         User dataset (to persist the updated profile).
     logger : loggers.MytralLogger
@@ -245,12 +252,26 @@ def auth_exchange_code_for_token(
             user_profile.polar_flow_client_secret,
         ),
         headers={"Accept": "application/json"},
-        data={"grant_type": "authorization_code", "code": code},
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": mytral_url,
+        },
     )
-    tokens = response.json() if response is not None else {}
+    try:
+        tokens = response.json()
+    except ValueError:
+        # Polar answered with a non-JSON body (gateway error, empty response, ...)
+        tokens = {}
 
-    if not tokens or "access_token" not in tokens:
-        logger.error("Polar auth-code exchange failed: no access_token returned")
+    if not isinstance(tokens, dict) or "access_token" not in tokens:
+        # only reached when no token was issued - the body carries Polar's
+        # error / error_description, never an access token
+        logger.error(
+            "Polar auth-code exchange failed: no access_token returned",
+            status=response.status_code,
+            response=response.text[:VALUE_LOG_BODY_LIMIT],
+        )
         raise ValueError(
             "Failed to get Polar Flow access token from auth code. "
             "Check the Polar client credentials and authorization code validity."

@@ -41,11 +41,18 @@ from mytral.tasks.do import polar_flow_sync
 
 def _guard(user_id: str | None):
     """Return a redirect response when access is not allowed, else ``None``."""
-    if not ff.can("POLAR_FLOW_IMPORT"):
-        return flask.redirect(flask.url_for("home"))
     if not user_id:
         return flask.redirect(flask.url_for("login"))
     return None
+
+
+def _auth_callback_url() -> str:
+    """Return the OAuth2 redirect URL of this MyTraL instance.
+
+    Single source of truth: Polar rejects the token exchange unless the redirect
+    URL sent there is identical to the one sent to the authorization endpoint.
+    """
+    return f"{flask.request.host_url}{polar_flow.URL_AUTH_CALLBACK}"
 
 
 def _build_polar_task_params(
@@ -78,6 +85,13 @@ def _submit(task_entity: tasks.TaskEntity, ok_msg: str, err_msg: str):
         app_task_manager.executor.submit(task_entity)
         flask.flash(ok_msg, "success")
     except Exception as exc:
+        app_logger.exception(
+            "Polar Flow task submit failed",
+            exc_info=True,
+            error=str(exc),
+            task_key=task_entity.key,
+            user_id=task_entity.user_id,
+        )
         flask.flash(f"{err_msg}: {exc}", "danger")
     return flask.redirect(flask.url_for("tasks_list"))
 
@@ -163,6 +177,12 @@ def polar_flow_auth_start():
             )
             flask.flash("Polar Flow account linked.", "success")
         except Exception as exc:
+            app_logger.exception(
+                "Polar Flow user registration failed",
+                exc_info=True,
+                error=str(exc),
+                user_id=user_id,
+            )
             flask.flash(f"Polar Flow registration failed: {exc}", "danger")
         return flask.redirect(flask.url_for("polar_flow_api_developer"))
 
@@ -170,7 +190,7 @@ def polar_flow_auth_start():
     flask.flash(msg, "info")
     url = polar_flow.auth_get_auth_code_url(
         user_profile=user_profile,
-        mytral_url=f"{flask.request.host_url}{polar_flow.URL_AUTH_CALLBACK}",
+        mytral_url=_auth_callback_url(),
     )
     return flask.redirect(url)
 
@@ -191,11 +211,21 @@ def polar_flow_auth_redirect():
     user_profile = ds.profile(user_id)
     try:
         polar_flow.auth_exchange_code_for_token(
-            user_profile=user_profile, code=str(auth_code), ds=ds, logger=app_logger
+            user_profile=user_profile,
+            code=str(auth_code),
+            mytral_url=_auth_callback_url(),
+            ds=ds,
+            logger=app_logger,
         )
         polar_flow.register_user(user_profile=user_profile, ds=ds, logger=app_logger)
         flask.flash("Polar Flow authenticated successfully.", "success")
     except Exception as exc:
+        app_logger.exception(
+            "Polar Flow authentication failed",
+            exc_info=True,
+            error=str(exc),
+            user_id=user_id,
+        )
         flask.flash(f"Polar Flow authentication failed: {exc}", "danger")
 
     return flask.redirect(flask.url_for("polar_flow_api_developer"))

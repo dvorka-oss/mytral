@@ -8,9 +8,8 @@ This MyTraL **minor** release brings:
 - Added a Polar Flow integration: sync new training from Polar Flow
   (flow.polar.com) via the official Polar AccessLink API (transaction model, no
   duplicates), and backfill full history from the Polar "Download your data"
-  (GDPR) export ZIP. Gated behind the `MYTRAL_FF_POLAR_FLOW_IMPORT` feature flag.
-  See `POLAR_FLOW.md` for the design and setup steps. This is separate from the
-  existing Polar Precision Performance (.hrm/.pdd) import.
+  (GDPR) export ZIP. See `POLAR_FLOW.md` for the design and setup steps. This is
+  separate from the existing Polar Precision Performance (.hrm/.pdd) import.
 - Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
   card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
   top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
