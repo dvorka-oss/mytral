@@ -265,16 +265,62 @@ POLAR_FLOW_TO_MYTRAL_AT = {
     "volleyball": commons.AT_VOLLEYBALL,
     "golf": commons.AT_GOLF,
     "wheelchair": commons.AT_WHEELCHAIR,
+    # names as spelled in the GDPR export sport profiles
+    "road_biking": commons.AT_RIDE,
 }
 
 
-def polar_flow_activity_type(sport: str, valid_activity_type_ids: list[str]) -> str:
-    """Map a Polar Flow ``sport`` string to a MyTraL activity type key.
+#
+# The GDPR "Download your data" export encodes the sport as a numeric id
+# (``{"id": "38"}``) instead of a name string. There is no id-to-name table in the
+# export, so map the ids confirmed from real export data here; unknown ids fall
+# back to POLAR_FLOW_DEFAULT_AT and are reported by the parser for extension.
+#
+POLAR_FLOW_SPORT_ID_TO_NAME = {
+    "1": "running",
+    "2": "cycling",
+    "5": "mountain_biking",
+    "15": "strength_training",
+    "23": "swimming",
+    "38": "road_biking",
+}
+
+
+def polar_flow_sport_name(sport) -> str:
+    """Normalize any Polar sport value into a canonical lowercase sport name.
+
+    Handles every shape Polar emits: a name string (``"RUNNING"``), the GDPR export
+    dict (``{"id": "38"}``), a bare numeric id (``"38"``), or ``None``. Numeric ids
+    are resolved via :data:`POLAR_FLOW_SPORT_ID_TO_NAME`; unknown ids yield ``""``.
 
     Parameters
     ----------
-    sport : str
-        Polar Flow sport value (any case), e.g. ``RUNNING`` or ``Trail_Running``.
+    sport : str | dict | None
+        Polar sport value in any of the shapes above.
+
+    Returns
+    -------
+    str
+        Canonical lowercase sport name, or ``""`` when it cannot be resolved.
+    """
+    if isinstance(sport, dict):
+        sport = sport.get("id", "")
+    text = str(sport or "").strip()
+    if not text:
+        return ""
+    if text.isdigit():
+        return POLAR_FLOW_SPORT_ID_TO_NAME.get(text, "")
+    return text.lower()
+
+
+def polar_flow_activity_type(sport, valid_activity_type_ids: list[str]) -> str:
+    """Map a Polar Flow ``sport`` value to a MyTraL activity type key.
+
+    Parameters
+    ----------
+    sport : str | dict | None
+        Polar Flow sport value in any shape (name string, ``{"id": ...}`` dict, or
+        numeric id) - see :func:`polar_flow_sport_name`.
     valid_activity_type_ids : list[str]
         User's known activity type keys; if ``sport`` already matches one, it wins.
 
@@ -283,7 +329,7 @@ def polar_flow_activity_type(sport: str, valid_activity_type_ids: list[str]) -> 
     str
         MyTraL activity type key (falls back to :data:`POLAR_FLOW_DEFAULT_AT`).
     """
-    normalized = (sport or "").strip().lower()
+    normalized = polar_flow_sport_name(sport)
     if normalized in valid_activity_type_ids:
         return normalized
     return POLAR_FLOW_TO_MYTRAL_AT.get(normalized, POLAR_FLOW_DEFAULT_AT)

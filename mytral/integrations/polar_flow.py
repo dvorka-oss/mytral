@@ -103,6 +103,15 @@ def _request(
         response = requests.request(
             method=method, url=url, headers=headers, json=json_body
         )
+        # HTTP-level trace of every AccessLink call - never logs the token, only
+        # the method, path and status, so the whole sync is diagnosable
+        logger.debug(
+            "Polar AccessLink request",
+            method=method,
+            url=url,
+            status=response.status_code if response is not None else None,
+            attempt=attempt + 1,
+        )
         if response is not None and response.status_code == 429:
             if attempt >= _MAX_RETRIES:
                 logger.warning("Polar AccessLink rate limit hit - giving up")
@@ -326,10 +335,22 @@ def register_user(
         polar_user_id = body.get("polar-user-id") or body.get("polar_user_id")
         if polar_user_id:
             user_profile.polar_flow_user_id = str(polar_user_id)
-        logger.debug("Polar user registered")
+        # the registration moment is the delivery boundary: only exercises
+        # uploaded to Flow from now on are returned by the transaction API
+        logger.info(
+            "Polar user registered - AccessLink now delivers only exercises "
+            "uploaded to Flow after this moment",
+            polar_user_id=user_profile.polar_flow_user_id,
+            member_id=member_id,
+            status=status,
+        )
     elif status == 409:
         # already registered - keep whatever polar_flow_user_id we already have
-        logger.debug("Polar user already registered (409) - continuing")
+        logger.info(
+            "Polar user already registered - continuing",
+            polar_user_id=user_profile.polar_flow_user_id,
+            status=status,
+        )
     else:
         logger.error(f"Polar user registration failed: status={status}")
         raise ValueError(
@@ -372,7 +393,15 @@ def create_transaction(
     if response is None:
         return None
     if response.status_code == 204:
-        logger.info("Polar: no new exercises to transact")
+        logger.info(
+            "Polar: no new exercises to transact",
+            hint=(
+                "AccessLink delivers only exercises uploaded to Flow AFTER this "
+                "client registered the user and within the last 30 days; older "
+                "activities must be imported from the Polar 'Download your data' "
+                "(GDPR) export ZIP"
+            ),
+        )
         return None
     if response.status_code not in (200, 201):
         logger.warning(f"Polar create-transaction failed: {response.status_code}")
@@ -604,7 +633,7 @@ class PolarFlowActivityImportPlugin(plugins.ActivityImportPlugin):
         entity.min_hr = 0
 
         entity.max_speed = 0.0
-        entity.elevation_gain = 0
+        entity.elevation_gain = int(dataset_item.get("elevation-gain", 0) or 0)
         entity.elevation_min = 0
         entity.elevation_max = 0
         entity.avg_watts = 0.0

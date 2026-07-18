@@ -232,7 +232,12 @@ def pull_new_exercises(
         logger=logger,
     )
     if not transaction_id:
-        log_fn("No new activities to import")
+        log_fn(
+            "No new activities to import. Polar's AccessLink API only delivers "
+            "activities uploaded to Flow AFTER you connected this client, and only "
+            "from the last 30 days. To import older history, use the Polar export "
+            "(GDPR ZIP) import on the Tools > Import > Polar page."
+        )
         update_progress(100)
         return 0, 0, 0
 

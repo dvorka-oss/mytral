@@ -603,3 +603,132 @@ def test_auth_failure_logs_stacktrace_without_leaking_secrets(monkeypatch):
     assert secret not in raw, "client secret leaked into the log"
     assert token not in raw, "access token leaked into the log"
     print("DONE: auth failure logs a stacktrace and leaks no secrets")
+
+
+class _CapturingLogger:
+    """Logger stub recording (level, msg, kwargs) for observability assertions."""
+
+    def __init__(self):
+        self.records = []
+
+    def _record(self, level, msg, **kwargs):
+        self.records.append((level, msg, kwargs))
+
+    def debug(self, msg, *args, **kwargs):
+        self._record("debug", msg, **kwargs)
+
+    def info(self, msg, *args, **kwargs):
+        self._record("info", msg, **kwargs)
+
+    def warning(self, msg, *args, **kwargs):
+        self._record("warning", msg, **kwargs)
+
+    def error(self, msg, *args, **kwargs):
+        self._record("error", msg, **kwargs)
+
+
+@pytest.mark.mytral
+def test_no_new_exercises_logs_delivery_rule_hint(monkeypatch):
+    """A 204 (no new exercises) explains the post-registration delivery rule.
+
+    This is the exact scenario a user hits after connecting a fresh client: Polar
+    returns 204 because their existing activities predate registration.
+    """
+    #
+    # GIVEN
+    #
+    logger = _CapturingLogger()
+    monkeypatch.setattr(
+        polar_flow.requests, "request", lambda **_kw: _FakeResponse(204)
+    )
+
+    #
+    # WHEN
+    #
+    transaction_id = polar_flow.create_transaction(
+        access_token="tok", polar_user_id="42", logger=logger
+    )
+
+    #
+    # THEN
+    #
+    assert transaction_id is None
+    hint_records = [r for r in logger.records if "no new exercises" in r[1]]
+    assert hint_records, "the 204 path did not log the no-new-exercises event"
+    _, _, kwargs = hint_records[0]
+    assert "hint" in kwargs, "the 204 log is missing the delivery-rule hint"
+    assert "after" in kwargs["hint"].lower()
+    assert "gdpr" in kwargs["hint"].lower() or "export" in kwargs["hint"].lower()
+    print("DONE: 204 no-new-exercises logs the post-registration delivery hint")
+
+
+@pytest.mark.mytral
+def test_request_traces_method_url_status_without_token(monkeypatch):
+    """Every AccessLink call is traced at debug with status - never the token."""
+    #
+    # GIVEN
+    #
+    token = "SECRET-TOKEN-DO-NOT-LOG"
+    logger = _CapturingLogger()
+    monkeypatch.setattr(
+        polar_flow.requests, "request", lambda **_kw: _FakeResponse(200)
+    )
+
+    #
+    # WHEN
+    #
+    polar_flow._request(
+        "POST",
+        "https://www.polaraccesslink.com/v3/users/42/exercise-transactions",
+        access_token=token,
+        logger=logger,
+    )
+
+    #
+    # THEN
+    #
+    traces = [r for r in logger.records if r[1] == "Polar AccessLink request"]
+    assert traces, "no HTTP trace was emitted"
+    level, _, kwargs = traces[0]
+    assert level == "debug"
+    assert kwargs["method"] == "POST"
+    assert kwargs["status"] == 200
+    assert "exercise-transactions" in kwargs["url"]
+    # the token must never appear in any traced field
+    assert token not in str(kwargs), "access token leaked into the HTTP trace"
+    print("DONE: AccessLink requests are traced (method/url/status) without the token")
+
+
+@pytest.mark.mytral
+def test_register_user_logs_registration_boundary(monkeypatch):
+    """Successful registration logs the delivery boundary and the polar user id."""
+    #
+    # GIVEN
+    #
+    logger = _CapturingLogger()
+    user_profile = _given_polar_profile()
+    user_profile.polar_flow_access_token = "tok"
+    monkeypatch.setattr(
+        polar_flow.requests,
+        "request",
+        lambda **_kw: _FakeResponse(201, json_body={"polar-user-id": 777}),
+    )
+
+    #
+    # WHEN
+    #
+    polar_user_id = polar_flow.register_user(
+        user_profile=user_profile, ds=_FakeProfileDs(), logger=logger
+    )
+
+    #
+    # THEN
+    #
+    assert polar_user_id == "777"
+    reg_records = [r for r in logger.records if r[0] == "info" and "registered" in r[1]]
+    assert reg_records, "registration did not log an info event"
+    msg, kwargs = reg_records[0][1], reg_records[0][2]
+    # the boundary is spelled out and the polar user id is captured
+    assert "after this moment" in msg
+    assert kwargs["polar_user_id"] == "777"
+    print("DONE: registration logs the delivery boundary and polar user id")
