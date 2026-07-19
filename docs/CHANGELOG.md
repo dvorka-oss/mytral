@@ -1,23 +1,136 @@
 # Changelog
 
-## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...HEAD)
+## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
 
 This MyTraL **minor** release brings:
 
 ### Added
+- Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
+  card tracks how much of Mt. Everest you have accumulated for your top climbing sport,
+  with a Day/Week/Month/Year toggle Climbing a full Everest - or a Quarter, Half,
+  Double, or Triple - in a single activity earns an Everesting achievement badge shown
+  on the activity, in activity lists, and on the "Highest Climb Ever" card.
+- Added weekly elevation gain to the calendar year view. The last column of the
+  calendar table now shows the total elevation climbed each week (in meters) above
+  the weekly weight.
+- Added lifetime elevation gain to the Lifetime Totals insight.
+- Added a new Histograms page - reachable from the Charts page - showing the
+  distribution of your activities by distance, time, and elevation gain.
 - Added Winget distribution Makefile targets, artifacts and scripts.
 
 ### Changed
-- .
-
-### Documentation
-- Documented Winget release process as a feature analysis in docs/.
-- Documented installing MyTraL on Windows via Winget (`winget install --id Mytral.Mytral`)
-  as a new chapter in INSTALLATION.md.
-- Listed the Windows (winget) installation method in README.md.
+- Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
+  showing the cumulative elevation gained across all activities.
+- Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
+  Ski) instead of lumping all sports together.
 
 ### Fixed
-- .
+- Fixed the `This vs. Last` page showing the literal text "None" instead of a
+  chart when the selected sport and period had no data - it now shows a friendly
+  empty state.
+- Fixed typos in GH issues in `README.md`.
+- Removed dead code from around the code base (import).
+
+### Documentation
+- Documented Winget release process as a feature analysis in `docs/`.
+- Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
+- Listed the `Windows (winget)` installation method in README.md.
+- Added new features screenshots for everesting and histograms.
+
+### Web
+- Improved WWW pages SEO by adding the sitemap, OG image, 404 page, and favicon.
+
+
+
+## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Improved the first login experience in MyTraL DESKTOP incarnation: when no
+  user profile exists yet, a default `athlete` user ("MyTraL Athlete") is
+  auto-created and auto-logged in, landing straight on the dashboard - no
+  sign-up/login step required. Logging out disables auto-login until the next
+  explicit login, so a second/third user can be added or logged into from the
+  login page.
+- Calendar and sickness heatmaps now mark today with a yellow rectangle so the
+  current week and day stand out, and each sickness day's tooltip now reads like
+  `2026-05-25: 3x sick` instead of a bare count.
+- Added estimated speed to the analysis chart of the activity in case that activity
+  recordings (as well as parquet) don't have it.
+- Added tooltip with the elevation, time, distance and grade to the elevation chart
+  on the activity analysis page.
+- Added a macOS `.dmg` desktop distribution, built with PyInstaller and
+  `hdiutil`/`iconutil` and attached to the `Distro macOS DMG` GitHub Actions workflow
+  run for every release PR. The build targets Apple Silicon (arm64) only and ships
+  unsigned (no Apple Developer certificate).
+  See `docs/INSTALLATION.md` for the one-time Gatekeeper workaround needed
+  on first launch.
+  Data is stored in `~/Library/Application Support/mytral/` like every other macOS app.
+
+### Fixed
+- Fixed path(s) in Snap which pointed outside of strict confinement filesystem.
+
+### Documentation
+- Documented macOS Apple Silicon (arm64) installation and build.
+
+
+
+## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Published MyTraL to the Snap Store at https://snapcraft.io using **strict**
+  confinement. The Snap Store snap runs the local server and opens the UI in the
+  default browser. Athlete data are stored in `$SNAP_USER_COMMON`
+  (`~/snap/mytral/common`) i.e. are NOT stored in the location used by all other
+  distros - data persist until uninstall (snapd keeps a snapshot for ~31 days
+  after `snap remove`).
+- Added new body mannequin - from robot-like to realistic anatomical muscle
+  geometry adapted from the MIT-licensed `react-native-body-highlighter`.
+- Added activity bookmarks - bookmark any activity from its detail page.
+- Added an `Elevation` aspect to the `This vs. Last` and `Charts` pages,
+  comparing weekly, monthly, and yearly elevation gain. The weekly and monthly
+  charts also show a dashed red `Everesting` (8848 m) reference line so athletes
+  can see whether their cumulative climbing reaches Mt. Everest peak.
+
+### Changed
+- Redrew the body mannequin with realistic anatomical muscle geometry, used
+  everywhere it appears (muscle load, injuries, and sickness). Muscle load now
+  renders as a cool-to-hot volume heatmap.
+
+### Documentation
+- Documented both strict and classic Snap installations.
+- Documented the missing `python3-all` build prerequisite for local `.deb` builds
+  (`make distro-ubuntu-deb`) in the installation guide.
+
+### Fixed
+- Fixed Ubuntu PPA/`.deb` installation on Ubuntu releases that do not ship
+  Python 3.12 as the system interpreter (`trusty` through `focal`) - `postinst`
+  now uses `uv` to provision a self-contained Python 3.12 under `/opt/mytral`,
+  independent of the host's system Python.
+- Fixed `.deb` package `Architecture` metadata (`all` -> `amd64 arm64`) to match
+  what `postinst`'s `uv` bootstrap actually supports, so `apt` refuses
+  unsupported architectures upfront instead of installing a package that fails
+  during configure.
+- Fixed `.deb` `postinst` failing with an unclear `uv pip install` error when
+  the bundled wheel or `requirements.txt` was missing - it now fails fast with a
+  clear message.
+
+### Security
+- Hardened `.deb` `postinst`: the downloaded `uv` binary is now verified against
+  a pinned `sha256` checksum before extraction, closing a supply-chain gap where
+  a tampered or corrupted release asset would otherwise be executed as root
+  during package installation.
+
+### Infrastructure
+- Rewrote `build/ubuntu/launchpad-release.sh` to accept an optional Ubuntu
+  codename argument, building (and optionally uploading) a single distribution
+  instead of always looping over every supported version.
+- Added a `UBUNTU_VERSION` parameter (default `noble`) to `make
+  distro-ubuntu-deb`, and a new `make distro-launchpad-release-version` target
+  to build and upload a single Ubuntu version's PPA package.
 
 
 

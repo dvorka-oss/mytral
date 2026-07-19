@@ -1,3 +1,4 @@
+#!/bin/bash
 # MyTraL: my trailing log
 #
 # Copyright (C) 2015-2026 Martin Dvorak <martin.dvorak@mindforger.com>
@@ -14,27 +15,26 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-from mytral.backends import entities
 
+# Clean macOS app bundle and .dmg build artifacts
 
-def parse_activity_quick_create(activity_quick_create: str) -> entities.ActivityEntity:
-    """Parse string for quick activity creation:
+set -e
 
-    Format: <activity> <meters>m <hours>h<minutes>m<seconds>s
+echo "Cleaning macOS .dmg build artifacts..."
 
-    Example: run 42.194m 1h25m13s
+# get script directory and project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 
-    Parameters
-    ----------
-    activity_quick_create : str
-        Activity quick create string.
+cd "$PROJECT_ROOT"
 
-    Returns
-    -------
-    Activity
-        Parsed activity.
+# remove PyInstaller build artifacts
+rm -rvf build/macos-dmg/__pycache__
+rm -f build/macos-dmg/mytral.spec
+rm -f build/macos-dmg/mytral.icns
 
-    """
-    del activity_quick_create
+# remove the app bundle and the packaged .dmg
+rm -rvf distro/desktop/MyTraL.app
+rm -rvf distro/macos-dmg
 
-    return entities.ActivityEntity()
+echo "Clean complete!"

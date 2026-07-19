@@ -6,14 +6,26 @@
     <title>MyTraL - Your Personal Training Log for Deeper Insights and Smarter Progress</title>
     <meta name="description" content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL.">
     <link rel="canonical" href="https://mytral.fitness">
-    <link rel="icon" href="./mytral-logo.png" type="image/png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/mytral-logo.png" type="image/png">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="MyTraL — Your Personal Training Log with AI Coaches">
-    <meta property="og:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs — private, open-source, runs on your machine.">
-    <meta property="og:image" content="https://mytral.fitness/screenshot-dashboard-dark.webp">
+    <meta property="og:site_name" content="MyTraL">
+    <meta property="og:title" content="MyTraL - Your Personal Training Log with AI Coaches">
+    <meta property="og:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta property="og:image" content="https://mytral.fitness/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:alt" content="MyTraL - private, open-source athlete training log">
     <meta property="og:url" content="https://mytral.fitness">
     <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MyTraL - Your Personal Training Log with AI Coaches">
+    <meta name="twitter:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta name="twitter:image" content="https://mytral.fitness/og-image.png">
 
     <!-- JSON-LD structured data -->
     <script type="application/ld+json">
@@ -960,8 +972,15 @@
                 grid-template-columns: repeat(3, 1fr);
             }
             .download-center {
+                margin-top: 2em;
                 grid-column: 2;
             }
+        }
+
+        /* Download cards are not flip cards - drop the tall min-height so the
+           sparse Source Code card does not leave a large gap below it */
+        .download-grid-3col .feature-card {
+            min-height: auto;
         }
 
         /* Features grid: centre a lone card in the middle column */
@@ -1764,9 +1783,9 @@
                     <ul class="download-links">
                         <li><a href="https://mytral.fitness/docs/installation.html#install-on-ubuntu-from-ppa" target="_blank"><span class="dl-badge">PPA</span> Ubuntu Launchpad PPA</a></li>
                         <!-- li><a href="https://flathub.org/en/apps/fitness.mytral.mytral" target="_blank"><span class="dl-badge">Flatpak (Flathub)</span> Install from Flathub</a></li -->
+                        <li><a href="https://snapcraft.io/mytral" target="_blank"><span class="dl-badge">Snap (snapcraft.io)</span> Install from Snap store</a></li>
+                        <li><a href="https://github.com/dvorka-oss/mytral/releases/latest" target="_blank"><span class="dl-badge">Snap (download)</span> Download "classic" Snap</a></li>
                         <li><a href="https://mytral.fitness/docs/installation.html#install-on-linux-using-flatpak" target="_blank"><span class="dl-badge">Flatpak (download)</span> Flatpak package</a></li>
-                        <!-- li><a href="https://snapcraft.io/mytral" target="_blank"><span class="dl-badge">Snap (snapcraft.io)</span></a></li -->
-                        <li><a href="https://github.com/dvorka-oss/mytral/releases/latest" target="_blank"><span class="dl-badge">Snap (download)</span> Canonical Snap package</a></li>
                         <li>&nbsp;</li>
                         <li><a href="./docs/installation.html#build-binary-on-ubuntu" target="_blank"><span class="dl-badge">🛠</span> Build Ubuntu binary</a></li>
                         <li><a href="./docs/installation.html#build--deb-on-ubuntu" target="_blank"><span class="dl-badge">🛠</span> Build Ubuntu .deb package</a></li>
@@ -1801,7 +1820,6 @@
                     </ul>
                 </div>
 
-                <!--
                 <div class="feature-card">
                     <div class="download-platform-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1815,17 +1833,18 @@
                         Drag-and-drop DMG installation.
                     </p>
                     <ul class="download-links">
+                        <li><a href="https://github.com/dvorka-oss/mytral/releases/latest" target="_blank"><span class="dl-badge">DMG</span> Disk Image (Apple Silicon)</a></li>
+                        <li>&nbsp;</li>
+                        <li><a href="./docs/installation.html#build-macos-dmg" target="_blank"><span class="dl-badge">🛠</span> Build Apple Silicon .dmg</a></li>
+
+                        <!--
                         <li><a href="#" target="_blank"><span class="dl-badge">DMG</span> Disk Image (x86)</a></li>
-
-                        <li><a href="#" target="_blank"><span class="dl-badge">DMG</span> Disk Image (Apple Silicon)</a></li>
                         <li><a href="#"><span class="dl-badge">brew</span> <code style="font-size:0.85rem;">brew install mytral</code></a></li>
-
+                        -->
                     </ul>
                 </div>
 
-                -->
-
-                <div class="feature-card"> <!-- NEW row: class="download-center" -->
+                <div class="feature-card download-center">
                     <div class="download-platform-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -1905,13 +1924,20 @@
                     </a>
                     <br/>
                     <div style="display: flex; gap: 1rem; align-items: center; justify-content: center;">
-                        <a href="https://github.com/dvorka-oss/mytral">
+                        <a href="https://github.com/dvorka-oss/mytral" target="_blank" rel="noopener" aria-label="MyTraL on GitHub">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-github">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
                             </svg>
                         </a>
-                        <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral">
+                        <a href="https://x.com/MytralFitness" target="_blank" rel="noopener" aria-label="MyTraL on X">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-x">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 4l11.733 16h4.267l-11.733 -16l-4.267 0" />
+                            <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+                        </svg>
+                        </a>
+                        <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral" target="_blank" rel="noopener" aria-label="Support MyTraL on Open Collective">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-brand-open-collective">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                                 <path d="M12 20l-7 -4v-8l7 -4l7 4v8z"/>
@@ -1919,7 +1945,7 @@
                                 <path d="M15 7h.01"/>
                             </svg>
                         </a>
-                        <a href="https://discord.gg/pb4HYvF2">
+                        <a href="https://discord.gg/pb4HYvF2" target="_blank" rel="noopener" aria-label="Join MyTraL on Discord">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-discord">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M8 12a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />

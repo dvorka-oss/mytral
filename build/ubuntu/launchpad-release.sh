@@ -38,7 +38,13 @@ set -euo pipefail
 # - Launchpad release directory must exist:
 #   ~/p/mytral/launchpad
 # - MYTRAL_SRC must point to the MyTraL Git source directory to be released.
-# - Set DRY_RUN=true to build packages without uploading to Launchpad.
+# - Set SKIP_UPLOAD=true to build packages without uploading to Launchpad
+#   (DRY_RUN is a deprecated alias for SKIP_UPLOAD, kept for backward compatibility).
+#
+# USAGE:
+#   ./launchpad-release.sh                        # loop: build + upload every supported Ubuntu version
+#   ./launchpad-release.sh <ubuntu_codename>       # build ONLY that version, upload skipped (local test build)
+#   SKIP_UPLOAD=false ./launchpad-release.sh <ubuntu_codename>  # build AND upload ONLY that version
 
 export MYTRAL_SRC=/home/dvorka/p/mytral/git/mytral
 export MYTRAL_RELEASE_DIR=/home/dvorka/p/mytral/launchpad
@@ -51,11 +57,23 @@ print(data['project']['authors'][0]['email'])
 
 # set to the highest patch number already uploaded for this release;
 # the loop increments it before each build, so 0 > first build gets .1
-PATCH_VERSION=12
+PATCH_VERSION=0
 
-# set to true to skip the final dput upload step
-export DRY_RUN="${DRY_RUN:-false}"
-#export DRY_RUN="true"
+# set to true to skip the final dput upload step (the source/binary .deb are
+# still built for real - nothing about this is a "dry" run, hence the rename)
+# tracked separately so the single-version branch below can tell an explicit
+# caller override apart from "not set" and pick its own default accordingly
+SKIP_UPLOAD_EXPLICITLY_SET=false
+if [ -n "${SKIP_UPLOAD+x}" ] || [ -n "${DRY_RUN+x}" ]
+then
+    SKIP_UPLOAD_EXPLICITLY_SET=true
+fi
+
+export SKIP_UPLOAD="${SKIP_UPLOAD:-${DRY_RUN:-false}}"
+if [ -n "${DRY_RUN:-}" ]
+then
+    echo "WARNING: DRY_RUN is deprecated, use SKIP_UPLOAD instead" >&2
+fi
 
 # ############################################################################
 # # Check dependencies #
@@ -277,11 +295,11 @@ function releaseForParticularUbuntuVersion() {
     # upload source package to Launchpad PPA
     local CHANGES_FILE="mytral_${MYTRAL_FULL_VERSION}_source.changes"
     echo "Before dput push: $(pwd)"
-    if [ "${DRY_RUN}" = "false" ]
+    if [ "${SKIP_UPLOAD}" = "false" ]
     then
         dput "ppa:ultradvorka/sport" "${CHANGES_FILE}"
     else
-        echo "DRY_RUN=true: skipping dput upload of ${CHANGES_FILE}"
+        echo "SKIP_UPLOAD=true: skipping dput upload of ${CHANGES_FILE}"
     fi
 
     cd ..
@@ -332,28 +350,73 @@ else
     gpg-agent --daemon
 fi
 
+#
+# Ubuntu versions
+#
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
 # https://wiki.ubuntu.com/Releases
-# obsolete:
+#
+# OBSOLETE:
 #   precise quantal saucy utopic vivid wily yakkety artful cosmic disco eoan
 #   groovy hirsute impish oracular
-# removed (build-time deps unavailable; cannot install Python 3.12 app either):
-#   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.4
-#   xenial (16.04): debhelper 10, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.5
-#   bionic (18.04): debhelper 11, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.6
-#   focal  (20.04): debhelper 12, no pybuild-plugin-pyproject, no python3-hatchling, Python 3.8
-# current:
-#   jammy noble plucky questing
-# future:
-#   resolute
+#   plucky
+#
+# UNSUPPORTED:
+#   trusty (14.04): debhelper 9, no pybuild-plugin-pyproject, no python3-hatchling
+#   xenial (16.04): debhelper 10, no pybuild-plugin-pyproject, no python3-hatchling
+#   bionic (18.04): debhelper 11, no pybuild-plugin-pyproject, no python3-hatchling
+#   focal  (20.04): debhelper 12, no pybuild-plugin-pyproject, no python3-hatchling
+#   ...
+#   MyTraL's debian/control's Build-Depends
+#     (debhelper >= 13, pybuild-plugin-pyproject, python3-hatchling)
+#   do NOT exist in these Ubuntu versions, so sbuild fails at dependency-resolution
+#   before any compilation starts - the *build-time* tooling above is unavailable
+#   on these series
+#
+# CURRENT:
+#   22.04 24.04 25.10    26.04
+#   jammy noble questing resolute
+#   ...
+#   current (build-time deps available; uv handles the 3.12 runtime at install)
+#
+SUPPORTED_UBUNTU_VERSIONS=(jammy noble questing resolute)
 
-# for UBUNTU_VERSION in noble
-for UBUNTU_VERSION in jammy noble plucky questing resolute
-do
+# optional CLI arg: build a single Ubuntu version; upload is skipped by default
+# unless the caller explicitly sets SKIP_UPLOAD=false
+SINGLE_UBUNTU_VERSION="${1:-}"
+
+if [ -n "${SINGLE_UBUNTU_VERSION}" ]
+then
+    KNOWN_VERSION=false
+    for UBUNTU_VERSION in "${SUPPORTED_UBUNTU_VERSIONS[@]}"
+    do
+        [ "${UBUNTU_VERSION}" = "${SINGLE_UBUNTU_VERSION}" ] && KNOWN_VERSION=true
+    done
+    if [ "${KNOWN_VERSION}" = "false" ]
+    then
+        echo "ERROR: unsupported Ubuntu version: ${SINGLE_UBUNTU_VERSION}" >&2
+        echo "       supported versions: ${SUPPORTED_UBUNTU_VERSIONS[*]}" >&2
+        exit 1
+    fi
+
+    # default to a local-only build for a single version unless the caller
+    # explicitly asked to upload it via SKIP_UPLOAD=false
+    if [ "${SKIP_UPLOAD_EXPLICITLY_SET}" = "false" ]
+    then
+        SKIP_UPLOAD=true
+    fi
+    echo "Building MyTraL for a single Ubuntu version only: ${SINGLE_UBUNTU_VERSION} (upload $([ "${SKIP_UPLOAD}" = "true" ] && echo "skipped" || echo "enabled"))"
     PATCH_VERSION=$((PATCH_VERSION + 1))
     VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
-    echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION} (${VERSIONED_BASE_VERSION})"
-    releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
-done
+    releaseForParticularUbuntuVersion "${SINGLE_UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
+else
+    for UBUNTU_VERSION in "${SUPPORTED_UBUNTU_VERSIONS[@]}"
+    do
+        PATCH_VERSION=$((PATCH_VERSION + 1))
+        VERSIONED_BASE_VERSION="${BASE_VERSION%.*}.${PATCH_VERSION}"
+        echo "Releasing MyTraL for Ubuntu version: ${UBUNTU_VERSION} (${VERSIONED_BASE_VERSION})"
+        releaseForParticularUbuntuVersion "${UBUNTU_VERSION}" "${VERSIONED_BASE_VERSION}" "${MYTRAL_MSG}"
+    done
+fi
 
 # eof

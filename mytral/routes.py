@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import calendar
+import contextlib
 import copy
 import dataclasses
 import datetime
@@ -32,6 +33,7 @@ import structlog
 from bokeh.embed import components as bokeh_components
 
 import mytral
+from mytral import anatomy
 from mytral import app_config
 from mytral import app_ds
 from mytral import app_logger
@@ -42,9 +44,11 @@ from mytral import blobstore as blob_pkg
 from mytral import cals
 from mytral import charts
 from mytral import commons
+from mytral import everesting
 from mytral import ff
 from mytral import forms
 from mytral import insights
+from mytral import muscle_groups
 from mytral import ninjas
 from mytral import notifications as notif_mod
 from mytral import onboarding
@@ -59,6 +63,7 @@ from mytral.blobstore import activity_service as blob_svc_module
 from mytral.integrations import strava
 from mytral.middleware import sync_guard as sync_guard_module
 from mytral.recordings import gpx_extractor
+from mytral.recordings import parquet_converter
 from mytral.tasks import _entities as task_entities
 from mytral.tasks import do
 
@@ -72,6 +77,10 @@ COOKIE_TOKEN = "mytral_token"
 # the resolution is detected on login and stored in session the cookie,
 # empty value means that the user is not using mobile device
 COOKIE_MOBILE = "mytral_mobile"
+# desktop only: set on logout to suppress the automatic re-login on the
+# next /login page load, so the user can pick/create another account;
+# cleared again on the next successful login/sign-up
+COOKIE_AUTO_LOGIN_SUPPRESSED = "mytral_auto_login_suppressed"
 # aspects
 ASPECT_LIST = "list"
 ASPECT_WEIGHT = "weight"
@@ -122,6 +131,49 @@ def _bbox_from_points(points: list[tuple[float, float]]) -> list[float]:
     ]
 
 
+def _profile_points_with_time(
+    user_id: str,
+    activity: entities_mod.ActivityEntity,
+    blob_svc: blob_svc_module.ActivityBlobService,
+    blob_uuid: str,
+    profile_points: list[tuple[float, float]],
+) -> list[tuple[float, float, float | None]]:
+    """Inject elapsed time into elevation profile points from the recording.
+
+    Loads the recording Parquet for the given source blob and derives per-point
+    elapsed seconds so the elevation chart can show time on hover.  Always
+    returns ``(distance, elevation, elapsed_s)`` triples; ``elapsed_s`` is
+    ``None`` for every point when no Parquet or time data is available.
+    """
+    untimed: list[tuple[float, float, float | None]] = [
+        (point[0], point[1], None) for point in profile_points
+    ]
+    try:
+        result_pair = blob_svc.open_parquet(
+            user_id=user_id,
+            activity_key=activity.key,
+            source_blob_key=blob_uuid,
+        )
+        if result_pair is None:
+            return untimed
+        parquet_stream, _ = result_pair
+        with contextlib.closing(parquet_stream) as stream:
+            recording = parquet_converter.load_parquet(stream.read())
+        return gpx_extractor.elevation_profile_with_time(
+            profile_points=profile_points,
+            recording=recording,
+        )
+    except Exception:
+        app_logger.warning(
+            "Failed to inject time into elevation profile",
+            user_id=user_id,
+            activity_key=activity.key,
+            blob_key=blob_uuid,
+            traceback=traceback.format_exc(),
+        )
+        return untimed
+
+
 def _activity_map_data(
     user_id: str,
     activity: entities_mod.ActivityEntity,
@@ -161,6 +213,15 @@ def _activity_map_data(
         bbox = list(meta.summary_bbox) if meta.summary_bbox is not None else None
         detail_points: list[tuple[float, float]] | None = None
         profile_points: list[tuple[float, float]] = list(meta.elevation_profile or [])
+        timed_profile: list[tuple[float, float, float | None]] | None = None
+        if include_detail and len(profile_points) > 1:
+            timed_profile = _profile_points_with_time(
+                user_id=user_id,
+                activity=activity,
+                blob_svc=blob_svc,
+                blob_uuid=blob_uuid,
+                profile_points=profile_points,
+            )
         if include_detail:
             if meta.full_polyline:
                 try:
@@ -198,7 +259,9 @@ def _activity_map_data(
             "full_polyline": meta.full_polyline,
             "summary_bbox": bbox,
             "track_point_count": meta.track_point_count,
-            "profile_points": profile_points,
+            "profile_points": (
+                timed_profile if timed_profile is not None else profile_points
+            ),
         }
         if include_detail:
             payload["detail_points"] = detail_points or []
@@ -256,6 +319,15 @@ app_task_manager.init_app(flask_app, task_timeout_s=app_config.task_timeout)
 # make application RD_ONLY if activities sync is in progress
 sync_guard_module.register_sync_guard(flask_app)
 sync_guard_module.inject_sync_status(flask_app)
+
+# expose mannequin anatomy geometry to templates (macros, imported without
+# `with context`, can only see true Jinja globals - not context processors)
+flask_app.jinja_env.globals["MANNEQUIN_FRONT"] = anatomy.FRONT_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_BACK"] = anatomy.BACK_REGIONS
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_OUTLINE"] = anatomy.FRONT_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_BACK_OUTLINE"] = anatomy.BACK_OUTLINE
+flask_app.jinja_env.globals["MANNEQUIN_FRONT_VIEWBOX"] = anatomy.FRONT_VIEWBOX
+flask_app.jinja_env.globals["MANNEQUIN_BACK_VIEWBOX"] = anatomy.BACK_VIEWBOX
 
 #
 # Flask app decorators
@@ -630,6 +702,13 @@ def home():
         else None
     )
 
+    # everesting: climbed / 8848 m for the top climbing sport, per period
+    everesting_periods = everesting.dashboard_periods(
+        all_activities, datetime.date.today()
+    )
+    lifetime_vertical_m = everesting.lifetime_vertical_m(all_activities)
+    lifetime_everests = everesting.everests_climbed(lifetime_vertical_m)
+
     # warnings: gear
     gear_requires_attention = None
     gear = ds.list_gear(
@@ -682,6 +761,10 @@ def home():
         dashboard_longest_activity=dashboard_longest_activity,
         dashboard_most_intense_activity=dashboard_most_intense_activity,
         dashboard_highest_elevation_activity=dashboard_highest_elevation_activity,
+        # everesting
+        everesting_periods=everesting_periods,
+        lifetime_vertical_m=lifetime_vertical_m,
+        lifetime_everests=lifetime_everests,
         # onboarding
         onboarding_active=onboarding_active,
         onboarding_state=onboarding_state,
@@ -726,6 +809,39 @@ def this_vs_last():
         except KeyError:
             flask.abort(400)
 
+    # this view only renders week / month / year charts; DAY exists for the
+    # dashboard Everesting toggle but has no chart here
+    if period not in {
+        commons.StatsPeriod.WEEK,
+        commons.StatsPeriod.MONTH,
+        commons.StatsPeriod.YEAR,
+    }:
+        flask.abort(400)
+
+    # elevation charts are scoped to a single climbing meta sport; other aspects
+    # aggregate across all sports (meta_sport stays None)
+    meta_sport = None
+    climbing_sports = []
+    if commons.StatsAspect.ELEVATION == aspect:
+        climbing_sports = commons.EVERESTING_CLIMBING_META_SPORTS
+        meta_arg = flask.request.args.get("meta")
+        if meta_arg in climbing_sports:
+            meta_sport = meta_arg
+        else:
+            # default to the sport with the most vertical in the selected year;
+            # use a reference date inside that year so the year filter matches
+            # even when the newest data year is not the current calendar year
+            now = datetime.date.today()
+            ref_day = now if now.year == int(year) else datetime.date(int(year), 12, 31)
+            meta_sport = everesting.top_climbing_meta_sport(
+                ds.list_activities(
+                    user_id=user_id,
+                    dataset_name=user_profile.dataset_name,
+                    filter_year=int(year),
+                ),
+                ref_day,
+            )
+
     # chart
     if commons.StatsPeriod.YEAR == period:
         bokeh_script, bokeh_div = charts.last_vs_this_year(
@@ -733,6 +849,7 @@ def this_vs_last():
             user_id=user_id,
             ds=ds,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
     elif commons.StatsPeriod.MONTH == period:
         bokeh_script, bokeh_div = charts.last_vs_this_month(
@@ -740,6 +857,7 @@ def this_vs_last():
             user_id=user_id,
             ds=ds,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
     else:
         cal_heatmap = views.CalendarHeatmap(
@@ -761,6 +879,7 @@ def this_vs_last():
             heatmap=cal_heatmap,
             aspect=aspect,
             is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
+            meta_sport=meta_sport,
         )
 
     return flask.render_template(
@@ -768,6 +887,11 @@ def this_vs_last():
         user_profile=user_profile,
         div=bokeh_div,
         script=bokeh_script,
+        aspect=aspect.name.lower(),
+        period=period.name.lower(),
+        meta=meta_sport,
+        climbing_sports=climbing_sports,
+        meta_sport_names=commons.M_AT_DISPLAY_NAMES,
     )
 
 
@@ -1051,9 +1175,11 @@ def insight_lifetime_totals():
 
     if aspect == "meta":
         # aggregate top-level totals by meta sport
-        m_per_meta, s_per_meta = commons.aggregate_by_meta_sport(
-            ds_stats.total_m_per_activity_type,
-            ds_stats.total_seconds_per_activity_type,
+        m_per_meta = commons.aggregate_ints_by_meta_sport(
+            ds_stats.total_m_per_activity_type
+        )
+        s_per_meta = commons.aggregate_ints_by_meta_sport(
+            ds_stats.total_seconds_per_activity_type
         )
         template_vars["total_m_per_meta"] = m_per_meta
         template_vars["total_km_per_meta"] = {
@@ -1062,13 +1188,20 @@ def insight_lifetime_totals():
         template_vars["total_time_per_meta"] = {
             mk: cals.seconds_to_str_time(seconds) for mk, seconds in s_per_meta.items()
         }
+        template_vars["total_elevation_per_meta"] = (
+            commons.aggregate_ints_by_meta_sport(
+                ds_stats.total_elevation_per_activity_type
+            )
+        )
 
         # aggregate per-year totals by meta sport
         per_year_meta: dict[int, dict] = {}
         for y, year_stats in ds_stats.year.items():
-            ym_m, ym_s = commons.aggregate_by_meta_sport(
-                year_stats.total_m_per_activity_type,
-                year_stats.total_seconds_per_activity_type,
+            ym_m = commons.aggregate_ints_by_meta_sport(
+                year_stats.total_m_per_activity_type
+            )
+            ym_s = commons.aggregate_ints_by_meta_sport(
+                year_stats.total_seconds_per_activity_type
             )
             per_year_meta[y] = {
                 "total_m_per_meta": ym_m,
@@ -1079,6 +1212,9 @@ def insight_lifetime_totals():
                     mk: cals.seconds_to_str_time(seconds)
                     for mk, seconds in ym_s.items()
                 },
+                "total_elevation_per_meta": commons.aggregate_ints_by_meta_sport(
+                    year_stats.total_elevation_per_activity_type
+                ),
             }
         template_vars["per_year_meta"] = per_year_meta
 
@@ -2721,6 +2857,7 @@ def _update_activity(key: str, template: str):
         )
         form.outfit.data = db_entity.outfit if hasattr(db_entity, "outfit") else ""
         form.formula.data = db_entity.formula
+        form.tags.data = ", ".join(db_entity.tags) if db_entity.tags else ""
 
         # exercises
         if db_entity.exercises:
@@ -3487,7 +3624,52 @@ def get_activity(key):
         next_month=next_month,
         next_day=next_day,
         activity_map_data=activity_map_data,
+        is_bookmarked=ds.list_bookmarks(user_id).is_bookmarked(a.key),
         form=form,
+    )
+
+
+@flask_app.route("/app/activities/<key>/bookmark", methods=["POST"])
+def bookmark_activity(key):
+    """Add activity to the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        user_profile = ds.profile(user_id)
+        try:
+            ds.get_activity(
+                user_id=user_id, dataset_name=user_profile.dataset_name, key=key
+            )
+        except ValueError:
+            flask.flash(message="Bookmark error - activity not found", category="error")
+        else:
+            ds.create_bookmark(user_id=user_id, activity_key=key)
+            flask.flash(message="Activity bookmarked", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("get_activity", key=key))
+
+
+@flask_app.route("/app/activities/<key>/unbookmark", methods=["POST"])
+def unbookmark_activity(key):
+    """Remove activity from the user's bookmarks."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        ds.delete_bookmark(user_id=user_id, activity_key=key)
+        flask.flash(message="Bookmark removed", category="success")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(
+        flask.request.referrer or flask.url_for("get_activity", key=key)
     )
 
 
@@ -3626,8 +3808,6 @@ def get_activity_analysis(key):
 
     if selected_blob_uuid and selected_blob_uuid in a.recorded_parquet_keys:
         try:
-            from mytral.recordings import parquet_converter as parquet_converter_mod
-
             result_pair = blob_svc.open_parquet(
                 user_id=user_id,
                 activity_key=key,
@@ -3635,8 +3815,9 @@ def get_activity_analysis(key):
             )
             if result_pair is not None:
                 parquet_stream, _ = result_pair
-                parquet_bytes = parquet_stream.read()
-                recording = parquet_converter_mod.load_parquet(parquet_bytes)
+                with contextlib.closing(parquet_stream) as stream:
+                    parquet_bytes = stream.read()
+                recording = parquet_converter.load_parquet(parquet_bytes)
                 parquet_available = True
 
                 # load all activities for FTP estimation
@@ -3762,6 +3943,7 @@ def list_activities_year(year):
     filter_intensity = flask.request.args.get("intensity", "")
     filter_type = flask.request.args.get("type", "")
     filter_source = flask.request.args.get("source", "")
+    filter_tag = flask.request.args.get("tag", "")
     aspect = flask.request.args.get("aspect", "feed")
 
     # apply filters
@@ -3791,6 +3973,8 @@ def list_activities_year(year):
             activities = [a for a in activities if a.ranked]
     if filter_source:
         activities = [a for a in activities if a.src == filter_source]
+    if filter_tag:
+        activities = [a for a in activities if filter_tag in (a.tags or [])]
 
     # get sort parameters
     sort_by = flask.request.args.get("sort", "when")
@@ -3860,6 +4044,7 @@ def list_activities_year(year):
     )
     unique_intensities = sorted(set(a.intensity for a in all_activities if a.intensity))
     unique_sources = sorted(set(a.src for a in all_activities if a.src))
+    unique_tags = sorted({tag for a in all_activities for tag in (a.tags or [])})
 
     # calculate year statistics for the cards
     year_total_distance = sum(a.distance for a in activities if a.distance)
@@ -3941,11 +4126,13 @@ def list_activities_year(year):
         unique_activity_types=unique_activity_types,
         unique_intensities=unique_intensities,
         unique_sources=unique_sources,
+        unique_tags=unique_tags,
         filter_activity_type=filter_activity_type,
         filter_gear=filter_gear,
         filter_intensity=filter_intensity,
         filter_type=filter_type,
         filter_source=filter_source,
+        filter_tag=filter_tag,
         sort_by=sort_by,
         sort_order=sort_order,
         aspect=aspect,
@@ -3981,12 +4168,14 @@ def search_activities():
         sort_by_when=True,
     )
 
-    # filter by case-insensitive substring match on name and description
+    # filter by case-insensitive substring match on name, description and tags
     q_lower = q.lower()
     activities = [
         a
         for a in activities
-        if q_lower in (a.name or "").lower() or q_lower in (a.description or "").lower()
+        if q_lower in (a.name or "").lower()
+        or q_lower in (a.description or "").lower()
+        or any(q_lower in tag.lower() for tag in (a.tags or []))
     ]
 
     activities_weekdays = {
@@ -4051,6 +4240,72 @@ def list_activities_diary():
         user_profile=user_profile,
         no_data=True,
     )
+
+
+@flask_app.route("/activities/bookmarks")
+def list_activities_bookmarks():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+    dataset_name = user_profile.dataset_name
+
+    bookmarks = ds.list_bookmarks(user_id=user_id)
+
+    activities = []
+    for activity_key in list(bookmarks.activity_keys):
+        try:
+            activities.append(
+                ds.get_activity(
+                    user_id=user_id, dataset_name=dataset_name, key=activity_key
+                )
+            )
+        except ValueError:
+            app_logger.warning(
+                "Bookmarked activity no longer exists, removing bookmark",
+                activity_key=activity_key,
+            )
+            ds.delete_bookmark(user_id=user_id, activity_key=activity_key)
+
+    activities_weekdays = {
+        a.key: cals.WEEKDAY_INDEX_2_STR.get(
+            calendar.weekday(a.when_year, a.when_month, a.when_day), ""
+        )
+        for a in activities
+    }
+
+    return flask.render_template(
+        "activity-bookmarks.html",
+        user_profile=user_profile,
+        activities=activities,
+        activity_types=ds.list_activity_types(user_id=user_id),
+        gear=ds.list_gear(user_id=user_id, dataset_name=dataset_name),
+        activities_weekdays=activities_weekdays,
+        is_mobile=flask.session.get(COOKIE_MOBILE),
+        form=forms.EmptyForm(),
+    )
+
+
+@flask_app.route(
+    "/app/activities/bookmarks/<activity_key>/move/<direction>", methods=["POST"]
+)
+def move_activity_bookmark(activity_key, direction):
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    form = forms.EmptyForm()
+    if form.validate_on_submit():
+        try:
+            ds.move_bookmark(
+                user_id=user_id, activity_key=activity_key, direction=direction
+            )
+        except ValueError:
+            flask.flash(message="Invalid bookmark move direction", category="error")
+    else:
+        flask.flash(message="Bookmark error - form validation error", category="error")
+
+    return flask.redirect(flask.url_for("list_activities_bookmarks"))
 
 
 @flask_app.route("/activities/prs")
@@ -4249,6 +4504,74 @@ def list_activities_paces():
     )
 
 
+@flask_app.route("/charts-histograms")
+def charts_histograms():
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    user_profile = ds.profile(user_id)
+
+    # get filter parameters from query string
+    filter_activity_type = flask.request.args.get("activity_type", "")
+    filter_year = flask.request.args.get("year", "")
+
+    activities = ds.list_activities(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    )
+    activity_types = ds.list_activity_types(user_id=user_id)
+
+    # activity types and years the user actually has (for the filter dropdowns) -
+    # derived from all activities so that filtering never empties the dropdowns
+    unique_activity_types = sorted(
+        set(
+            a.activity_type_key
+            for a in activities
+            if not activity_types.is_meta(a.activity_type_key)
+        )
+    )
+    years = sorted(
+        set(
+            a.when_year
+            for a in activities
+            if not activity_types.is_meta(a.activity_type_key)
+        ),
+        reverse=True,
+    )
+    if not unique_activity_types:
+        return flask.render_template(
+            "charts-histograms.html",
+            user_profile=user_profile,
+            no_data=True,
+        )
+
+    # an unknown activity type or year means no filter rather than an empty page
+    if filter_activity_type not in unique_activity_types:
+        filter_activity_type = ""
+    if filter_year not in [str(y) for y in years]:
+        filter_year = ""
+    if filter_year:
+        activities = [a for a in activities if a.when_year == int(filter_year)]
+
+    histograms = charts.activities_histograms(
+        activities=activities,
+        activity_types=activity_types,
+        filter_activity_type=filter_activity_type,
+    )
+
+    return flask.render_template(
+        "charts-histograms.html",
+        user_profile=user_profile,
+        activity_types=activity_types,
+        unique_activity_types=unique_activity_types,
+        filter_activity_type=filter_activity_type,
+        filter_year=filter_year,
+        years=years,
+        histograms=histograms,
+        is_mobile=flask.session.get(COOKIE_MOBILE),
+    )
+
+
 @flask_app.route("/activities/races")
 def list_activities_races():
     user_id = flask.session.get(COOKIE_USER)
@@ -4372,54 +4695,41 @@ def list_activities_for_date(year, month, day):
         for a in activities
     }
 
-    # aggregate muscle groups for day heat-map
+    # muscle heat-map for the day, calibrated against the user's own
+    # trailing history so "hot" means unusually high for this user
     activity_types_registry = ds.list_activity_types(user_id=user_id)
     exercises_registry = ds.list_exercises(
         user_id=user_id,
         dataset_name=ds.profile(user_id).dataset_name,
     )
-    muscle_counts: dict[str, int] = {}
-    muscle_secondary: set[str] = set()
-    for activity in activities:
-        # muscles from activity type
-        at = activity_types_registry.activity_types_by_key.get(
-            activity.activity_type_key
-        )
-        if at:
-            for key in at.muscle_groups or []:
-                muscle_counts[key] = muscle_counts.get(key, 0) + 1
-            for key in at.muscle_groups_secondary or []:
-                muscle_secondary.add(key)
-        # muscles from individual exercises inside the activity
-        for ex_entity in activity.exercises or []:
-            ex = exercises_registry.exercise_by_key.get(
-                ex_entity.name
-            ) or exercises_registry.exercise_by_name.get(ex_entity.name)
-            if ex:
-                for key in ex.muscle_groups or []:
-                    muscle_counts[key] = muscle_counts.get(key, 0) + 1
-                for key in ex.muscle_groups_secondary or []:
-                    muscle_secondary.add(key)
+    day_stats = muscle_groups.compute_daily_muscle_stats(
+        activities, activity_types_registry, exercises_registry
+    )
 
-    def _intensity_class(count: int) -> str:
-        if count >= 10:
-            return "state-active intensity-5"
-        if count >= 7:
-            return "state-active intensity-4"
-        if count >= 4:
-            return "state-active intensity-3"
-        if count >= 2:
-            return "state-active intensity-2"
-        return "state-active intensity-1"
+    viewed_date = datetime.date(int(year), int(month), int(day))
+    history_start = viewed_date - datetime.timedelta(
+        days=muscle_groups.HEATMAP_HISTORY_WINDOW_DAYS
+    )
+    all_activities = ds.all_activities(
+        user_id=user_id, dataset_name=user_profile.dataset_name
+    ).values()
+    history_by_date = muscle_groups.group_activities_by_date(
+        a
+        for a in all_activities
+        if history_start
+        <= datetime.date(a.when_year, a.when_month, a.when_day)
+        <= viewed_date
+    )
+    historical_counts_by_day = [
+        muscle_groups.compute_daily_muscle_stats(
+            day_activities, activity_types_registry, exercises_registry
+        ).counts
+        for day_activities in history_by_date.values()
+    ]
 
-    # primary muscles: use intensity scale (green); secondary: amber
-    # a muscle that appears as both primary and secondary → primary wins
-    day_muscle_highlights: dict[str, str] = {}
-    for k, v in muscle_counts.items():
-        day_muscle_highlights[k] = _intensity_class(v)
-    for k in muscle_secondary:
-        if k not in day_muscle_highlights:
-            day_muscle_highlights[k] = "state-secondary"
+    day_muscle_highlights = muscle_groups.build_day_muscle_highlights(
+        day_stats, historical_counts_by_day
+    )
 
     # PREVIOUS / NEXT day navigation
     try:
@@ -4450,7 +4760,6 @@ def list_activities_for_date(year, month, day):
         "day-get.html",
         user_profile=user_profile,
         activities=activities,
-        feed_bar_chart_data=views.build_feed_bar_chart_data(activities),
         activities_weekdays=activities_weekdays,
         activity_types=activity_types_registry,
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -5108,6 +5417,16 @@ def charts_year(year):
             cumulative=bool(chart_type == charts.ChartType.SUM_KG.value),
             is_mobile_view=flask.session.get(COOKIE_MOBILE),
         )
+    elif chart_type in [
+        charts.ChartType.ELEVATION.value,
+        charts.ChartType.SUM_ELEVATION.value,
+    ]:
+        script, div = charts.total_elevation_per_week_in_year(
+            cal_heatmap=cal_heatmap,
+            year=year_int,
+            cumulative=bool(chart_type == charts.ChartType.SUM_ELEVATION.value),
+            is_mobile_view=flask.session.get(COOKIE_MOBILE),
+        )
     elif chart_type == charts.ChartType.WEIGHT.value:
         script, div = charts.average_weight_per_week_in_year(
             cal_heatmap=cal_heatmap,
@@ -5126,6 +5445,7 @@ def charts_year(year):
         "charts-year.html",
         user_profile=user_profile,
         year=year_int,
+        chart_type=chart_type,
         years=reversed(
             [
                 y

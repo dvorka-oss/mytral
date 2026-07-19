@@ -10,6 +10,27 @@
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
+                    {% if is_bookmarked %}
+                    <form method="POST" action="{{ url_for('unbookmark_activity', key=activity_entity.key) }}" class="d-inline">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn btn-success btn-icon" title="Remove bookmark">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-filled icon-tabler-bookmark">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('bookmark_activity', key=activity_entity.key) }}" class="d-inline">
+                        {{ form.hidden_tag() }}
+                        <button type="submit" class="btn btn-outline-primary btn-icon" title="Bookmark this activity">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bookmark">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z"/>
+                            </svg>
+                        </button>
+                    </form>
+                    {% endif %}
                     <a href="{{ url_for('update_activity', key=activity_entity.key) }}"
                         class="btn btn-primary"
                         title="Edit activity">
@@ -142,6 +163,9 @@
                     </div>
                 </div>
                 <div class="card-actions">
+                    {% if activity_entity.everesting_variant %}
+                    <span class="badge bg-purple text-purple-fg" title="Single-activity Everesting achievement - {{ "{:,}".format(activity_entity.elevation_gain) }} m of climbing">{{ activity_entity.everesting_variant }}</span>
+                    {% endif %}
                     {% if activity_entity.race %}
                     <span class="badge bg-red text-red-fg">race</span>
                     {% endif %}
@@ -174,6 +198,17 @@
                 <div class="text-muted mb-4">
                     {{ activity_entity.description|markdown }}
                 </div>
+
+                {% if activity_entity.tags %}
+                <div class="mb-4">
+                    {% for tag in activity_entity.tags %}
+                    {% set tag_color = tag|tag_to_color %}
+                    <a href="{{ url_for('list_activities_year', year=activity_entity.when_year, tag=tag) }}" class="text-decoration-none">
+                        <span class="badge bg-{{ tag_color }} text-{{ tag_color }}-fg">{{ tag }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 {% if activity_entity.distance %}
                 <div class="row g-3 mb-4">
@@ -853,6 +888,30 @@
         width: 100%;
         border-top: 1px solid var(--tblr-border-color);
         background-color: var(--tblr-bg-surface-secondary);
+        position: relative;
+    }
+
+    .mytral-elevation-tooltip {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 5;
+        pointer-events: none;
+        padding: 4px 8px;
+        font-size: 11px;
+        line-height: 1.35;
+        white-space: nowrap;
+        color: var(--tblr-body-color, #1a2234);
+        background-color: var(--tblr-bg-surface, #ffffff);
+        border: 1px solid var(--tblr-border-color, #cbd5e1);
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        opacity: 0;
+        transform: translate(-50%, -100%);
+    }
+
+    .mytral-elevation-tooltip .mytral-elevation-tooltip-value {
+        font-weight: 600;
     }
 </style>
 <script>
@@ -1113,6 +1172,71 @@
                 guideDot.style.opacity = "0";
                 svg.appendChild(guideDot);
 
+                const tooltip = document.createElement("div");
+                tooltip.className = "mytral-elevation-tooltip";
+
+                // grade over a short window around the point (reduces noise)
+                function gradeAt(index) {
+                    let lo = index;
+                    let hi = index;
+                    while (lo > 0 && profile[index][0] - profile[lo][0] < 15) {
+                        lo -= 1;
+                    }
+                    while (hi < profile.length - 1 && profile[hi][0] - profile[index][0] < 15) {
+                        hi += 1;
+                    }
+                    const dx = profile[hi][0] - profile[lo][0];
+                    const dy = profile[hi][1] - profile[lo][1];
+                    return dx > 0 ? (dy / dx) * 100 : 0;
+                }
+
+                function formatElapsed(seconds) {
+                    const total = Math.round(seconds);
+                    const hours = Math.floor(total / 3600);
+                    const minutes = Math.floor((total % 3600) / 60);
+                    const secs = total % 60;
+                    const mm = String(minutes).padStart(2, "0");
+                    const ss = String(secs).padStart(2, "0");
+                    return hours > 0 ? `${hours}:${mm}:${ss}` : `${minutes}:${ss}`;
+                }
+
+                function updateTooltip(index, x, y) {
+                    const point = profile[index];
+                    const distanceKm = point[0] / 1000;
+                    const distanceText =
+                        distanceKm >= 10 ? distanceKm.toFixed(1) : distanceKm.toFixed(2);
+                    const grade = gradeAt(index);
+                    let rows =
+                        `<div>Dist <span class="mytral-elevation-tooltip-value">${distanceText} km</span></div>` +
+                        `<div>Elev <span class="mytral-elevation-tooltip-value">${Math.round(point[1])} m</span></div>` +
+                        `<div>Grade <span class="mytral-elevation-tooltip-value">${grade.toFixed(1)}%</span></div>`;
+                    if (point.length > 2 && point[2] !== null) {
+                        rows +=
+                            `<div>Time <span class="mytral-elevation-tooltip-value">${formatElapsed(point[2])}</span></div>`;
+                    }
+                    tooltip.innerHTML = rows;
+
+                    // position relative to container (SVG uses preserveAspectRatio="none")
+                    const containerWidth = profileElement.clientWidth || width;
+                    const containerHeight = profileElement.clientHeight || height;
+                    const pointX = (x / width) * containerWidth;
+                    const pointY = (y / height) * containerHeight;
+                    const halfWidth = tooltip.offsetWidth / 2;
+                    const clampedX = Math.max(
+                        halfWidth + 2,
+                        Math.min(containerWidth - halfWidth - 2, pointX),
+                    );
+                    tooltip.style.left = `${clampedX}px`;
+                    if (pointY - tooltip.offsetHeight - 8 < 0) {
+                        tooltip.style.transform = "translate(-50%, 0)";
+                        tooltip.style.top = `${pointY + 10}px`;
+                    } else {
+                        tooltip.style.transform = "translate(-50%, -100%)";
+                        tooltip.style.top = `${pointY - 8}px`;
+                    }
+                    tooltip.style.opacity = "1";
+                }
+
                 function setGuide(index) {
                     const clampedIndex = Math.max(0, Math.min(coords.length - 1, index));
                     const [x, y] = coords[clampedIndex];
@@ -1122,6 +1246,7 @@
                     guideDot.setAttribute("cy", String(y));
                     guideLine.style.opacity = "1";
                     guideDot.style.opacity = "1";
+                    updateTooltip(clampedIndex, x, y);
 
                     if (hoverMarker && latLngs.length > 1) {
                         const mapIndex = Math.round(
@@ -1160,12 +1285,13 @@
                 svg.addEventListener("mouseleave", () => {
                     guideLine.style.opacity = "0";
                     guideDot.style.opacity = "0";
+                    tooltip.style.opacity = "0";
                     if (hoverMarker) {
                         hoverMarker.setStyle({ opacity: 0, fillOpacity: 0 });
                     }
                 });
 
-                profileElement.replaceChildren(svg);
+                profileElement.replaceChildren(svg, tooltip);
             }
         }
         mapElement.dataset.mapReady = "1";

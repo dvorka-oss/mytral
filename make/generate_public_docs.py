@@ -8,6 +8,7 @@ Features left sidebar navigation and right sidebar table of contents.
 """
 
 import argparse
+import datetime
 import re
 import shutil
 import sys
@@ -22,6 +23,8 @@ import markdown
 GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
 GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
+SITE_BASE_URL = "https://mytral.fitness"
+SITE_OG_IMAGE = "https://mytral.fitness/og-image.png"
 
 
 @dataclass
@@ -269,7 +272,25 @@ def get_html_template() -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}} - MyTraL Documentation</title>
     <meta name="description" content="{{DESCRIPTION}}">
-    <link rel="icon" href="../mytral-logo.png" type="image/png">
+    <link rel="canonical" href="{{CANONICAL}}">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/mytral-logo.png" type="image/png">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="MyTraL">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{TITLE}} - MyTraL Documentation">
+    <meta property="og:description" content="{{DESCRIPTION}}">
+    <meta property="og:url" content="{{CANONICAL}}">
+    <meta property="og:image" content="{{OG_IMAGE}}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{TITLE}} - MyTraL Documentation">
+    <meta name="twitter:description" content="{{DESCRIPTION}}">
+    <meta name="twitter:image" content="{{OG_IMAGE}}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -691,6 +712,41 @@ def extract_title(md_content: str) -> str:
     return "Documentation"
 
 
+def extract_description(md_content: str, title: str, max_length: int = 150) -> str:
+    """
+    Build a plain-text meta description from the first real sentence paragraph.
+
+    Skips headings, images, lists, tables, code and section labels; falls back to
+    a clean title-based default when no prose paragraph is found.
+
+    Args:
+        md_content: Markdown content
+        title: Page title, used for the fallback description
+        max_length: Maximum length of the returned description
+
+    Returns:
+        Plain-text, HTML-attribute-safe description string
+    """
+    for block in re.split(r'\n\s*\n', md_content):
+        text = block.strip()
+        # skip empty blocks, headings, images, lists, tables, code and quotes
+        if not text or text[0] in '#!-*+|>' or text.startswith('```'):
+            continue
+        if re.match(r'^\d+\.', text):
+            continue
+        text = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', text)      # drop images
+        text = re.sub(r'\[([^\]]+)\]\([^)]*\)', r'\1', text)  # links -> link text
+        text = re.sub(r'[*_`#]', '', text)                    # drop md formatting
+        text = re.sub(r'\s+', ' ', text).strip()
+        # require a real sentence, not a short label ending in a colon
+        if len(text) < 40 or text.endswith(':'):
+            continue
+        if len(text) > max_length:
+            text = text[:max_length].rsplit(' ', 1)[0] + '...'
+        return text.replace('&', '&amp;').replace('"', '&quot;')
+    return f"{title} - MyTraL, a private, open-source personal training log."
+
+
 def generate_html_page(
     md_file: Path,
     output_file: Path,
@@ -712,8 +768,9 @@ def generate_html_page(
     with open(md_file, 'r', encoding='utf-8') as f:
         md_content = f.read()
 
-    # Extract title
+    # Extract title and meta description
     title = extract_title(md_content)
+    description = extract_description(md_content, title)
 
     # Convert Markdown to HTML
     md_processor = markdown.Markdown(
@@ -743,19 +800,75 @@ def generate_html_page(
     github_edit_url = f"{GITHUB_BASE_EDIT}{md_file.name}"
     github_view_url = f"{GITHUB_BASE_VIEW}{md_file.name}"
 
+    # canonical page URL (e.g. https://mytral.fitness/docs/installation.html)
+    canonical = f"{SITE_BASE_URL}/{output_file.parent.name}/{output_file.name}"
+
     # Fill template
     html = template
     html = html.replace('{{TITLE}}', title)
-    html = html.replace('{{DESCRIPTION}}', f"{title} - MyTraL Documentation")
+    html = html.replace('{{DESCRIPTION}}', description)
+    html = html.replace('{{CANONICAL}}', canonical)
+    html = html.replace('{{OG_IMAGE}}', SITE_OG_IMAGE)
     html = html.replace('{{SIDEBAR_NAV}}', sidebar_nav)
     html = html.replace('{{CONTENT}}', html_content)
     html = html.replace('{{TOC}}', toc_html)
     html = html.replace('{{GITHUB_EDIT_URL}}', github_edit_url)
     html = html.replace('{{GITHUB_VIEW_URL}}', github_view_url)
+    html = html.replace('{{MINDFORGER_LINK}}', MINDFORGER_LINK)
 
     # Write output file
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html)
+
+
+def mtime_date(path: Path) -> str:
+    """Return a file's last-modified date as an ISO YYYY-MM-DD string."""
+    return datetime.date.fromtimestamp(path.stat().st_mtime).isoformat()
+
+
+def generate_sitemap(www_root: Path, output_dir: Path, doc_pages: set[str]) -> None:
+    """
+    Generate sitemap.xml at the site root from the homepage and generated docs.
+
+    Args:
+        www_root: Site root directory (holds index.html and sitemap.xml)
+        output_dir: Directory holding the generated documentation HTML pages
+        doc_pages: Filenames of the docs pages actually produced this run
+    """
+    # loc, lastmod, changefreq, priority
+    entries: list[tuple[str, str, str, str]] = []
+
+    # homepage
+    index_html = www_root / "index.html"
+    if index_html.exists():
+        entries.append((f"{SITE_BASE_URL}/", mtime_date(index_html), "weekly", "1.0"))
+
+    # generated documentation pages
+    for name in sorted(doc_pages):
+        html_file = output_dir / name
+        stem = Path(name).stem
+        loc = f"{SITE_BASE_URL}/{output_dir.name}/{name}"
+        changefreq = "weekly" if stem == "changelog" else "monthly"
+        priority = "0.9" if stem == "index" else "0.7"
+        entries.append((loc, mtime_date(html_file), changefreq, priority))
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for loc, lastmod, changefreq, priority in entries:
+        lines.append("    <url>")
+        lines.append(f"        <loc>{loc}</loc>")
+        lines.append(f"        <lastmod>{lastmod}</lastmod>")
+        lines.append(f"        <changefreq>{changefreq}</changefreq>")
+        lines.append(f"        <priority>{priority}</priority>")
+        lines.append("    </url>")
+    lines.append("</urlset>")
+
+    sitemap_path = www_root / "sitemap.xml"
+    with open(sitemap_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"Generated {sitemap_path.name} with {len(entries)} URLs")
 
 
 def main():
@@ -799,7 +912,7 @@ def main():
     template = get_html_template()
 
     # Generate HTML pages for all Markdown files referenced in sitemap
-    generated_count = 0
+    generated_pages: set[str] = set()
     for section in sections:
         # Process section-level source
         if section.source:
@@ -807,7 +920,7 @@ def main():
             if md_file.exists():
                 output_file = output_dir / md_filename_to_html(section.source)
                 generate_html_page(md_file, output_file, sections, template)
-                generated_count += 1
+                generated_pages.add(output_file.name)
 
         # Process item sources
         for item in section.items:
@@ -816,9 +929,15 @@ def main():
                 if md_file.exists():
                     output_file = output_dir / md_filename_to_html(item.source)
                     generate_html_page(md_file, output_file, sections, template)
-                    generated_count += 1
+                    generated_pages.add(output_file.name)
                 else:
                     print(f"Warning: Markdown file not found: {md_file}")
+
+    # remove stale pages left over from earlier runs (not in the current sitemap)
+    for html_file in output_dir.glob('*.html'):
+        if html_file.name not in generated_pages:
+            html_file.unlink()
+            print(f"Removed stale page {html_file.name}")
 
     # Copy PNG files from source to output
     png_files = list(source_dir.glob('*.png'))
@@ -827,7 +946,13 @@ def main():
         shutil.copy2(png_file, output_png)
         print(f"Copied {png_file.name}")
 
-    print(f"\nGenerated {generated_count} HTML pages and copied {len(png_files)} images")
+    # generate sitemap.xml at the site root from the pages actually produced
+    generate_sitemap(output_dir.parent, output_dir, generated_pages)
+
+    print(
+        f"\nGenerated {len(generated_pages)} HTML pages "
+        f"and copied {len(png_files)} images"
+    )
     print(f"Output directory: {output_dir}")
 
 

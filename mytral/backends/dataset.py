@@ -94,7 +94,9 @@ class UserDataset(abc.ABC):
         self,
         user_name: str = commons.DEFAULT_USER_NAME,
         user_id: str = "",
+        user_display_name: str = "",
         password_enc: str = "",
+        auto_login: bool = False,
     ):
         """Create new user (sandbox / entries / tables).
 
@@ -104,8 +106,13 @@ class UserDataset(abc.ABC):
             Username.
         user_id : str
             Unique user ID.
+        user_display_name : str
+            Display name shown in the UI.
         password_enc : str
             Encrypted password.
+        auto_login : bool
+            Whether the new profile should have auto-login enabled
+            (DESKTOP incarnation only).
 
         """
         raise NotImplementedError
@@ -727,6 +734,37 @@ class UserDataset(abc.ABC):
         ).set_outfits(
             outfits=self._load_outfits(user_id=user_id, dataset_name=dataset_name)
         )
+
+    #
+    # activity bookmarks
+    #
+
+    @abc.abstractmethod
+    def _load_bookmarks(self, user_id: str) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def create_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def delete_bookmark(
+        self, user_id: str, activity_key: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def move_bookmark(
+        self, user_id: str, activity_key: str, direction: str
+    ) -> settings.UserBookmarks:
+        raise NotImplementedError
+
+    def list_bookmarks(self, user_id: str) -> settings.UserBookmarks:
+        return self._cache.user(user_id).bookmarks() or self._cache.user(
+            user_id
+        ).set_bookmarks(bookmarks=self._load_bookmarks(user_id=user_id))
 
     #
     # component templates

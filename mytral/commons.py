@@ -26,8 +26,13 @@ PRJ_NAME = "mytral"
 # main applications dataset name
 DATASET_NAME_MAIN = "lifelong"
 
-# default user name (desktop app installation)
+# default user name (tests, development) - IMPROVE: refactor to "athlete"
 DEFAULT_USER_NAME = "dvorka"
+
+# default user auto-created on the first DESKTOP boot when no user exists yet
+DEFAULT_DESKTOP_USER_NAME = "athlete"
+DEFAULT_DESKTOP_USER_DISPLAY_NAME = "MyTraL Athlete"
+DEFAULT_DESKTOP_USER_PASSWORD = "changeit"
 
 #
 # DATASETS & PERSISTENCE
@@ -226,7 +231,7 @@ AT_PLAN = "plan"  # TODO deprecated
 #
 
 
-def guess_activity_type_from_pace(avg_speed_kmh: float) -> str:
+def guess_activity_type_from_avg_speed(avg_speed_kmh: float) -> str:
     """Guess activity type from average speed in km/h.
 
     Parameters
@@ -384,39 +389,78 @@ AT_TAXONOMY = {
 }
 
 
-def aggregate_by_meta_sport(
-    total_m_per_activity_type: dict[str, int],
-    total_seconds_per_activity_type: dict[str, int],
-) -> tuple[dict[str, int], dict[str, int]]:
-    """Aggregate per-activity-type stats into per-meta-sport totals.
+def aggregate_ints_by_meta_sport(
+    per_activity_type: dict[str, int],
+) -> dict[str, int]:
+    """Aggregate a per-activity-type int map into per-meta-sport totals.
 
     Parameters
     ----------
-    total_m_per_activity_type : dict[str, int]
-        Meters per activity type key.
-    total_seconds_per_activity_type : dict[str, int]
-        Seconds per activity type key.
+    per_activity_type : dict[str, int]
+        Any additive quantity (meters, seconds, elevation, ...) keyed by
+        activity type key.
 
     Returns
     -------
-    tuple[dict[str, int], dict[str, int]]
-        (meters_per_meta_sport, seconds_per_meta_sport) both keyed by
-        M_AT_* keys. Meta sports with zero total meters are included
-        (value 0).
+    dict[str, int]
+        The quantity summed per meta sport, keyed by M_AT_* keys. Meta sports
+        with a zero total are included (value 0).
     """
-    m_per_meta: dict[str, int] = {}
-    s_per_meta: dict[str, int] = {}
+    return {
+        meta_key: sum(per_activity_type.get(at_key, 0) for at_key in at_keys)
+        for meta_key, at_keys in AT_TAXONOMY.items()
+    }
 
-    for meta_key, at_keys in AT_TAXONOMY.items():
-        total_m = 0
-        total_s = 0
-        for at_key in at_keys:
-            total_m += total_m_per_activity_type.get(at_key, 0)
-            total_s += total_seconds_per_activity_type.get(at_key, 0)
-        m_per_meta[meta_key] = total_m
-        s_per_meta[meta_key] = total_s
 
-    return m_per_meta, s_per_meta
+#
+# EVERESTING
+#
+# - Everesting: climb the height of Mt. Everest (8848 m of elevation gain),
+#   either in a single activity (the real challenge) or accumulated over a
+#   day / week / month / year (a virtual Everest).
+#
+
+EVERESTING_M = 8848  # height of Mt. Everest in meters
+
+# meta sports that produce meaningful vertical (others cannot be "everested")
+EVERESTING_CLIMBING_META_SPORTS = [
+    M_AT_RIDE,
+    M_AT_RUN,
+    M_AT_HIKE,
+    M_AT_SKI,
+]
+
+# single-activity challenge tiers (label, meters of gain in ONE activity),
+# ordered ascending by meters
+EVERESTING_VARIANTS = [
+    ("Quarter Everest", 2212),
+    ("Basecamp", 3500),
+    ("Half Everest", 4424),
+    ("Everesting", 8848),
+    ("Double Everesting", 17696),
+    ("Triple Everesting", 26544),
+]
+
+
+def everesting_variant(elevation_gain: int) -> str | None:
+    """Return the highest single-activity Everesting tier reached, or None.
+
+    Parameters
+    ----------
+    elevation_gain : int
+        Elevation gain of a single activity, in meters.
+
+    Returns
+    -------
+    str | None
+        Label of the highest ``EVERESTING_VARIANTS`` tier whose threshold is
+        met, or ``None`` when the gain is below the smallest tier.
+    """
+    reached = None
+    for label, threshold in EVERESTING_VARIANTS:
+        if elevation_gain >= threshold:
+            reached = label
+    return reached
 
 
 #
@@ -490,6 +534,7 @@ class StatsAspect(enum.Enum):
     DISTANCE = enum.auto()
     DURATION = enum.auto()
     KGS = enum.auto()
+    ELEVATION = enum.auto()
 
 
 class StatsPeriod(enum.Enum):
@@ -498,3 +543,4 @@ class StatsPeriod(enum.Enum):
     YEAR = enum.auto()
     MONTH = enum.auto()
     WEEK = enum.auto()
+    DAY = enum.auto()

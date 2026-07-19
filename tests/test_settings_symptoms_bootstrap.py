@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import pytest
 
-from mytral.blueprints import health_uri_space
+from mytral.settings import BODY_PARTS_BY_REGION
 from mytral.settings import Symptom
 from mytral.settings import UserSymptoms
 
@@ -27,7 +27,7 @@ def test_user_symptoms_bootstrap_enriches_symptoms_with_body_parts():
     bootstrap = UserSymptoms.bootstrap()
     all_valid_body_parts = {
         body_part_id
-        for body_parts in health_uri_space.BODY_PARTS.values()
+        for body_parts in BODY_PARTS_BY_REGION.values()
         for body_part_id in body_parts
     }
 

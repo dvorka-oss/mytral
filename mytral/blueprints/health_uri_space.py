@@ -20,46 +20,10 @@ import flask
 
 from mytral import app_user_ds as ds
 from mytral import charts
+from mytral import settings as user_settings
 from mytral.routes import COOKIE_MOBILE
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
-
-BODY_PARTS = {
-    # head / neck
-    "head": ["front-head", "back-head"],
-    "neck": ["front-neck", "back-neck"],
-    # shoulders
-    "shoulder_left": ["front-shoulder-l", "back-shoulder-l"],
-    "shoulder_right": ["front-shoulder-r", "back-shoulder-r"],
-    # chest / back
-    "chest": ["front-chest"],
-    "upper_back": ["back-upper", "back-lats-r", "back-lats-l"],
-    "lower_back": ["back-lower"],
-    # arms
-    "arm_left": ["front-arm-l", "back-arm-l"],
-    "arm_right": ["front-arm-r", "back-arm-r"],
-    "elbow_left": ["front-elbow-l", "back-elbow-l"],
-    "elbow_right": ["front-elbow-r", "back-elbow-r"],
-    "forearm_left": ["front-forearm-l", "back-forearm-l"],
-    "forearm_right": ["front-forearm-r", "back-forearm-r"],
-    "wrist_left": ["front-wrist-l", "back-wrist-l"],
-    "wrist_right": ["front-wrist-r", "back-wrist-r"],
-    "hand_left": ["front-hand-l", "back-hand-l"],
-    "hand_right": ["front-hand-r", "back-hand-r"],
-    # hips / legs
-    "hip_left": ["front-hip-l", "back-hip-l"],
-    "hip_right": ["front-hip-r", "back-hip-r"],
-    "thigh_left": ["front-thigh-l", "back-thigh-l"],
-    "thigh_right": ["front-thigh-r", "back-thigh-r"],
-    "knee_left": ["front-knee-l", "back-knee-l"],
-    "knee_right": ["front-knee-r", "back-knee-r"],
-    "calf_left": ["front-calf-l", "back-calf-l"],
-    "calf_right": ["front-calf-r", "back-calf-r"],
-    "ankle_left": ["front-ankle-l", "back-ankle-l"],
-    "ankle_right": ["front-ankle-r", "back-ankle-r"],
-    "foot_left": ["front-foot-l", "back-foot-l"],
-    "foot_right": ["front-foot-r", "back-foot-r"],
-}
 
 
 def _get_active_injuries(user_id: str, year: int = None):
@@ -148,8 +112,8 @@ def _build_body_highlights(injuries: list[dict], symptoms_registry) -> set:
             side = injury.get("side")
             if body_part:
                 key = f"{body_part}_{side}" if side else body_part
-                if key in BODY_PARTS:
-                    highlights.update(BODY_PARTS[key])
+                if key in user_settings.BODY_PARTS_BY_REGION:
+                    highlights.update(user_settings.BODY_PARTS_BY_REGION[key])
 
     return highlights
 

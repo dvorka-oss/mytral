@@ -15,6 +15,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 """GPX file activity-level summary extractor."""
 
+import bisect
 import datetime
 import statistics
 
@@ -23,6 +24,7 @@ import defusedxml.ElementTree
 from mytral import commons
 from mytral.recordings import _geo_utils
 from mytral.recordings import _xml_utils
+from mytral.recordings.models import RecordingData
 from mytral.recordings.models import RecordingSummary
 
 # GPX namespace
@@ -327,6 +329,100 @@ def simplify_elevation_profile(
     return _sample_points(points=profile_points, max_points=max_points)
 
 
+def _distance_time_curve(
+    recording: RecordingData,
+) -> tuple[list[float], list[float]]:
+    """Build monotonic cumulative-distance and elapsed-second axes from GPS.
+
+    Parameters
+    ----------
+    recording : RecordingData
+        Parsed recording providing GPS coordinates and timestamps.
+
+    Returns
+    -------
+    tuple[list[float], list[float]]
+        ``(distance_m_axis, elapsed_s_axis)`` sampled at every valid GPS point.
+    """
+    distance_axis: list[float] = []
+    time_axis: list[float] = []
+    reference_time: datetime.datetime | None = None
+    prev_lat: float | None = None
+    prev_lon: float | None = None
+    cumulative_m = 0.0
+    for lat, lon, timestamp in zip(
+        recording.lat_values, recording.lon_values, recording.timestamps
+    ):
+        if lat is None or lon is None or timestamp is None:
+            continue
+        if reference_time is None:
+            reference_time = timestamp
+        if prev_lat is not None:
+            cumulative_m += _geo_utils._haversine_m(prev_lat, prev_lon, lat, lon)
+        prev_lat, prev_lon = lat, lon
+        distance_axis.append(cumulative_m)
+        time_axis.append((timestamp - reference_time).total_seconds())
+    return distance_axis, time_axis
+
+
+def _interpolate_elapsed(
+    distance_axis: list[float],
+    time_axis: list[float],
+    distance_m: float,
+) -> float:
+    """Linearly interpolate elapsed seconds for a distance on a monotonic curve."""
+    if distance_m <= distance_axis[0]:
+        return time_axis[0]
+    if distance_m >= distance_axis[-1]:
+        return time_axis[-1]
+    index = bisect.bisect_left(distance_axis, distance_m)
+    lower_distance = distance_axis[index - 1]
+    upper_distance = distance_axis[index]
+    span = upper_distance - lower_distance
+    if span <= 0:
+        return time_axis[index]
+    ratio = (distance_m - lower_distance) / span
+    return time_axis[index - 1] + ratio * (time_axis[index] - time_axis[index - 1])
+
+
+def elevation_profile_with_time(
+    profile_points: list[tuple[float, float]],
+    recording: RecordingData,
+) -> list[tuple[float, float, float | None]]:
+    """Enrich a distance/elevation profile with elapsed time from a recording.
+
+    A monotonic ``distance_m -> elapsed_s`` curve is built from the recording's
+    GPS track (cumulative great-circle distance vs. sample timestamps) and each
+    profile point's elapsed time is interpolated by distance.  The persisted
+    ``(distance, elevation)`` profile is left untouched; time is derived only at
+    render time.
+
+    Parameters
+    ----------
+    profile_points : list[tuple[float, float]]
+        Ordered ``(distance_m, elevation_m)`` samples.
+    recording : RecordingData
+        Parsed recording providing GPS coordinates and timestamps.
+
+    Returns
+    -------
+    list[tuple[float, float, float | None]]
+        ``(distance_m, elevation_m, elapsed_s)`` samples.  ``elapsed_s`` is
+        ``None`` for every point when the recording lacks usable GPS/time data.
+    """
+    distance_axis, time_axis = _distance_time_curve(recording)
+    if len(distance_axis) < 2:
+        return [(point[0], point[1], None) for point in profile_points]
+    return [
+        (
+            point[0],
+            point[1],
+            _interpolate_elapsed(distance_axis, time_axis, point[0]),
+        )
+        for point in profile_points
+    ]
+
+
 def _simplify_points_sample(
     points: list[tuple[float, float]], max_points: int
 ) -> list[tuple[float, float]]:
@@ -574,7 +670,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
             total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
             if total_s > 0:
                 summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
-                summary.activity_type_key = commons.guess_activity_type_from_pace(
+                summary.activity_type_key = commons.guess_activity_type_from_avg_speed(
                     summary.avg_speed
                 )
             else:
@@ -599,7 +695,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
         total_s = summary.hours * 3600 + summary.minutes * 60 + summary.seconds
         if total_s > 0:
             summary.avg_speed = round(total_distance_m / total_s * 3.6, 2)
-            summary.activity_type_key = commons.guess_activity_type_from_pace(
+            summary.activity_type_key = commons.guess_activity_type_from_avg_speed(
                 summary.avg_speed
             )
         else:
