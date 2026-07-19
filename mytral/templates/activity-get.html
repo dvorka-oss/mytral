@@ -163,6 +163,9 @@
                     </div>
                 </div>
                 <div class="card-actions">
+                    {% if activity_entity.everesting_variant %}
+                    <span class="badge bg-purple text-purple-fg" title="Single-activity Everesting achievement - {{ "{:,}".format(activity_entity.elevation_gain) }} m of climbing">{{ activity_entity.everesting_variant }}</span>
+                    {% endif %}
                     {% if activity_entity.race %}
                     <span class="badge bg-red text-red-fg">race</span>
                     {% endif %}

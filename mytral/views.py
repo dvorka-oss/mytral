@@ -511,7 +511,11 @@ class CalendarHeatmap:
         return []
 
     def _week_stat_aspect(
-        self, year: int, week_number: int, aspect: commons.StatsAspect
+        self,
+        year: int,
+        week_number: int,
+        aspect: commons.StatsAspect,
+        meta_sport: str | None = None,
     ) -> list:
         """Get stats for the given week.
 
@@ -522,6 +526,11 @@ class CalendarHeatmap:
 
         """
         week_as = self._week_activities(year=year, week_number=week_number)
+        if meta_sport is not None:
+            keys = set(commons.AT_TAXONOMY.get(meta_sport, []))
+            week_as = [
+                [a for a in day if a.activity_type_key in keys] for day in week_as
+            ]
 
         def _count_as(activities: list) -> int:
             count = 0
@@ -572,6 +581,7 @@ class CalendarHeatmap:
         self,
         aspect: commons.StatsAspect = commons.StatsAspect.ACTIVITIES,
         units: str = "km",
+        meta_sport: str | None = None,
     ) -> tuple[list, list]:
         """Get last vs. this week data. There are various cases to handle:
 
@@ -623,12 +633,16 @@ class CalendarHeatmap:
             last_week_number = this_week_number - 1
 
             this_week_stats = self._week_stat_aspect(
-                year=last_mon_y, week_number=this_week_number, aspect=aspect
+                year=last_mon_y,
+                week_number=this_week_number,
+                aspect=aspect,
+                meta_sport=meta_sport,
             )
             last_week_stats = self._week_stat_aspect(
                 year=last_mon_y,
                 week_number=last_week_number,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
         elif last_mon_y == last_sun_y:
             # last week: whole in the OLD year, ...
@@ -639,6 +653,7 @@ class CalendarHeatmap:
                 year=last_mon_y,
                 week_number=week_number,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
             # TODO this week: a part is in the OLD year, another part in the NEW year
             #   - last year heatmap is needed
@@ -646,11 +661,13 @@ class CalendarHeatmap:
                 year=this_mon_y,
                 week_number=week_number + 1,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
             this_week_stats_new = self._week_stat_aspect(  # this is OK
                 year=this_sun_y,
                 week_number=1,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
             this_week_stats = [
                 x + y for x, y in zip(this_week_stats_old, this_week_stats_new)
@@ -665,11 +682,13 @@ class CalendarHeatmap:
                 year=last_mon_y,
                 week_number=week_number + 1,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
             last_week_stats_new = self._week_stat_aspect(  # this is OK
                 year=last_sun_y,
                 week_number=1,
                 aspect=aspect,
+                meta_sport=meta_sport,
             )
             last_week_stats = [
                 x + y for x, y in zip(last_week_stats_old, last_week_stats_new)
@@ -679,7 +698,10 @@ class CalendarHeatmap:
                 this_mon_y, this_mon_m, this_mon_d
             ).isocalendar()[1]
             this_week_stats = self._week_stat_aspect(
-                year=this_sun_y, week_number=week_number, aspect=aspect
+                year=this_sun_y,
+                week_number=week_number,
+                aspect=aspect,
+                meta_sport=meta_sport,
             )
 
         #

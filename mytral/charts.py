@@ -18,6 +18,7 @@ import enum
 import itertools
 import json
 import math
+from collections.abc import Callable
 from typing import Any
 
 from bokeh import embed as bokeh_embed
@@ -42,7 +43,7 @@ from mytral.recordings.models import RecordingData
 BOKEH_WEEK_DAYS = ["Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"]
 VIEW_WIDTH_DEFAULT = 1100
 VIEW_WIDTH_MOBILE = 500
-EVERESTING_M = 8848  # height of Mt. Everest in meters
+EVERESTING_M = commons.EVERESTING_M  # height of Mt. Everest in meters
 EVERESTING_RANGE_PADDING = 1.05  # headroom so the reference line is never clipped
 
 
@@ -175,7 +176,12 @@ def _add_hover_tool_with_tooltips(
 
 
 def _add_everesting_line(
-    fig, aspect: commons.StatsAspect, y_max: float, x_min, x_max
+    fig,
+    aspect: commons.StatsAspect,
+    y_max: float,
+    x_min,
+    x_max,
+    meta_sport: str | None = None,
 ) -> None:
     """draw a dashed red Everesting (8848 m) reference line for elevation charts."""
     if commons.StatsAspect.ELEVATION != aspect:
@@ -185,6 +191,9 @@ def _add_everesting_line(
     fig.y_range = bokeh_models.Range1d(
         start=0, end=max(y_max, EVERESTING_M) * EVERESTING_RANGE_PADDING
     )
+    sport = ""
+    if meta_sport:
+        sport = f" - {commons.M_AT_DISPLAY_NAMES.get(meta_sport, meta_sport)}"
     # a real 2-point line (not an annotation) so Bokeh reliably draws both
     # the line and its legend entry - an empty-data glyph is not rendered
     # in the legend by Bokeh's client-side JS
@@ -195,7 +204,7 @@ def _add_everesting_line(
         line_dash="dashed",
         line_width=2,
         line_alpha=0.7,
-        legend_label="Everesting (8848 m)",
+        legend_label=f"Everesting{sport} ({EVERESTING_M} m)",
     )
 
 
@@ -2365,7 +2374,11 @@ def fig_grid_2_html(fig_or_grid) -> tuple[str, Any]:
 
 
 def last_vs_this_year(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
     #
     #  data
@@ -2380,7 +2393,9 @@ def last_vs_this_year(
     )
     # get totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
-    this_data = this_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    this_data = this_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     last_year = this_year - 1
     last_as = ds.list_activities(
@@ -2389,7 +2404,9 @@ def last_vs_this_year(
         filter_year=last_year,
     )
     last_stats = stats.ActivitiesStats(last_as)
-    last_data = last_stats.get_year_totals(aspect=aspect, activity_types=activity_types)
+    last_data = last_stats.get_year_totals(
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
+    )
 
     llast_year = last_year - 1
     llast_as = ds.list_activities(
@@ -2399,7 +2416,7 @@ def last_vs_this_year(
     )
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_year_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     #
@@ -2461,13 +2478,26 @@ def last_vs_this_year(
 
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(list(this_data.values()) + list(last_data.values()), default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
+
     script, div = bokeh_embed.components(fig)
 
     return script, div
 
 
 def last_vs_this_month(
-    aspect: commons.StatsAspect, user_id: str, ds, is_mobile_view: bool = False
+    aspect: commons.StatsAspect,
+    user_id: str,
+    ds,
+    is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any] | tuple[None, None]:
     #
     #  data
@@ -2487,7 +2517,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     this_stats = stats.ActivitiesStats(this_as)
     this_data = this_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     last_year, last_month = cals.get_last_month()
@@ -2500,7 +2530,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     last_stats = stats.ActivitiesStats(last_as)
     last_data = last_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     llast_year, llast_month = cals.get_last_month(year=last_year, month=last_month)
@@ -2513,7 +2543,7 @@ def last_vs_this_month(
     # get monthly totals for the aspect
     llast_stats = stats.ActivitiesStats(llast_as)
     llast_data = llast_stats.get_month_totals(
-        aspect=aspect, activity_types=activity_types
+        aspect=aspect, activity_types=activity_types, meta_sport=meta_sport
     )
 
     # hide chart when all three months have no data
@@ -2580,7 +2610,12 @@ def last_vs_this_month(
     _add_hover_tool_with_tooltips(fig, aspect, [llast_w, last_w, this_w])
 
     _add_everesting_line(
-        fig, aspect, max(llast_y + last_y + this_y, default=0), x[0], x[-1]
+        fig,
+        aspect,
+        max(llast_y + last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
     )
 
     script, div = bokeh_embed.components(fig)
@@ -2592,8 +2627,9 @@ def last_vs_this_week(
     heatmap: views.CalendarHeatmap,
     aspect: commons.StatsAspect,
     is_mobile_view: bool = False,
+    meta_sport: str | None = None,
 ) -> tuple[str, Any]:
-    data = heatmap.vs_week_stats(aspect=aspect)
+    data = heatmap.vs_week_stats(aspect=aspect, meta_sport=meta_sport)
 
     fig = bokeh_plt.figure(
         title=f"This week vs. last week {aspect.name.lower()}",
@@ -2644,7 +2680,14 @@ def last_vs_this_week(
 
     _add_hover_tool_with_tooltips(fig, aspect, [last_w, this_w])
 
-    _add_everesting_line(fig, aspect, max(last_y + this_y, default=0), x[0], x[-1])
+    _add_everesting_line(
+        fig,
+        aspect,
+        max(last_y + this_y, default=0),
+        x[0],
+        x[-1],
+        meta_sport=meta_sport,
+    )
 
     script, div = bokeh_embed.components(fig)
 
@@ -4390,6 +4433,179 @@ def activity_paces_by_distance(
             script, div = bokeh_embed.components(fig)
 
     return script, div
+
+
+def _duration_label(minutes: float) -> str:
+    """Format a duration given in minutes, dropping an empty hours part.
+
+    The most significant shown unit has no leading zero; the rest are padded to
+    two digits. Examples: ``1h03m02s``, ``3m12s``.
+    """
+    h, m, s = cals.seconds_to_tuple(int(round(minutes * 60)))
+    if h:
+        return f"{h}h{m:02}m{s:02}s"
+    return f"{m}m{s:02}s"
+
+
+def _histogram_components(
+    values: list[float],
+    bin_width: float,
+    title: str,
+    x_axis_label: str,
+    unit: str = "",
+    label_formatter: Callable[[float], str] | None = None,
+) -> tuple[str, Any] | None:
+    """Build a vertical count histogram with equal-width bins.
+
+    Bins ``values`` into intervals of ``bin_width`` spanning 0 to the maximum
+    observed value and renders a Bokeh quad histogram of the activity count per
+    bin.
+
+    Parameters
+    ----------
+    values : list[float]
+        Numeric values to bin (already converted to display units).
+    bin_width : float
+        Width of each bin in display units.
+    title : str
+        Chart title.
+    x_axis_label : str
+        Label for the value axis.
+    unit : str
+        Unit suffix shown in the tooltip range (e.g. ``"km"``); ignored when
+        ``label_formatter`` is set.
+    label_formatter : Callable[[float], str] | None
+        Formats each bin edge for the tooltip range; when ``None`` the raw edge
+        value plus ``unit`` is shown.
+
+    Returns
+    -------
+    tuple[str, Any] | None
+        ``(script, div)`` Bokeh embed components, or ``None`` when there are no
+        values to plot.
+    """
+    clean = [v for v in values if v and v > 0]
+    if not clean:
+        return None
+
+    num_bins = int(max(clean) / bin_width) + 1
+    counts = [0] * num_bins
+    for v in clean:
+        idx = int(v / bin_width)
+        # clamp the maximum value into the last bin
+        if idx >= num_bins:
+            idx = num_bins - 1
+        counts[idx] += 1
+
+    lefts = [i * bin_width for i in range(num_bins)]
+    rights = [(i + 1) * bin_width for i in range(num_bins)]
+    if label_formatter is not None:
+        labels = [
+            f"{label_formatter(lo)}-{label_formatter(hi)}"
+            for lo, hi in zip(lefts, rights)
+        ]
+    else:
+        labels = [f"{lo:g}-{hi:g} {unit}" for lo, hi in zip(lefts, rights)]
+
+    source = ColumnDataSource(
+        data=dict(left=lefts, right=rights, count=counts, label=labels)
+    )
+
+    fig = bokeh_plt.figure(
+        height=320,
+        sizing_mode="stretch_width",
+        tools="save",
+        toolbar_location="above",
+        title=title,
+    )
+    fig.toolbar.logo = None
+
+    fig.quad(
+        left="left",
+        right="right",
+        top="count",
+        bottom=0,
+        source=source,
+        color="#206bc4",
+        alpha=0.85,
+        line_color="white",
+        line_width=1,
+    )
+
+    hover = bokeh_models.HoverTool(
+        tooltips=[
+            ("Range", "@label"),
+            ("Activities", "@count"),
+        ]
+    )
+    fig.add_tools(hover)
+
+    fig.xaxis.axis_label = x_axis_label
+    fig.yaxis.axis_label = "Activities"
+    fig.y_range.start = 0
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = "#e9ecef"
+    fig.outline_line_color = None
+
+    return bokeh_embed.components(fig)
+
+
+def activities_histograms(
+    activities: list[entities.ActivityEntity],
+    activity_types: settings.UserActivityTypes,
+    filter_activity_type: str = "",
+) -> dict[str, tuple[str, Any] | None]:
+    """Build distance/time/elevation activity histograms.
+
+    Skips meta activity types and, when ``filter_activity_type`` is set, keeps
+    only that type, then bins the remaining activities by distance, duration,
+    and elevation gain.
+
+    Parameters
+    ----------
+    activities : list[entities.ActivityEntity]
+        Activities to summarise.
+    activity_types : settings.UserActivityTypes
+        User activity types (used to skip meta types).
+    filter_activity_type : str
+        Keep only this ``activity_type_key`` when set; empty means all types.
+
+    Returns
+    -------
+    dict[str, tuple[str, Any] | None]
+        Histogram ``(script, div)`` pairs keyed ``"distance"``, ``"time"``,
+        ``"elevation"`` (``None`` for aspects without data).
+    """
+    filtered = [
+        a
+        for a in activities
+        if not activity_types.is_meta(a.activity_type_key)
+        and (not filter_activity_type or a.activity_type_key == filter_activity_type)
+    ]
+
+    return {
+        "distance": _histogram_components(
+            [a.distance / 1000.0 for a in filtered if a.distance],
+            bin_width=5,
+            title="Activities by Distance",
+            x_axis_label="Distance (km)",
+            unit="km",
+        ),
+        "time": _histogram_components(
+            [a.duration_seconds / 60.0 for a in filtered if a.duration_seconds],
+            bin_width=15,
+            title="Activities by Time",
+            x_axis_label="Duration (min)",
+            label_formatter=_duration_label,
+        ),
+        "elevation": _histogram_components(
+            [a.elevation_gain for a in filtered if a.elevation_gain],
+            bin_width=100,
+            title="Activities by Elevation Gain",
+            x_axis_label="Elevation gain (m)",
+            unit="m",
+        ),
+    }
 
 
 def goals_eisenhower_matrix(

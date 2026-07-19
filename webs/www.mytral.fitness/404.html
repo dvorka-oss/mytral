@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page not found - MyTraL</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/mytral-logo.png" type="image/png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #8b5cf6;
+            --gray: #64748b;
+            --light-gray: #cbd5e1;
+            --bg: #0f172a;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: #e2e8f0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .panel {
+            position: relative;
+            z-index: 1;
+            max-width: 34rem;
+        }
+
+        .logo {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 12px rgba(14, 165, 233, 0.5));
+        }
+
+        .code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: white;
+            margin: 1rem 0 0.75rem;
+        }
+
+        p {
+            color: var(--light-gray);
+            margin-bottom: 2rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3);
+        }
+
+        .btn-ghost {
+            border: 1px solid rgba(226, 232, 240, 0.2);
+            color: var(--light-gray);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <img src="/mytral-logo.png" alt="MyTraL" class="logo">
+        <div class="code">404</div>
+        <h1>This page took a rest day</h1>
+        <p>The page you are looking for does not exist or has moved. Let us get you back on track.</p>
+        <div class="actions">
+            <a href="/index.html" class="btn btn-primary">Back to home</a>
+            <a href="/docs/index.html" class="btn btn-ghost">Read the docs</a>
+        </div>
+    </div>
+</body>
+</html>

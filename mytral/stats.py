@@ -38,6 +38,16 @@ KJ_2_KCAL = 0.232
 KCAL_2_KJ = 4.1841
 
 
+def _filter_by_meta_sport(
+    activities: list[entities.ActivityEntity], meta_sport: str | None
+) -> list[entities.ActivityEntity]:
+    """Keep only activities of the given meta sport (None keeps all)."""
+    if meta_sport is None:
+        return activities
+    keys = set(commons.AT_TAXONOMY.get(meta_sport, []))
+    return [a for a in activities if a.activity_type_key in keys]
+
+
 # TODO to dataclasses
 
 
@@ -254,28 +264,30 @@ class ActivitiesStats:
         aspect: commons.StatsAspect,
         activity_types: settings.UserActivityTypes,
         cumulative: bool = True,
+        meta_sport: str | None = None,
     ) -> dict:
         totals = {i: 0.0 for i in range(1, 32)}
+        acts = _filter_by_meta_sport(self.activities, meta_sport)
 
         if commons.StatsAspect.DISTANCE == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.distance
         elif commons.StatsAspect.DURATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.duration_seconds
         elif commons.StatsAspect.KGS == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.exercise_kgs
         elif commons.StatsAspect.ELEVATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += a.elevation_gain
         else:
             # aspect: activities count
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_day] += 1
 
@@ -292,28 +304,30 @@ class ActivitiesStats:
         aspect: commons.StatsAspect,
         activity_types: settings.UserActivityTypes,
         cumulative: bool = True,
+        meta_sport: str | None = None,
     ) -> dict:
         # map: month [1, 12] -> total meters/seconds/kgs/activities
         totals = {i: 0.0 for i in range(1, 13)}
+        acts = _filter_by_meta_sport(self.activities, meta_sport)
         if commons.StatsAspect.DISTANCE == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.distance
         elif commons.StatsAspect.DURATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.duration_seconds
         elif commons.StatsAspect.KGS == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.exercise_kgs
         elif commons.StatsAspect.ELEVATION == aspect:
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += a.elevation_gain
         else:
             # aspect: activities count
-            for a in self.activities:
+            for a in acts:
                 if activity_types.is_sport(a.activity_type_key):
                     totals[a.when_month] += 1
 
@@ -412,6 +426,8 @@ class PerYearUserDatasetStats:
         self.total_seconds_per_activity_type: dict[str, int] = {}
         # time (h:m:s) per-activity_type_key: activity_type_key -> str
         self.total_time_per_activity_type: dict[str, str] = {}
+        # elevation gain (m) per-activity_type_key: activity_type_key -> meters
+        self.total_elevation_per_activity_type: dict[str, int] = {}
         # activities count
         self.activities_count = 0
         # total universal km
@@ -429,6 +445,7 @@ class PerYearUserDatasetStats:
             "total_km_per_activity_type": self.total_km_per_activity_type,
             "total_seconds_per_activity_type": self.total_seconds_per_activity_type,
             "total_time_per_activity_type": self.total_time_per_activity_type,
+            "total_elevation_per_activity_type": self.total_elevation_per_activity_type,
             "activities_count": self.activities_count,
             "ukm": self.ukm,
             "us": self.us,
@@ -449,6 +466,7 @@ class PerYearUserDatasetStats:
         self.total_km_per_activity_type = {}
         self.total_seconds_per_activity_type = {}
         self.total_time_per_activity_type = {}
+        self.total_elevation_per_activity_type = {}
 
         for activity in activities:
             if self.year == activity.when_year:
@@ -471,10 +489,16 @@ class PerYearUserDatasetStats:
                         self.total_seconds_per_activity_type[mytral_sport] += (
                             activity.duration_seconds
                         )
+                        self.total_elevation_per_activity_type[mytral_sport] += (
+                            activity.elevation_gain
+                        )
                     else:
                         self.total_m_per_activity_type[mytral_sport] = meters
                         self.total_seconds_per_activity_type[mytral_sport] = (
                             activity.duration_seconds
+                        )
+                        self.total_elevation_per_activity_type[mytral_sport] = (
+                            activity.elevation_gain
                         )
                     self.total_time_per_activity_type[mytral_sport] = (
                         cals.seconds_to_str_time(
@@ -519,6 +543,8 @@ class UserDatasetStats:
         self.total_seconds_per_activity_type: dict[str, int] = {}
         # total time per-activity_type_key: activity_type_key -> str
         self.total_time_per_activity_type: dict[str, str] = {}
+        # total elevation gain (m) per-activity_type_key: activity_type_key -> meters
+        self.total_elevation_per_activity_type: dict[str, int] = {}
 
         # gear count: gear -> count
         self.gear_count: dict[str, int] = {}
@@ -558,6 +584,7 @@ class UserDatasetStats:
             "total_km_per_activity_type": self.total_km_per_activity_type,
             "total_seconds_per_activity_type": self.total_seconds_per_activity_type,
             "total_time_per_activity_type": self.total_time_per_activity_type,
+            "total_elevation_per_activity_type": self.total_elevation_per_activity_type,
             "gear_count": self.gear_count,
             "gear_used_from": self.gear_used_from,
             "gear_used_to": self.gear_used_to,
@@ -588,6 +615,7 @@ class UserDatasetStats:
         self.total_km_per_activity_type = {}
         self.total_seconds_per_activity_type = {}
         self.total_time_per_activity_type = {}
+        self.total_elevation_per_activity_type = {}
         self.gear_count = {}
         self.gear_used_from = {}
         self.gear_used_to = {}
@@ -657,13 +685,19 @@ class UserDatasetStats:
                     meters = activity.distance
                     seconds = activity.duration_seconds
 
-                    # distance & time per activity_type_key
+                    # distance, time & elevation per activity_type_key
                     if mytral_sport in self.total_m_per_activity_type:
                         self.total_m_per_activity_type[mytral_sport] += meters
                         self.total_seconds_per_activity_type[mytral_sport] += seconds
+                        self.total_elevation_per_activity_type[mytral_sport] += (
+                            activity.elevation_gain
+                        )
                     else:
                         self.total_m_per_activity_type[mytral_sport] = meters
                         self.total_seconds_per_activity_type[mytral_sport] = seconds
+                        self.total_elevation_per_activity_type[mytral_sport] = (
+                            activity.elevation_gain
+                        )
                     self.total_time_per_activity_type[mytral_sport] = (
                         cals.seconds_to_str_time(
                             self.total_seconds_per_activity_type[mytral_sport]

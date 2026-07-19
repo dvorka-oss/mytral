@@ -98,6 +98,9 @@
                     {% if activity.activity_type_key not in ["sick","injured","exercise","comment","meditation","physio"] %}
                     {{ "{:0,}".format(activity.distance) }} m<br/>
                     {{ "{:0,}".format(activity.elevation_gain) }} m
+                    {% if activity.everested %}
+                    <br/><span class="badge bg-purple-lt" title="Everested - a full Everest (8848 m) climbed in one activity">Everested</span>
+                    {% endif %}
                     {% endif %}
                 </td>
                 <td>

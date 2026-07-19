@@ -1,6 +1,49 @@
 # Changelog
 
-## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...HEAD)
+## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added sport-aware Everesting experience on the dashboard. A new Everesting card tracks
+  how much of Mt. Everest you have accumulated for your top climbing sport, with a
+  Day/Week/Month/Year toggle.
+  Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
+  earns an Everesting achievement badge shown on the activity, in activity lists, and on
+  the "Highest Climb Ever" card.
+- Added weekly elevation gain to the calendar year view. The last column of the calendar
+  table now shows the total elevation climbed each week above the weekly weight.
+- Added lifetime elevation gain to the Lifetime Totals insight.
+- Added a new Histograms page - reachable from the Charts page - showing the
+  distribution of your activities by distance, time, and elevation gain.
+- Added Winget distribution Makefile targets, artifacts and scripts.
+
+### Changed
+- Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
+  showing the cumulative elevation gained across all activities.
+- Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
+  Ski) instead of lumping all sports together.
+
+### Fixed
+- Fixed the `This vs. Last` page showing the literal text "None" instead of a
+  chart when the selected sport and period had no data - it now shows a friendly
+  empty state.
+- Fixed typos in GH issues in `README.md`.
+- Removed dead code from around the code base (import).
+
+### Documentation
+- **WAITING FOR MYTRAL APPROVAL - THIS WILL WORK AS SOON AS MYTRAL IS IN**:
+   - Documented Winget release process as a feature analysis in `docs/`.
+   - Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
+- Listed the `Windows (winget)` installation method in README.md.
+- Added new features screenshots for everesting and histograms.
+
+### Web
+- Improved WWW pages SEO by adding the sitemap, OG image, 404 page, and favicon.
+
+
+
+## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
 
 This MyTraL **minor** release brings:
 
@@ -31,6 +74,7 @@ This MyTraL **minor** release brings:
 
 ### Documentation
 - Documented macOS Apple Silicon (arm64) installation and build.
+
 
 
 ## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)

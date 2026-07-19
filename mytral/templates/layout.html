@@ -412,10 +412,10 @@
                                 <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
                               </a>
                               <a class="dropdown-item"
-                                title="Chart"
+                                title="Charts"
                                 href="{{ url_for('charts_year',year=0) }}"
                               >
-                                Chart
+                                Charts
                                 <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
                               </a>
                               <a class="dropdown-item"
@@ -472,18 +472,21 @@
                             href="{{ url_for('insight_lifetime_totals') }}?aspect=meta"
                           >
                             Lifetime totals
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
                           </a>
                           <a class="dropdown-item"
                             title="All-time statistics per sport ranked by total distance."
                             href="{{ url_for('insight_sport_stats') }}"
                           >
                             Top sports
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
                           </a>
                           <a class="dropdown-item"
                             title="Year-over-year performance trends chart and table."
                             href="{{ url_for('insight_yoy_performance') }}"
                           >
                             Performance trends
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Year</span>
                           </a>
 
                           <div class="dropdown-divider"></div>
@@ -493,6 +496,7 @@
                             href="{{ url_for('heatmap_weekday_to_activity') }}"
                           >
                             Weekday sport heatmap
+                            <span class="badge badge-sm bg-green-lt text-uppercase ms-auto">Life</span>
                           </a>
                           <a class="dropdown-item"
                             title="Monday to Sunday 0-24 by hour when active within the day"
