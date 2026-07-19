@@ -16,6 +16,7 @@ This MyTraL **minor** release brings:
 - Added lifetime elevation gain to the Lifetime Totals insight.
 - Added a new Histograms page - reachable from the Charts page - showing the
   distribution of your activities by distance, time, and elevation gain.
+- Added Winget distribution Makefile targets, artifacts and scripts.
 
 ### Changed
 - Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
@@ -31,6 +32,9 @@ This MyTraL **minor** release brings:
 - Removed dead code from around the code base (import).
 
 ### Documentation
+- Documented Winget release process as a feature analysis in `docs/`.
+- Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
+- Listed the `Windows (winget)` installation method in README.md.
 - Added new features screenshots for everesting and histograms.
 
 ### Web

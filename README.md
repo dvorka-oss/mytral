@@ -20,22 +20,23 @@
 
 Install:
 
-* [Linux (Flatpak)](INSTALLATION.md#install-on-linux-using-flatpak)
 * [Linux (Snap Store)](INSTALLATION.md#install-on-linux-using-snap-from-snap-store)
-* [Linux (download)](INSTALLATION.md#install-on-linux-using-snap)
+* [Linux (Snap download)](INSTALLATION.md#install-on-linux-using-snap)
+* [Linux (Flatpak)](INSTALLATION.md#install-on-linux-using-flatpak)
 * [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
 * [Windows (installer)](INSTALLATION.md#install-on-windows-using-installer)
 * [Windows (zip)](INSTALLATION.md#install-on-windows-using-zip)
+* [Windows (winget)](INSTALLATION.md#install-on-windows-using-winget)
 * [macOS (dmg)](INSTALLATION.md#install-on-macos-using-dmg)
 
 Build:
 
-* [Ubuntu (binary)](INSTALLATION.md#build-binary-on-ubuntu)
-* [Ubuntu (deb)](INSTALLATION.md#build--deb-on-ubuntu)
 * [Snap (package)](INSTALLATION.md#build-snap-on-linux)
 * [Flatpak (bundle)](INSTALLATION.md#build-flatpak-on-linux)
-* [Windows (installer)](INSTALLATION.md#build-windows-installer)
+* [Ubuntu (binary)](INSTALLATION.md#build-binary-on-ubuntu)
+* [Ubuntu (deb)](INSTALLATION.md#build--deb-on-ubuntu)
 * [Windows (binary)](INSTALLATION.md#build-binary-on-windows)
+* [Windows (installer)](INSTALLATION.md#build-windows-installer)
 * [macOS (dmg)](INSTALLATION.md#build-macos-dmg)
 
 Run:
