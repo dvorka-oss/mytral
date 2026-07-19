@@ -679,7 +679,7 @@ distro-win-clean: ## clean Windows installer build artifacts
 #
 # DISTRIBUTION: winget (Windows Package Manager)
 #
-# See WINGET_DISTRO.md for the full release workflow.
+# See docs/FEATURE_WINGET.md for the full release workflow.
 #
 # Prerequisites:
 #   winget CLI:    winget install Microsoft.Winget.Client
@@ -981,13 +981,8 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build-classic distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
-release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-zip distro-win-installer ## build all WIN distribution packages for release (local build — for GHA release use release-tag)
+release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-zip distro-win-installer ## build all WIN distribution packages for release
 	@echo "ALL Win distribution packages built for release"
-
-.PHONY: release-tag
-release-tag: ## push a version tag to trigger the GHA release workflow (VERSION required)
-	git tag v$(VERSION)
-	git push origin v$(VERSION)
 
 .PHONY: release-distros-macos
 release-distros-macos: clean distro-macos-dmg-clean distro-macos-dmg-build ## build all MACOS distribution packages for release

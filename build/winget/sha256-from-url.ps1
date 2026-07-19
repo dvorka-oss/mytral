@@ -42,5 +42,5 @@ Remove-Item $TmpFile -Force
 Write-Host ""
 Write-Host "SHA256: $Hash"
 Write-Host ""
-Write-Host "Use with:"
-Write-Host "  make distro-winget-manifest VERSION=$Version SHA256=$Hash"
+Write-Host "Paste this SHA256 into the InstallerSha256 field of your winget manifest."
+Write-Host "(To generate the full manifests and hash in one step, use: make distro-winget-from-release VERSION=$Version)"

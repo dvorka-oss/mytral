@@ -21,8 +21,8 @@
 Install:
 
 * [Linux (Snap Store)](INSTALLATION.md#install-on-linux-using-snap-from-snap-store)
+* [Linux (Snap download)](INSTALLATION.md#install-on-linux-using-snap)
 * [Linux (Flatpak)](INSTALLATION.md#install-on-linux-using-flatpak)
-* [Linux (download)](INSTALLATION.md#install-on-linux-using-snap)
 * [Ubuntu (PPA)](INSTALLATION.md#install-on-ubuntu-from-ppa)
 * [Windows (installer)](INSTALLATION.md#install-on-windows-using-installer)
 * [Windows (zip)](INSTALLATION.md#install-on-windows-using-zip)

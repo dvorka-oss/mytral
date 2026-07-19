@@ -24,7 +24,7 @@ releases:
 # fork at: https://github.com/microsoft/winget-pkgs
 git clone git@github.com:dvorka-oss/winget-pkgs.git C:\Users\dvorka\p\mytral\git\winget-pkgs
 ```
-Set `WINGET_PKGS_DIR` in your environment in UI 
+Set `WINGET_PKGS_DIR` in your environment in UI
 (This Computer/Properties/System Properties/Advanced/Environment Variables/User) or with CLI:
 ```powershell
 [System.Environment]::SetEnvironmentVariable('WINGET_PKGS_DIR', 'C:\Users\dvorka\p\mytral\git\winget-pkgs', 'User')
@@ -43,7 +43,7 @@ gh auth login                             # authenticate gh
 
 
 
-### New MyTraL Version Winget Release Process 
+### New MyTraL Version Winget Release Process
 
 Step by step cheat sheet:
 
@@ -57,7 +57,7 @@ Then check PRs:
 
 * https://github.com/microsoft/winget-pkgs/pulls
 
-**If this is the first PR you submit, then you must aggree with the policy**,
+**If this is the first PR you submit, then you must agree with the policy**,
 just comment as follows:
 
 ```

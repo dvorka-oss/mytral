@@ -74,11 +74,11 @@ Write-Host ""
 
 Push-Location $WingetPkgsDir
 try {
-    # sync fork master with upstream
+    # sync fork master with upstream (microsoft/winget-pkgs)
     Write-Host "Syncing fork master with upstream..." -ForegroundColor Yellow
-    git fetch origin master
+    git fetch https://github.com/microsoft/winget-pkgs.git master
     git checkout master
-    git reset --hard origin/master
+    git reset --hard FETCH_HEAD
 
     # create fresh branch
     Write-Host "Creating branch $BranchName..." -ForegroundColor Yellow
