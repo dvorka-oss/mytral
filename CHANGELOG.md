@@ -5,14 +5,14 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
-  card tracks how much of Mt. Everest you have accumulated for your top climbing sport,
-  with a Day/Week/Month/Year toggle Climbing a full Everest - or a Quarter, Half,
-  Double, or Triple - in a single activity earns an Everesting achievement badge shown
-  on the activity, in activity lists, and on the "Highest Climb Ever" card.
-- Added weekly elevation gain to the calendar year view. The last column of the
-  calendar table now shows the total elevation climbed each week (in meters) above
-  the weekly weight.
+- Added sport-aware Everesting experience on the dashboard. A new Everesting card tracks
+  how much of Mt. Everest you have accumulated for your top climbing sport, with a
+  Day/Week/Month/Year toggle.
+  Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
+  earns an Everesting achievement badge shown on the activity, in activity lists, and on
+  the "Highest Climb Ever" card.
+- Added weekly elevation gain to the calendar year view. The last column of the calendar
+  table now shows the total elevation climbed each week above the weekly weight.
 - Added lifetime elevation gain to the Lifetime Totals insight.
 - Added a new Histograms page - reachable from the Charts page - showing the
   distribution of your activities by distance, time, and elevation gain.
@@ -32,8 +32,9 @@ This MyTraL **minor** release brings:
 - Removed dead code from around the code base (import).
 
 ### Documentation
-- Documented Winget release process as a feature analysis in `docs/`.
-- Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
+- **WAITING FOR MYTRAL APPROVAL - THIS WILL WORK AS SOON AS MYTRAL IS IN**:
+   - Documented Winget release process as a feature analysis in `docs/`.
+   - Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
 - Listed the `Windows (winget)` installation method in README.md.
 - Added new features screenshots for everesting and histograms.
 
