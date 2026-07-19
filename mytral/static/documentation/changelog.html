@@ -212,34 +212,39 @@
 <h3 id="added">Added</h3>
 <ul>
 <li>Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
-  card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
-  top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
-  and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
-  full Everests.
-  Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
-  now earns an Everesting achievement badge shown on the activity, in activity lists,
-  and on the "Highest Climb Ever" card.</li>
-<li>Added a new Histograms page (reachable from the Charts page) showing the distribution
-  of your activities by distance, time (15-minute bins), and elevation gain. Each
-  histogram can be filtered by activity type (defaulting to Ride) and has tooltips with
-  the bin range and activity count; the time histogram shows durations as <code>1h03m00s</code>.</li>
+  card tracks how much of Mt. Everest you have accumulated for your top climbing sport,
+  with a Day/Week/Month/Year toggle Climbing a full Everest - or a Quarter, Half,
+  Double, or Triple - in a single activity earns an Everesting achievement badge shown
+  on the activity, in activity lists, and on the "Highest Climb Ever" card.</li>
+<li>Added weekly elevation gain to the calendar year view. The last column of the
+  calendar table now shows the total elevation climbed each week (in meters) above
+  the weekly weight.</li>
+<li>Added lifetime elevation gain to the Lifetime Totals insight.</li>
+<li>Added a new Histograms page - reachable from the Charts page - showing the
+  distribution of your activities by distance, time, and elevation gain.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
+<li>Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
+  showing the cumulative elevation gained across all activities.</li>
 <li>Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
-  Ski) instead of lumping all sports together. The <code>This vs. Last</code> elevation view gained
-  a sport selector and shows the 8848 m Everesting reference line scoped to the selected
-  sport (now on the yearly view too).</li>
+  Ski) instead of lumping all sports together.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
 <li>Fixed the <code>This vs. Last</code> page showing the literal text "None" instead of a
   chart when the selected sport and period had no data - it now shows a friendly
   empty state.</li>
+<li>Fixed typos in GH issues in <code>README.md</code>.</li>
+<li>Removed dead code from around the code base (import).</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
-<li>.</li>
+<li>Added new features screenshots for everesting and histograms.</li>
+</ul>
+<h3 id="web">Web</h3>
+<ul>
+<li>Improved WWW pages SEO by adding the sitemap, OG image, 404 page, and favicon.</li>
 </ul>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="1580"><a href="https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0">1.58.0</a></h2>
 <p>This MyTraL <strong>minor</strong> release brings:</p>
@@ -982,6 +987,7 @@ Find conventions details and template at the bottom of this document.</p>
 <a href="#changed" class="nav-link ms-3">Changed</a>
 <a href="#fixed" class="nav-link ms-3">Fixed</a>
 <a href="#documentation" class="nav-link ms-3">Documentation</a>
+<a href="#web" class="nav-link ms-3">Web</a>
 <a href="#1580" class="nav-link">1.58.0</a>
 <a href="#added_1" class="nav-link ms-3">Added</a>
 <a href="#fixed_1" class="nav-link ms-3">Fixed</a>
