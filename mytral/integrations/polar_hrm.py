@@ -48,12 +48,17 @@ POLAR_HRM_TASK_TYPE = "polar_hrm_import"
 
 _ENCODING = "windows-1250"
 
-# binary-file magic prefix — skip these files without attempting text parsing
+# binary-file magic prefix - skip these files without attempting text parsing
 _BINARY_MAGIC = b"PolarData"
 
-# TODO this is wrong - every user has their own sport index mapping;
-#   need to read from each user's PDD files and cache the mapping per user
-# Polar activity_type_key index → MyTraL activity_type_key string
+# Polar sport-index -> MyTraL activity-type mapping.
+#
+# Known limitation: the sport index is defined per athlete in their own Polar
+# Precision Performance sport profiles, so this fixed table is only guaranteed
+# correct for the default S720i profile order.  A wrong mapping is mitigated at
+# build time by ``_build_activity``, which reclassifies an activity from its
+# measured average speed when the declared type is implausible (see
+# ``_MAX_PLAUSIBLE_RUN_SPEED_KMH``).
 _SPORT_MAP: dict[int, str] = {
     1: commons.AT_RUN,  # Running
     2: commons.AT_RIDE,  # Cycling (road)
@@ -66,6 +71,19 @@ _SPORT_MAP: dict[int, str] = {
     9: commons.AT_RIDE_MOUNTAIN,  # Mountain bike
     10: commons.AT_SKATE_INLINE,  # Inline skating
 }
+
+# heuristics for detecting and repairing broken [Trip] section values.
+# some S720i firmware stores Trip elevation in centimetres instead of metres,
+# producing a 100x inflation; these thresholds gate the correction.
+# gradient (metres climbed per km) above which elevation is treated as suspect
+_CM_INFLATION_GRADIENT_M_PER_KM = 150
+# Trip elevation_max must exceed the HRData max by this factor to confirm cm units
+_CM_INFLATION_MAX_RATIO = 50
+# centimetres-per-metre conversion factor applied when cm inflation is confirmed
+_CM_PER_M = 100
+# average speed (km/h) above which a declared "run" is implausible and the
+# activity is reclassified from its measured speed
+_MAX_PLAUSIBLE_RUN_SPEED_KMH = 25.0
 
 #
 # Low-level helpers
@@ -107,14 +125,6 @@ def _parse_duration(s: str) -> tuple[int, int, int]:
     return 0, 0, 0
 
 
-def _parse_start_time(s: str) -> tuple[int, int, int]:
-    """Parse a Polar start-time string ``H:MM:SS.d`` into ``(hour, minute, second)``.
-
-    Identical to :func:`_parse_duration` but named separately for clarity.
-    """
-    return _parse_duration(s)
-
-
 def _parse_date(s: str) -> tuple[int, int, int]:
     """Parse a Polar date integer ``YYYYMMDD`` into ``(year, month, day)``."""
     try:
@@ -122,6 +132,35 @@ def _parse_date(s: str) -> tuple[int, int, int]:
         return d // 10000, (d % 10000) // 100, d % 100
     except (ValueError, TypeError):
         return 0, 1, 1
+
+
+def _parse_ini_sections(lines: list[str]) -> dict[str, list[str]]:
+    """Split INI-style ``[Section]`` text into a section-name -> raw-lines map.
+
+    A ``[Name]`` header line starts a new section; every following raw
+    (unstripped) line is appended to that section until the next header.
+    Lines before the first header are ignored.
+
+    Parameters
+    ----------
+    lines : list[str]
+        The file's lines (as returned by ``str.splitlines()``).
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Mapping of section name to its list of raw content lines.
+    """
+    sections: dict[str, list[str]] = {}
+    current = ""
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            current = stripped[1:-1]
+            sections[current] = []
+        elif current:
+            sections.setdefault(current, []).append(line)
+    return sections
 
 
 #
@@ -357,17 +396,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
         return result
 
     try:
-        lines = text.splitlines()
-        current_section = ""
-        section_lines: dict[str, list[str]] = {}
-
-        for line in lines:
-            stripped = line.strip()
-            if stripped.startswith("[") and stripped.endswith("]"):
-                current_section = stripped[1:-1]
-                section_lines[current_section] = []
-            elif current_section:
-                section_lines.setdefault(current_section, []).append(line)
+        section_lines = _parse_ini_sections(text.splitlines())
 
         # ---- [Params] ----
         params: dict[str, str] = {}
@@ -384,7 +413,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
         max_hr_param = int(params.get("MaxHR", "0") or "0")
         weight = int(params.get("Weight", "0") or "0")
 
-        h, mi, s = _parse_start_time(start_time_str)
+        h, mi, s = _parse_duration(start_time_str)
         result["date"] = date_int
         result["start_time"] = start_time_str
         result["start_hour"] = h
@@ -408,7 +437,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
         ]
         result["note"] = "\n".join(note_lines)
 
-        # ---- [Summary-TH] — kcal ----
+        # ---- [Summary-TH] - kcal ----
         summary_th_lines = [
             line for line in section_lines.get("Summary-TH", []) if line.strip()
         ]
@@ -422,7 +451,7 @@ def parse_hrm(path: pathlib.Path) -> dict:
                     kcal = 0
         result["kcal"] = kcal
 
-        # ---- [Trip] — speed / elevation ----
+        # ---- [Trip] - speed / elevation ----
         trip_lines = [
             line.strip() for line in section_lines.get("Trip", []) if line.strip()
         ]
@@ -464,15 +493,15 @@ def parse_hrm(path: pathlib.Path) -> dict:
         result["min_hr"] = hr_dict["min_hr"]
         result["elevation_min"] = hr_dict["elevation_min"]
         # prefer HRData max altitude (always meters); fall back to Trip max
-        # (Trip elevation may be in cm for some devices → 100× inflation)
+        # (Trip elevation may be in cm for some devices -> 100x inflation)
         result["elevation_max"] = hr_dict["elevation_max"] or elevation_max_trip
         # HRData-derived speed/elevation: the [Trip] section values for
         # ``max_speed_kmh`` and ``elevation_gain`` are unreliable for S720i
         # exports, so derive these from the per-row HRData time series.
         # The raw Trip values (``max_speed_kmh``, ``elevation_gain``) are
-        # kept above — they are still used by the cm-detection heuristic in
+        # kept above - they are still used by the cm-detection heuristic in
         # ``_build_activity`` (gradient check needs the raw Trip elevation_gain
-        # to detect 100× cm inflation).  Consumers should use the ``*_hrdata``
+        # to detect 100x cm inflation).  Consumers should use the ``*_hrdata``
         # fields for display and validation.
         # preserve HRData elevation max for cross-reference (always meters)
         result["elevation_max_hrmdata"] = hr_dict["elevation_max"]
@@ -514,20 +543,9 @@ def parse_pdd(path: pathlib.Path) -> list[dict]:
         app_logger.warning(f"polar_hrm: cannot read {path}: {exc}")
         return []
 
-    lines = text.splitlines()
+    sections = _parse_ini_sections(text.splitlines())
 
-    # split into named sections
-    sections: dict[str, list[str]] = {}
-    current = ""
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            current = stripped[1:-1]
-            sections[current] = []
-        elif current:
-            sections.setdefault(current, []).append(line)
-
-    # ---- [DayInfo] — date ----
+    # ---- [DayInfo] - date ----
     day_date = 0
     day_lines = [line for line in sections.get("DayInfo", []) if line.strip()]
     # skip header line (first line); second line has date
@@ -562,10 +580,10 @@ def parse_pdd(path: pathlib.Path) -> list[dict]:
                 pass
 
         # first tab-row is a block header (version, 1, num_rows, num_cols, type, flags)
-        # the 12 actual data rows follow — index them as rows[0..11]
+        # the 12 actual data rows follow - index them as rows[0..11]
         rows = all_rows[1:] if len(all_rows) > 1 else []
 
-        # extract fields (design doc table, spec row N → rows[N] after header skip)
+        # extract fields (design doc table, spec row N -> rows[N] after header skip)
         start_time_s = rows[0][4] if len(rows) > 0 and len(rows[0]) > 4 else 0
         duration_s = rows[0][5] if len(rows) > 0 and len(rows[0]) > 5 else 0
         sport_index = rows[1][0] if len(rows) > 1 and len(rows[1]) > 0 else 0
@@ -636,7 +654,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
     Parsed HRM time-series data (HR, speed, cadence, altitude) is cached in
     ``_hrm_data_cache`` (keyed by ``src_key`` = HRM filename).  The caller
-    (task or route) reads this cache to generate FIT blobs after persistence —
+    (task or route) reads this cache to generate FIT blobs after persistence -
     the plugin itself does NOT write to the blobstore.
     """
 
@@ -646,6 +664,9 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
     # activity's parsed raw .hrm/.pdd data
     KEY_POLAR_ROW_DATA = "polar_raw_data"
     KEY_HRM_PATH = "hrm_path"
+    # parsed HRM time-series dict, forwarded to the Bulldozer blob job so it can
+    # build Parquet without re-reading and re-parsing the .hrm file from disk
+    KEY_HRM_DATA = "polar_hrm_data"
 
     def __init__(self) -> None:
         """Constructor."""
@@ -655,6 +676,9 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             description=PolarHrmImportPlugin.DESCRIPTION,
         )
         self._hrm_data_cache: dict[str, dict] = {}
+        # number of exercises that could not be built into an activity during
+        # the most recent import; read by the task to surface skipped files
+        self.last_failed_count = 0
         self._log_name = "[Polar HRM import plugin]"
 
     def import_activities(
@@ -704,7 +728,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
             )
 
         app_logger.info(
-            "{self._log_name} starting import",
+            f"{self._log_name} starting import",
             data_dir=str(data_dir),
             correlation_id=correlation_id,
         )
@@ -744,6 +768,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
 
         # PASS 3: build ActivityEntity objects using pre-populated cache
         activities: list[entities.ActivityEntity] = []
+        failed_count = 0
         for year_dir, exercise in all_exercises:
             try:
                 activity = self._build_activity(
@@ -754,7 +779,10 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                 )
                 if activity is not None:
                     activities.append(activity)
+                else:
+                    failed_count += 1
             except Exception as exc:
+                failed_count += 1
                 app_logger.warning(
                     f"{self._log_name} failed to build activity",
                     pdd_dir=str(year_dir),
@@ -765,9 +793,11 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         # sort by date ascending
         activities.sort(key=lambda a: (a.when_year, a.when_month, a.when_day))
 
+        self.last_failed_count = failed_count
         app_logger.info(
-            "{self._log_name} import complete",
+            f"{self._log_name} import complete",
             total=len(activities),
+            failed=failed_count,
             correlation_id=correlation_id,
         )
 
@@ -895,7 +925,7 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
                         )
                 else:
                     app_logger.info(
-                        "{self._log_name} HRM file not found, using PDD data only",
+                        f"{self._log_name} HRM file not found, using PDD data only",
                         hrm=hrm_filename,
                     )
 
@@ -948,16 +978,19 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         distance_m = exercise.get("distance_m", 0)
 
         # detect elevation values stored in cm (some Polar devices store Trip
-        # elevation in cm instead of meters → 100× inflation)
+        # elevation in cm instead of meters -> 100x inflation)
         if elevation_gain > 0 and distance_m > 0:
             gradient_m_per_km = elevation_gain / (distance_m / 1000)
-            if gradient_m_per_km > 150:
+            if gradient_m_per_km > _CM_INFLATION_GRADIENT_M_PER_KM:
                 # cross-check: HRData altitude is always in meters
                 hrmdata_elev_max = hrm.get("elevation_max_hrmdata", 0) if hrm else 0
-                if hrmdata_elev_max > 0 and elevation_max > hrmdata_elev_max * 50:
-                    elevation_gain = elevation_gain // 100
-                    elevation_max = elevation_max // 100
-                    elevation_min = elevation_min // 100
+                if (
+                    hrmdata_elev_max > 0
+                    and elevation_max > hrmdata_elev_max * _CM_INFLATION_MAX_RATIO
+                ):
+                    elevation_gain = elevation_gain // _CM_PER_M
+                    elevation_max = elevation_max // _CM_PER_M
+                    elevation_min = elevation_min // _CM_PER_M
 
         sport_str = map_activity_type_index(exercise.get("sport_index", 0))
 
@@ -967,14 +1000,17 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         duration_s = act_hours * 3600 + act_minutes * 60 + act_seconds
         if duration_s > 0 and distance_m > 0:
             prelim_avg_speed = (distance_m / duration_s) * 3.6
-            if sport_str == commons.AT_RUN and prelim_avg_speed > 25.0:
-                # running at > 25 km/h is world-record pace — this is a ride
+            if (
+                sport_str == commons.AT_RUN
+                and prelim_avg_speed > _MAX_PLAUSIBLE_RUN_SPEED_KMH
+            ):
+                # running faster than world-record pace - this is really a ride
                 sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
             elif sport_str == commons.AT_GYM and prelim_avg_speed > 0:
-                # "exercise" with distance/time/speed data — guess real type
+                # "exercise" with distance/time/speed data - guess real type
                 sport_str = commons.guess_activity_type_from_avg_speed(prelim_avg_speed)
 
-        # determine src_key — prefer hrm filename; fall back to synthetic key
+        # determine src_key - prefer hrm filename; fall back to synthetic key
         src_key = (
             hrm_filename
             if hrm_filename
@@ -1016,9 +1052,12 @@ class PolarHrmImportPlugin(plugins.ActivitiesImportPlugin):
         a.src_url = ""
         a.src_descriptor = correlation_id
 
-        # inject raw data to context for efficient processing
+        # inject raw data to context for efficient processing; forward the
+        # already-parsed HRM time series so the blob job reuses it instead of
+        # re-parsing the .hrm file in the worker process
         a.transient_fields = a.transient_fields or {}
         a.transient_fields[PolarHrmImportPlugin.KEY_POLAR_ROW_DATA] = exercise
+        a.transient_fields[PolarHrmImportPlugin.KEY_HRM_DATA] = hrm
 
         entities.evaluate_activity(entity=a, user_profile=user_profile)
 
