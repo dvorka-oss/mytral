@@ -16,34 +16,34 @@
 
 """Tests for Polar Precision Performance HRM/PDD plugin."""
 
-import datetime
 import io
 import pathlib
 
-import fitparse
+import polars
 import pytest
 
 from mytral import commons
 from mytral import config
 from mytral import plugins
 from mytral.integrations import polar_hrm
+from mytral.recordings import parquet_converter
 from tests import _given
 
-# path to the real Polar test dataset — skip integration tests if absent
+# path to the real Polar test dataset - skip integration tests if absent
 _POLAR_DATA_DIR = (
     pathlib.Path(__file__).parent
     / "data"
     / "import"
     / "polar"
     / "Polar Precision Performance"
-    / "Marco"
+    / "dvorka"
 )
 
 _POLAR_HAS_DATA = _POLAR_DATA_DIR.is_dir()
 
-# a specific .hrm file that we validated manually
-_HRM_2003 = _POLAR_DATA_DIR / "2003" / "03092801.hrm"
-_PDD_2003 = _POLAR_DATA_DIR / "2003" / "20030928.pdd"
+# a specific .hrm/.pdd pair that we validated manually (2003-10-04 ride)
+_HRM_2003 = _POLAR_DATA_DIR / "2003" / "03100401.hrm"
+_PDD_2003 = _POLAR_DATA_DIR / "2003" / "20031004.pdd"
 
 # alias for brevity
 PolarPlugin = polar_hrm.PolarHrmImportPlugin
@@ -65,9 +65,7 @@ def test_parse_smode_all_zeros():
     #
     # WHEN
     #
-    has_speed, has_cadence, has_altitude, has_power, has_balance = (
-        polar_hrm.parse_smode(smode)
-    )
+    has_speed, has_cadence, has_altitude, has_power, mph = polar_hrm.parse_smode(smode)
 
     #
     # THEN
@@ -76,7 +74,7 @@ def test_parse_smode_all_zeros():
     assert not has_cadence
     assert not has_altitude
     assert not has_power
-    assert not has_balance
+    assert not mph
     print("DONE: parse_smode all-zeros returns all False")
 
 
@@ -93,9 +91,7 @@ def test_parse_smode_speed_only():
     #
     # WHEN
     #
-    has_speed, has_cadence, has_altitude, has_power, has_balance = (
-        polar_hrm.parse_smode(smode)
-    )
+    has_speed, has_cadence, has_altitude, has_power, mph = polar_hrm.parse_smode(smode)
 
     #
     # THEN
@@ -117,9 +113,7 @@ def test_parse_smode_all_channels():
     #
     # WHEN
     #
-    has_speed, has_cadence, has_altitude, has_power, has_balance = (
-        polar_hrm.parse_smode(smode)
-    )
+    has_speed, has_cadence, has_altitude, has_power, mph = polar_hrm.parse_smode(smode)
 
     #
     # THEN
@@ -128,7 +122,7 @@ def test_parse_smode_all_channels():
     assert has_cadence
     assert has_altitude
     assert has_power
-    assert has_balance
+    assert mph
     print("DONE: parse_smode all-channels returns all True")
 
 
@@ -174,7 +168,7 @@ def test_map_activity_type_index_unknown_falls_back_to_gym():
 
 
 #
-# parse_hrm — real data
+# parse_hrm - real data
 #
 
 
@@ -185,7 +179,7 @@ def test_parse_hrm_real_file():
     #
     # GIVEN
     #
-    hrm_path = _HRM_2003  # 03092801.hrm — manually verified
+    hrm_path = _HRM_2003  # 03100401.hrm - manually verified
 
     #
     # WHEN
@@ -195,15 +189,15 @@ def test_parse_hrm_real_file():
     #
     # THEN
     #
-    # activity type index comes from PDD, not HRM — but start time is in HRM
+    # activity type index comes from PDD, not HRM - but start time is in HRM
     assert hrm_data["start_hour"] == 10, (
         f"Expected start_hour=10, got {hrm_data['start_hour']}"
     )
-    assert hrm_data["start_minute"] == 45, (
-        f"Expected start_minute=45, got {hrm_data['start_minute']}"
+    assert hrm_data["start_minute"] == 32, (
+        f"Expected start_minute=32, got {hrm_data['start_minute']}"
     )
-    assert hrm_data["avg_hr"] == 154, f"Expected avg_hr=154, got {hrm_data['avg_hr']}"
-    assert hrm_data["max_hr"] == 194, f"Expected max_hr=194, got {hrm_data['max_hr']}"
+    assert hrm_data["avg_hr"] == 166, f"Expected avg_hr=166, got {hrm_data['avg_hr']}"
+    assert hrm_data["max_hr"] == 196, f"Expected max_hr=196, got {hrm_data['max_hr']}"
     assert isinstance(hrm_data.get("rows"), list)
     assert len(hrm_data["rows"]) > 0
     print(
@@ -213,7 +207,7 @@ def test_parse_hrm_real_file():
 
 
 #
-# parse_pdd — real data
+# parse_pdd - real data
 #
 
 
@@ -236,59 +230,54 @@ def test_parse_pdd_real_file():
     #
     assert len(exercises) > 0, "Expected at least one exercise in pdd file"
     ex = exercises[0]
-    assert "activity_type_index" in ex
+    assert "sport_index" in ex
     assert "start_time_s" in ex
     assert "duration_s" in ex
     assert ex["duration_s"] > 0
     print(
         f"DONE: parse_pdd found {len(exercises)} exercise(s), "
-        f"first activity_type_key={ex['activity_type_index']}"
+        f"first sport_index={ex['sport_index']}"
     )
 
 
 #
-# build_fit - verify output parses with fitparse
+# hrm_to_parquet - verify output is a readable Parquet with the canonical schema
 #
 
 
 @pytest.mark.mytral
 @pytest.mark.skipif(not _HRM_2003.exists(), reason="Polar test data not available")
-def test_build_fit_produces_valid_bytes():
-    """build_fit should produce bytes that fitparse can read back."""
+def test_hrm_to_parquet_produces_valid_bytes():
+    """hrm_to_parquet should produce Parquet bytes readable by polars."""
     #
     # GIVEN
     #
-
     hrm_data = polar_hrm.parse_hrm(_HRM_2003)
-    start_dt = datetime.datetime(2003, 9, 28, 10, 45, 28, tzinfo=datetime.timezone.utc)
 
     #
     # WHEN
     #
-    fit_bytes = polar_hrm.build_fit(
-        hrm_data=hrm_data,
-        start_dt=start_dt,
-        activity_type_index=hrm_data.get("activity_type_index", 2),
-        interval_s=hrm_data.get("interval_s", 5),
-    )
+    pq_bytes = parquet_converter.hrm_to_parquet(hrm_data)
 
     #
     # THEN
     #
-    assert isinstance(fit_bytes, bytes)
-    assert len(fit_bytes) > 0
+    assert isinstance(pq_bytes, bytes)
+    assert len(pq_bytes) > 0
 
-    # verify it is parseable
-    parsed = fitparse.FitFile(io.BytesIO(fit_bytes))
-    records = list(parsed.get_messages("record"))
-    assert len(records) > 0, "Expected at least one record message in FIT output"
+    # verify it is a readable Parquet with the canonical schema
+    df = polars.read_parquet(io.BytesIO(pq_bytes))
+    assert df.height == len(hrm_data["rows"])
+    for col in ("ts_unix_ms", "hr", "speed", "altitude", "source_format"):
+        assert col in df.columns, f"Expected column {col} in parquet schema"
+    assert df["source_format"][0] == "hrm"
     print(
-        f"DONE: build_fit produced {len(fit_bytes)} bytes, {len(records)} FIT records"
+        f"DONE: hrm_to_parquet produced {len(pq_bytes)} bytes, {df.height} parquet rows"
     )
 
 
 #
-# PolarHrmImportPlugin.import_activities — integration test
+# PolarHrmImportPlugin.import_activities - integration test
 #
 
 
@@ -342,7 +331,7 @@ def test_plugin_import_activities_2003(tmp_path: pathlib.Path):
 
 
 #
-# compute_max_speed_kmh / compute_elevation_gain — pure-function helpers
+# compute_max_speed_kmh / compute_elevation_gain - pure-function helpers
 #
 
 
@@ -402,7 +391,7 @@ def test_compute_elevation_gain_from_rows():
     #
     # THEN
     #
-    # +5 (100→105) +5 (105→110) +0 (110→108 down) +4 (108→112) = 14
+    # +5 (100->105) +5 (105->110) +0 (110->108 down) +4 (108->112) = 14
     assert gain_with_flag == 14, f"Expected 14 m, got {gain_with_flag}"
     assert gain_without_flag == 0, (
         f"Expected 0 when has_altitude=False, got {gain_without_flag}"
@@ -433,7 +422,7 @@ def test_compute_elevation_gain_skips_none_altitudes():
     #
     # THEN
     #
-    # 100→110 = +10 (row 1 skipped, row 2→3: None skipped), 110→115 = +5
+    # 100->110 = +10 (row 1 skipped, row 2->3: None skipped), 110->115 = +5
     assert gain == 15, f"Expected 15 m (skipping None/absent), got {gain}"
     print("DONE: compute_elevation_gain skips None and absent altitude_m keys")
 
@@ -479,16 +468,16 @@ def test_compute_max_speed_kmh_skips_missing_speed_keys():
     #
     # THEN
     #
-    # max of [100, 0 (default), 350, 200] = 350 → 35.0 km/h
+    # max of [100, 0 (default), 350, 200] = 350 -> 35.0 km/h
     assert max_speed == 35.0, f"Expected 35.0 km/h (max=350/10), got {max_speed}"
     print("DONE: compute_max_speed_kmh skips absent speed_01kmh keys")
 
 
 #
-# _build_activity — uses HRData, not the broken [Trip] section
+# _build_activity - uses HRData, not the broken [Trip] section
 #
 
-# Roman's Polar dataset — only present on the local development machine,
+# Roman's Polar dataset - only present on the local development machine,
 # used to validate the fix for the validation-page regressions.
 _ROMAN_DATA_DIR = (
     _given.TEST_DS_ROOT
@@ -504,7 +493,7 @@ _ROMAN_2003_11_08_HRM = _ROMAN_DATA_DIR / "2003" / "03110803.hrm"
 _ROMAN_2003_11_08_PDD = _ROMAN_DATA_DIR / "2003" / "20031108.pdd"
 
 # Synthetic HRM/PDD pair that reproduces the S720i broken-[Trip] scenario
-# in a minimal form — committed to the repo so the fix is tested in CI.
+# in a minimal form - committed to the repo so the fix is tested in CI.
 _SYNTHETIC_DATA_DIR = (
     pathlib.Path(__file__).parent / "data" / "import" / "polar" / "synthetic"
 )
@@ -568,7 +557,7 @@ def test_build_activity_uses_hrdata_not_trip_for_speed_elevation():
         f"elevation_gain should be HRData-derived (small), "
         f"got {activity.elevation_gain}"
     )
-    # min_hr is a day-level metric — must not be set from per-activity HR
+    # min_hr is a day-level metric - must not be set from per-activity HR
     assert activity.min_hr == 0.0, (
         f"min_hr must be 0 (day-level metric), got {activity.min_hr}"
     )
@@ -596,7 +585,7 @@ def test_build_activity_uses_hrdata_not_trip_ci():
     the S720i broken-[Trip] scenario: Trip reports max_speed=9.0 km/h and
     elevation_gain=3280 m while the HRData time series has the correct
     values (max_speed=35.0 km/h, elevation_gain=24 m).  The synthetic
-    files are minimal — just enough rows to exercise the fix.
+    files are minimal - just enough rows to exercise the fix.
     """
     #
     # GIVEN
@@ -639,11 +628,11 @@ def test_build_activity_uses_hrdata_not_trip_ci():
     assert activity.elevation_max == 120, (
         f"elevation_max should be 120 (HRData-preferred), got {activity.elevation_max}"
     )
-    # min_hr is a day-level metric — must not be set from per-activity HR
+    # min_hr is a day-level metric - must not be set from per-activity HR
     assert activity.min_hr == 0.0, (
         f"min_hr must be 0 (day-level metric), got {activity.min_hr}"
     )
-    # avg_speed computed from PDD distance/duration: 16000m / 2292s * 3.6 ≈ 25.13
+    # avg_speed computed from PDD distance/duration: 16000m / 2292s * 3.6 ~ 25.13
     assert 25.0 < activity.avg_speed < 26.0, (
         f"avg_speed should be ~25.1 km/h, got {activity.avg_speed}"
     )

@@ -8,10 +8,21 @@ This MyTraL **minor** release brings:
 - .
 
 ### Changed
-- .
+- Polar Precision Performance import now reuses the heart-rate time series parsed by
+  the import plugin when building recordings, instead of reading and parsing every
+  `.hrm` file a second time in the worker process.
 
 ### Fixed
-- .
+- Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
+  data directory now finishes successfully instead of failing once an already existing
+  activity had to be updated.
+- Fixed the Polar PPP import silently dropping exercises it could not parse - such
+  files are now counted and reported in the import task log.
+- Fixed the average speed of imported Polar activities being recomputed - and the
+  cap to maximum speed lost - after the activities were persisted.
+- Fixed Polar PPP import log messages showing the raw `{self._log_name}` placeholder
+  instead of the plugin name.
+- Removed unused Polar gear service constants.
 
 ### Documentation
 - .
