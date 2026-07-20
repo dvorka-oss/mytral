@@ -215,11 +215,22 @@
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
-<li>.</li>
+<li>Polar Precision Performance import now reuses the heart-rate time series parsed by
+  the import plugin when building recordings, instead of reading and parsing every
+  <code>.hrm</code> file a second time in the worker process.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
-<li>.</li>
+<li>Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
+  data directory now finishes successfully instead of failing once an already existing
+  activity had to be updated.</li>
+<li>Fixed the Polar PPP import silently dropping exercises it could not parse - such
+  files are now counted and reported in the import task log.</li>
+<li>Fixed the average speed of imported Polar activities being recomputed - and the
+  cap to maximum speed lost - after the activities were persisted.</li>
+<li>Fixed Polar PPP import log messages showing the raw <code>{self._log_name}</code> placeholder
+  instead of the plugin name.</li>
+<li>Removed unused Polar gear service constants.</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
