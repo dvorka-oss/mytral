@@ -135,6 +135,9 @@ venv-reset: # (undocumented) reset virtual environment
 .venv:
 	uv venv --python $(PYTHON_VERSION) .venv
 
+.venv-notebooks:
+	uv venv --python $(PYTHON_VERSION) .venv-notebooks
+
 setup: .venv ## setup virtul env and install Python dependencies
 	uv sync --all-groups
 
@@ -251,6 +254,16 @@ lint: py-lint ## alias for py-lint
 .PHONY: precommit
 precommit: py-lint py-security ## pre-commit checks: lint and security scan
 	@true
+
+#
+# JUPYTER LAB
+#
+
+.PHONY: jupyter-lab
+jupyter-lab: .venv-notebooks ## run Jupyter Lab
+	uv pip install --python .venv-notebooks/bin/python --group notebook
+	.venv-notebooks/bin/python -m ipykernel install --user --name=mytral-notebooks
+	.venv-notebooks/bin/jupyter lab
 
 #
 # DIAGNOSTICS
