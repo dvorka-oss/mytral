@@ -111,9 +111,8 @@ def _polar_hrm_blob_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     for d in activities_data:
-        raw_data = (d.get("transient_fields") or {}).get(
-            polar_hrm.PolarHrmImportPlugin.KEY_POLAR_ROW_DATA, {}
-        )
+        transient = d.get("transient_fields") or {}
+        raw_data = transient.get(polar_hrm.PolarHrmImportPlugin.KEY_POLAR_ROW_DATA, {})
         hrm_path_str = raw_data.get(polar_hrm.PolarHrmImportPlugin.KEY_HRM_PATH)
         if not hrm_path_str:
             continue
@@ -150,11 +149,14 @@ def _polar_hrm_blob_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
         recorded_keys.append(f"{rec_meta.blob_key}.hrm")
         d["recorded_blob_keys"] = recorded_keys
 
-        # parse HRM and generate parquet
-        try:
-            hrm_data = polar_hrm.parse_hrm(hrm_path)
-        except Exception:
-            continue
+        # reuse the HRM time series parsed by the plugin; only re-parse if it
+        # was not forwarded (e.g. an older payload or a fallback path)
+        hrm_data = transient.get(polar_hrm.PolarHrmImportPlugin.KEY_HRM_DATA) or {}
+        if not hrm_data.get("rows"):
+            try:
+                hrm_data = polar_hrm.parse_hrm(hrm_path)
+            except Exception:
+                continue
 
         if not hrm_data or not hrm_data.get("rows"):
             continue
@@ -280,12 +282,17 @@ class PolarHrmImportTask(tasks.TaskBase):
             raise RuntimeError(f"Failed to parse Polar data: {exc}") from exc
 
         total = len(activities)
+        failed = plugin.last_failed_count
         self.log(f"Parsed {total} activities from {data_dir_str}")
+        if failed:
+            self.log(
+                f"WARNING: {failed} exercise(s) could not be parsed and were skipped"
+            )
         self.update_progress(10)
         self.check_cancellation()
 
         if total == 0:
-            self.log("No activities found — import complete")
+            self.log("No activities found - import complete")
             self.update_progress(100)
             return
 
@@ -350,10 +357,10 @@ class PolarHrmImportTask(tasks.TaskBase):
                 )
         if failed_jobs:
             raise RuntimeError(
-                f"Bulldozer jobs {failed_jobs} failed — see log for details"
+                f"Bulldozer jobs {failed_jobs} failed - see log for details"
             )
 
-        self.log("All Bulldozer jobs DONE — merging blobstores...")
+        self.log("All Bulldozer jobs DONE - merging blobstores...")
         self.update_progress(50)
 
         # PHASE 3: merge sandbox blobstores into main blobstore ------------
@@ -413,7 +420,9 @@ class PolarHrmImportTask(tasks.TaskBase):
                     # new_key: keep newly generated key and create as new
                     existing_key = None
 
-            entities.evaluate_activity(entity=activity, user_profile=user_profile)
+            # the plugin already evaluated each activity (and capped avg_speed
+            # to max_speed); those values survive serialization, so do not
+            # re-evaluate here or the cap would be silently recomputed away
             if not existing_key:
                 activities_to_create.append(activity)
             else:
@@ -441,10 +450,12 @@ class PolarHrmImportTask(tasks.TaskBase):
                 dataset_name=dataset_name,
                 entity_list=activities_to_update,
             )
-            raise NotImplementedError
 
         self.log("DONE: activities persisted & parquets created & HRM blobs uploaded")
-        self.log(f"Polar HRM import complete: {imported} imported, {skipped} skipped")
+        self.log(
+            f"Polar HRM import complete: {imported} imported, {skipped} skipped, "
+            f"{failed} failed to parse"
+        )
         self.update_progress(100)
 
     def _find_conflict(
