@@ -1877,8 +1877,6 @@ class UserGear:
 
     SERVICE_STRAVA = "strava"
     SERVICE_GARMIN_CONNECT = "garmin_connect"
-    SERVICE_POLAR_FLOW = "polar_flow"
-    SERVICE_POLAR_PPP = "polar_ppp"
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":

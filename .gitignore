@@ -26,6 +26,7 @@
 
 # Python
 .venv/
+.venv-notebooks/
 *.lock
 
 # vibe
@@ -42,6 +43,7 @@ QWEN.md
 # build
 !/distro/.gitignore
 **/__pycache__/
+**/.ipynb_checkpoints/
 .coverage
 .mypy_cache
 .pytest_cache

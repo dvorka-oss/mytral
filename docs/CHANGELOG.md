@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
+## [1.60.0](https://github.com/dvorka-oss/mytral/compare/v1.59.0...HEAD)
 
 This MyTraL **minor** release brings:
 
@@ -8,43 +8,80 @@ This MyTraL **minor** release brings:
 - Added a Polar Flow integration: sync new training from Polar Flow
   (flow.polar.com) via the official Polar AccessLink API (transaction model, no
   duplicates), and backfill full history from the Polar "Download your data"
-  (GDPR) export ZIP. See `POLAR_FLOW.md` for the design and setup steps. This is
-  separate from the existing Polar Precision Performance (.hrm/.pdd) import.
+  (GDPR) export ZIP. The export import brings in complete per-second recordings -
+  heart rate, cadence, altitude, speed, power and the GPS track - so activities
+  get their charts and maps, not just summaries. See `POLAR_FLOW.md` for the
+  design and setup steps. This is separate from the existing Polar Precision
+  Performance (.hrm/.pdd) import.
 - Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
   card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
   top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
   and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
   full Everests.
+- Added schema headers to `winget` manifests.
+
+### Changed
+- Polar Precision Performance import now reuses the heart-rate time series parsed by
+  the import plugin when building recordings, instead of reading and parsing every
+  `.hrm` file a second time in the worker process.
+
+### Fixed
+- Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
+  data directory now finishes successfully instead of failing once an already existing
+  activity had to be updated.
+- Fixed the Polar PPP import silently dropping exercises it could not parse - such
+  files are now counted and reported in the import task log.
+- Fixed the average speed of imported Polar activities being recomputed - and the
+  cap to maximum speed lost - after the activities were persisted.
+- Fixed Polar PPP import log messages showing the raw `{self._log_name}` placeholder
+  instead of the plugin name.
+- Removed unused Polar gear service constants.
+
+### Documentation
+- .
+
+
+
+## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...v1.59.0)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added sport-aware Everesting experience on the dashboard. A new Everesting card tracks
+  how much of Mt. Everest you have accumulated for your top climbing sport, with a
+  Day/Week/Month/Year toggle.
   Climbing a full Everest - or a Quarter, Half, Double, or Triple - in a single activity
-  now earns an Everesting achievement badge shown on the activity, in activity lists,
-  and on the "Highest Climb Ever" card.
-- Added a new Histograms page (reachable from the Charts page) showing the distribution
-  of your activities by distance, time (15-minute bins), and elevation gain. Each
-  histogram can be filtered by activity type (defaulting to Ride) and has tooltips with
-  the bin range and activity count; the time histogram shows durations as `1h03m00s`.
-- Added weekly elevation gain to the calendar year view. The last column of the
-  calendar table now shows the total elevation climbed each week (in meters) above
-  the weekly weight.
-- Added lifetime elevation gain to the Lifetime Totals insight. Both the Sports and
-  Meta Sports views now show the total elevation climbed (in meters) below the
-  duration in every cell, for each sport/meta sport and year as well as the overall
-  totals.
+  earns an Everesting achievement badge shown on the activity, in activity lists, and on
+  the "Highest Climb Ever" card.
+- Added weekly elevation gain to the calendar year view. The last column of the calendar
+  table now shows the total elevation climbed each week above the weekly weight.
+- Added lifetime elevation gain to the Lifetime Totals insight.
+- Added a new Histograms page - reachable from the Charts page - showing the
+  distribution of your activities by distance, time, and elevation gain.
+- Added Winget distribution Makefile targets, artifacts and scripts.
 
 ### Changed
 - Replaced the "Years Active" dashboard summary card with a "Total Elevation" card
-  showing the cumulative elevation gained (in meters) across all activities.
+  showing the cumulative elevation gained across all activities.
 - Everesting elevation is now counted per climbing sport (Ride, Run, Hike, and Nordic
-  Ski) instead of lumping all sports together. The `This vs. Last` elevation view gained
-  a sport selector and shows the 8848 m Everesting reference line scoped to the selected
-  sport (now on the yearly view too).
+  Ski) instead of lumping all sports together.
 
 ### Fixed
 - Fixed the `This vs. Last` page showing the literal text "None" instead of a
   chart when the selected sport and period had no data - it now shows a friendly
   empty state.
+- Fixed typos in GH issues in `README.md`.
+- Removed dead code from around the code base (import).
 
 ### Documentation
-- .
+- **WAITING FOR MYTRAL APPROVAL - THIS WILL WORK AS SOON AS MYTRAL IS IN**:
+   - Documented Winget release process as a feature analysis in `docs/`.
+   - Documented installing MyTraL on Windows via Winget in `INSTALLATION.md`.
+- Listed the `Windows (winget)` installation method in README.md.
+- Added new features screenshots for everesting and histograms.
+
+### Web
+- Improved WWW pages SEO by adding the sitemap, OG image, 404 page, and favicon.
 
 
 

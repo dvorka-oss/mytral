@@ -5,6 +5,9 @@
 {% set p = periods.month %}
 {% set init_pct = [p.pct, 100]|min %}
 {% set rect_y = 75 - (init_pct / 100 * 70) %}
+{# summited climbs turn the hill and the bar green, otherwise they stay red #}
+{% set summit_fill = "#2fb344" %}
+{% set pending_fill = "#d63939" %}
 <div class="card" id="everesting-card" style="cursor: pointer;" data-href="{{ url_for('this_vs_last') }}?aspect=elevation&period=month" title="View elevation trends">
     <div class="card-body">
         <div class="d-flex align-items-center">
@@ -44,7 +47,7 @@
                         </clipPath>
                     </defs>
                     <polygon points="50,5 95,75 5,75" fill="currentColor" opacity="0.15"></polygon>
-                    <rect id="everesting-fill" x="0" y="{{ "%.2f"|format(rect_y) }}" width="100" height="100" clip-path="url(#everesting-mtn-clip)" fill="#d63939" opacity="0.85"></rect>
+                    <rect id="everesting-fill" x="0" y="{{ "%.2f"|format(rect_y) }}" width="100" height="100" clip-path="url(#everesting-mtn-clip)" fill="{{ summit_fill if p.summited else pending_fill }}" opacity="0.85"></rect>
                     <polygon points="50,5 95,75 5,75" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"></polygon>
                 </svg>
             </div>
@@ -56,7 +59,7 @@
                     <span id="everesting-sport">{{ p.meta_sport_label }}</span> - <span id="everesting-period-label">this month</span>
                 </div>
                 <div class="progress progress-sm mt-2">
-                    <div id="everesting-bar" class="progress-bar bg-red" style="width: {{ "%.1f"|format(init_pct) }}%" role="progressbar" aria-valuenow="{{ "%.0f"|format(init_pct) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div id="everesting-bar" class="progress-bar {{ 'bg-green' if p.summited else 'bg-red' }}" style="width: {{ "%.1f"|format(init_pct) }}%" role="progressbar" aria-valuenow="{{ "%.0f"|format(init_pct) }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div class="text-muted small mt-1">
                     <span id="everesting-pct">{{ "%.1f"|format(p.pct) }}%</span> of Everest<span id="everesting-status">{% if p.summited %} - summited!{% elif p.eta_days %} - summit ETA ~{{ p.eta_days }} days at this pace{% endif %}</span>
@@ -74,6 +77,8 @@
         var statusEl = document.getElementById("everesting-status");
         var labelEl = document.getElementById("everesting-period-label");
         var fillEl = document.getElementById("everesting-fill");
+        var SUMMIT_FILL = "{{ summit_fill }}";
+        var PENDING_FILL = "{{ pending_fill }}";
         function apply(btn) {
             var climbed = parseInt(btn.getAttribute("data-climbed"), 10) || 0;
             var pct = parseFloat(btn.getAttribute("data-pct")) || 0;
@@ -84,6 +89,9 @@
             pctEl.textContent = pct.toFixed(1) + "%";
             barEl.style.width = capped.toFixed(1) + "%";
             fillEl.setAttribute("y", (75 - capped / 100 * 70).toFixed(2));
+            fillEl.setAttribute("fill", summited ? SUMMIT_FILL : PENDING_FILL);
+            barEl.classList.toggle("bg-green", summited);
+            barEl.classList.toggle("bg-red", !summited);
             labelEl.textContent = btn.getAttribute("data-label");
             if (summited) {
                 statusEl.textContent = " - summited!";
