@@ -677,7 +677,38 @@ distro-win-clean: ## clean Windows installer build artifacts
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Recurse -Force distro\windows -ErrorAction SilentlyContinue; Write-Host 'DONE: Windows installer artifacts removed'"
 
 #
-# MACOS: macOS .dmg distribution (Apple Silicon / arm64 only)
+# DISTRIBUTION: winget (Windows Package Manager)
+#
+# See docs/FEATURE_WINGET.md for the full release workflow.
+#
+# Prerequisites:
+#   winget CLI:    winget install Microsoft.Winget.Client
+#   gh CLI:        winget install GitHub.cli  (+ gh auth login)
+#
+# Per-release sequence — run AFTER the GitHub release is live:
+#   make distro-winget-from-release VERSION=x.y.z
+#   make distro-winget-validate     VERSION=x.y.z
+#   make distro-winget-submit-pr    VERSION=x.y.z WINGET_PKGS_DIR=C:\path\to\winget-pkgs
+#
+
+.PHONY: distro-winget-from-release
+distro-winget-from-release: ## download published installer from GitHub release, hash it, and generate winget manifests (VERSION required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/generate-from-release.ps1 -Version $(VERSION)
+
+.PHONY: distro-winget-validate
+distro-winget-validate: ## validate generated winget manifests locally (VERSION required)
+	winget validate --manifest distro/winget/manifests/m/Mytral/Mytral/$(VERSION)
+
+.PHONY: distro-winget-submit-pr
+distro-winget-submit-pr: ## copy manifests to winget-pkgs fork, commit signed, push, open PR (VERSION and WINGET_PKGS_DIR required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/submit-pr.ps1 -Version $(VERSION) -WingetPkgsDir "$(WINGET_PKGS_DIR)"
+
+.PHONY: distro-winget-sha256-url
+distro-winget-sha256-url: ## print SHA256 of the published installer without generating manifests (VERSION required)
+	powershell.exe -NoProfile -ExecutionPolicy Bypass -File build/winget/sha256-from-url.ps1 -Version $(VERSION)
+
+
+# DISTRIBUTION: macOS .dmg distribution (Apple Silicon / arm64 only)
 #
 # Must run on macOS - relies on `sips`, `iconutil`, and `hdiutil`, which are
 # only available on macOS. Produces an unsigned app bundle and .dmg; see
@@ -717,7 +748,7 @@ distro-macos-dmg-install: distro-macos-dmg-build ## build the .dmg and install M
 	echo "DONE MyTraL.app installed to /Applications"
 
 #
-# SNAP: Snap package distribution (local builds only)
+# DISTRIBUTION: Snap package (local builds only)
 #
 # Prerequisites:
 #   # Snapcraft
@@ -780,7 +811,7 @@ distro-snap-upload: distro-snap-build ## upload strict Snap package to the Snap 
 	snapcraft upload --release=stable distro/snap/mytral_$(MYTRAL_VERSION)_amd64.snap
 
 #
-# FLATPAK: Flatpak package distribution (local builds only)
+# DISTRIBUTION: Flatpak package (local builds only)
 #
 # Prerequisites:
 #   sudo apt install flatpak flatpak-builder   # or dnf/pacman/zypper equivalent
@@ -950,7 +981,7 @@ distro-desktop-run: .venv ## run MyTraL in desktop mode (development)
 release-distros-linux: clean distro-snap-clean distro-flatpak-clean distro-tarball distro-snap-build-classic distro-flatpak-build ## build all LINUX distribution packages for release
 	@echo "ALL Linux distribution packages built for release"
 
-release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-installer ## build all WIN distribution packages for release
+release-distros-win: clean distro-win-clean distro-desktop-build-win distro-win-zip distro-win-installer ## build all WIN distribution packages for release
 	@echo "ALL Win distribution packages built for release"
 
 .PHONY: release-distros-macos
