@@ -191,6 +191,7 @@ blob-all = [
 ]
 
 notebook = [
+    "ipykernel~=6.29",
     "jupyterlab~=4.5",
     "pandas~=2.2",
 ]

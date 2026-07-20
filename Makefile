@@ -261,9 +261,9 @@ precommit: py-lint py-security ## pre-commit checks: lint and security scan
 
 .PHONY: jupyter-lab
 jupyter-lab: .venv-notebooks ## run Jupyter Lab
-	uv pip install jupyterlab ipykernel
-	uv run python -m ipykernel install --user --name=.venv-notebooks
-	uv run jupyter lab
+	uv pip install --python .venv-notebooks/bin/python --group notebook
+	.venv-notebooks/bin/python -m ipykernel install --user --name=mytral-notebooks
+	.venv-notebooks/bin/jupyter lab
 
 #
 # DIAGNOSTICS
