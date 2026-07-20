@@ -36,7 +36,12 @@ $PackageId    = "Mytral.Mytral"
 $InstallerName = "mytral-$Version-setup.exe"
 $InstallerUrl  = "https://github.com/$GithubOrg/$GithubRepo/releases/download/v$Version/$InstallerName"
 
-# ── Step 1: download and hash ──────────────────────────────────────────────────
+# winget manifest schema version - keep the ManifestVersion fields and the
+# yaml-language-server schema URLs in sync by deriving both from this value
+$ManifestVersion = "1.6.0"
+$SchemaBaseUrl   = "https://aka.ms/winget-manifest"
+
+# -- Step 1: download and hash --------------------------------------------------
 
 Write-Host "Downloading $InstallerUrl ..." -ForegroundColor Cyan
 $TmpFile = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), $InstallerName)
@@ -45,31 +50,33 @@ $Sha256 = (Get-FileHash $TmpFile -Algorithm SHA256).Hash
 Remove-Item $TmpFile -Force
 Write-Host "SHA256: $Sha256" -ForegroundColor Green
 
-# ── Step 2: prepare output directory ──────────────────────────────────────────
+# -- Step 2: prepare output directory ------------------------------------------
 
 $ScriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Resolve-Path (Join-Path $ScriptDir "..\..")
 $OutDir      = Join-Path $ProjectRoot "distro\winget\manifests\m\Mytral\Mytral\$Version"
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-# UTF-8 without BOM — winget rejects files with a BOM
+# UTF-8 without BOM - winget rejects files with a BOM
 $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
 
-# ── Step 3: version manifest ───────────────────────────────────────────────────
+# -- Step 3: version manifest ---------------------------------------------------
 
 $VersionYaml = @"
+# yaml-language-server: `$schema=$SchemaBaseUrl.version.$ManifestVersion.schema.json
 PackageIdentifier: $PackageId
 PackageVersion: $Version
 DefaultLocale: en-US
 ManifestType: version
-ManifestVersion: 1.6.0
+ManifestVersion: $ManifestVersion
 "@
 [System.IO.File]::WriteAllText(
     (Join-Path $OutDir "$PackageId.yaml"), $VersionYaml, $Utf8NoBom)
 
-# ── Step 4: installer manifest ─────────────────────────────────────────────────
+# -- Step 4: installer manifest -------------------------------------------------
 
 $InstallerYaml = @"
+# yaml-language-server: `$schema=$SchemaBaseUrl.installer.$ManifestVersion.schema.json
 PackageIdentifier: $PackageId
 PackageVersion: $Version
 InstallerType: inno
@@ -83,14 +90,15 @@ Installers:
     InstallerSha256: $Sha256
     ProductCode: '{C3D7F241-8B5E-4A29-9F6D-E1B02A4C7853}_is1'
 ManifestType: installer
-ManifestVersion: 1.6.0
+ManifestVersion: $ManifestVersion
 "@
 [System.IO.File]::WriteAllText(
     (Join-Path $OutDir "$PackageId.installer.yaml"), $InstallerYaml, $Utf8NoBom)
 
-# ── Step 5: locale manifest ────────────────────────────────────────────────────
+# -- Step 5: locale manifest ----------------------------------------------------
 
 $LocaleYaml = @"
+# yaml-language-server: `$schema=$SchemaBaseUrl.defaultLocale.$ManifestVersion.schema.json
 PackageIdentifier: $PackageId
 PackageVersion: $Version
 PackageLocale: en-US
@@ -115,12 +123,12 @@ Tags:
   - health
 ReleaseNotesUrl: https://github.com/$GithubOrg/$GithubRepo/releases/tag/v$Version
 ManifestType: defaultLocale
-ManifestVersion: 1.6.0
+ManifestVersion: $ManifestVersion
 "@
 [System.IO.File]::WriteAllText(
     (Join-Path $OutDir "$PackageId.locale.en-US.yaml"), $LocaleYaml, $Utf8NoBom)
 
-# ── Done ───────────────────────────────────────────────────────────────────────
+# -- Done -----------------------------------------------------------------------
 
 Write-Host ""
 Write-Host "Manifests written to: $OutDir" -ForegroundColor Green

@@ -5,7 +5,7 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added schema headers to `winget` manifests.
 
 ### Changed
 - .

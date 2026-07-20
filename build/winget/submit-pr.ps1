@@ -94,7 +94,7 @@ try {
     git add "manifests\m\Mytral\Mytral\$Version"
     if ($LASTEXITCODE -ne 0) { throw "git add failed (exit $LASTEXITCODE)" }
 
-    # commit — try with GPG signature, fall back to unsigned
+    # commit - try with GPG signature, fall back to unsigned
     Write-Host "Committing..." -ForegroundColor Yellow
     git commit -S -m $CommitMsg 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
