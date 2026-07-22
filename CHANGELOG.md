@@ -5,6 +5,11 @@
 This MyTraL **minor** release brings:
 
 ### Added
+- Added filtering and sorting to the gear listing. Gear can be filtered by its default
+  activity type and sorted by last used, name, default activity type, purchase date,
+  usage, distance, time or TCoO in ascending or descending order. The summary cards
+  reflect the filtered gear and the selection is preserved when switching between the
+  list and the chart view.
 - Added schema headers to `winget` manifests.
 
 ### Changed
