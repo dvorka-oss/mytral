@@ -317,3 +317,54 @@ def test_tcoo_complex_scenario():
     print(f"  - Maintenance cost: ${gear.tcoo_cost}")
     print(f"  - Additional cost: ${gear.tcoo_additional}")
     print(f"  - Total TCoO: ${gear.tcoo_total}")
+
+
+@pytest.mark.mytral
+def test_component_tcoo_base_cost_plus_services():
+    """Test per-component TCoO: base cost plus all its service costs."""
+    # GIVEN
+    gear = settings.Gear(activity_type_key="ride", name="Test Bike")
+    chain = settings.GearComponent(name="Chain", cost=100.0, distance_meters=5_000_000)
+    tire = settings.GearComponent(name="Tire", cost=50.0)
+    gear.components = [chain.to_dict(), tire.to_dict()]
+    gear.component_history = {
+        chain.key: [
+            {"date": "2024-01-15", "service_type": "replacement", "cost": 400.0},
+            {"date": "2025-01-15", "service_type": "replacement", "cost": 500.0},
+        ],
+    }
+
+    # WHEN
+    chain_tcoo = gear.component_tcoo(chain.key)
+    tire_tcoo = gear.component_tcoo(tire.key)
+
+    # THEN - services of one component do not leak into another
+    assert chain_tcoo == 1000.0, f"Expected 1000.0 but got {chain_tcoo}"
+    assert tire_tcoo == 50.0, f"Expected 50.0 but got {tire_tcoo}"
+    print(f"DONE Component TCoO: {chain_tcoo}")
+
+
+@pytest.mark.mytral
+def test_component_tcoo_per_km():
+    """Test per-component cost per kilometer."""
+    # GIVEN
+    gear = settings.Gear(activity_type_key="ride", name="Test Bike")
+    chain = settings.GearComponent(name="Chain", cost=100.0, distance_meters=5_000_000)
+    unused = settings.GearComponent(name="Unused", cost=80.0, distance_meters=0)
+    gear.components = [chain.to_dict(), unused.to_dict()]
+    gear.component_history = {
+        chain.key: [
+            {"date": "2024-01-15", "service_type": "replacement", "cost": 400.0},
+        ],
+    }
+
+    # WHEN
+    chain_per_km = gear.component_tcoo_per_km(chain.key)
+    unused_per_km = gear.component_tcoo_per_km(unused.key)
+    unknown_per_km = gear.component_tcoo_per_km("no-such-key")
+
+    # THEN - 500 / 5000 km = 0.1, no usage and unknown key yield 0.0
+    assert chain_per_km == 0.1, f"Expected 0.1 but got {chain_per_km}"
+    assert unused_per_km == 0.0, f"Expected 0.0 but got {unused_per_km}"
+    assert unknown_per_km == 0.0, f"Expected 0.0 but got {unknown_per_km}"
+    print(f"DONE Component TCoO per km: {chain_per_km}")
