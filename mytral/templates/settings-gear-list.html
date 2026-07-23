@@ -10,7 +10,7 @@
             <div class="col-auto ms-auto d-print-none">
                 {% if gear.gear|length > 0 %}
                 <div class="btn-group">
-                    <a href="{{ url_for('settings_gear_list') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('settings_gear_list', activity_type=filter_activity_type, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-table" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                             <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z"></path>
@@ -19,7 +19,7 @@
                         </svg>
                         List
                     </a>
-                    <a href="{{ url_for('settings_gear_list') }}?aspect=chart" class="btn btn-outline-primary">
+                    <a href="{{ url_for('settings_gear_list', aspect='chart', activity_type=filter_activity_type, sort=sort_by, order=sort_order) }}" class="btn btn-outline-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chart-pie" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                             <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8"></path>
@@ -54,6 +54,73 @@
                     <p class="text-muted">
                         Track usage of the sport gear like running shoes, bicycles, rollerskis or boats for safety, performance, durability and service intervals.
                     </p>
+
+                    {% if gear.gear|length > 0 %}
+                    {# Filter & sort #}
+                    <div class="accordion" id="accordion-default">
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-1-default" aria-expanded="false">
+                                    Filter &amp; sort
+                                    <div class="accordion-button-toggle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-down" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M6 9l6 6l6 -6"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                            </div>
+                            <div id="collapse-1-default" class="accordion-collapse collapse" data-bs-parent="#accordion-default">
+                                <div class="accordion-body">
+                                    <form method="get" action="{{ url_for('settings_gear_list') }}">
+                                        {% if aspect %}
+                                        <input type="hidden" name="aspect" value="{{ aspect }}">
+                                        {% endif %}
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Default activity type</label>
+                                                <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                                                    <option value="">All</option>
+                                                    {% for s in unique_activity_types %}
+                                                    <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                                        {{ activity_types.name(s) }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Sort by</label>
+                                                <select class="form-select" name="sort" onchange="this.form.submit()">
+                                                    <option value="used" {% if sort_by == 'used' %}selected{% endif %}>Last used</option>
+                                                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                                                    <option value="activity_type" {% if sort_by == 'activity_type' %}selected{% endif %}>Default activity type</option>
+                                                    <option value="purchased" {% if sort_by == 'purchased' %}selected{% endif %}>Purchased</option>
+                                                    <option value="usage" {% if sort_by == 'usage' %}selected{% endif %}>Usage</option>
+                                                    <option value="distance" {% if sort_by == 'distance' %}selected{% endif %}>Distance</option>
+                                                    <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Time</option>
+                                                    <option value="tcoo" {% if sort_by == 'tcoo' %}selected{% endif %}>TCoO</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Order</label>
+                                                <select class="form-select" name="order" onchange="this.form.submit()">
+                                                    <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                                                    <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-3 mt-2">
+                                            <div class="col-md-4">
+                                                <a href="{{ url_for('settings_gear_list', aspect=aspect or none) }}" class="btn">Clear filters</a>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -76,9 +143,9 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="h2 mb-0">{{ gear.gear|length }}</div>
+                            <div class="h2 mb-0">{{ filtered_gear|length }}</div>
                             <div class="text-muted small">
-                                {% set retired_count = gear.gear.values()|selectattr('retired', 'equalto', true)|list|length %}
+                                {% set retired_count = filtered_gear|selectattr('retired', 'equalto', true)|list|length %}
                                 {% if retired_count > 0 %}
                                 {{ retired_count }} retired
                                 {% else %}
@@ -105,13 +172,13 @@
                                 </div>
                             </div>
                             {% set total_cost = namespace(value=0) %}
-                            {% for g in gear.gear.values() %}
+                            {% for g in filtered_gear %}
                                 {% set total_cost.value = total_cost.value + (g.tcoo_base or 0) + (g.tcoo_cost or 0) %}
                             {% endfor %}
                             <div class="h2 mb-0">🪙{{ "{:,.0f}".format(total_cost.value) }}</div>
                             <div class="text-muted small">
                                 {% if total_cost.value > 0 %}
-                                🪙{{ "{:,.0f}".format(total_cost.value / gear.gear|length) }}/gear
+                                🪙{{ "{:,.0f}".format(total_cost.value / filtered_gear|length) }}/gear
                                 {% else %}
                                 No cost tracked
                                 {% endif %}
@@ -136,7 +203,7 @@
                                 </div>
                             </div>
                             {% set most_used = namespace(gear=none, count=0) %}
-                            {% for g in gear.gear.values() %}
+                            {% for g in filtered_gear %}
                                 {% set stat = gear_stats.stats(g.key) %}
                                 {% if stat and stat.stat_use > most_used.count %}
                                     {% set most_used.gear = g %}
@@ -170,7 +237,7 @@
                                 </div>
                             </div>
                             {% set total_distance = namespace(value=0) %}
-                            {% for g in gear.gear.values() %}
+                            {% for g in filtered_gear %}
                                 {% set stat = gear_stats.stats(g.key) %}
                                 {% if stat and stat.stat_meters %}
                                     {% set total_distance.value = total_distance.value + stat.stat_meters %}
@@ -340,6 +407,14 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if filtered_gear|length == 0 %}
+        <div class="card">
+            <div class="card-body text-muted">
+                No gear matches the filter.
             </div>
         </div>
         {% endif %}

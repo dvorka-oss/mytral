@@ -224,6 +224,65 @@ def _entity_photo_service() -> EntityPhotoService:
 #
 
 
+def _filter_and_sort_gear(
+    gear_items: list,
+    gear_stats,
+    filter_activity_type: str,
+    sort_by: str,
+    sort_order: str,
+) -> list:
+    """Filter gear by its default activity type and sort it.
+
+    Parameters
+    ----------
+    gear_items : list
+        Gear items to filter and sort.
+    gear_stats : stats.UserGearStats
+        Gear statistics used by the usage based sort criteria.
+    filter_activity_type : str
+        Activity type key to filter by - empty string means all activity types.
+    sort_by : str
+        Sort criterion - see the sort select in the listing template.
+    sort_order : str
+        Either "asc" or "desc".
+
+    Returns
+    -------
+    list
+        Filtered and sorted gear items.
+    """
+    if filter_activity_type:
+        gear_items = [
+            g for g in gear_items if g.activity_type_key == filter_activity_type
+        ]
+
+    def stat_of(gear_item, attribute: str, default):
+        stat = gear_stats.stats(gear_item.key)
+        return getattr(stat, attribute) if stat else default
+
+    match sort_by:
+        case "name":
+            gear_items = sorted(gear_items, key=lambda g: g.name or "")
+        case "activity_type":
+            gear_items = sorted(gear_items, key=lambda g: g.activity_type_key or "")
+        case "purchased":
+            gear_items = sorted(gear_items, key=lambda g: g.purchased or "")
+        case "usage":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_use", 0))
+        case "distance":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_meters", 0))
+        case "duration":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_seconds", 0))
+        case "tcoo":
+            gear_items = sorted(gear_items, key=lambda g: g.tcoo_base + g.tcoo_cost)
+        case _:  # last used
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_to", ""))
+
+    if sort_order == "asc":
+        return list(gear_items)
+    return list(reversed(gear_items))
+
+
 @flask_app.route(f"/settings/{ENTITIES}", methods=["GET", "POST"])
 def settings_gear_list():
     """List gear:
@@ -273,13 +332,40 @@ def settings_gear_list():
         )
         gear.gear_by_key = dict(sorted_items)
 
+        # get filter and sort parameters from query string
+        filter_activity_type = flask.request.args.get("activity_type", "")
+        sort_by = flask.request.args.get("sort", "used")
+        sort_order = flask.request.args.get("order", "desc")
+
         # split gear into active and retired lists for separate tables
-        active_gear = [g for g in gear.gear_by_key.values() if not g.retired]
-        retired_gear = [g for g in gear.gear_by_key.values() if g.retired]
+        active_gear = _filter_and_sort_gear(
+            [g for g in gear.gear_by_key.values() if not g.retired],
+            gear_stats,
+            filter_activity_type,
+            sort_by,
+            sort_order,
+        )
+        retired_gear = _filter_and_sort_gear(
+            [g for g in gear.gear_by_key.values() if g.retired],
+            gear_stats,
+            filter_activity_type,
+            sort_by,
+            sort_order,
+        )
 
         activity_types = ds.list_activity_types(user_id)
 
+        # filter options are built from all the gear so that they never disappear
+        unique_activity_types = sorted(
+            {
+                g.activity_type_key
+                for g in gear.gear_by_key.values()
+                if g.activity_type_key
+            }
+        )
+
         aspect_arg = flask.request.args.get("aspect")
+        script, div = "", ""
         if aspect_arg:  # chart
             script, div = charts.gear_in_time(
                 user_gear=gear,
@@ -287,29 +373,24 @@ def settings_gear_list():
                 is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
             )
 
-            return flask.render_template(
-                JinjaTemplates.LIST,
-                ff=ff,
-                user_profile=ds.profile(user_id),
-                gear=gear,
-                gear_stats=gear_stats,
-                activity_types=activity_types,
-                active_gear=active_gear,
-                retired_gear=retired_gear,
-                script=script,
-                div=div,
-            )
-        else:  # list
-            return flask.render_template(
-                JinjaTemplates.LIST,
-                ff=ff,
-                user_profile=ds.profile(user_id),
-                gear=gear,
-                gear_stats=gear_stats,
-                activity_types=activity_types,
-                active_gear=active_gear,
-                retired_gear=retired_gear,
-            )
+        return flask.render_template(
+            JinjaTemplates.LIST,
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            gear=gear,
+            gear_stats=gear_stats,
+            activity_types=activity_types,
+            active_gear=active_gear,
+            retired_gear=retired_gear,
+            filtered_gear=active_gear + retired_gear,
+            unique_activity_types=unique_activity_types,
+            filter_activity_type=filter_activity_type,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            aspect=aspect_arg or "",
+            script=script,
+            div=div,
+        )
 
     else:
         flask.flash(

@@ -9,14 +9,17 @@ This MyTraL **minor** release brings:
   official Polar AccessLink API and backfill full history from the Polar
   "Download your data" (GDPR) export ZIP. The export import brings in complete
   per-second recordings.
-- Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
-  card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
-  top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
-  and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
-  full Everests.
+- Added filtering and sorting to the gear listing. Gear can be filtered by its default
+  activity type and sorted by last used, name, default activity type, purchase date,
+  usage, distance, time or TCoO in ascending or descending order. The summary cards
+  reflect the filtered gear and the selection is preserved when switching between the
+  list and the chart view.
 - Added schema headers to `winget` manifests.
 
 ### Changed
+- The gear component `Cost` mini-card now shows the component total cost of ownership -
+  the base cost plus the cost of all its service history entries - together with the
+  cost per kilometer. A tooltip shows the base cost and the number of services.
 - Polar Precision Performance import now reuses the heart-rate time series parsed by
   the import plugin when building recordings, instead of reading and parsing every
   `.hrm` file a second time in the worker process.

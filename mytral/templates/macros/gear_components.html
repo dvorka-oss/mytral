@@ -51,14 +51,16 @@
 
 {# Stats mini-cards row for a component.
    Active components get 4 cards (Cost, Installed, Usage, Service Interval).
-   Retired components get 3 cards (Cost, Installed, Usage at Retirement). #}
-{% macro comp_stats_cards(comp, is_retired=False) %}
+   Retired components get 3 cards (Cost, Installed, Usage at Retirement).
+   Cost is the component TCoO: base cost plus all its service costs. #}
+{% macro comp_stats_cards(comp, gear, is_retired=False) %}
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-3">
         <div class="card card-sm">
             <div class="card-body">
-                <div class="subheader">Cost</div>
-                <div class="h3 mb-0">🪙{{ "{:0,.0f}".format(comp.cost) }}</div>
+                <div class="subheader" data-bs-toggle="tooltip" data-bs-placement="top" title="Base cost {{ "{:0,.0f}".format(comp.cost) }} + {{ gear.component_history.get(comp.key, [])|length }} service(s)">Cost (TCoO)</div>
+                <div class="h3 mb-0">&#x1FA99;{{ "{:0,.0f}".format(gear.component_tcoo(comp.key)) }}</div>
+                <small class="text-muted">&#x1FA99;{{ "%.2f"|format(gear.component_tcoo_per_km(comp.key)) }} / km</small>
             </div>
         </div>
     </div>
@@ -267,7 +269,7 @@
         </div>
     </div>
     <div class="card-body">
-        {{ comp_stats_cards(comp, is_retired=True) }}
+        {{ comp_stats_cards(comp, gear, is_retired=True) }}
         {% if gear.component_history.get(comp.key) %}
         <h4 class="subheader mb-2">Service History</h4>
         <div class="table-responsive">

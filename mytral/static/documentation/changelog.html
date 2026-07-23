@@ -211,23 +211,22 @@
 <p>This MyTraL <strong>minor</strong> release brings:</p>
 <h3 id="added">Added</h3>
 <ul>
-<li>Added a Polar Flow integration: sync new training from Polar Flow
-  (flow.polar.com) via the official Polar AccessLink API (transaction model, no
-  duplicates), and backfill full history from the Polar "Download your data"
-  (GDPR) export ZIP. The export import brings in complete per-second recordings -
-  heart rate, cadence, altitude, speed, power and the GPS track - so activities
-  get their charts and maps, not just summaries. See <code>POLAR_FLOW.md</code> for the
-  design and setup steps. This is separate from the existing Polar Precision
-  Performance (.hrm/.pdd) import.</li>
-<li>Added redesigned, sport-aware Everesting experience on the dashboard. A new Everesting
-  card tracks how much of Mt. Everest (8848 m of climbing) you have accumulated for your
-  top climbing sport, with a Day/Week/Month/Year toggle, a filling mountain silhouette,
-  and a summit ETA. A companion "Vertical to space" card shows your lifetime climbing as
-  full Everests.</li>
+<li>Added a Polar Flow integration: sync new training from Polar Flow via the
+  official Polar AccessLink API and backfill full history from the Polar
+  "Download your data" (GDPR) export ZIP. The export import brings in complete
+  per-second recordings.</li>
+<li>Added filtering and sorting to the gear listing. Gear can be filtered by its default
+  activity type and sorted by last used, name, default activity type, purchase date,
+  usage, distance, time or TCoO in ascending or descending order. The summary cards
+  reflect the filtered gear and the selection is preserved when switching between the
+  list and the chart view.</li>
 <li>Added schema headers to <code>winget</code> manifests.</li>
 </ul>
 <h3 id="changed">Changed</h3>
 <ul>
+<li>The gear component <code>Cost</code> mini-card now shows the component total cost of ownership -
+  the base cost plus the cost of all its service history entries - together with the
+  cost per kilometer. A tooltip shows the base cost and the number of services.</li>
 <li>Polar Precision Performance import now reuses the heart-rate time series parsed by
   the import plugin when building recordings, instead of reading and parsing every
   <code>.hrm</code> file a second time in the worker process.</li>

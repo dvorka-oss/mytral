@@ -343,6 +343,7 @@ run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data w/
 run-production: .venv ## run MyTraL server w/ PRODUCTION data
 	MYTRAL_DEBUG=true \
 	MYTRAL_DATA_DIR=$(USER_HOME)/.local/share/mytral \
+	MYTRAL_INCARNATION=DESKTOP \
 	uv run python -m mytral.run
 
 .PHONY: run-demo
