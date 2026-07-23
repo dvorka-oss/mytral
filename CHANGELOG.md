@@ -8,6 +8,9 @@ This MyTraL **minor** release brings:
 - Added schema headers to `winget` manifests.
 
 ### Changed
+- The gear component `Cost` mini-card now shows the component total cost of ownership -
+  the base cost plus the cost of all its service history entries - together with the
+  cost per kilometer. A tooltip shows the base cost and the number of services.
 - Polar Precision Performance import now reuses the heart-rate time series parsed by
   the import plugin when building recordings, instead of reading and parsing every
   `.hrm` file a second time in the worker process.

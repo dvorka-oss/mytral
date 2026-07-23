@@ -1742,6 +1742,44 @@ class Gear:
         """
         return self.tcoo_base + self.tcoo_cost + self.tcoo_additional
 
+    def component_tcoo(self, component_key: str) -> float:
+        """Calculate total cost of ownership of a single component.
+
+        Parameters
+        ----------
+        component_key : str
+            Key of the component.
+
+        Returns
+        -------
+        float
+            Component base cost plus the cost of all its service history entries.
+        """
+        component = self._comp_by_key.get(component_key)
+        total_cost = component.get("cost", 0.0) if component else 0.0
+        for entry in self.component_history.get(component_key, []):
+            total_cost += entry.get("cost", 0.0)
+        return total_cost
+
+    def component_tcoo_per_km(self, component_key: str) -> float:
+        """Calculate total cost of ownership of a component per kilometer.
+
+        Parameters
+        ----------
+        component_key : str
+            Key of the component.
+
+        Returns
+        -------
+        float
+            Cost per kilometer, 0.0 when the component has no usage yet.
+        """
+        component = self._comp_by_key.get(component_key)
+        distance_km = component.get("distance_meters", 0) / 1000.0 if component else 0.0
+        if not distance_km:
+            return 0.0
+        return self.component_tcoo(component_key) / distance_km
+
     def recalculate_tcoo(self) -> None:
         """Recalculate maintenance cost from all components and service history."""
         total_cost = 0.0
