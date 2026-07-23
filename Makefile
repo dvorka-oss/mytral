@@ -59,7 +59,7 @@
 #  - pip, virtualenv, twine, ... replacement
 #  - https://docs.astral.sh/uv/
 # ruff (via uv):
-#  - fast er and formatter (Rust)
+#  - fast linter and formatter (Rust)
 #  - flake8, black, isort, ... replacement
 #  - pyproject.toml configuration driven
 #  - https://docs.astral.sh/ruff/
