@@ -52,6 +52,53 @@ from mytral.recordings.models import RecordingData
 _ESPEED_HALF_WINDOW = 12
 
 
+def lists_to_parquet(
+    *,
+    ts_unix_ms: list[int],
+    hr: list[int | None],
+    speed: list[float | None],
+    cadence: list[int | None],
+    altitude: list[float | None],
+    lat: list[float | None],
+    lon: list[float | None],
+    power: list[float | None],
+    source_format: str,
+) -> bytes:
+    """Build canonical recording Parquet bytes from aligned per-sample lists.
+
+    Shared builder for sources that already hold parsed timeseries (rather than a
+    file to parse), so the canonical schema lives in one place. The ``has_*`` flags
+    are derived from whether each channel carries any value.
+    """
+    n = len(ts_unix_ms)
+    has_speed = any(v is not None for v in speed)
+    has_cadence = any(v is not None for v in cadence)
+    has_altitude = any(v is not None for v in altitude)
+    has_gps = any(v is not None for v in lat)
+    has_power = any(v is not None for v in power)
+    df = polars.DataFrame(
+        {
+            "ts_unix_ms": polars.Series(ts_unix_ms, dtype=polars.Int64),
+            "hr": polars.Series(hr, dtype=polars.Int32),
+            "speed": polars.Series(speed, dtype=polars.Float64),
+            "cadence": polars.Series(cadence, dtype=polars.Int32),
+            "altitude": polars.Series(altitude, dtype=polars.Float64),
+            "lat": polars.Series(lat, dtype=polars.Float64),
+            "lon": polars.Series(lon, dtype=polars.Float64),
+            "power": polars.Series(power, dtype=polars.Float64),
+            "has_speed": polars.Series([has_speed] * n, dtype=polars.Boolean),
+            "has_cadence": polars.Series([has_cadence] * n, dtype=polars.Boolean),
+            "has_altitude": polars.Series([has_altitude] * n, dtype=polars.Boolean),
+            "has_gps": polars.Series([has_gps] * n, dtype=polars.Boolean),
+            "has_power": polars.Series([has_power] * n, dtype=polars.Boolean),
+            "source_format": polars.Series([source_format] * n, dtype=polars.Utf8),
+        }
+    )
+    buf = io.BytesIO()
+    df.write_parquet(buf)
+    return buf.getvalue()
+
+
 def fit_to_parquet(fit_data: bytes) -> bytes:
     """Parse FIT bytes and return canonical Parquet bytes.
 

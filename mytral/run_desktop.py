@@ -101,6 +101,7 @@ from mytral.blueprints import import_uri_space
 from mytral.blueprints import lap_types_crud
 from mytral.blueprints import maps_uri_space
 from mytral.blueprints import outfit_crud
+from mytral.blueprints import polar_flow_uri_space
 from mytral.blueprints import strava_api_uri_space
 from mytral.blueprints import symptom_types_crud
 from mytral.blueprints import tabpfn_uri_space
@@ -250,6 +251,7 @@ MyTraL: My Trailing Log - Desktop Edition
         lap_types_crud,
         maps_uri_space,
         outfit_crud,
+        polar_flow_uri_space,
         strava_api_uri_space,
         symptom_types_crud,
         tabpfn_uri_space,

@@ -1,0 +1,23 @@
+{
+    "identifier": {"id": "9000000002"},
+    "startTime": "2025-03-15T07:00:00.000",
+    "stopTime": "2025-03-15T08:00:00.000",
+    "timezoneOffsetMinutes": 60,
+    "durationMillis": 3600000,
+    "distanceMeters": 8000.0,
+    "calories": 300,
+    "hrAvg": 120,
+    "hrMax": 150,
+    "sport": {"id": "777"},
+    "exercises": [
+        {
+            "identifier": {"id": "9000000002"},
+            "startTime": "2025-03-15T07:00:00.000",
+            "durationMillis": 3600000,
+            "distanceMeters": 8000.0,
+            "calories": 300,
+            "ascentMeters": 50.0,
+            "sport": {"id": "777"}
+        }
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "identifier": {"id": "5000000001"},
+    "startTime": "2019-06-09T10:00:00.000",
+    "stopTime": "2019-06-09T10:30:30.000",
+    "name": "Run",
+    "timezoneOffsetMinutes": 120,
+    "durationMillis": 1830000,
+    "distanceMeters": 5141.89990234375,
+    "calories": 350,
+    "hrAvg": 155,
+    "hrMax": 180,
+    "ascentMeters": 30.0,
+    "sport": {"id": "1"},
+    "exercises": []
+}

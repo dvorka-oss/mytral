@@ -5,6 +5,10 @@
 This MyTraL **minor** release brings:
 
 ### Added
+- Added a Polar Flow integration: sync new training from Polar Flow via the
+  official Polar AccessLink API and backfill full history from the Polar
+  "Download your data" (GDPR) export ZIP. The export import brings in complete
+  per-second recordings.
 - Added filtering and sorting to the gear listing. Gear can be filtered by its default
   activity type and sorted by last used, name, default activity type, purchase date,
   usage, distance, time or TCoO in ascending or descending order. The summary cards

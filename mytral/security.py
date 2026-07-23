@@ -155,50 +155,80 @@ def verify_password(plain: str, stored_hash: str) -> bool:
 
 
 #
-# Strava security
+# profile secret encryption at rest
 #
 
 
-def decrypt_strava_secrets(profile_dict: dict, enc_key: str) -> None:
-    """Decrypt encrypted Strava client secrets in a profile dict (in-place).
-
-    Reads ``client_id_enc`` / ``client_secret_enc`` and writes the decrypted
-    values back as ``client_id`` / ``client_secret`` so the rest of the code
-    can use plain-text values transparently.  Falls back to any existing
-    plain-text values for backward-compatibility (migration path).
-    """
-    strava = profile_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    for enc_field, plain_field in (
-        (settings.UserProfile.KEY_CLIENT_ID_ENC, settings.UserProfile.KEY_CLIENT_ID),
+# provider secrets persisted in the user profile: for each provider sub-dict, the
+# (plain-text field, encrypted field) pairs that must never reach disk in clear.
+# adding a provider is one entry here - the encrypt/decrypt helpers are generic.
+_PROFILE_SECRET_GROUPS: tuple[tuple[str, tuple[tuple[str, str], ...]], ...] = (
+    (
+        settings.UserProfile.KEY_STRAVA,
         (
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-            settings.UserProfile.KEY_CLIENT_SECRET,
+            (
+                settings.UserProfile.KEY_CLIENT_ID,
+                settings.UserProfile.KEY_CLIENT_ID_ENC,
+            ),
+            (
+                settings.UserProfile.KEY_CLIENT_SECRET,
+                settings.UserProfile.KEY_CLIENT_SECRET_ENC,
+            ),
         ),
-    ):
-        enc_val = strava.get(enc_field, "")
-        if enc_val:
+    ),
+    (
+        settings.UserProfile.KEY_POLAR_FLOW,
+        (
+            (
+                settings.UserProfile.KEY_CLIENT_ID,
+                settings.UserProfile.KEY_CLIENT_ID_ENC,
+            ),
+            (
+                settings.UserProfile.KEY_CLIENT_SECRET,
+                settings.UserProfile.KEY_CLIENT_SECRET_ENC,
+            ),
+            (
+                settings.UserProfile.KEY_ACCESS_TOKEN,
+                settings.UserProfile.KEY_ACCESS_TOKEN_ENC,
+            ),
+        ),
+    ),
+)
+
+
+def encrypt_profile_secrets(data_dict: dict, enc_key: str) -> None:
+    """Encrypt provider secrets in a profile serialisation dict (in-place).
+
+    For every provider sub-dict, reads each plain-text secret, writes an
+    encrypted copy under its ``*_enc`` key, and removes the plain-text key so
+    secrets are never written to disk.
+    """
+    for group_key, field_pairs in _PROFILE_SECRET_GROUPS:
+        group = data_dict.get(group_key)
+        if not isinstance(group, dict):
+            continue
+        for plain_field, enc_field in field_pairs:
+            plain_val = group.pop(plain_field, "")
+            group[enc_field] = encrypt(plain_val, enc_key) if plain_val else ""
+
+
+def decrypt_profile_secrets(profile_dict: dict, enc_key: str) -> None:
+    """Decrypt provider secrets in a profile dict (in-place).
+
+    Reads each ``*_enc`` field and writes the decrypted value back under its
+    plain-text key so the rest of the code uses plain-text values transparently.
+    Falls back to any existing plain-text value (pre-encryption migration path).
+    """
+    for group_key, field_pairs in _PROFILE_SECRET_GROUPS:
+        group = profile_dict.get(group_key)
+        if not isinstance(group, dict):
+            continue
+        for plain_field, enc_field in field_pairs:
+            enc_val = group.get(enc_field, "")
+            if not enc_val:
+                continue
             try:
-                strava[plain_field] = decrypt(enc_val, enc_key)
+                group[plain_field] = decrypt(enc_val, enc_key)
             except ValueError:
-                # key mismatch or corrupt value – fall back to whatever is stored
+                # key mismatch or corrupt value - fall back to whatever is stored
                 pass
-
-
-def encrypt_strava_secrets(data_dict: dict, enc_key: str) -> None:
-    """Encrypt Strava client secrets in a serialisation dict (in-place).
-
-    Reads plain-text ``client_id`` / ``client_secret`` from the ``strava``
-    sub-dict, writes encrypted copies under ``client_id_enc`` /
-    ``client_secret_enc``, and removes the plain-text keys so they are never
-    written to disk.
-    """
-    strava = data_dict.get(settings.UserProfile.KEY_STRAVA, {})
-    for plain_field, enc_field in (
-        (settings.UserProfile.KEY_CLIENT_ID, settings.UserProfile.KEY_CLIENT_ID_ENC),
-        (
-            settings.UserProfile.KEY_CLIENT_SECRET,
-            settings.UserProfile.KEY_CLIENT_SECRET_ENC,
-        ),
-    ):
-        plain_val = strava.pop(plain_field, "")
-        strava[enc_field] = encrypt(plain_val, enc_key) if plain_val else ""
