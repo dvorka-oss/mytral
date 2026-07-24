@@ -35,6 +35,11 @@ This MyTraL **minor** release brings:
 - Fixed Polar PPP import log messages showing the raw `{self._log_name}` placeholder
   instead of the plugin name.
 - Removed unused Polar gear service constants.
+- Fixed Strava gear from an activity synchronization not being linked to the matching
+  MyTraL gear when several items share the same brand - the gear is now resolved to the
+  best-matching entry and its Strava gear ID is registered, instead of being left as an
+  unresolved `strava-gear-id:...` placeholder. Each gear also gained an Advanced page
+  showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
 
 ### Documentation
 - .
