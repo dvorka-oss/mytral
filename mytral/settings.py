@@ -1915,6 +1915,15 @@ class UserGear:
 
     SERVICE_STRAVA = "strava"
     SERVICE_GARMIN_CONNECT = "garmin_connect"
+    SERVICE_POLAR = "polar"
+
+    # external services gear can be mapped to - single source of truth used by
+    # the gear detail "Advanced" mapping card (service key -> display label)
+    SERVICES = (
+        (SERVICE_STRAVA, "Strava"),
+        (SERVICE_GARMIN_CONNECT, "Garmin Connect"),
+        (SERVICE_POLAR, "Polar"),
+    )
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":

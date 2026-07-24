@@ -104,6 +104,41 @@ def _name_exact_match(strava_item: dict, gear: settings.Gear) -> bool:
     return bool(s_name or s_nick) and (s_name == g_name or s_nick == g_name)
 
 
+def _pick_fuzzy_match(
+    strava_item: dict, candidates: list[tuple[settings.Gear, int]]
+) -> settings.Gear | None:
+    """Select the single best-matching MyTraL gear for a Strava gear item.
+
+    Owning several items of the same brand makes brand-only scores collide, so a
+    plain "more than one candidate -> ambiguous" rule would wrongly skip a clear
+    winner (e.g. Speedcross 6 vs Speedcross 5).  Prefer the candidate with the
+    unique highest score; only when the top score is tied fall back to an exact
+    display-name match.
+
+    Parameters
+    ----------
+    strava_item : dict
+        Strava gear JSON dict.
+    candidates : list[tuple[Gear, int]]
+        Gear entries that reached the minimum score, paired with their scores.
+
+    Returns
+    -------
+    Gear | None
+        The best match, or None when the choice stays genuinely ambiguous.
+    """
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0][0]
+    top_score = max(score for _, score in candidates)
+    top = [gear for gear, score in candidates if score == top_score]
+    if len(top) == 1:
+        return top[0]
+    exact = [gear for gear in top if _name_exact_match(strava_item, gear)]
+    return exact[0] if len(exact) == 1 else None
+
+
 class StravaGearSyncTask(tasks.TaskBase):
     """Smart-merges Strava gear into the MyTraL gear registry.
 
@@ -441,12 +476,13 @@ def run_gear_sync_and_relink(
             log_fn(f"Updated gear '{matched_gear.name}' (strava_id={strava_id})")
             continue
 
-        # phase 2: fuzzy match by brand+model+name
+        # phase 2: fuzzy match by brand+model+name; the unique best score wins,
+        # so owning several items of one brand no longer forces a false ambiguity
         scores = [(g, _score_match(strava_item, g)) for g in mytral_gears]
         candidates = [(g, s) for g, s in scores if s >= 3]
+        matched_gear = _pick_fuzzy_match(strava_item, candidates)
 
-        if len(candidates) == 1:
-            matched_gear = candidates[0][0]
+        if matched_gear is not None:
             matched_gear.set_external_id("strava", strava_id)
             _update_gear_from_strava(matched_gear, strava_item)
             dataset.update_gear(
@@ -461,33 +497,10 @@ def run_gear_sync_and_relink(
             updated += 1
             log_fn(
                 f"Fuzzy-matched and updated gear '{matched_gear.name}' "
-                f"(score={candidates[0][1]}, strava_id={strava_id})"
+                f"(strava_id={strava_id})"
             )
-        elif len(candidates) > 1:
-            # tiebreaker: resolve by exact display-name match when possible
-            exact_matches = [
-                g for g, _ in candidates if _name_exact_match(strava_item, g)
-            ]
-            if len(exact_matches) == 1:
-                matched_gear = exact_matches[0]
-                matched_gear.set_external_id("strava", strava_id)
-                _update_gear_from_strava(matched_gear, strava_item)
-                dataset.update_gear(
-                    user_id=user_id,
-                    gear=matched_gear,
-                    dataset_name=dataset_name,
-                )
-                strava_id_to_gear[strava_id] = matched_gear
-                strava_id_to_gear[f"{icommons.STRAVA_GEAR_PREFIX_ID}{strava_id}"] = (
-                    matched_gear
-                )
-                updated += 1
-                log_fn(
-                    f"Name-resolved ambiguous match for gear "
-                    f"'{matched_gear.name}' (strava_id={strava_id})"
-                )
-                continue
-
+        elif candidates:
+            # multiple candidates tied at the top score - needs manual resolution
             names = [g.name for g, _ in candidates]
             log_fn(
                 f"Ambiguous match for Strava gear '{strava_item.get('name')}' "

@@ -60,6 +60,7 @@ class JinjaTemplates:
     GET = f"{_PREFIX}get.html"
     UPDATE = f"{_PREFIX}update.html"
     DELETE = f"{_PREFIX}delete.html"
+    ADVANCED = f"{_PREFIX}advanced.html"
 
 
 #
@@ -511,6 +512,36 @@ def settings_gear_get(key: str):
         upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
         delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
         highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
+    )
+
+
+@flask_app.route(f"/settings/{ENTITIES}/<key>/advanced", methods=["GET"])
+def settings_gear_advanced(key: str):
+    """View advanced gear details: external service gear-ID mapping for debugging."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    try:
+        dataset_name = ds.profile(user_id).dataset_name
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} view error - unable to get {NAME_ENTITY.lower()} "
+                f"with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+
+    return flask.render_template(
+        JinjaTemplates.ADVANCED,
+        ff=ff,
+        user_profile=ds.profile(user_id),
+        key=key,
+        gear=entity,
+        gear_services=user_settings.UserGear.SERVICES,
     )
 
 
