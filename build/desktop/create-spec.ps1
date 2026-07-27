@@ -64,7 +64,7 @@ try:
 except Exception:
     pass
 
-# psutil: C extension required by flaskwebgui — must use collect_all
+# psutil: C extension required by flaskwebgui - must use collect_all
 psutil_datas, psutil_binaries, psutil_hidden = collect_all('psutil')
 mytral_datas += psutil_datas
 extra_binaries = psutil_binaries

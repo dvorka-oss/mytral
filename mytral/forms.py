@@ -191,7 +191,7 @@ class ProfileForm(flask_wtf.FlaskForm):
         validators=[],
         default=(
             "Consistent hard work, day after day, week after week, year after year. "
-            "No magic bullets, no shortcuts. — JoshCox"
+            "No magic bullets, no shortcuts. -- JoshCox"
         ),
     )
 
@@ -268,7 +268,7 @@ class UpdateProfileForm(flask_wtf.FlaskForm):
         validators=[],
         default=(
             "Consistent hard work, day after day, week after week, year after year. "
-            "No magic bullets, no shortcuts. — JoshCox"
+            "No magic bullets, no shortcuts. - JoshCox"
         ),
     )
 
@@ -1109,7 +1109,7 @@ class UploadRecordingForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="Recording file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported formats: .fit, .gpx, .hrm — max 64 MiB.",
+        description="Supported formats: .fit, .gpx, .hrm - max 64 MiB.",
     )
     submit = wtforms.SubmitField("Upload Recording")
 
@@ -1120,7 +1120,7 @@ class ImportFitForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="FIT file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .fit — max 64 MiB.",
+        description="Supported format: .fit - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1144,7 +1144,7 @@ class ImportGpxForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="GPX file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .gpx — max 64 MiB.",
+        description="Supported format: .gpx - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1168,7 +1168,7 @@ class ImportTcxForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="TCX file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .tcx — max 64 MiB.",
+        description="Supported format: .tcx - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1349,7 +1349,7 @@ class UploadActivityPhotosForm(flask_wtf.FlaskForm):
         label="Photos",
         validators=[flask_wtf.file.FileRequired()],
         description=(
-            "Supported formats: .jpg, .jpeg, .png, .webp — "
+            "Supported formats: .jpg, .jpeg, .png, .webp - "
             "max 25 MiB per photo, up to 50 photos per activity."
         ),
     )
@@ -1600,7 +1600,7 @@ class ImportMytralJsonForm(flask_wtf.FlaskForm):
 class AiProviderForm(flask_wtf.FlaskForm):
     type = wtforms.SelectField(
         choices=[
-            ("ollama", "Ollama (recommended — local, private)"),
+            ("ollama", "Ollama (recommended - local, private)"),
             ("anthropic", "Anthropic (\u26a0 sends data to 3rd party)"),
             ("openai", "OpenAI (\u26a0 sends data to 3rd party)"),
         ]
@@ -1633,7 +1633,7 @@ class UploadAvatarForm(flask_wtf.FlaskForm):
         label="Avatar Photo",
         validators=[flask_wtf.file.FileRequired()],
         description=(
-            "Supported formats: .jpg, .jpeg, .png, .gif, .webp — max 10 MiB. "
+            "Supported formats: .jpg, .jpeg, .png, .gif, .webp - max 10 MiB. "
             "Photo will be cropped to a square and resized to 200×200 pixels."
         ),
     )
@@ -1747,7 +1747,7 @@ class AthleteMetricsForm(flask_wtf.FlaskForm):
         default=0.0,
     )
 
-    # HR Zones — athlete sets upper boundary of each zone (Z1-Z4).
+    # HR Zones - athlete sets upper boundary of each zone (Z1-Z4).
     # Leave all at 0 to auto-estimate from LTHR.
     # All four must be set (> 0) for athlete values to be used.
     z1_high = wtforms.IntegerField(

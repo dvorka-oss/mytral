@@ -1,5 +1,5 @@
 @echo off
-rem MyTraL Windows build environment — adapt paths to your local installation.
+rem MyTraL Windows build environment - adapt paths to your local installation.
 
 rem Inno Setup 6 compiler (https://jrsoftware.org/isinfo.php)
 rem Default to user-profile install; override with system-wide path if present.

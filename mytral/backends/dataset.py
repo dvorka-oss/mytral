@@ -575,7 +575,7 @@ class UserDataset(abc.ABC):
         Iterates activity records to derive accurate per-interval km and hours
         for every service history entry, and updates ``last_service_km``,
         ``last_service_hours``, ``distance_meters`` and ``time_seconds`` on each
-        component dict. Mutates *gear* in memory only — does NOT persist to disk.
+        component dict. Mutates *gear* in memory only - does NOT persist to disk.
 
         This is the authoritative calculation path. It is immune to stale
         component odometer values caused by bulk-imported activities that
@@ -600,7 +600,7 @@ class UserDataset(abc.ABC):
             install_date = component_dict.get("installed_date", "")
             status = component_dict.get("status", "active")
 
-            # gear km/hours at component install — the zero baseline for this component
+            # gear km/hours at component install - the zero baseline for this component
             if install_date:
                 install_km, install_h = self.gear_km_at_date(
                     user_id, dataset_name, gear.key, install_date

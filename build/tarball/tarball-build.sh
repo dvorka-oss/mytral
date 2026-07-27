@@ -20,7 +20,7 @@
 # MyTraL upstream tarball builder for Linux distribution maintainers.
 #
 # Creates a .tar.gz archive containing only the files needed to build,
-# test, and package MyTraL — no development artifacts, no runtime data.
+# test, and package MyTraL - no development artifacts, no runtime data.
 #
 # Usage:
 #   ./tarball-build.sh              # build tarball from the repo root

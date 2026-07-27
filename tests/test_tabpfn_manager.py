@@ -180,7 +180,7 @@ def test_storage_info_cached(tmp_path: pathlib.Path, monkeypatch):
     """Test storage_info() returns cached=True and correct size when both weight
     dirs exist.
     """
-    # GIVEN — create both clf and reg cache dirs with snapshot files
+    # GIVEN - create both clf and reg cache dirs with snapshot files
     for dir_name in (icl_manager._HF_CACHE_DIR_CLF, icl_manager._HF_CACHE_DIR_REG):
         snapshots_dir = tmp_path / dir_name / "snapshots" / "abc123"
         snapshots_dir.mkdir(parents=True)
@@ -216,7 +216,7 @@ def test_delete_weights_returns_false_when_not_present(
 @pytest.mark.mytral
 def test_delete_weights_removes_directory(tmp_path: pathlib.Path, monkeypatch):
     """Test delete_weights() removes both weight directories and returns True."""
-    # GIVEN — create both clf and reg dirs
+    # GIVEN - create both clf and reg dirs
     for dir_name in (icl_manager._HF_CACHE_DIR_CLF, icl_manager._HF_CACHE_DIR_REG):
         weights_dir = tmp_path / dir_name
         weights_dir.mkdir()
@@ -239,7 +239,7 @@ def test_is_tabpfn_installed_returns_false_when_sklearn_missing(monkeypatch):
     """Test is_tabpfn_installed() returns False when sklearn is not importable."""
     import importlib
 
-    # GIVEN — tabpfn finds a spec but sklearn does not
+    # GIVEN - tabpfn finds a spec but sklearn does not
     real_find_spec = importlib.util.find_spec
 
     def patched_find_spec(name):
@@ -278,7 +278,7 @@ def test_is_download_in_progress_returns_current_flag():
 def test_tabpfn_download_task_aborts_when_not_installed(monkeypatch):
     """Test TabPFNDownloadTask raises RuntimeError when tabpfn is not installed."""
 
-    # GIVEN — tabpfn not installed, no weights cached
+    # GIVEN - tabpfn not installed, no weights cached
     monkeypatch.setattr(icl_manager, "is_weights_cached", lambda: False)
     monkeypatch.setattr(icl_manager, "is_download_in_progress", lambda: False)
     monkeypatch.setattr(icl_manager, "is_tabpfn_installed", lambda: False)
@@ -315,7 +315,7 @@ def test_tabpfn_download_task_aborts_when_not_installed(monkeypatch):
 @pytest.mark.mytral
 def test_tabpfn_download_task_skips_when_weights_cached(monkeypatch):
     """Test TabPFNDownloadTask completes early when weights already cached."""
-    # GIVEN — tabpfn installed and weights already present
+    # GIVEN - tabpfn installed and weights already present
     monkeypatch.setattr(icl_manager, "is_tabpfn_installed", lambda: True)
     monkeypatch.setattr(icl_manager, "is_weights_cached", lambda: True)
 
@@ -343,7 +343,7 @@ def test_tabpfn_download_task_skips_when_weights_cached(monkeypatch):
     )
     task.execute()
 
-    # THEN — completes at 100% without error
+    # THEN - completes at 100% without error
     assert task_entity.progress == 100
     print("DONE: TabPFNDownloadTask exits early when weights already cached")
 
@@ -353,7 +353,7 @@ def test_is_weights_cached_false_when_snapshots_empty(
     tmp_path: pathlib.Path, monkeypatch
 ):
     """Test is_weights_cached() returns False when snapshots dir is empty."""
-    # GIVEN — only clf dir exists with empty snapshots; reg dir absent
+    # GIVEN - only clf dir exists with empty snapshots; reg dir absent
     weights_dir = tmp_path / icl_manager._HF_CACHE_DIR_CLF
     snapshots_dir = weights_dir / "snapshots"
     snapshots_dir.mkdir(parents=True)
@@ -373,7 +373,7 @@ def test_is_weights_cached_true_when_snapshot_exists(
     tmp_path: pathlib.Path, monkeypatch
 ):
     """Test is_weights_cached() returns True when both snapshot dirs exist."""
-    # GIVEN — create both clf and reg dirs with snapshot content
+    # GIVEN - create both clf and reg dirs with snapshot content
     for dir_name in (icl_manager._HF_CACHE_DIR_CLF, icl_manager._HF_CACHE_DIR_REG):
         snapshot_dir = tmp_path / dir_name / "snapshots" / "v1"
         snapshot_dir.mkdir(parents=True)

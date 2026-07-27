@@ -1356,7 +1356,7 @@ def tasks_list():
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
 
-    # validate result_route endpoints — stale routes from deleted pages
+    # validate result_route endpoints - stale routes from deleted pages
     # would cause BuildError when the template tries url_for()
     view_functions = set(flask.current_app.view_functions.keys())
     for t in all_tasks:
@@ -1858,7 +1858,7 @@ def athlete_metrics_update():
             if invalid_fields:
                 flask.flash(
                     message=(
-                        f"Invalid metrics data — please fix: "
+                        f"Invalid metrics data - please fix: "
                         f"{', '.join(invalid_fields)}"
                     ),
                     category="error",
@@ -3752,7 +3752,7 @@ def sync_strava_activity(key):
     try:
         app_task_manager.executor.submit(task)
         flask.flash(
-            "Strava activity sync started — check Tasks for progress.", "success"
+            "Strava activity sync started - check Tasks for progress.", "success"
         )
     except Exception as exc:
         flask.flash(f"Could not start sync: {exc}", "danger")

@@ -32,7 +32,7 @@ class IclSickPredictor:
 
     Uses recent activity history as training context and predicts the
     probability of illness for the current day.  No separate training step is
-    required — TabPFN operates as a pure in-context learner.
+    required - TabPFN operates as a pure in-context learner.
 
     The predictor silently falls back to ``None`` when:
 

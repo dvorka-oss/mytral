@@ -830,7 +830,7 @@ class MytralPersistenceFsConfig:
     DIR_TASKS = "tasks"
     FILENAME_CFG = "config.json"
 
-    # class-level migration cache — survives across instances
+    # class-level migration cache - survives across instances
     _migrate_cache: bool | None = None
     _cached_data_spec_version: str | None = None
 

@@ -29,8 +29,8 @@ class BlobStoreAbc(abc.ABC):
     .. warning::
         This layer does **not** enforce authorization.  Every method accepts a
         ``user_id`` parameter that scopes the lookup, but it trusts the caller
-        to supply the correct value.  Authorization — verifying that the
-        requesting user owns the resource — is the responsibility of the
+        to supply the correct value.  Authorization - verifying that the
+        requesting user owns the resource - is the responsibility of the
         **service layer** (``ActivityBlobService``).  Any mistake at that
         boundary is a potential confidentiality breach.
     """

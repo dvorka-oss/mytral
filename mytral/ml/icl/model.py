@@ -33,7 +33,7 @@ class IclModel:
     """Thin scikit-learn-compatible wrapper around TabPFN v2.
 
     Uses the Apache 2.0 licensed v2 weights only.  The TabPFN v2 model
-    receives the entire training context in a single forward pass — there is
+    receives the entire training context in a single forward pass - there is
     no separate ``fit`` step needed by callers.
 
     Attributes

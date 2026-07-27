@@ -148,7 +148,7 @@ def test_activity_entity_cadence_asdict():
 def test_activity_entity_cadence_backward_compat_no_cadence_key():
     """Loading JSON without cadence keys falls back to default zero values."""
     #
-    # GIVEN — simulate old JSON dict without cadence fields
+    # GIVEN - simulate old JSON dict without cadence fields
     #
     old_dict: dict = {
         "key": "old-activity-1",
@@ -227,7 +227,7 @@ def test_activity_entity_cadence_backward_compat_no_cadence_key():
 def test_strava_import_cadence_field_mapping():
     """Strava dataset_item 'average_cadence' is mapped to entity.avg_cadence."""
     #
-    # GIVEN — verify that the field mapping is present in the integration code
+    # GIVEN - verify that the field mapping is present in the integration code
     #
     import inspect
 
@@ -252,7 +252,7 @@ def test_strava_import_cadence_field_mapping():
 def test_concept2_import_cadence_field_mapping():
     """Concept2 import maps 'Stroke Rate/Cadence' column to entity.avg_cadence."""
     #
-    # GIVEN — verify that the field mapping is present in the integration code
+    # GIVEN - verify that the field mapping is present in the integration code
     #
     import inspect
 

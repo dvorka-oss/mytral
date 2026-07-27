@@ -76,7 +76,7 @@ def save(canvas, name):
         print(f"  {name}.png  {sz//1024} KB")
 
 #
-# Banner: Train Smarter — athletic, purple-to-crimson, radar science
+# Banner: Train Smarter - athletic, purple-to-crimson, radar science
 #
 def banner3_train_smarter():
     canvas = hgrad3((14, 10, 44), (48, 14, 84), (128, 24, 44))
@@ -184,7 +184,7 @@ def banner3_train_smarter_web():
     canvas.paste(logo, (88, 50), logo)
     draw = ImageDraw.Draw(canvas)
 
-    # white headline, primary-blue second line — mirrors hero gradient direction
+    # white headline, primary-blue second line - mirrors hero gradient direction
     t(draw, "Train Smarter.", 88, 158, FONT_BOLD, 100, (255, 255, 255, 255))
     t(draw, "Not Just Harder", 90, 270, FONT_BOLD, 100, (14, 165, 233, 255))
 

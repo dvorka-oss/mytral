@@ -163,7 +163,7 @@ def tool_merge_all_datasets():
 
 @flask_app.route("/app/tools/merge", methods=["GET", "POST"])
 def tools_merge():
-    """Merge & Join — combine activities across datasets."""
+    """Merge & Join - combine activities across datasets."""
     user_id = flask.session.get(COOKIE_USER)
     if not user_id:
         return flask.redirect(flask.url_for("login"))
@@ -352,7 +352,7 @@ def tools_optimize():
     elif flask.request.method == "GET":
         # build activity type choices with usage counts
         # bypass list_activity_types cache which may hold zero-count data from
-        # init_user_cache — _load_activity_types always computes fresh counts
+        # init_user_cache - _load_activity_types always computes fresh counts
         ats = ds._load_activity_types(
             user_id=user_id, dataset_name=user_profile.dataset_name
         )

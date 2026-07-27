@@ -483,10 +483,10 @@ This MyTraL **minor** release brings:
 ### Added
 - ACoaches - AI coaching feature powered by LLM providers:
   - Configure LLM providers: local Ollama, Anthropic Claude,
-    or OpenAI GPT — each with optional API key stored encrypted at rest.
+    or OpenAI GPT - each with optional API key stored encrypted at rest.
   - Define AI coaches with custom names and system prompts (personality, focus area,
     coaching style); built-in out-of-the-box prompt templates to get started quickly.
-  - Persistent multi-turn chat sessions with each coach — full history saved per user.
+  - Persistent multi-turn chat sessions with each coach - full history saved per user.
   - Context-aware responses: coaches automatically receive recent activities, PRs,
     gear, symptoms, and athlete profile as structured context with every message.
   - Streaming responses for real-time token-by-token output in the chat UI.

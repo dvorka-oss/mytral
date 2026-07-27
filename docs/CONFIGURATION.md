@@ -9,7 +9,7 @@ Boolean variables accept the string values `"true"` or `"false"`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `MYTRAL_HOST` | `127.0.0.1` | Bind address for the Flask server. Set to `0.0.0.0` to expose externally — only do this behind a reverse proxy. |
+| `MYTRAL_HOST` | `127.0.0.1` | Bind address for the Flask server. Set to `0.0.0.0` to expose externally - only do this behind a reverse proxy. |
 | `MYTRAL_PORT` | `5000` | Bind port for the application server. |
 | `MYTRAL_CORS_ORIGINS` | `http://localhost:5000` | Comma-separated list of allowed CORS origins, e.g. `https://mytral.fitness,https://www.mytral.fitness`. |
 | `MYTRAL_DEBUG` | `false` | Enable Flask debug mode (development only). Enables verbose error pages and relaxes some security checks. Never set in production. |
@@ -29,7 +29,7 @@ Boolean variables accept the string values `"true"` or `"false"`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `MYTRAL_ENCRYPTION_KEY` | — | Fernet key used to encrypt sensitive configuration values (API keys, tokens). **Required** in production `WEBAPP` deployments — MyTraL refuses to start without it. In `DESKTOP` and `DEBUG` modes a built-in development key is used as a fallback (not secure). Generate with: `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
+| `MYTRAL_ENCRYPTION_KEY` | - | Fernet key used to encrypt sensitive configuration values (API keys, tokens). **Required** in production `WEBAPP` deployments - MyTraL refuses to start without it. In `DESKTOP` and `DEBUG` modes a built-in development key is used as a fallback (not secure). Generate with: `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` |
 | `MYTRAL_SIGNING_KEY` | random (changes on restart) | Flask session signing key. When not set a new random key is generated on every startup, which invalidates all existing sessions. Set to a stable secret for production or any deployment where persistent login sessions are required. |
 
 ### Blob Storage
@@ -38,15 +38,15 @@ Boolean variables accept the string values `"true"` or `"false"`.
 |---|---|---|
 | `MYTRAL_BLOBSTORE_TYPE` | `filesystem` | Storage backend for photos and recordings. One of: `filesystem`, `minio`, `s3`. |
 
-**Filesystem** (default) — blobs stored under `<MYTRAL_DATA_DIR>/blobs/`. No additional variables required.
+**Filesystem** (default) - blobs stored under `<MYTRAL_DATA_DIR>/blobs/`. No additional variables required.
 
 ### AI Providers
 
 | Variable | Default | Description |
 |---|---|---|
-| `MYTRAL_ANTHROPIC_API_KEY` | — | Anthropic API key for Claude-powered AI coaches. |
-| `MYTRAL_OPENAI_API_KEY` | — | OpenAI API key for GPT-powered AI coaches. |
-| `MYTRAL_OLLAMA_KEY` | — | Ollama API key for locally hosted model inference. |
+| `MYTRAL_ANTHROPIC_API_KEY` | - | Anthropic API key for Claude-powered AI coaches. |
+| `MYTRAL_OPENAI_API_KEY` | - | OpenAI API key for GPT-powered AI coaches. |
+| `MYTRAL_OLLAMA_KEY` | - | Ollama API key for locally hosted model inference. |
 
 ### Feature Flags
 

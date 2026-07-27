@@ -146,7 +146,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
                 activity_type_raw
             )
 
-        # start time (FIT timestamp, uint32 — sentinel 0xFFFFFFFF)
+        # start time (FIT timestamp, uint32 - sentinel 0xFFFFFFFF)
         start_ts = message.start_time
         if start_ts is not None and start_ts != _FIT_UINT32_INVALID:
             try:
@@ -156,7 +156,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
             except (ValueError, OSError):
                 pass
 
-        # duration (uint32 — sentinel 0xFFFFFFFF)
+        # duration (uint32 - sentinel 0xFFFFFFFF)
         elapsed = message.total_elapsed_time
         if elapsed is not None and elapsed != _FIT_UINT32_INVALID:
             total_s = int(elapsed)
@@ -164,17 +164,17 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
             summary.minutes = (total_s % 3600) // 60
             summary.seconds = total_s % 60
 
-        # distance in metres (uint32 — sentinel 0xFFFFFFFF)
+        # distance in metres (uint32 - sentinel 0xFFFFFFFF)
         dist = message.total_distance
         if dist is not None and dist != _FIT_UINT32_INVALID:
             summary.distance = int(dist)
 
-        # kcal (uint16 — sentinel 0xFFFF / 65535)
+        # kcal (uint16 - sentinel 0xFFFF / 65535)
         kcal = message.total_calories
         if kcal is not None and kcal != _FIT_UINT16_INVALID:
             summary.kcal = int(kcal)
 
-        # HR (uint8 — sentinel 0xFF / 255)
+        # HR (uint8 - sentinel 0xFF / 255)
         avg_hr = message.avg_heart_rate
         if avg_hr is not None and avg_hr != _FIT_UINT8_INVALID and avg_hr > 0:
             summary.avg_hr = int(avg_hr)
@@ -182,7 +182,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
         if max_hr is not None and max_hr != _FIT_UINT8_INVALID and max_hr > 0:
             summary.max_hr = int(max_hr)
 
-        # cadence (uint8 — sentinel 0xFF / 255)
+        # cadence (uint8 - sentinel 0xFF / 255)
         avg_cad = message.avg_cadence
         if avg_cad is not None and avg_cad != _FIT_UINT8_INVALID and avg_cad > 0:
             summary.avg_cadence = int(avg_cad)
@@ -190,7 +190,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
         if max_cad is not None and max_cad != _FIT_UINT8_INVALID and max_cad > 0:
             summary.max_cadence = int(max_cad)
 
-        # speed in m/s (uint16 — sentinel 0xFFFF / 65535), convert to km/h
+        # speed in m/s (uint16 - sentinel 0xFFFF / 65535), convert to km/h
         avg_spd = message.avg_speed
         if avg_spd is not None and avg_spd != _FIT_UINT16_INVALID and avg_spd > 0:
             summary.avg_speed = round(float(avg_spd) * 3.6, 2)
@@ -198,7 +198,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
         if max_spd is not None and max_spd != _FIT_UINT16_INVALID and max_spd > 0:
             summary.max_speed = round(float(max_spd) * 3.6, 2)
 
-        # power in watts (uint16 — sentinel 0xFFFF / 65535)
+        # power in watts (uint16 - sentinel 0xFFFF / 65535)
         avg_pwr = message.avg_power
         if avg_pwr is not None and avg_pwr != _FIT_UINT16_INVALID and avg_pwr > 0:
             summary.avg_watts = float(avg_pwr)
@@ -206,7 +206,7 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
         if max_pwr is not None and max_pwr != _FIT_UINT16_INVALID and max_pwr > 0:
             summary.max_watts = float(max_pwr)
 
-        # elevation gain in metres (uint16 — sentinel 0xFFFF / 65535)
+        # elevation gain in metres (uint16 - sentinel 0xFFFF / 65535)
         ascent = message.total_ascent
         if ascent is not None and ascent != _FIT_UINT16_INVALID:
             summary.elevation_gain = int(ascent)

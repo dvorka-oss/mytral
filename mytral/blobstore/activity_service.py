@@ -240,7 +240,7 @@ class ActivityBlobService:
                 max_bytes=self._config.blobstore_max_photo_size_bytes,
             )
 
-            # normalize upfront: strip EXIF, auto-rotate, resize — the stored bytes
+            # normalize upfront: strip EXIF, auto-rotate, resize - the stored bytes
             # ARE the normalized version; no separate "original" is kept
             norm_bytes, norm_w, norm_h = self._try_normalize_photo(data, ext)
             stored_w = norm_w or width
@@ -448,7 +448,7 @@ class ActivityBlobService:
 
         Intended to be called just before the activity itself is deleted so
         that no orphaned blob data is left on the storage backend.  Errors per
-        individual blob are silently ignored — the caller should proceed with
+        individual blob are silently ignored - the caller should proceed with
         activity deletion regardless.
 
         Parameters
@@ -502,7 +502,7 @@ class ActivityBlobService:
             try:
                 self._get_activity(user_id, activity_key)
             except BlobValidationError:
-                # activity no longer exists — delete orphan blobs
+                # activity no longer exists - delete orphan blobs
                 try:
                     shutil.rmtree(child, ignore_errors=True)
                     cleaned += 1

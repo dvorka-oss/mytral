@@ -243,6 +243,11 @@
 <li>Fixed Polar PPP import log messages showing the raw <code>{self._log_name}</code> placeholder
   instead of the plugin name.</li>
 <li>Removed unused Polar gear service constants.</li>
+<li>Fixed Strava gear from an activity synchronization not being linked to the matching
+  MyTraL gear when several items share the same brand - the gear is now resolved to the
+  best-matching entry and its Strava gear ID is registered, instead of being left as an
+  unresolved <code>strava-gear-id:...</code> placeholder. Each gear also gained an Advanced page
+  showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
 <ul>
@@ -681,10 +686,10 @@ from hacks, sensitive data and the "sins of my youth."</p>
 <ul>
 <li>ACoaches - AI coaching feature powered by LLM providers:</li>
 <li>Configure LLM providers: local Ollama, Anthropic Claude,
-    or OpenAI GPT — each with optional API key stored encrypted at rest.</li>
+    or OpenAI GPT - each with optional API key stored encrypted at rest.</li>
 <li>Define AI coaches with custom names and system prompts (personality, focus area,
     coaching style); built-in out-of-the-box prompt templates to get started quickly.</li>
-<li>Persistent multi-turn chat sessions with each coach — full history saved per user.</li>
+<li>Persistent multi-turn chat sessions with each coach - full history saved per user.</li>
 <li>Context-aware responses: coaches automatically receive recent activities, PRs,
     gear, symptoms, and athlete profile as structured context with every message.</li>
 <li>Streaming responses for real-time token-by-token output in the chat UI.</li>

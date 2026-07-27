@@ -683,7 +683,7 @@ distro-win-installer: distro-win-clean distro-desktop-build-win  ## build Window
 	.\build\windows\build-win-installer.bat
 
 .PHONY: distro-win-zip
-distro-win-zip: ## package Windows desktop executable into a ZIP archive — run after distro-desktop-build-win
+distro-win-zip: ## package Windows desktop executable into a ZIP archive - run after distro-desktop-build-win
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\windows\build-win-zip.ps1
 
 .PHONY: distro-win-clean
@@ -699,7 +699,7 @@ distro-win-clean: ## clean Windows installer build artifacts
 #   winget CLI:    winget install Microsoft.Winget.Client
 #   gh CLI:        winget install GitHub.cli  (+ gh auth login)
 #
-# Per-release sequence — run AFTER the GitHub release is live:
+# Per-release sequence - run AFTER the GitHub release is live:
 #   make distro-winget-from-release VERSION=x.y.z
 #   make distro-winget-validate     VERSION=x.y.z
 #   make distro-winget-submit-pr    VERSION=x.y.z WINGET_PKGS_DIR=C:\path\to\winget-pkgs

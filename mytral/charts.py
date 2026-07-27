@@ -356,7 +356,7 @@ def me_symptoms_scatter(
 
     # build one ColumnDataSource per symptom for clean legend entries
     year_label = "All Years" if year == 0 else str(year)
-    title = f"Symptom Health Over Time — {year_label}"
+    title = f"Symptom Health Over Time - {year_label}"
 
     width = VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT
 
@@ -427,10 +427,10 @@ def me_symptoms_scatter(
         ]
         health_vals = [inj["health"] for inj in sym_injuries]
         body_parts = [
-            (inj.get("body_part") or "—").replace("_", " ").title()
+            (inj.get("body_part") or "-").replace("_", " ").title()
             for inj in sym_injuries
         ]
-        sides = [inj.get("side") or "—" for inj in sym_injuries]
+        sides = [inj.get("side") or "-" for inj in sym_injuries]
         date_strs = [d.strftime("%d %b %Y") for d in dates]
         sym_names = [_symptom_name(sym_key)] * len(dates)
 
@@ -1370,7 +1370,7 @@ def _build_ridge_chart(
                         )
                     )
 
-        # filled area under the line — y1 references a source field (required by Bokeh)
+        # filled area under the line - y1 references a source field (required by Bokeh)
         panel.varea(
             x="ts",
             y1=f"{field}_base",
@@ -1405,7 +1405,7 @@ def _build_ridge_chart(
 
         panels.append((panel, line))
 
-    # shared Span instance — all CrosshairTool instances update the same model,
+    # shared Span instance - all CrosshairTool instances update the same model,
     # so hovering any swimlane draws the vertical line across every panel
     shared_vspan = bokeh_models.Span(
         dimension="height",
@@ -1414,7 +1414,7 @@ def _build_ridge_chart(
         line_width=1,
     )
 
-    # all-channel tooltip shown by every panel — uses shared ColumnDataSource
+    # all-channel tooltip shown by every panel - uses shared ColumnDataSource
     all_tooltips = [("Time", "@ts{%H:%M:%S}")]
     for f, _r, lbl, u, _ in channels:
         all_tooltips.append((lbl, f"@{f} {u}"))
@@ -1432,7 +1432,7 @@ def _build_ridge_chart(
 
     panel_figs = [p for p, _ in panels]
 
-    # mini range-selector (hr line only) — shows full activity, box = current viewport
+    # mini range-selector (hr line only) - shows full activity, box = current viewport
     select = bokeh_plt.figure(
         title="Drag the selection box to zoom the chart above",
         height=110,
@@ -1602,7 +1602,7 @@ def _build_hr_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Heart Rate Zones — {time_str}",
+        title=f"Time in Heart Rate Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -1807,7 +1807,7 @@ def _build_power_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Power Zones — {time_str}",
+        title=f"Time in Power Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -2280,7 +2280,7 @@ def activity_fit_charts(
     tuple[tuple | None, ...] (9 elements)
         ``(overlay, ridge, hr_zones, cadence_hist, power_zones, power_curve,
            power_ts, hr_ts, speed_cadence_ts)``
-        — each element is either ``(script, div)`` or ``None`` when the
+        - each element is either ``(script, div)`` or ``None`` when the
         recording has no usable samples or the required data is unavailable.
     """
     if not recording.timestamps:
@@ -3442,7 +3442,7 @@ def trimp_composite(
     )
 
     fig = bokeh_plt.figure(
-        title="Training Impulse (TRIMP) — Daily Load and Balance",
+        title="Training Impulse (TRIMP) - Daily Load and Balance",
         x_axis_type="datetime",
         x_axis_label="Date",
         y_axis_label="TRIMP points",
@@ -4856,7 +4856,7 @@ def weekday_activity_heatmap(
         width=width,
         height=cell_height * len(sports) + 120,
         toolbar_location="below",
-        title="Activity Frequency Heatmap — Weekday × Sport",
+        title="Activity Frequency Heatmap - Weekday × Sport",
     )
     fig.sizing_mode = "scale_width"
     fig.toolbar.logo = None

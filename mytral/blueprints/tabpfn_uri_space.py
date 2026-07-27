@@ -163,7 +163,7 @@ def settings_tabpfn_download():
     try:
         app_task_manager.executor.submit(task)
         flask.flash(
-            "TabPFN weight download started — follow progress in Tasks.",
+            "TabPFN weight download started - follow progress in Tasks.",
             "success",
         )
         _logger.info(

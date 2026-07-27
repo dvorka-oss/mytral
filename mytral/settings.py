@@ -4030,41 +4030,41 @@ class UserGoals:
 
 @dataclasses.dataclass
 class AthleteMetrics:
-    """Athlete performance metrics — set by the athlete or estimated by MyTraL.
+    """Athlete performance metrics - set by the athlete or estimated by MyTraL.
 
     Convention: metric = 0 means "not set". e_metric is always populated
     with either the athlete-set value or a MyTraL estimate.
 
-    All e_* fields are transient and never persisted — they are recomputed
+    All e_* fields are transient and never persisted - they are recomputed
     on every load by athlete_metrics.resolve().
     """
 
     #
-    # Persisted fields (set by athlete — 0 means not set)
+    # Persisted fields (set by athlete - 0 means not set)
     #
 
-    # maximum heart rate (BPM) — 0 = not set
+    # maximum heart rate (BPM) - 0 = not set
     max_hr: int = 0
-    # anaerobic threshold HR / LTHR (BPM) — 0 = not set
+    # anaerobic threshold HR / LTHR (BPM) - 0 = not set
     anaerobic_threshold_hr: int = 0
-    # aerobic threshold HR / LT1 (BPM) — 0 = not set
+    # aerobic threshold HR / LT1 (BPM) - 0 = not set
     aerobic_threshold_hr: int = 0
-    # functional threshold power (Watts) — 0 = not set
+    # functional threshold power (Watts) - 0 = not set
     ftp: float = 0.0
-    # VO2 Max (mL/kg/min) — 0 = not set
+    # VO2 Max (mL/kg/min) - 0 = not set
     vo2max: float = 0.0
-    # HRV overnight RMSSD (ms) — 0 = not set
+    # HRV overnight RMSSD (ms) - 0 = not set
     hrv_rmssd: float = 0.0
-    # FatMax (g/hr) — 0 = not set
+    # FatMax (g/hr) - 0 = not set
     fat_max: float = 0.0
     # zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     z1_high: int = 0
     z2_high: int = 0
     z3_high: int = 0
     z4_high: int = 0
     # power zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     pz1_high: int = 0
     pz2_high: int = 0
     pz3_high: int = 0
@@ -4084,7 +4084,7 @@ class AthleteMetrics:
     e_vo2max: float = dataclasses.field(default=0.0, repr=False)
     e_hrv_rmssd: float = dataclasses.field(default=0.0, repr=False)
     e_fat_max: float = dataclasses.field(default=0.0, repr=False)
-    # always derived from e_ftp and weight — never stored
+    # always derived from e_ftp and weight - never stored
     e_power_to_weight: float = dataclasses.field(default=0.0, repr=False)
 
     #

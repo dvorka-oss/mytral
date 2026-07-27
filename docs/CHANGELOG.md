@@ -35,6 +35,11 @@ This MyTraL **minor** release brings:
 - Fixed Polar PPP import log messages showing the raw `{self._log_name}` placeholder
   instead of the plugin name.
 - Removed unused Polar gear service constants.
+- Fixed Strava gear from an activity synchronization not being linked to the matching
+  MyTraL gear when several items share the same brand - the gear is now resolved to the
+  best-matching entry and its Strava gear ID is registered, instead of being left as an
+  unresolved `strava-gear-id:...` placeholder. Each gear also gained an Advanced page
+  showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
 
 ### Documentation
 - .
@@ -478,10 +483,10 @@ This MyTraL **minor** release brings:
 ### Added
 - ACoaches - AI coaching feature powered by LLM providers:
   - Configure LLM providers: local Ollama, Anthropic Claude,
-    or OpenAI GPT — each with optional API key stored encrypted at rest.
+    or OpenAI GPT - each with optional API key stored encrypted at rest.
   - Define AI coaches with custom names and system prompts (personality, focus area,
     coaching style); built-in out-of-the-box prompt templates to get started quickly.
-  - Persistent multi-turn chat sessions with each coach — full history saved per user.
+  - Persistent multi-turn chat sessions with each coach - full history saved per user.
   - Context-aware responses: coaches automatically receive recent activities, PRs,
     gear, symptoms, and athlete profile as structured context with every message.
   - Streaming responses for real-time token-by-token output in the chat UI.

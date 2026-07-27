@@ -110,7 +110,7 @@ def _run_agent_in_background(
                 response_body=str(body) if body else None,
                 traceback=tb,
             )
-            # build user-friendly markdown — raw error goes inside <details> so
+            # build user-friendly markdown - raw error goes inside <details> so
             # the user sees a clean message and the developer can see the cause
             tech_detail = error_msg
             if body:
@@ -118,7 +118,7 @@ def _run_agent_in_background(
             reply = (
                 "**ACoach did not respond.**\n\n"
                 "> *The coach was unable to generate a structured response. "
-                "This can happen with smaller or less capable models — "
+                "This can happen with smaller or less capable models - "
                 "try rephrasing your question, or switch to a more capable model.*\n\n"
                 "<details><summary>Technical details</summary>\n\n"
                 f"**{error_type}**\n\n"
@@ -171,7 +171,7 @@ def settings_acoaches():
     add_model_form.provider_key.choices = [
         (p.key, f"{p.type} @ {p.url or 'default'}") for p in ac_settings.providers
     ]
-    model_choices = [("", "— no model —")] + [
+    model_choices = [("", "- no model -")] + [
         (m.key, m.model_name) for m in ac_settings.models
     ]
     add_coach_form = forms.ACoachForm()
@@ -366,7 +366,7 @@ def settings_acoaches_coach_add():
     ac_settings = user_profile.acoach_settings or ai_settings.ACoachSettings.empty()
 
     form = forms.ACoachForm()
-    form.model_key.choices = [("", "— no model —")] + [
+    form.model_key.choices = [("", "- no model -")] + [
         (m.key, m.model_name) for m in ac_settings.models
     ]
     if form.validate_on_submit():
@@ -566,7 +566,7 @@ def settings_acoaches_coach_update(coach_key: str):
     ac_settings = user_profile.acoach_settings or ai_settings.ACoachSettings.empty()
 
     form = forms.ACoachForm()
-    form.model_key.choices = [("", "— no model —")] + [
+    form.model_key.choices = [("", "- no model -")] + [
         (m.key, m.model_name) for m in ac_settings.models
     ]
     if form.validate_on_submit():
@@ -580,7 +580,7 @@ def settings_acoaches_coach_update(coach_key: str):
         ds.update_profile(user_profile)
         flask.flash("Coach updated.", "success")
     else:
-        flask.flash("Could not save coach — check the form.", "danger")
+        flask.flash("Could not save coach - check the form.", "danger")
 
     return flask.redirect(flask.url_for("settings_acoaches"))
 
@@ -607,7 +607,7 @@ def acoaching():
     ready_coaches = [c for c in ac_settings.coaches if c.model_key]
 
     message_form = forms.ACoachMessageForm()
-    message_form.coach_key.choices = [("", "— select coach —")] + [
+    message_form.coach_key.choices = [("", "- select coach -")] + [
         (c.key, c.name) for c in ready_coaches
     ]
 
@@ -640,7 +640,7 @@ def acoaching_chat(chat_key: str):
     ready_coaches = [c for c in ac_settings.coaches if c.model_key]
 
     message_form = forms.ACoachMessageForm()
-    message_form.coach_key.choices = [("", "— select coach —")] + [
+    message_form.coach_key.choices = [("", "- select coach -")] + [
         (c.key, c.name) for c in ready_coaches
     ]
 
@@ -693,7 +693,7 @@ def acoaching_chat_new():
     chat_key = str(uuid.uuid4())
     llm_messages = [{"role": "user", "content": user_message}]
 
-    # placeholder assistant message — agent fills it in via background thread
+    # placeholder assistant message - agent fills it in via background thread
     chat = ai_chats.ACoachChat(
         key=chat_key,
         coach_key=coach_key,

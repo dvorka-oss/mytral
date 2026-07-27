@@ -20,7 +20,7 @@
 # MyTraL Docker Debian image builder.
 #
 # Creates a Docker image with MyTraL running on Debian (bookworm-slim).
-# The image contains only production dependencies — no dev, test, or ML tooling.
+# The image contains only production dependencies - no dev, test, or ML tooling.
 #
 # Usage:
 #   ./build.sh              # build from the repo root

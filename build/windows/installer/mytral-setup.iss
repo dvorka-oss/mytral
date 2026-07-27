@@ -18,7 +18,7 @@
 #define MytralExeName "mytral.exe"
 
 [Setup]
-; AppId uniquely identifies this application — do not reuse in other installers.
+; AppId uniquely identifies this application - do not reuse in other installers.
 AppId={{C3D7F241-8B5E-4A29-9F6D-E1B02A4C7853}
 AppName={#MytralAppName}
 AppVersion={#MytralAppVersion}
@@ -44,7 +44,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; PyInstaller single-file executable — all Python dependencies are bundled inside.
+; PyInstaller single-file executable - all Python dependencies are bundled inside.
 Source: "..\..\..\distro\desktop\mytral-{#MytralAppVersion}.exe"; DestDir: "{app}"; DestName: "{#MytralExeName}"; Flags: ignoreversion 64bit
 
 [Icons]

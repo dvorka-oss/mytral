@@ -32,7 +32,7 @@ from mytral.tasks import manager as task_manager
 # feature flags
 ff = releng.FeatureFlags()
 
-# configuration — must be created first so debug flag is available for structlog
+# configuration - must be created first so debug flag is available for structlog
 app_config = config.MytralConfig(
     port=0,  # let config resolve: MYTRAL_PORT env var > DEFAULT_PORT
     persistence_data_dir=None,  # let config use env var or default
@@ -45,7 +45,7 @@ app_config = config.MytralConfig(
     debug=None,  # let config use env var or default
 )
 
-# configure structlog globally — must happen before any logger is obtained
+# configure structlog globally - must happen before any logger is obtained
 loggers.configure_structlog(
     debug=app_config.debug or app_config.incarnation == config.MytralIncarnation.DESKTOP
 )

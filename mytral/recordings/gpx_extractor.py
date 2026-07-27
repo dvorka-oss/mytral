@@ -643,7 +643,7 @@ def extract_gpx_summary(gpx_data: bytes) -> RecordingSummary:
             except ValueError:
                 pass
 
-    # fields that don't depend on timestamps — always populate
+    # fields that don't depend on timestamps - always populate
     if hr_values:
         summary.avg_hr = int(statistics.mean(hr_values))
         summary.max_hr = max(hr_values)

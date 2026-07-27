@@ -259,7 +259,7 @@ limitations under the License.
 ```
 Apache License 2.0
 
-boto3 — AWS SDK for Python
+boto3 - AWS SDK for Python
 Copyright (c) Amazon.com, Inc. or its affiliates.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -3879,7 +3879,7 @@ The following components are licensed under the Python Software Foundation Licen
 ```
 Python Software Foundation License Version 2 (PSFL)
 
-defusedxml — XML bomb protection for Python stdlib modules
+defusedxml - XML bomb protection for Python stdlib modules
 Copyright (c) 2013-2021 by Christian Heimes <christian@python.org>
 
 PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
