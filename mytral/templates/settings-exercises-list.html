@@ -322,7 +322,7 @@
                                 <td>
                                     {% if g.muscle_groups %}
                                         {% for muscle in g.muscle_groups %}
-                                            <span class="badge bg-blue text-blue-fg">{{ muscle|replace('_', ' ')|title }}</span>{% if not loop.last %} {% endif %}
+                                            <span class="badge bg-blue text-blue-fg">{{ muscle|muscle_label }}</span>{% if not loop.last %} {% endif %}
                                         {% endfor %}
                                     {% else %}
                                         <span class="text-muted">—</span>

@@ -409,6 +409,13 @@ def tag_to_color_filter(tag):
     return utils.tag_to_color(tag)
 
 
+@flask_app.template_filter("muscle_label")
+def muscle_label_filter(muscle_key):
+    """Return the human-readable label for a canonical muscle group key."""
+    muscle_def = muscle_groups.MUSCLE_GROUP_BY_KEY.get(muscle_key)
+    return muscle_def.label if muscle_def else muscle_key.replace("_", " ").title()
+
+
 @functools.lru_cache(maxsize=512)
 def _render_markdown(text: str) -> markupsafe.Markup:
     """Render and sanitise Markdown to HTML; result is cached by input string."""
