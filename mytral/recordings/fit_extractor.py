@@ -16,11 +16,13 @@
 """FIT file activity-level summary extractor."""
 
 import datetime
+import traceback
 
 from fit_tool.fit_file import FitFile
 from fit_tool.profile.messages.record_message import RecordMessage
 from fit_tool.profile.messages.session_message import SessionMessage
 
+from mytral import app_logger
 from mytral import commons
 from mytral.integrations import icommons
 from mytral.recordings.models import RecordingSummary
@@ -131,7 +133,12 @@ def extract_fit_summary(fit_data: bytes) -> RecordingSummary:
 
     try:
         fit = FitFile.from_bytes(fit_data, check_crc=False)
-    except Exception:
+    except Exception as e:
+        app_logger.error(
+            "FIT summary extraction failed to parse file",
+            error=str(e),
+            traceback=traceback.format_exc(),
+        )
         return summary
 
     for record in fit.records:

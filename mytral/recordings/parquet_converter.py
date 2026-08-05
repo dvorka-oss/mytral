@@ -39,10 +39,12 @@ source_format : Utf8 - "fit" / "gpx" / "tcx" / "hrm"
 
 import datetime
 import io
+import traceback
 
 import defusedxml.ElementTree
 import polars
 
+from mytral import app_logger
 from mytral.recordings import _geo_utils
 from mytral.recordings import tcx_extractor
 from mytral.recordings.models import RecordingData
@@ -128,8 +130,12 @@ def fit_to_parquet(fit_data: bytes) -> bytes:
 
     try:
         fit = FitFile.from_bytes(fit_data, check_crc=False)
-    except Exception:
-        # return empty parquet on parse failure
+    except Exception as e:
+        app_logger.error(
+            "fit_to_parquet failed to parse FIT file",
+            error=str(e),
+            traceback=traceback.format_exc(),
+        )
         fit = None
 
     if fit is not None:

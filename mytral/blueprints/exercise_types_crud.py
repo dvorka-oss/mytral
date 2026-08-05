@@ -120,9 +120,9 @@ def _entity_photo_service() -> EntityPhotoService:
 
 
 def build_photo_markdown_link_text(photo_name: str, photo_url: str) -> str:
-    """Build markdown link text for inserting a photo link into descriptions."""
+    """Build markdown image link text for inserting a photo into descriptions."""
     label = photo_name.strip() if photo_name and photo_name.strip() else "photo"
-    return f"[{label}]({photo_url})"
+    return f"![{label}]({photo_url})"
 
 
 def build_muscle_highlights(
@@ -341,9 +341,11 @@ def settings_exercises_create():
                 muscle_groups_secondary=muscle_groups_secondary_list,
             )
 
-            ds.create_exercise(user_id=user_id, exercise=entity)
+            created = ds.create_exercise(user_id=user_id, exercise=entity)
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(
+                flask.url_for("settings_exercises_get", key=created.key)
+            )
 
         flask.flash(
             message=f"{NAME_ENTITY} create error - form validation error",
@@ -526,7 +528,7 @@ def settings_exercises_update(key: str):
 
             ds.update_exercise(user_id=user_id, exercise=entity)
 
-            return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+            return flask.redirect(flask.url_for("settings_exercises_get", key=key))
 
         flask.flash(
             message=f"{NAME_ENTITY} update error - form validation error",
@@ -561,25 +563,31 @@ def settings_exercises_get(key: str):
         )
         return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
-    svc = _entity_photo_service()
-    photos = svc.list_photos(user_id=user_id, blob_keys=entity.photo_blob_keys)
+    user_profile = ds.profile(user_id)
+
+    # ensure that the activities are cached -> statistics are available
+    ds.activities_stats(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+        include_meta=True,
+    )
+    exercise_stat = ds.exercises_stats(
+        user_id=user_id,
+        dataset_name=user_profile.dataset_name,
+    ).stats(key)
+    usage_count = exercise_stat.count if exercise_stat else 0
 
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
-        user_profile=ds.profile(user_id),
+        user_profile=user_profile,
         key=key,
         entity=entity,
         muscle_highlights=build_muscle_highlights(
             entity.muscle_groups,
             entity.muscle_groups_secondary,
         ),
-        photos=photos,
-        upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
-        delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
-        highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
-        markdown_link_text=build_photo_markdown_link_text,
-        photo_edit_route="settings_exercises_update_photo_metadata",
+        usage_count=usage_count,
     )
 
 
