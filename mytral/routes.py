@@ -4162,7 +4162,8 @@ def search_activities():
         return flask.redirect(flask.url_for("login"))
 
     q = flask.request.args.get("q", "").strip()
-    if not q:
+    filter_exercise = flask.request.args.get("exercise", "").strip()
+    if not q and not filter_exercise:
         return flask.redirect(flask.url_for("home"))
 
     user_profile = ds.profile(user_id)
@@ -4175,15 +4176,23 @@ def search_activities():
         sort_by_when=True,
     )
 
-    # filter by case-insensitive substring match on name, description and tags
-    q_lower = q.lower()
-    activities = [
-        a
-        for a in activities
-        if q_lower in (a.name or "").lower()
-        or q_lower in (a.description or "").lower()
-        or any(q_lower in tag.lower() for tag in (a.tags or []))
-    ]
+    if filter_exercise:
+        # activities where this exercise was exercised
+        activities = [
+            a
+            for a in activities
+            if any(ee.name == filter_exercise for ee in (a.exercises or []))
+        ]
+    else:
+        # filter by case-insensitive substring match on name, description and tags
+        q_lower = q.lower()
+        activities = [
+            a
+            for a in activities
+            if q_lower in (a.name or "").lower()
+            or q_lower in (a.description or "").lower()
+            or any(q_lower in tag.lower() for tag in (a.tags or []))
+        ]
 
     activities_weekdays = {
         a.key: cals.WEEKDAY_INDEX_2_STR.get(
@@ -4191,6 +4200,12 @@ def search_activities():
         )
         for a in activities
     }
+
+    filter_exercise_entity = (
+        ds.get_exercise(user_id=user_id, key=filter_exercise)
+        if filter_exercise
+        else None
+    )
 
     return flask.render_template(
         "search-results.html",
@@ -4202,6 +4217,8 @@ def search_activities():
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
         is_mobile=flask.session.get(COOKIE_MOBILE),
         q=q,
+        filter_exercise=filter_exercise,
+        filter_exercise_entity=filter_exercise_entity,
     )
 
 
