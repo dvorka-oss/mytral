@@ -563,22 +563,24 @@ def settings_exercises_get(key: str):
         )
         return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
 
+    user_profile = ds.profile(user_id)
+
     # ensure that the activities are cached -> statistics are available
     ds.activities_stats(
         user_id=user_id,
-        dataset_name=ds.profile(user_id).dataset_name,
+        dataset_name=user_profile.dataset_name,
         include_meta=True,
     )
     exercise_stat = ds.exercises_stats(
         user_id=user_id,
-        dataset_name=ds.profile(user_id).dataset_name,
+        dataset_name=user_profile.dataset_name,
     ).stats(key)
     usage_count = exercise_stat.count if exercise_stat else 0
 
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
-        user_profile=ds.profile(user_id),
+        user_profile=user_profile,
         key=key,
         entity=entity,
         muscle_highlights=build_muscle_highlights(
