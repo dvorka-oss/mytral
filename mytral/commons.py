@@ -544,3 +544,7 @@ class StatsPeriod(enum.Enum):
     MONTH = enum.auto()
     WEEK = enum.auto()
     DAY = enum.auto()
+
+
+# ISO calendar weeks per year (the rare 53rd week is folded into week 52)
+WEEKS_PER_YEAR = 52
