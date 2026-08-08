@@ -1542,6 +1542,7 @@ class Gear:
     KEY_KEY = "key"
     KEY_PHOTO_BLOB_KEYS = "photo_blob_keys"
     KEY_HIGHLIGHT_PHOTO_BLOB_KEY = "highlight_photo_blob_key"
+    KEY_ATTACHMENT_BLOB_KEYS = "attachment_blob_keys"
 
     def __init__(
         self,
@@ -1566,6 +1567,7 @@ class Gear:
         key: str = "",
         photo_blob_keys: list | None = None,
         highlight_photo_blob_key: str = "",
+        attachment_blob_keys: list | None = None,
     ) -> None:
         self.activity_type_key = activity_type_key
         self.name = name
@@ -1592,6 +1594,7 @@ class Gear:
         self.key = key or str(uuid.uuid4())
         self.photo_blob_keys = photo_blob_keys or []
         self.highlight_photo_blob_key = highlight_photo_blob_key
+        self.attachment_blob_keys = attachment_blob_keys or []
 
     def get_components(self, include_retired: bool = False):
         """Get components as objects.
@@ -1844,6 +1847,7 @@ class Gear:
             Gear.KEY_KEY: self.key,
             Gear.KEY_PHOTO_BLOB_KEYS: self.photo_blob_keys,
             Gear.KEY_HIGHLIGHT_PHOTO_BLOB_KEY: self.highlight_photo_blob_key,
+            Gear.KEY_ATTACHMENT_BLOB_KEYS: self.attachment_blob_keys,
         }
 
     @staticmethod
@@ -1884,6 +1888,7 @@ class Gear:
             highlight_photo_blob_key=gear_dict.get(
                 Gear.KEY_HIGHLIGHT_PHOTO_BLOB_KEY, ""
             ),
+            attachment_blob_keys=gear_dict.get(Gear.KEY_ATTACHMENT_BLOB_KEYS, []),
         )
 
 

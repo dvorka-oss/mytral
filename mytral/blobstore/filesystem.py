@@ -138,6 +138,8 @@ class FilesystemBlobStore(BlobStoreAbc):
             return blobs_dir / "acoaches" / metadata.owner_key
         if metadata.kind == BlobKind.GEAR_PHOTO.value:
             return blobs_dir / "gear" / metadata.owner_key / "photos"
+        if metadata.kind == BlobKind.GEAR_ATTACHMENT.value:
+            return blobs_dir / "gear" / metadata.owner_key / "attachments"
         if metadata.kind == BlobKind.EXERCISE_PHOTO.value:
             return blobs_dir / "exercises" / metadata.owner_key / "photos"
         if metadata.kind == BlobKind.GOAL_PHOTO.value:

@@ -584,6 +584,93 @@
                 {% endif %}
             </div>
         </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    Attachments
+                    <span class="badge bg-secondary text-secondary-fg ms-2">{{ attachments|length }} / 20</span>
+                </h3>
+                <div class="card-options">
+                    {% if attachments|length < 20 %}
+                    <a href="{{ url_for('settings_gear_upload_attachment', key=key) }}" class="btn btn-outline-primary">Add Attachment</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if attachments %}
+                <div class="row g-3">
+                    {% for attachment in attachments %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="badge bg-blue text-blue-fg me-2">
+                                    {{ attachment.extension | upper | replace(".", "") }}
+                                </span>
+                                <div class="card-options">
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap mb-1">
+                                        <a href="{{ url_for('settings_gear_update_attachment_metadata', key=key, blob_key=attachment.blob_key) }}"
+                                           class="btn btn-outline-primary btn-icon"
+                                           title="Edit metadata">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-edit" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                                                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
+                                                <path d="M16 5l3 3"></path>
+                                            </svg>
+                                        </a>
+                                        <a href="{{ url_for('settings_gear_attachment', key=key, blob_key=attachment.blob_key) }}"
+                                           class="btn btn-outline-secondary btn-icon"
+                                           title="Download attachment">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download">
+                                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/>
+                                            </svg>
+                                        </a>
+                                        <form action="{{ url_for('settings_gear_delete_attachment', key=key, blob_key=attachment.blob_key) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this attachment?')">
+                                            {{ attachment_delete_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete attachment">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                    <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="subheader">Name</div>
+                                <div class="h3 text-truncate">{{ attachment.name or attachment.original_file_name }}</div>
+
+                                <div class="subheader">File</div>
+                                <div class="mb-2 text-truncate">{{ attachment.original_file_name or "(unknown)" }}</div>
+
+                                <div class="subheader">Size</div>
+                                <div>{{ "%.1f"|format(attachment.size_bytes / 1024) }} KiB</div>
+
+                                {% if attachment.description %}
+                                <div class="mt-2 small text-muted SKIP-text-truncate" title="{{ attachment.description }}">
+                                    {{ attachment.description }}
+                                </div>
+                                {% endif %}
+
+                                <div class="mt-1">
+                                    {% for kw in attachment.keywords %}
+                                    <span class="badge bg-azure text-azure-fg">{{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No attachments - click "Add Attachment" to upload gear manual, invoice, warranty, or other relevant documents.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 

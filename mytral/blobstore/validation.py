@@ -456,6 +456,152 @@ def validate_recording(
 
 
 #
+# Document validation
+#
+
+DOCUMENT_ALLOWED_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".odt",
+        ".txt",
+        ".md",
+        ".rtf",
+        ".xls",
+        ".xlsx",
+        ".csv",
+    }
+)
+
+DOCUMENT_EXTENSION_TO_CONTENT_TYPE: dict[str, str] = {
+    ".pdf": "application/pdf",
+    ".doc": "application/msword",
+    ".docx": (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ),
+    ".odt": "application/vnd.oasis.opendocument.text",
+    ".txt": "text/plain",
+    ".md": "text/markdown",
+    ".rtf": "application/rtf",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".csv": "text/csv",
+}
+
+DOCUMENT_MAX_BYTES: int = 64 * 1024 * 1024  # 64 MiB
+
+# extensions backed by the legacy OLE compound file format
+_DOCUMENT_OLE_EXTENSIONS = frozenset({".doc", ".xls"})
+
+# extensions backed by the ZIP-based OOXML/ODF formats
+_DOCUMENT_ZIP_EXTENSIONS = frozenset({".docx", ".xlsx", ".odt"})
+
+
+def validate_document_extension(filename: str) -> str:
+    """Validate and return the lowercase extension of a document filename.
+
+    Parameters
+    ----------
+    filename : str
+        Original upload filename.
+
+    Returns
+    -------
+    str
+        Lowercase extension including the leading dot.
+
+    Raises
+    ------
+    BlobValidationError
+        If the extension is not allowed.
+    """
+    ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext not in DOCUMENT_ALLOWED_EXTENSIONS:
+        raise BlobValidationError(
+            f"Document must have one of these extensions: "
+            f"{', '.join(sorted(DOCUMENT_ALLOWED_EXTENSIONS))}. Got: '{filename}'."
+        )
+    return ext
+
+
+def validate_document_size(size_bytes: int, max_bytes: int) -> None:
+    """Validate that a document does not exceed the size limit.
+
+    Parameters
+    ----------
+    size_bytes : int
+        Actual file size in bytes.
+    max_bytes : int
+        Maximum allowed size in bytes.
+
+    Raises
+    ------
+    BlobValidationError
+        If the file is too large or empty.
+    """
+    if size_bytes == 0:
+        raise BlobValidationError("Document file is empty.")
+    if size_bytes > max_bytes:
+        raise BlobValidationError(
+            f"Document is too large: {size_bytes} bytes "
+            f"(max {max_bytes // (1024 * 1024)} MiB)."
+        )
+
+
+def validate_document(
+    filename: str,
+    data: bytes,
+    max_bytes: int = DOCUMENT_MAX_BYTES,
+) -> str:
+    """Full validation pipeline for a document upload (manuals, invoices, ...).
+
+    Parameters
+    ----------
+    filename : str
+        Original upload filename.
+    data : bytes
+        File payload.
+    max_bytes : int
+        Maximum allowed size in bytes.
+
+    Returns
+    -------
+    str
+        Lowercase file extension (e.g. ``".pdf"``).
+
+    Raises
+    ------
+    BlobValidationError
+        On any validation failure.
+    """
+    if not filename:
+        raise BlobValidationError("Document filename must not be empty.")
+
+    ext = validate_document_extension(filename)
+    validate_document_size(len(data), max_bytes)
+
+    # magic-byte checks - only where the format allows a cheap, reliable check
+    if ext == ".pdf":
+        if not data.lstrip().startswith(b"%PDF-"):
+            raise BlobValidationError(
+                "File does not appear to be a valid PDF file (bad magic bytes)."
+            )
+    elif ext in _DOCUMENT_OLE_EXTENSIONS:
+        if not data.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
+            raise BlobValidationError(
+                f"File does not appear to be a valid {ext} file (bad magic bytes)."
+            )
+    elif ext in _DOCUMENT_ZIP_EXTENSIONS:
+        if not data.startswith(b"PK\x03\x04"):
+            raise BlobValidationError(
+                f"File does not appear to be a valid {ext} file (bad magic bytes)."
+            )
+
+    return ext
+
+
+#
 # Metadata validation
 #
 

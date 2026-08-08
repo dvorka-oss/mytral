@@ -143,8 +143,15 @@ def test_settings_exercises_update_passes_entity_to_template(monkeypatch):
 
 
 @pytest.mark.mytral
-def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
+def test_settings_exercises_get_renders_photos_gallery(monkeypatch):
     # GIVEN
+    photo = SimpleNamespace(
+        blob_key="blob-1",
+        name="Setup",
+        original_file_name="setup.jpg",
+        description="",
+        keywords=[],
+    )
     entity = SimpleNamespace(
         key="exercise-1",
         name="Front squat",
@@ -153,8 +160,8 @@ def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
         tags=[],
         muscle_groups=[],
         muscle_groups_secondary=[],
-        photo_blob_keys=["blob-1"],
-        highlight_photo_blob_key="blob-1",
+        photo_blob_keys=[photo.blob_key],
+        highlight_photo_blob_key=photo.blob_key,
     )
     profile = SimpleNamespace(
         user="User",
@@ -171,6 +178,30 @@ def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
             return f"/settings/exercises/{values['key']}/delete"
         if endpoint == "settings_exercises_list":
             return "/settings/exercises"
+        if endpoint == "settings_exercises_upload_photo":
+            return f"/settings/exercises/{values['key']}/photos/upload"
+        if endpoint == "settings_exercises_photo":
+            return f"/settings/exercises/{values['key']}/photos/{values['blob_key']}"
+        if endpoint == "settings_exercises_photo_thumbnail":
+            return (
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/thumbnail"
+            )
+        if endpoint == "settings_exercises_delete_photo":
+            return (
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/delete"
+            )
+        if endpoint == "settings_exercises_highlight_photo":
+            return (
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/highlight"
+            )
+        if endpoint == "settings_exercises_update_photo_metadata":
+            return (
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/update"
+            )
         if endpoint == "profile":
             return "/profile"
         return f"/{endpoint}"
@@ -178,6 +209,10 @@ def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
     class _NoUsageStats:
         def stats(self, exercise_key):
             return None
+
+    class _PhotoService:
+        def list_photos(self, user_id, blob_keys):
+            return [photo]
 
     monkeypatch.setattr(exercise_crud.ds, "get_exercise", lambda user_id, key: entity)
     monkeypatch.setattr(exercise_crud.ds, "profile", lambda user_id: profile)
@@ -191,6 +226,7 @@ def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
         "exercises_stats",
         lambda user_id, dataset_name: _NoUsageStats(),
     )
+    monkeypatch.setattr(exercise_crud, "_entity_photo_service", lambda: _PhotoService())
     monkeypatch.setitem(routes.flask_app.jinja_env.globals, "url_for", fake_url_for)
 
     with routes.flask_app.test_request_context(
@@ -204,11 +240,13 @@ def test_settings_exercises_get_does_not_render_photos_section(monkeypatch):
 
     # THEN
     normalized = " ".join(html.split())
-    assert "Photos" not in normalized
-    assert "data-fslightbox" not in normalized
+    assert "Photos" in normalized
+    assert 'src="/settings/exercises/exercise-1/photos/blob-1/thumbnail"' in normalized
+    assert 'href="/settings/exercises/exercise-1/photos/upload"' in normalized
+    assert 'href="/settings/exercises/exercise-1/photos/blob-1/update"' in normalized
     assert normalized.count("Front squat") == 1
     assert 'href="/settings/exercises/exercise-1/delete"' in normalized
-    print("DONE: exercise get page no longer renders the photos section")
+    print("DONE: exercise photos gallery renders on the view page")
 
 
 @pytest.mark.mytral

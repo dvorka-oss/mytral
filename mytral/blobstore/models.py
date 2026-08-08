@@ -32,6 +32,7 @@ class BlobKind(enum.Enum):
     GEAR_PHOTO = "gear_photo"
     EXERCISE_PHOTO = "exercise_photo"
     GOAL_PHOTO = "goal_photo"
+    GEAR_ATTACHMENT = "gear_attachment"
 
 
 class BlobOwnerKind(enum.Enum):
