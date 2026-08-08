@@ -54,30 +54,45 @@
     </div>
 </div>
 
-{# highlight photo hero #}
-{% if gear.highlight_photo_blob_key and photos %}
-    {% set highlight_photo = photos | selectattr('blob_key', 'equalto', gear.highlight_photo_blob_key) | first %}
-    {% if highlight_photo %}
+{# hero row: highlight photo (left) + weekly usage histogram (right), 50/50 when both exist #}
+{% set highlight_photo = (photos | selectattr('blob_key', 'equalto', gear.highlight_photo_blob_key) | first) if (gear.highlight_photo_blob_key and photos) else None %}
+{% if highlight_photo or usage_histogram_div %}
 <div class="page-body mt-2 mb-3">
     <div class="container-xl">
-        <div class="card">
-            <div class="card-body p-0">
-                <a data-fslightbox="gear-photos" data-type="image" id="highlight-gear-photo-fslightbox" href="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}">
-                <img src="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}"
-                     alt="{{ highlight_photo.name or highlight_photo.original_file_name }}"
-                     class="img-fluid rounded" style="max-height:480px;object-fit:cover;width:100%;cursor:pointer">
-                </a>
+        <div class="row g-3 align-items-stretch">
+            {% if highlight_photo %}
+            <div class="{{ 'col-12 col-lg-6' if usage_histogram_div else 'col-12' }}">
+                <div class="card h-100">
+                    <div class="card-body p-0">
+                        <a data-fslightbox="gear-photos" data-type="image" id="highlight-gear-photo-fslightbox" href="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}">
+                        <img src="{{ url_for('settings_gear_photo', key=key, blob_key=highlight_photo.blob_key) }}"
+                             alt="{{ highlight_photo.name or highlight_photo.original_file_name }}"
+                             class="img-fluid rounded" style="max-height:480px;object-fit:cover;width:100%;cursor:pointer">
+                        </a>
+                    </div>
+                    {% if highlight_photo.name or highlight_photo.description %}
+                    <div class="card-footer text-muted">
+                        {% if highlight_photo.name %}<strong>{{ highlight_photo.name }}</strong>{% endif %}
+                        {% if highlight_photo.description %} - {{ highlight_photo.description }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            {% if highlight_photo.name or highlight_photo.description %}
-            <div class="card-footer text-muted">
-                {% if highlight_photo.name %}<strong>{{ highlight_photo.name }}</strong>{% endif %}
-                {% if highlight_photo.description %} — {{ highlight_photo.description }}{% endif %}
+            {% endif %}
+            {% if usage_histogram_div %}
+            <div class="{{ 'col-12 col-lg-6' if highlight_photo else 'col-12' }}">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <div class="bokeh w-100">
+                            {{ usage_histogram_div|safe }}
+                        </div>
+                    </div>
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
-    {% endif %}
 {% endif %}
 
 <div class="page-body mt-0">

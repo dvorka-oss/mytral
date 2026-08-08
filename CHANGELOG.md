@@ -17,6 +17,9 @@ This MyTraL **minor** release brings:
 - Added schema headers to `winget` manifests.
 - Added document attachments to gear: manuals, invoices, warranty cards and
   other files.
+- Added histogram of usages to gear detail.
+- Added list of activities for given exercise, exercise label and delete button
+  to exercise detail.
 
 ### Changed
 - The gear component `Cost` mini-card now shows the component total cost of ownership -
@@ -46,9 +49,11 @@ This MyTraL **minor** release brings:
   showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
 - Fixed the exercise photo gallery - it now appears on the exercise view page, where it
   can be viewed, uploaded to, edited and deleted, instead of being stuck on the edit page.
+- Fixed exercises photos insert (from link to image).
 
 ### Documentation
-- .
+- Fixed documentation by replacing non-ASCII characters with ASCII characters.
+- Added motivation paragraph to `README.md` and WWW index.
 
 
 

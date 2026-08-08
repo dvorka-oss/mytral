@@ -508,9 +508,15 @@ def settings_gear_get(key: str):
     photos = svc.list_photos(user_id=user_id, blob_keys=entity.photo_blob_keys)
 
     doc_svc = _entity_document_service()
+
     attachments = doc_svc.list_documents(
         user_id=user_id, blob_keys=entity.attachment_blob_keys
     )
+
+    gear_activities = ds.activities_for_gear(
+        user_id=user_id, dataset_name=dataset_name, gear_key=key
+    )
+    usage_histogram = charts.gear_weekly_usage_histogram(gear_activities)
 
     return flask.render_template(
         JinjaTemplates.GET,
@@ -526,6 +532,8 @@ def settings_gear_get(key: str):
         highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
         attachments=attachments,
         attachment_delete_form=forms.DeleteEntityAttachmentForm(prefix="ead"),
+        usage_histogram_script=usage_histogram[0] if usage_histogram else None,
+        usage_histogram_div=usage_histogram[1] if usage_histogram else None,
     )
 
 
