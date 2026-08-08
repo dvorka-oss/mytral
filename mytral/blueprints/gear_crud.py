@@ -28,11 +28,13 @@ from mytral import charts
 from mytral import ff
 from mytral import forms
 from mytral import settings as user_settings
+from mytral.blobstore import EntityDocumentService
 from mytral.blobstore import EntityPhotoService
 from mytral.blobstore import exceptions as blob_exc
 from mytral.blobstore import validation as blob_validation
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobOwnerKind
+from mytral.routes import _sanitize_download_name
 from mytral.routes import COOKIE_MOBILE
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
@@ -218,6 +220,11 @@ class DeleteGearForm(flask_wtf.FlaskForm):
 def _entity_photo_service() -> EntityPhotoService:
     """Return an EntityPhotoService bound to the global blobstore."""
     return EntityPhotoService(store=mytral.app_blobstore)
+
+
+def _entity_document_service() -> EntityDocumentService:
+    """Return an EntityDocumentService bound to the global blobstore."""
+    return EntityDocumentService(store=mytral.app_blobstore)
 
 
 #
@@ -500,6 +507,11 @@ def settings_gear_get(key: str):
     svc = _entity_photo_service()
     photos = svc.list_photos(user_id=user_id, blob_keys=entity.photo_blob_keys)
 
+    doc_svc = _entity_document_service()
+    attachments = doc_svc.list_documents(
+        user_id=user_id, blob_keys=entity.attachment_blob_keys
+    )
+
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
@@ -512,6 +524,8 @@ def settings_gear_get(key: str):
         upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
         delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
         highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
+        attachments=attachments,
+        attachment_delete_form=forms.DeleteEntityAttachmentForm(prefix="ead"),
     )
 
 
@@ -903,6 +917,219 @@ def settings_gear_highlight_photo(key: str, blob_key: str):
     return flask.redirect(flask.url_for("settings_gear_get", key=key))
 
 
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/upload", methods=["GET", "POST"]
+)
+def settings_gear_upload_attachment(key: str):
+    """Upload a document attachment for gear."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    upload_form = forms.UploadEntityAttachmentForm(prefix="eau")
+    dataset_name = ds.profile(user_id).dataset_name
+    entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+
+    if flask.request.method == "GET":
+        return flask.render_template(
+            "settings-gear-attachment-upload.html",
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            key=key,
+            gear=entity,
+            form=upload_form,
+            current_count=len(entity.attachment_blob_keys),
+        )
+
+    if upload_form.validate_on_submit():
+        f = upload_form.attachment.data
+        original_filename = f.filename or "attachment"
+        try:
+            svc = _entity_document_service()
+            meta = svc.upload_document(
+                user_id=user_id,
+                owner_key=key,
+                owner_kind=BlobOwnerKind.GEAR,
+                kind=BlobKind.GEAR_ATTACHMENT,
+                file_stream=f.stream,
+                original_filename=original_filename,
+                name=upload_form.name.data or "",
+                description=upload_form.description.data or "",
+                keywords=upload_form.keywords.data or "",
+                current_count=len(entity.attachment_blob_keys),
+            )
+            entity.attachment_blob_keys = list(entity.attachment_blob_keys) + [
+                meta.blob_key
+            ]
+            try:
+                ds.update_gear(user_id=user_id, gear=entity, dataset_name=dataset_name)
+                flask.flash(message="Attachment uploaded", category="success")
+            except Exception as exc:
+                svc.delete_document(user_id, meta.blob_key)
+                raise exc
+        except Exception as e:
+            flask.flash(message=f"Attachment upload error: {e}", category="error")
+    else:
+        flask.flash(
+            message="Attachment upload form validation failed", category="error"
+        )
+
+    return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/<blob_key>/update",
+    methods=["GET", "POST"],
+)
+def settings_gear_update_attachment_metadata(key: str, blob_key: str):
+    """Update metadata for a single gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    dataset_name = ds.profile(user_id).dataset_name
+    try:
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} attachment update error - unable to get "
+                f"{NAME_ENTITY.lower()} with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+
+    if blob_key not in entity.attachment_blob_keys:
+        flask.abort(404)
+
+    form = forms.UpdateActivityPhotoMetadataForm()
+    try:
+        attachment = mytral.app_blobstore.get_blob_metadata(
+            user_id=user_id,
+            blob_key=blob_key,
+        )
+    except (blob_exc.BlobNotFoundError, blob_exc.BlobStoreError) as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} attachment update error - unable to load attachment "
+                f"{blob_key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+    if flask.request.method == "GET":
+        form.name.data = attachment.name
+        form.description.data = attachment.description
+        form.keywords.data = ", ".join(attachment.keywords)
+        return flask.render_template(
+            "settings-gear-attachment-update.html",
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            form=form,
+            key=key,
+            gear=entity,
+            attachment=attachment,
+        )
+
+    if form.validate_on_submit():
+        try:
+            name, description, keywords = blob_validation.validate_blob_metadata(
+                form.name.data or "",
+                form.description.data or "",
+                form.keywords.data or "",
+            )
+            mytral.app_blobstore.update_blob_metadata(
+                user_id=user_id,
+                blob_key=blob_key,
+                name=name,
+                description=description,
+                keywords=keywords,
+            )
+            flask.flash(message="Attachment metadata updated", category="success")
+            return flask.redirect(flask.url_for("settings_gear_get", key=key))
+        except (blob_exc.BlobValidationError, blob_exc.BlobStoreError) as e:
+            flask.flash(
+                message=f"{NAME_ENTITY} attachment metadata error - {e}",
+                category="error",
+            )
+    else:
+        flask.flash(
+            message=f"{NAME_ENTITY} attachment metadata error - form validation failed",
+            category="error",
+        )
+
+    return flask.render_template(
+        "settings-gear-attachment-update.html",
+        ff=ff,
+        user_profile=ds.profile(user_id),
+        form=form,
+        key=key,
+        gear=entity,
+        attachment=attachment,
+    )
+
+
+@flask_app.route(f"/settings/{ENTITIES}/<key>/attachments/<blob_key>", methods=["GET"])
+def settings_gear_attachment(key: str, blob_key: str):
+    """Download a gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    try:
+        entity = ds.get_gear(
+            user_id=user_id, key=key, dataset_name=ds.profile(user_id).dataset_name
+        )
+        if blob_key not in entity.attachment_blob_keys:
+            flask.abort(404)
+        svc = _entity_document_service()
+        stream, meta = svc.open_document(user_id=user_id, blob_key=blob_key)
+        raw_name = meta.original_file_name or f"attachment-{blob_key}{meta.extension}"
+        return flask.send_file(
+            stream,
+            mimetype=meta.content_type or "application/octet-stream",
+            as_attachment=True,
+            download_name=_sanitize_download_name(raw_name),
+        )
+    except Exception as e:
+        flask.flash(message=f"Attachment error: {e}", category="error")
+        return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/<blob_key>/delete", methods=["POST"]
+)
+def settings_gear_delete_attachment(key: str, blob_key: str):
+    """Delete a gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    delete_form = forms.DeleteEntityAttachmentForm(prefix="ead")
+    if delete_form.validate_on_submit():
+        try:
+            dataset_name = ds.profile(user_id).dataset_name
+            entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+            if blob_key not in entity.attachment_blob_keys:
+                flask.abort(404)
+            svc = _entity_document_service()
+            svc.delete_document(user_id=user_id, blob_key=blob_key)
+            entity.attachment_blob_keys = [
+                bk for bk in entity.attachment_blob_keys if bk != blob_key
+            ]
+            ds.update_gear(user_id=user_id, gear=entity, dataset_name=dataset_name)
+            flask.flash(message="Attachment deleted", category="success")
+        except Exception as e:
+            flask.flash(message=f"Attachment delete error: {e}", category="error")
+    else:
+        flask.flash(
+            message="Attachment delete form validation failed", category="error"
+        )
+
+    return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
 @flask_app.route(f"/settings/{ENTITIES}/<key>/delete", methods=["GET", "POST"])
 def settings_gear_delete(key: str):
     """Delete:
@@ -930,6 +1157,9 @@ def settings_gear_delete(key: str):
                         svc = _entity_photo_service()
                         for bk in entity.photo_blob_keys:
                             svc.delete_photo(user_id, bk)
+                        doc_svc = _entity_document_service()
+                        for bk in entity.attachment_blob_keys:
+                            doc_svc.delete_document(user_id, bk)
                     except Exception:
                         pass
 

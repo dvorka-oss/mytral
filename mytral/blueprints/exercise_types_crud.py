@@ -495,14 +495,10 @@ def settings_exercises_update(key: str):
             key=key,
             entity=entity,
             photos=photos,
-            upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
-            delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
-            highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
             selected_muscles=entity.muscle_groups,
             selected_muscles_secondary=entity.muscle_groups_secondary,
             all_muscle_groups=mg.MUSCLE_GROUPS,
             markdown_link_text=build_photo_markdown_link_text,
-            photo_edit_route="settings_exercises_update_photo_metadata",
             description_target_id=form.description.id,
         )
 
@@ -577,6 +573,9 @@ def settings_exercises_get(key: str):
     ).stats(key)
     usage_count = exercise_stat.count if exercise_stat else 0
 
+    svc = _entity_photo_service()
+    photos = svc.list_photos(user_id=user_id, blob_keys=entity.photo_blob_keys)
+
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
@@ -588,6 +587,11 @@ def settings_exercises_get(key: str):
             entity.muscle_groups_secondary,
         ),
         usage_count=usage_count,
+        photos=photos,
+        upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
+        delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
+        highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
+        photo_edit_route="settings_exercises_update_photo_metadata",
     )
 
 

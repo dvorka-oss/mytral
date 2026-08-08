@@ -25,6 +25,7 @@ from wtforms import validators
 from mytral import commons
 from mytral import utils
 from mytral.backends import entities
+from mytral.blobstore import validation as blob_validation
 
 
 class ToolFilterDateRangeDataset(flask_wtf.FlaskForm):
@@ -1673,6 +1674,45 @@ class UploadEntityPhotoForm(flask_wtf.FlaskForm):
 
 class DeleteEntityPhotoForm(flask_wtf.FlaskForm):
     """CSRF-protected form for deleting an entity photo."""
+
+    submit = wtforms.SubmitField("Delete")
+
+
+_ATTACHMENT_ALLOWED_EXTENSIONS = sorted(
+    ext.lstrip(".") for ext in blob_validation.DOCUMENT_ALLOWED_EXTENSIONS
+)
+
+
+class UploadEntityAttachmentForm(flask_wtf.FlaskForm):
+    """Form for uploading a single entity attachment (gear, exercise, goal)."""
+
+    attachment = flask_wtf.file.FileField(
+        label="Attachment",
+        validators=[
+            flask_wtf.file.FileRequired(),
+            flask_wtf.file.FileAllowed(
+                _ATTACHMENT_ALLOWED_EXTENSIONS,
+                "Documents only (PDF, Word, text, spreadsheets, ...).",
+            ),
+        ],
+    )
+    name = wtforms.StringField(
+        label="Name",
+        validators=[validators.Optional()],
+    )
+    description = wtforms.TextAreaField(
+        label="Description",
+        validators=[validators.Optional()],
+    )
+    keywords = wtforms.StringField(
+        label="Keywords",
+        validators=[validators.Optional()],
+    )
+    submit = wtforms.SubmitField("Upload")
+
+
+class DeleteEntityAttachmentForm(flask_wtf.FlaskForm):
+    """CSRF-protected form for deleting an entity attachment."""
 
     submit = wtforms.SubmitField("Delete")
 

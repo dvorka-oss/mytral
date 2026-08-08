@@ -52,6 +52,7 @@ def test_settings_gear_get_renders_lightbox_photo_gallery(monkeypatch):
         url = ""
         photo_blob_keys = [photo.blob_key]
         highlight_photo_blob_key = photo.blob_key
+        attachment_blob_keys = []
 
         def get_components(self, include_retired=False):
             return []

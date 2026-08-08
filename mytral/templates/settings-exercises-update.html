@@ -1,5 +1,5 @@
 {% import "macros/activity-fields.html" as field_macros %}
-{% from "macros/entity_photos.html" import entity_photo_gallery, entity_photo_link_strip %}
+{% from "macros/entity_photos.html" import entity_photo_link_strip %}
 {% from "macros/mannequin.html" import render_mannequin %}
 
 {%extends "layout.html"%}
@@ -83,24 +83,6 @@
             </div>
         </div>
     </form>
-
-    {{ entity_photo_gallery(
-        entity=entity,
-        photos=photos,
-        upload_route='settings_exercises_upload_photo',
-        photo_route='settings_exercises_photo',
-        thumbnail_route='settings_exercises_photo_thumbnail',
-        delete_route='settings_exercises_delete_photo',
-        highlight_route='settings_exercises_highlight_photo',
-        entity_key=key,
-        upload_form=upload_form,
-        delete_form=delete_form,
-        highlight_form=highlight_form,
-        edit_route=photo_edit_route,
-        show_open_button=false,
-        description_target_id=description_target_id,
-        markdown_link_text=markdown_link_text
-    ) }}
 </div>
 
 <script>

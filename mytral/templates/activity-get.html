@@ -680,80 +680,6 @@
 
     {# Recordings and Photos Attachments Section #}
     <div id="recordings-row" class="container-xl mt-3">
-        {# Row: recordings #}
-        <div class="row g-3 mb-3">
-            <div class="col-12">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <h3 class="card-title">Recordings</h3>
-                        <span class="badge bg-secondary text-secondary-fg ms-2">{{ recordings_metadata|length }}</span>
-                        <div class="card-options">
-                            <a href="{{ url_for('upload_activity_recording', activity_key=activity_entity.key) }}" class="btn btn-outline-primary">
-                                Add Recording
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        {% if recordings_metadata %}
-                        <div class="row g-3 mb-4">
-                            {% for recording in recordings_metadata %}
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <span class="badge bg-blue text-blue-fg me-2">
-                                            {{ recording.ext | upper | replace(".", "") }}
-                                        </span>
-                                        <div class="card-options">
-                                            <form action="{{ url_for('delete_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}" method="POST" onsubmit="return confirm('Delete recording?')">
-                                                <a href="{{ url_for('download_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}"
-                                                    class="btn btn-outline-secondary btn-icon">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
-                                                </a>
-
-                                                <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete recording">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
-                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                                        <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
-                                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
-                                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="subheader">Name</div>
-                                        <div class="h3 text-truncate">{{ recording.name or recording.original_file_name }}</div>
-
-                                        <div class="subheader">File</div>
-                                        <div class="mb-2">{{ recording.original_file_name or "(unknown)" }}</div>
-
-                                        <div class="subheader">Size</div>
-                                        <div>{{ "%.1f"|format(recording.size_bytes / 1024) }} KiB</div>
-
-                                        {% if recording.has_parquet %}
-                                        <span class="badge bg-green text-green-fg mt-2">Parquet ready</span>
-                                        {% else %}
-                                        <span class="badge bg-yellow text-yellow-fg mt-2">Parquet pending</span>
-                                        {% endif %}
-
-                                        {% if recording.description %}
-                                        <div class="mt-4 small text-muted SKIP-text-truncate" title="{{ recording.description }}">
-                                            {{ recording.description }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                            <p class="text-muted">No recordings attached. Click "Add Recording" to upload.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
 
         {# Row : Photos #}
         <div id="photos-row" class="row g-3">
@@ -856,6 +782,82 @@
                 </div>
             </div>
         </div>
+
+        {# Row: recordings #}
+        <div class="row g-3 mt-1">
+            <div class="col-12">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h3 class="card-title">Recordings</h3>
+                        <span class="badge bg-secondary text-secondary-fg ms-2">{{ recordings_metadata|length }}</span>
+                        <div class="card-options">
+                            <a href="{{ url_for('upload_activity_recording', activity_key=activity_entity.key) }}" class="btn btn-outline-primary">
+                                Add Recording
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if recordings_metadata %}
+                        <div class="row g-3 mb-4">
+                            {% for recording in recordings_metadata %}
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <span class="badge bg-blue text-blue-fg me-2">
+                                            {{ recording.ext | upper | replace(".", "") }}
+                                        </span>
+                                        <div class="card-options">
+                                            <form action="{{ url_for('delete_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}" method="POST" onsubmit="return confirm('Delete recording?')">
+                                                <a href="{{ url_for('download_activity_recording', activity_key=activity_entity.key, blob_uuid=recording.blob_uuid) }}"
+                                                    class="btn btn-outline-secondary btn-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                                                </a>
+
+                                                <button type="submit" class="btn btn-outline-danger btn-icon" title="Delete recording">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash" width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                                        <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                                                        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                                                        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="subheader">Name</div>
+                                        <div class="h3 text-truncate">{{ recording.name or recording.original_file_name }}</div>
+
+                                        <div class="subheader">File</div>
+                                        <div class="mb-2">{{ recording.original_file_name or "(unknown)" }}</div>
+
+                                        <div class="subheader">Size</div>
+                                        <div>{{ "%.1f"|format(recording.size_bytes / 1024) }} KiB</div>
+
+                                        {% if recording.has_parquet %}
+                                        <span class="badge bg-green text-green-fg mt-2">Parquet ready</span>
+                                        {% else %}
+                                        <span class="badge bg-yellow text-yellow-fg mt-2">Parquet pending</span>
+                                        {% endif %}
+
+                                        {% if recording.description %}
+                                        <div class="mt-4 small text-muted SKIP-text-truncate" title="{{ recording.description }}">
+                                            {{ recording.description }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                            <p class="text-muted">No recordings attached. Click "Add Recording" to upload.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 <style>
