@@ -15,6 +15,8 @@ This MyTraL **minor** release brings:
   reflect the filtered gear and the selection is preserved when switching between the
   list and the chart view.
 - Added schema headers to `winget` manifests.
+- Added document attachments to gear: manuals, invoices, warranty cards and
+  other files.
 - Added histogram of usages to gear detail.
 - Added list of activities for given exercise, exercise label and delete button
   to exercise detail.
@@ -26,6 +28,8 @@ This MyTraL **minor** release brings:
 - Polar Precision Performance import now reuses the heart-rate time series parsed by
   the import plugin when building recordings, instead of reading and parsing every
   `.hrm` file a second time in the worker process.
+- The bookmarks list now hides the exercises/laps, source and workout columns, and
+  the reorder buttons no longer wrap on narrow screens.
 
 ### Fixed
 - Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
@@ -43,6 +47,8 @@ This MyTraL **minor** release brings:
   best-matching entry and its Strava gear ID is registered, instead of being left as an
   unresolved `strava-gear-id:...` placeholder. Each gear also gained an Advanced page
   showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
+- Fixed the exercise photo gallery - it now appears on the exercise view page, where it
+  can be viewed, uploaded to, edited and deleted, instead of being stuck on the edit page.
 - Fixed exercises photos insert (from link to image).
 
 ### Documentation

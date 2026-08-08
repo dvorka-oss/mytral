@@ -221,6 +221,8 @@
   reflect the filtered gear and the selection is preserved when switching between the
   list and the chart view.</li>
 <li>Added schema headers to <code>winget</code> manifests.</li>
+<li>Added document attachments to gear: manuals, invoices, warranty cards and
+  other files.</li>
 <li>Added histogram of usages to gear detail.</li>
 <li>Added list of activities for given exercise, exercise label and delete button
   to exercise detail.</li>
@@ -233,6 +235,8 @@
 <li>Polar Precision Performance import now reuses the heart-rate time series parsed by
   the import plugin when building recordings, instead of reading and parsing every
   <code>.hrm</code> file a second time in the worker process.</li>
+<li>The bookmarks list now hides the exercises/laps, source and workout columns, and
+  the reorder buttons no longer wrap on narrow screens.</li>
 </ul>
 <h3 id="fixed">Fixed</h3>
 <ul>
@@ -251,6 +255,8 @@
   best-matching entry and its Strava gear ID is registered, instead of being left as an
   unresolved <code>strava-gear-id:...</code> placeholder. Each gear also gained an Advanced page
   showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.</li>
+<li>Fixed the exercise photo gallery - it now appears on the exercise view page, where it
+  can be viewed, uploaded to, edited and deleted, instead of being stuck on the edit page.</li>
 <li>Fixed exercises photos insert (from link to image).</li>
 </ul>
 <h3 id="documentation">Documentation</h3>
