@@ -972,9 +972,9 @@ def settings_gear_upload_attachment(key: str):
             try:
                 ds.update_gear(user_id=user_id, gear=entity, dataset_name=dataset_name)
                 flask.flash(message="Attachment uploaded", category="success")
-            except Exception as exc:
+            except Exception:
                 svc.delete_document(user_id, meta.blob_key)
-                raise exc
+                raise
         except Exception as e:
             flask.flash(message=f"Attachment upload error: {e}", category="error")
     else:

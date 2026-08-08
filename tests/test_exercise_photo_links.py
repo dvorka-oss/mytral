@@ -247,7 +247,6 @@ def test_settings_exercises_get_renders_photos_gallery(monkeypatch):
     assert normalized.count("Front squat") == 1
     assert 'href="/settings/exercises/exercise-1/delete"' in normalized
     print("DONE: exercise photos gallery renders on the view page")
-    print("DONE: exercise get page no longer renders the photos section")
 
 
 @pytest.mark.mytral
