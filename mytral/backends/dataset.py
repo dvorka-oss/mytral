@@ -564,6 +564,34 @@ class UserDataset(abc.ABC):
             total_s += activity.duration_seconds or 0
         return total_m / 1000.0, total_s / 3600.0
 
+    def activities_for_gear(
+        self,
+        user_id: str,
+        dataset_name: str,
+        gear_key: str,
+    ) -> list[entities.ActivityEntity]:
+        """Get all activities that used the given gear, across all time.
+
+        Parameters
+        ----------
+        user_id : str
+            User ID.
+        dataset_name : str
+            Dataset name.
+        gear_key : str
+            Gear key to filter activities.
+
+        Returns
+        -------
+        list[entities.ActivityEntity]
+            Activities that used this gear, in no particular order.
+        """
+        return [
+            activity
+            for activity in self.all_activities(user_id, dataset_name).values()
+            if gear_key in activity.gears
+        ]
+
     def recompute_gear_service_intervals(
         self,
         user_id: str,

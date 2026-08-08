@@ -4608,6 +4608,77 @@ def activities_histograms(
     }
 
 
+def gear_weekly_usage_histogram(
+    gear_activities: list[entities.ActivityEntity],
+) -> tuple[str, Any] | None:
+    """Build a histogram of gear usage per calendar week, merged across all years.
+
+    x: ISO week of year (1-52)
+    y: number of activities using this gear in that week, summed over every
+    year the gear has been used - showing the gear's seasonal usage pattern.
+
+    Parameters
+    ----------
+    gear_activities : list[entities.ActivityEntity]
+        Activities that used this gear (see ``dataset.activities_for_gear``).
+
+    Returns
+    -------
+    tuple[str, Any] | None
+        ``(script, div)`` Bokeh embed components, or ``None`` when there is no
+        usage data to plot.
+    """
+    week_counts = [0] * commons.WEEKS_PER_YEAR
+    for activity in gear_activities:
+        when_raw = getattr(activity, "when", "") or ""
+        if not when_raw:
+            continue
+        try:
+            when_date = datetime.date.fromisoformat(when_raw[:10])
+        except ValueError:
+            continue
+        week = min(when_date.isocalendar()[1], commons.WEEKS_PER_YEAR)
+        week_counts[week - 1] += 1
+
+    if not any(week_counts):
+        return None
+
+    weeks = list(range(1, commons.WEEKS_PER_YEAR + 1))
+    source = ColumnDataSource(data=dict(week=weeks, count=week_counts))
+
+    fig = bokeh_plt.figure(
+        height=320,
+        sizing_mode="stretch_width",
+        tools="save",
+        toolbar_location="above",
+        title="Usage per week (all years)",
+    )
+    fig.toolbar.logo = None
+
+    fig.vbar(
+        x="week",
+        top="count",
+        width=0.9,
+        source=source,
+        color="#206bc4",
+        alpha=0.85,
+        line_color="white",
+    )
+
+    fig.add_tools(
+        bokeh_models.HoverTool(tooltips=[("Week", "@week"), ("Activities", "@count")])
+    )
+
+    fig.xaxis.axis_label = "Week of year"
+    fig.yaxis.axis_label = "Activities"
+    fig.y_range.start = 0
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = "#e9ecef"
+    fig.outline_line_color = None
+
+    return bokeh_embed.components(fig)
+
+
 def goals_eisenhower_matrix(
     goals: settings.UserGoals,
     activity_types: settings.UserActivityTypes,

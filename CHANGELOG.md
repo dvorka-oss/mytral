@@ -15,6 +15,9 @@ This MyTraL **minor** release brings:
   reflect the filtered gear and the selection is preserved when switching between the
   list and the chart view.
 - Added schema headers to `winget` manifests.
+- Added histogram of usages to gear detail.
+- Added list of activities for given exercise, exercise label and delete button
+  to exercise detail.
 
 ### Changed
 - The gear component `Cost` mini-card now shows the component total cost of ownership -
@@ -40,9 +43,11 @@ This MyTraL **minor** release brings:
   best-matching entry and its Strava gear ID is registered, instead of being left as an
   unresolved `strava-gear-id:...` placeholder. Each gear also gained an Advanced page
   showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
+- Fixed exercises photos insert (from link to image).
 
 ### Documentation
-- .
+- Fixed documentation by replacing non-ASCII characters with ASCII characters.
+- Added motivation paragraph to `README.md` and WWW index.
 
 
 
