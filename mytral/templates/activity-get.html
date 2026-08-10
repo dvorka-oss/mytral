@@ -440,9 +440,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for exercise_entity in activity_entity.exercises %}
+                                {% for exercise_entity in sorted_exercises %}
                                 <tr>
-                                    <td>{{ exercises.exercise_by_key[exercise_entity.name].name }}</td>
+                                    <td>
+                                        <a href="{{ url_for('settings_exercises_get', key=exercise_entity.name) }}">
+                                            {{ exercises.exercise_by_key[exercise_entity.name].name }}
+                                        </a>
+                                    </td>
                                     <td>
                                         {% if exercise_entity.weight %}
                                         {{ exercise_entity.weight }}

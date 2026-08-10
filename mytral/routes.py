@@ -3601,6 +3601,12 @@ def get_activity(key):
         include_detail=True,
     )
 
+    exercises_registry = ds.list_exercises(user_id, dataset_name=dataset_name)
+    sorted_exercises = sorted(
+        a.exercises,
+        key=lambda entry: exercises_registry.exercise_by_key[entry.name].name.lower(),
+    )
+
     (prev_year, prev_month, prev_day) = cals.get_yesterday(
         a.when_year, a.when_month, a.when_day
     )
@@ -3616,7 +3622,8 @@ def get_activity(key):
         user_profile=user_profile,
         activity_entity=a,
         symptoms=ds.list_symptoms(user_id, dataset_name=dataset_name),
-        exercises=ds.list_exercises(user_id, dataset_name=dataset_name),
+        exercises=exercises_registry,
+        sorted_exercises=sorted_exercises,
         laps=ds.list_laps(user_id, dataset_name=dataset_name),
         activity_types=ds.list_activity_types(user_id=user_id),
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
