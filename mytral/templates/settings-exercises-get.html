@@ -7,7 +7,7 @@
         <div class="row g-2 align-items-center">
             <div class="col">
                 <a href="{{ url_for('settings_exercises_list') }}" class="page-pretitle">Exercises</a>
-                <h2 class="page-title">{{ entity.name }}</h2>
+                <h2 class="page-title">Exercise Details</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
@@ -56,6 +56,9 @@
 <div class="page-body">
     <div class="container-xl">
         <div class="card">
+            <div class="card-header">
+                <div class="h3 mb-0">{{ entity.name }}</div>
+            </div>
             <div class="card-body">
                 {% if entity.description %}
                 <div class="text-muted mb-4">{{ entity.description | markdown }}</div>

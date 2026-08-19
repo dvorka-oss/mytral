@@ -360,7 +360,7 @@ def settings_goal_update(key: str):
             ds.update_goal(user_id=user_id, goal=entity)
 
             return flask.redirect(
-                flask.url_for(f"settings_{METHODS}_get", key=entity.key)
+                flask.url_for(f"settings_{ENTITY}_get", key=entity.key)
             )
 
         flask.flash(
