@@ -637,39 +637,73 @@ class UserDataset(abc.ABC):
                 # no install date: assume component was there from gear purchase (0 km)
                 install_km, install_h = 0.0, 0.0
 
-            # walk history entries in chronological order, computing each interval
-            # prev_km/prev_h track the gear odometer at the previous event (install or
-            # last service); each entry stores the delta since that previous event
-            prev_km, prev_h = install_km, install_h
-            history = gear.component_history.get(component_key, [])
-            for entry in sorted(history, key=lambda e: e.get("date", "")):
-                entry_date = entry.get("date", "")
-                if not entry_date:
-                    continue
-                km_at, h_at = self.gear_km_at_date(
-                    user_id, dataset_name, gear.key, entry_date
-                )
-                entry["km_at_service"] = max(0.0, km_at - prev_km)
-                entry["hours_at_service"] = max(0.0, h_at - prev_h)
-                prev_km = km_at
-                prev_h = h_at
-
-            # store component-relative baselines so distance_km reflects actual
-            # component usage (not the gear's absolute odometer reading)
-            component_dict["last_service_km"] = max(0.0, prev_km - install_km)
-            component_dict["last_service_hours"] = max(0.0, prev_h - install_h)
+            history = sorted(
+                gear.component_history.get(component_key, []),
+                key=lambda e: e.get("date", ""),
+            )
 
             if status == "active":
+                # each history entry marks a physical part starting on that
+                # date (a chain, a tire, ...) replaced in place on the same
+                # component slot; its usage is FORWARD-looking: from its own
+                # date until the next entry supersedes it, or until today for
+                # the most recently installed part - not backward to how much
+                # the part it superseded had accumulated, which is what the
+                # entry's own date/notes describe
+                for i, entry in enumerate(history):
+                    entry_date = entry.get("date", "")
+                    if not entry_date:
+                        continue
+                    start_km, start_h = self.gear_km_at_date(
+                        user_id, dataset_name, gear.key, entry_date
+                    )
+                    if i + 1 < len(history):
+                        next_date = history[i + 1].get("date", "")
+                        end_km, end_h = self.gear_km_at_date(
+                            user_id, dataset_name, gear.key, next_date
+                        )
+                    else:
+                        end_km, end_h = today_km, today_h
+                    entry["km_at_service"] = max(0.0, end_km - start_km)
+                    entry["hours_at_service"] = max(0.0, end_h - start_h)
+
+                # last_service_km/hours baseline the currently mounted part's
+                # usage (km_since_service) - km/h at the most recent entry
+                if history:
+                    last_km, last_h = self.gear_km_at_date(
+                        user_id, dataset_name, gear.key, history[-1].get("date", "")
+                    )
+                else:
+                    last_km, last_h = install_km, install_h
+                component_dict["last_service_km"] = max(0.0, last_km - install_km)
+                component_dict["last_service_hours"] = max(0.0, last_h - install_h)
+
                 component_dict["distance_meters"] = int((today_km - install_km) * 1000)
                 component_dict["time_seconds"] = int((today_h - install_h) * 3600)
             else:
-                # retired: use last history entry date as the retirement point;
-                # if no history exists, assume retired "now" so the component
-                # gets credit for all gear km up to today
-                sorted_history = sorted(history, key=lambda e: e.get("date", ""))
-                retire_date = (
-                    sorted_history[-1].get("date") if sorted_history else today_str
-                )
+                # retired: a single component's own history entries record its
+                # service events up to the point it was retired - backward
+                # looking (usage before each event), ending at the retirement
+                # event itself, since nothing accumulates on it afterwards
+                prev_km, prev_h = install_km, install_h
+                for entry in history:
+                    entry_date = entry.get("date", "")
+                    if not entry_date:
+                        continue
+                    km_at, h_at = self.gear_km_at_date(
+                        user_id, dataset_name, gear.key, entry_date
+                    )
+                    entry["km_at_service"] = max(0.0, km_at - prev_km)
+                    entry["hours_at_service"] = max(0.0, h_at - prev_h)
+                    prev_km, prev_h = km_at, h_at
+
+                component_dict["last_service_km"] = max(0.0, prev_km - install_km)
+                component_dict["last_service_hours"] = max(0.0, prev_h - install_h)
+
+                # use last history entry date as the retirement point; if no
+                # history exists, assume retired "now" so the component gets
+                # credit for all gear km up to today
+                retire_date = history[-1].get("date") if history else today_str
                 retire_km, retire_h = self.gear_km_at_date(
                     user_id, dataset_name, gear.key, retire_date
                 )

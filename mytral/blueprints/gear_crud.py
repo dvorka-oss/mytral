@@ -121,6 +121,7 @@ class CreateGearForm(flask_wtf.FlaskForm):
         label="Description",
         description="Additional notes about this gear. Supports Markdown formatting.",
         validators=[],
+        render_kw={"rows": 15},
     )
     url = wtforms.StringField(
         label="URL",
@@ -580,8 +581,14 @@ def settings_gear_update(key: str):
         return flask.redirect(flask.url_for("login"))
 
     try:
-        entity = ds.get_gear(
-            user_id=user_id, key=key, dataset_name=ds.profile(user_id).dataset_name
+        dataset_name = ds.profile(user_id).dataset_name
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+        # recompute service history km/hours from activity records so the page
+        # always reflects the actual usage between events, independent of the
+        # component odometer snapshot (which may be stale for bulk-imported
+        # activities) - this page renders component usage, same as GET
+        ds.recompute_gear_service_intervals(
+            user_id=user_id, dataset_name=dataset_name, gear=entity
         )
     except Exception as e:
         flask.flash(
@@ -647,7 +654,7 @@ def settings_gear_update(key: str):
             ds.update_gear(
                 user_id=user_id,
                 gear=entity,
-                dataset_name=ds.profile(user_id).dataset_name,
+                dataset_name=dataset_name,
             )
 
             return flask.redirect(

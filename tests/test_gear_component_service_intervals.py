@@ -493,8 +493,11 @@ def test_gear_km_at_date_slash_when_format():
 @pytest.mark.mytral
 def test_recompute_gear_service_intervals_fixes_history_entries():
     """recompute_gear_service_intervals should overwrite stored km_at_service
-    with values derived from activity records, correctly computing per-interval
-    deltas even when the stored snapshot was stale."""
+    with values derived from activity records. For an active component, each
+    history entry marks a physical part starting on that date, so its usage is
+    forward-looking: from its own date until the NEXT entry supersedes it, or
+    until today for the most recently installed part - not backward to how
+    much accumulated before the entry was logged."""
     # GIVEN - a gear with 3 rides and 2 service events, all km snapshots wrong (stale)
 
     def _ride(when: str, dist_m: int, dur_s: int):
@@ -580,16 +583,240 @@ def test_recompute_gear_service_intervals_fixes_history_entries():
     chain = gear.get_components()[0]
 
     # THEN - DONE:
-    # first interval: install(2022-01-01)..2022-01-15 => only r1 (50 km)
-    assert entry_jan["km_at_service"] == pytest.approx(50.0)
-    assert entry_jan["hours_at_service"] == pytest.approx(2.0)
+    # forward interval: 2022-01-15..2022-07-01 (until superseded) => only r2 (30 km)
+    assert entry_jan["km_at_service"] == pytest.approx(30.0)
+    assert entry_jan["hours_at_service"] == pytest.approx(1.0)
 
     # THEN - DONE:
-    # second interval: 2022-01-15..2022-07-01 => only r2 (30 km)
-    assert entry_jul["km_at_service"] == pytest.approx(30.0)
-    assert entry_jul["hours_at_service"] == pytest.approx(1.0)
+    # forward interval: 2022-07-01..today (most recent entry) => only r3 (20 km)
+    assert entry_jul["km_at_service"] == pytest.approx(20.0)
+    assert entry_jul["hours_at_service"] == pytest.approx(0.5)
 
     # THEN - DONE:
     # current km_since_service: last service 2022-07-01 => r3 still pending = 20 km
     assert chain.km_since_service == pytest.approx(20.0)
     assert chain.hours_since_service == pytest.approx(0.5)
+
+
+@pytest.mark.mytral
+def test_recompute_active_component_chains_usage_across_three_replacements():
+    """A single active component replaced in place multiple times (e.g. a
+    tire slot: default tire -> 2nd tire -> 3rd/current tire) must attribute
+    each entry's usage to the physical part it describes: oldest entry gets
+    usage from its own date until superseded by the next entry, and so on,
+    with the most recent entry getting usage up to today."""
+    # GIVEN - one "tire (front)" component with 3 replacement entries (the
+    # first one recorded at the original install date, per convention) and 3
+    # rides, one within each part's tenure
+
+    def _ride(when: str, dist_m: int, dur_s: int):
+        a = entities.ActivityEntity()
+        a.when = when
+        a.distance = dist_m
+        a.duration_seconds = dur_s
+        a.gears = ["G1"]
+        return a
+
+    activities = {
+        "r1": _ride("2022-02-01 08:00:00", 100_000, 14_400),  # 100 km, 4 h
+        "r2": _ride("2022-06-01 08:00:00", 200_000, 28_800),  # 200 km, 8 h
+        "r3": _ride("2022-09-01 08:00:00", 50_000, 7_200),  # 50 km, 2 h
+    }
+
+    ds = MagicMock()
+    ds.all_activities.return_value = activities
+
+    gear = settings.Gear(
+        activity_type_key="cycling",
+        name="Test Bike",
+        components=[
+            {
+                "key": "C1",
+                "name": "tire (front)",
+                "cost": 0.0,
+                "installed_date": "2022-01-01",
+                "last_service_km": 0.0,
+                "last_service_hours": 0.0,
+                "last_service_date": "",
+                "next_service_km": None,
+                "next_service_hours": None,
+                "next_service_months": None,
+                "distance_meters": 0,
+                "time_seconds": 0,
+                "status": "active",
+                "replaced_by_key": "",
+                "replaces_key": "",
+                "notes": "",
+            }
+        ],
+    )
+    gear.key = "G1"
+    gear.component_history = {
+        "C1": [
+            {
+                "date": "2022-01-01",  # default tire, installed w/ the gear
+                "km_at_service": 0.0,
+                "hours_at_service": 0.0,
+                "service_type": "replacement",
+                "cost": 0,
+                "notes": "OEM default",
+            },
+            {
+                "date": "2022-04-01",  # 2nd tire
+                "km_at_service": 0.0,
+                "hours_at_service": 0.0,
+                "service_type": "replacement",
+                "cost": 0,
+                "notes": "2nd tire",
+            },
+            {
+                "date": "2022-08-01",  # 3rd/current tire
+                "km_at_service": 0.0,
+                "hours_at_service": 0.0,
+                "service_type": "replacement",
+                "cost": 0,
+                "notes": "3rd tire",
+            },
+        ]
+    }
+    ds.gear_km_at_date = functools.partial(dataset.UserDataset.gear_km_at_date, ds)
+
+    # WHEN
+    dataset.UserDataset.recompute_gear_service_intervals(
+        ds,
+        user_id="u1",
+        dataset_name="dev",
+        gear=gear,
+    )
+
+    history = gear.component_history["C1"]
+    default_tire = next(e for e in history if e["date"] == "2022-01-01")
+    second_tire = next(e for e in history if e["date"] == "2022-04-01")
+    third_tire = next(e for e in history if e["date"] == "2022-08-01")
+    tire = gear.get_components()[0]
+
+    # THEN - DONE:
+    # oldest (default) tire: usage from its install until superseded (r1)
+    assert default_tire["km_at_service"] == pytest.approx(100.0)
+    assert default_tire["hours_at_service"] == pytest.approx(4.0)
+
+    # THEN - DONE:
+    # 2nd tire: usage from its install until superseded by the 3rd (r2)
+    assert second_tire["km_at_service"] == pytest.approx(200.0)
+    assert second_tire["hours_at_service"] == pytest.approx(8.0)
+
+    # THEN - DONE:
+    # 3rd/current tire: usage from its install until today (r3)
+    assert third_tire["km_at_service"] == pytest.approx(50.0)
+    assert third_tire["hours_at_service"] == pytest.approx(2.0)
+
+    # THEN - DONE:
+    # the headline "Usage" figure (km_since_service) matches the current tire
+    assert tire.km_since_service == pytest.approx(50.0)
+    assert tire.hours_since_service == pytest.approx(2.0)
+    print("DONE: each replaced-in-place tire keeps its own usage window")
+
+
+@pytest.mark.mytral
+def test_recompute_retired_component_history_stays_backward_looking():
+    """A retired component's own history entries (e.g. an auto-recorded
+    retirement event) must keep the OLD backward-looking semantics: usage
+    accumulated BEFORE each event, ending at that event - unlike an active
+    component's entries, a retired component never accumulates usage after
+    its last entry, so there is nothing to look forward to."""
+    # GIVEN - a chain serviced once, then retired; both events happened in
+    # the past and must retain their historical (backward) usage deltas
+
+    def _ride(when: str, dist_m: int, dur_s: int):
+        a = entities.ActivityEntity()
+        a.when = when
+        a.distance = dist_m
+        a.duration_seconds = dur_s
+        a.gears = ["G1"]
+        return a
+
+    activities = {
+        "r1": _ride("2022-02-01 08:00:00", 300_000, 36_000),  # 300 km, 10 h
+        "r2": _ride("2022-06-01 08:00:00", 100_000, 12_000),  # 100 km, 10/3 h
+        # a later ride after retirement must NOT be attributed to this chain
+        "r3": _ride("2022-12-01 08:00:00", 999_000, 999_000),
+    }
+
+    ds = MagicMock()
+    ds.all_activities.return_value = activities
+
+    gear = settings.Gear(
+        activity_type_key="cycling",
+        name="Test Bike",
+        components=[
+            {
+                "key": "C1",
+                "name": "Old Chain",
+                "cost": 0.0,
+                "installed_date": "2022-01-01",
+                "last_service_km": 0.0,
+                "last_service_hours": 0.0,
+                "last_service_date": "",
+                "next_service_km": None,
+                "next_service_hours": None,
+                "next_service_months": None,
+                "distance_meters": 0,
+                "time_seconds": 0,
+                "status": "retired",
+                "replaced_by_key": "C2",
+                "replaces_key": "",
+                "notes": "",
+            }
+        ],
+    )
+    gear.key = "G1"
+    gear.component_history = {
+        "C1": [
+            {
+                "date": "2022-04-01",  # intermediate service
+                "km_at_service": 0.0,
+                "hours_at_service": 0.0,
+                "service_type": "service",
+                "cost": 0,
+                "notes": "",
+            },
+            {
+                "date": "2022-07-01",  # retirement (replaced by C2)
+                "km_at_service": 0.0,
+                "hours_at_service": 0.0,
+                "service_type": "replacement",
+                "cost": 0,
+                "notes": "",
+            },
+        ]
+    }
+    ds.gear_km_at_date = functools.partial(dataset.UserDataset.gear_km_at_date, ds)
+
+    # WHEN
+    dataset.UserDataset.recompute_gear_service_intervals(
+        ds,
+        user_id="u1",
+        dataset_name="dev",
+        gear=gear,
+    )
+
+    history = gear.component_history["C1"]
+    service_entry = next(e for e in history if e["date"] == "2022-04-01")
+    retirement_entry = next(e for e in history if e["date"] == "2022-07-01")
+    old_chain = gear.get_component("C1")
+
+    # THEN - DONE:
+    # backward interval: install(2022-01-01)..2022-04-01 => only r1 (300 km)
+    assert service_entry["km_at_service"] == pytest.approx(300.0)
+    assert service_entry["hours_at_service"] == pytest.approx(10.0)
+
+    # THEN - DONE:
+    # backward interval: 2022-04-01..2022-07-01 (retirement) => only r2 (100 km)
+    assert retirement_entry["km_at_service"] == pytest.approx(100.0)
+    assert retirement_entry["hours_at_service"] == pytest.approx(12_000 / 3600.0)
+
+    # THEN - DONE:
+    # full lifetime up to retirement (400 km) - r3 happened after retirement
+    # and must not be attributed to this retired component
+    assert old_chain.distance_km == pytest.approx(400.0)
+    print("DONE: retired component history keeps backward usage attribution")

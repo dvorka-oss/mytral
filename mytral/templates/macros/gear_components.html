@@ -76,8 +76,12 @@
         <div class="card card-sm">
             <div class="card-body">
                 <div class="subheader">{% if is_retired %}Usage at Retirement{% else %}Usage{% endif %}</div>
-                <div class="h3 mb-0">{{ "{:0,.0f}".format(comp.distance_km) }} km</div>
-                <small class="text-muted">{{ "%.1f"|format(comp.time_hours) }} h</small>
+                {# active: usage since the last service/replacement event (or
+                   install, if none yet) - a component logged in-place via
+                   service history should not keep the predecessor's mileage.
+                   retired: full lifetime usage from install to retirement. #}
+                <div class="h3 mb-0">{{ "{:0,.0f}".format(comp.distance_km if is_retired else comp.km_since_service) }} km</div>
+                <small class="text-muted">{{ "%.1f"|format(comp.time_hours if is_retired else comp.hours_since_service) }} h</small>
             </div>
         </div>
     </div>

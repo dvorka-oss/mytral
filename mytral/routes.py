@@ -308,6 +308,22 @@ _MD_ALLOWED_ATTRIBUTES: dict = {
 }
 _MD_ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 
+# python-markdown has no built-in extension for GFM-style ~~strikethrough~~,
+# so provide a minimal inline pattern that turns it into <s>text</s>.
+_MD_STRIKETHROUGH_RE = r"(~{2})(.+?)\1"
+
+
+class _StrikethroughExtension(markdown.extensions.Extension):
+    """Add GFM-style ``~~strikethrough~~`` support to python-markdown."""
+
+    def extendMarkdown(self, md):
+        """Register the strikethrough inline pattern on the given instance."""
+        pattern = markdown.inlinepatterns.SimpleTagInlineProcessor(
+            _MD_STRIKETHROUGH_RE, "s"
+        )
+        md.inlinePatterns.register(pattern, "strikethrough", 75)
+
+
 flask_app = flask.Flask(__name__.split(".")[0])
 flask_cors.CORS(flask_app, origins=app_config.cors_origins)
 # Flask secret key: https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY
@@ -419,7 +435,9 @@ def muscle_label_filter(muscle_key):
 @functools.lru_cache(maxsize=512)
 def _render_markdown(text: str) -> markupsafe.Markup:
     """Render and sanitise Markdown to HTML; result is cached by input string."""
-    html = markdown.markdown(text, extensions=["nl2br", "tables"])
+    html = markdown.markdown(
+        text, extensions=["nl2br", "tables", _StrikethroughExtension()]
+    )
     clean = bleach.clean(
         html,
         tags=_MD_ALLOWED_TAGS,
@@ -427,7 +445,9 @@ def _render_markdown(text: str) -> markupsafe.Markup:
         protocols=_MD_ALLOWED_PROTOCOLS,
         strip=True,
     )
-    return markupsafe.Markup(clean)
+    # wrap in a marker class so mytral.css can restore link styling that
+    # would otherwise be lost inside a .text-muted description field.
+    return markupsafe.Markup(f'<div class="md-content">{clean}</div>')
 
 
 @flask_app.template_filter("markdown")

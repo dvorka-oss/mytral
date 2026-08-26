@@ -20,6 +20,7 @@ This MyTraL **minor** release brings:
 - Added histogram of usages to gear detail.
 - Added list of activities for given exercise, exercise label and delete button
   to exercise detail.
+- Added strikethroung extension to the rendered Markdown texts.
 
 ### Changed
 - The gear component `Cost` mini-card now shows the component total cost of ownership -
@@ -53,6 +54,9 @@ This MyTraL **minor** release brings:
 - Fixed sport variety field at the end of the dashboard and added tooltips to all fields
   on that row.
 - Fixed broken goal update which was failing.
+- Fixed the style of links in the rendered markdown (newly underscore in blue).
+- Fixed usage (hours/km) gear component calculation - newly the usage is from the
+  installation date until now or replaced.
 
 ### Documentation
 - Fixed documentation by replacing non-ASCII characters with ASCII characters.
