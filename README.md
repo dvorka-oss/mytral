@@ -22,6 +22,8 @@ years in one single application on your desktop?
 
 **MyTraL** is your personal training log.
 
+https://mytral.mindforger.com
+
 ![home](media/screenshot/activity.png)
 
 Every day, people lose access to accounts containing years of personal data - banned
