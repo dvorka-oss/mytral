@@ -1,8 +1,8 @@
-# Security contact for mytral.fitness
+# Security contact for mytral.mindforger.com
 # https://securitytxt.org/
 
 Contact: mailto:martin.dvorak@mindforger.com
-Contact: https://github.com/dvorka-oss/mytral/security/advisories/new
+Contact: https://github.com/dvorka/mytral/security/advisories/new
 Expires: 2027-07-14T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://mytral.fitness/.well-known/security.txt
+Canonical: https://mytral.mindforger.com/.well-known/security.txt

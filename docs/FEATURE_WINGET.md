@@ -22,7 +22,7 @@ releases:
 1. **Fork `microsoft/winget-pkgs`** on GitHub and clone the fork locally.
 ```
 # fork at: https://github.com/microsoft/winget-pkgs
-git clone git@github.com:dvorka-oss/winget-pkgs.git C:\Users\dvorka\p\mytral\git\winget-pkgs
+git clone git@github.com:dvorka/winget-pkgs.git C:\Users\dvorka\p\mytral\git\winget-pkgs
 ```
 Set `WINGET_PKGS_DIR` in your environment in UI
 (This Computer/Properties/System Properties/Advanced/Environment Variables/User) or with CLI:

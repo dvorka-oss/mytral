@@ -36,8 +36,8 @@ confinement: strict
 base: core24
 license: AGPL-3.0
 contact: martin.dvorak@mindforger.com
-issues: https://github.com/dvorka-oss/mytral/issues
-source-code: https://github.com/dvorka-oss/mytral
+issues: https://github.com/dvorka/mytral/issues
+source-code: https://github.com/dvorka/mytral
 website: https://mytral.mindforger.com
 
 platforms:

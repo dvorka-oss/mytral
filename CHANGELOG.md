@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.60.0](https://github.com/dvorka-oss/mytral/compare/v1.59.0...HEAD)
+## [1.60.0](https://github.com/dvorka/mytral/compare/v1.59.0...HEAD)
 
 This MyTraL **minor** release brings:
 
@@ -34,6 +34,8 @@ This MyTraL **minor** release brings:
 - Cancelled mytral.fitness domain & hosting:
     - web moved to my https://projects.mindforger.com/mytral
     - Flatpak qualified name changed from `fitness.mytral.Mytral` to `mytral.Mytral`
+- Moved GitHub repository from `dvorka-oss` organization back to the personal `dvorka`
+  profile.
 
 ### Fixed
 - Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
@@ -67,7 +69,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...v1.59.0)
+## [1.59.0](https://github.com/dvorka/mytral/compare/v1.58.0...v1.59.0)
 
 This MyTraL **minor** release brings:
 
@@ -110,7 +112,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
+## [1.58.0](https://github.com/dvorka/mytral/compare/v1.57.0...v1.58.0)
 
 This MyTraL **minor** release brings:
 
@@ -144,7 +146,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
+## [1.57.0](https://github.com/dvorka/mytral/compare/v1.56.0...v1.57.0)
 
 This MyTraL **minor** release brings:
 
@@ -202,7 +204,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0)
+## [1.56.0](https://github.com/dvorka/mytral/compare/v1.55.0...v1.56.0)
 
 This MyTraL **minor** release brings:
 
@@ -240,7 +242,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...v1.55.0)
+## [1.55.0](https://github.com/dvorka/mytral/compare/v1.54.0...v1.55.0)
 
 This MyTraL **minor** release brings:
 
@@ -261,7 +263,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
+## [1.54.0](https://github.com/dvorka/mytral/compare/v1.53.0...v1.54.0)
 
 This MyTraL **minor** release brings:
 
@@ -272,7 +274,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.53.0](https://github.com/dvorka-oss/mytral/compare/v1.52.0...v1.53.0)
+## [1.53.0](https://github.com/dvorka/mytral/compare/v1.52.0...v1.53.0)
 
 This MyTraL **minor** release brings:
 
@@ -312,7 +314,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0)
+## [1.52.0](https://github.com/dvorka/mytral/compare/v1.51.0...v1.52.0)
 
 This MyTraL **minor** release brings:
 
@@ -331,7 +333,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...v1.51.0)
+## [1.51.0](https://github.com/dvorka/mytral/compare/v1.50.0...v1.51.0)
 
 This MyTraL **minor** release brings:
 
@@ -359,7 +361,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.9.0...v1.50.0)
+## [1.50.0](https://github.com/dvorka/mytral/compare/v1.9.0...v1.50.0)
 
 This MyTraL release is very **special** to me. After years of coding and hacking
 together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
@@ -421,7 +423,7 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execut
 
 
 
-## [1.9.0](https://github.com/dvorka-oss/my-training-log/compare/v1.8.0...v1.9.0)
+## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.9.0)
 
 This MyTraL **minor** release brings:
 
@@ -497,7 +499,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.8.0](https://github.com/dvorka-oss/my-training-log/compare/v1.7.0...v1.8.0)
+## [1.8.0](https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0)
 
 This MyTraL **minor** release brings:
 
@@ -537,7 +539,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.7.0](https://github.com/dvorka-oss/my-training-log/compare/v1.6.0...v1.7.0)
+## [1.7.0](https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0)
 
 This MyTraL **minor** release brings:
 
@@ -559,7 +561,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.6.0](https://github.com/dvorka-oss/my-training-log/compare/v1.5.0...v1.6.0)
+## [1.6.0](https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0)
 
 This MyTraL **minor** release brings:
 
@@ -621,7 +623,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.5.0](https://github.com/dvorka-oss/my-training-log/compare/v1.4.0...v1.5.0)
+## [1.5.0](https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0)
 
 This MyTraL **minor** release brings:
 
@@ -657,7 +659,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.4.0](https://github.com/dvorka-oss/my-training-log/compare/v1.3.0...v1.4.0)
+## [1.4.0](https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0)
 
 This MyTraL **minor** release brings:
 
@@ -855,5 +857,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka-oss/mytral/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka-oss/mytral/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka/mytral/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka/mytral/releases/tag/v0.9.0...v1.0.0

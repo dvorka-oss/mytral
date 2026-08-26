@@ -261,7 +261,7 @@ manual download required.</p>
 </code></pre></div>
 
 <p>Accept the source and package agreements if prompted. winget downloads the signed
-installer from <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a>, verifies
+installer from <a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a>, verifies
 its SHA256 checksum and installs MyTraL to <code>C:\Program Files\MyTraL\</code>.</p>
 <p>Data is stored in:</p>
 <div class="codehilite"><pre><span></span><code>C:\Users\&lt;user&gt;\AppData\Local\mytral\
@@ -278,7 +278,7 @@ its SHA256 checksum and installs MyTraL to <code>C:\Program Files\MyTraL\</code>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-installer">Install on Windows using Installer</h2>
 <p>Download the latest installer from:</p>
 <ul>
-<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
+<li><a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a></li>
 </ul>
 <p>Run the installer:</p>
 <div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;-setup.exe
@@ -296,7 +296,7 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-windows-using-zip">Install on Windows using ZIP</h2>
 <p>Download the latest ZIP archive with the executable:</p>
 <ul>
-<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
+<li><a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a></li>
 </ul>
 <p>Extract <code>*.exe</code>:</p>
 <div class="codehilite"><pre><span></span><code>unzip<span class="w"> </span>mytral-&lt;version&gt;.exe-Win*.zip
@@ -311,7 +311,7 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-macos-using-dmg">Install on macOS using DMG</h2>
 <p>Download the latest <code>.dmg</code> from:</p>
 <ul>
-<li><a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a></li>
+<li><a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a></li>
 </ul>
 <p>Open the disk image and drag <code>MyTraL.app</code> to <code>Applications</code>:</p>
 <div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;.dmg
@@ -373,13 +373,13 @@ feature.</p>
 
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-linux-using-snap">Install on Linux using Snap</h2>
 <p>MyTraL is also distributed as a downloadable <strong>classic confinement</strong> snap
-attached to each <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Release</a>.
+attached to each <a href="https://github.com/dvorka/mytral/releases">GitHub Release</a>.
 Classic confinement lets MyTraL open a native frameless desktop window via a
 browser and store data in the standard location, but it is not available from
 the Snap Store - you install the downloaded <code>.snap</code> file directly.</p>
 <p>Install <code>Snapd</code> if you have not already
 (see <a href="#install-on-linux-using-snap-from-snap-store">Install on Linux using Snap from Snap Store</a>).</p>
-<p>Download <code>mytral_&lt;version&gt;_amd64.snap</code> from the latest <a href="https://github.com/dvorka-oss/mytral/releases">GitHub release</a>,
+<p>Download <code>mytral_&lt;version&gt;_amd64.snap</code> from the latest <a href="https://github.com/dvorka/mytral/releases">GitHub release</a>,
 then install it with the <code>--dangerous</code> (unsigned, sideloaded) and <code>--classic</code> flags:</p>
 <div class="codehilite"><pre><span></span><code><span class="c1"># example: mytral_1.57.0_amd64.snap</span>
 sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>--dangerous<span class="w"> </span>--classic<span class="w"> </span>./mytral_1.57.0_amd64.snap
@@ -433,7 +433,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>remote-add<span class="w"> </span>--if-not-exists<span class="w"> </span>flathub<span class="w"> </span>https://flathub.org/repo/flathub.flatpakrepo
 </code></pre></div>
 
-<p>Install the local bundle from <a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a>:</p>
+<p>Install the local bundle from <a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a>:</p>
 <div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>./mytral-&lt;version&gt;.flatpak
 
 <span class="c1"># example: flatpak install --user ./mytral-1.56.0.flatpak</span>
@@ -482,7 +482,7 @@ that directory manually if you want to remove it.</p>
 </code></pre></div>
 
 <p>Clone Git repository:</p>
-<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka/mytral.git
 <span class="nb">cd</span><span class="w"> </span>mytral
 </code></pre></div>
 
@@ -664,7 +664,7 @@ with macOS - no extra tools to install). Must run on macOS; produces an
 </code></pre></div>
 
 <p>Clone Git repository:</p>
-<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka/mytral.git
 <span class="nb">cd</span><span class="w"> </span>mytral
 </code></pre></div>
 
@@ -694,7 +694,7 @@ with macOS - no extra tools to install). Must run on macOS; produces an
 </code></pre></div>
 
 <p>Clone Git repository:</p>
-<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka/mytral.git
 <span class="nb">cd</span><span class="w"> </span>mytral
 </code></pre></div>
 
@@ -730,7 +730,7 @@ mytral-&lt;version&gt;.exe
 </code></pre></div>
 
 <p>Clone Git repository:</p>
-<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka-oss/mytral.git
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dvorka/mytral.git
 <span class="nb">cd</span><span class="w"> </span>mytral
 </code></pre></div>
 
@@ -802,7 +802,7 @@ mytral-&lt;version&gt;.exe
 <h1 id="tarball">Tarball</h1>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="download-and-install-tarball">Download and Install Tarball</h2>
 <p>Download the latest tarball from the
-<a href="https://github.com/dvorka-oss/mytral/releases">GitHub Releases</a> page.</p>
+<a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a> page.</p>
 <p>Extract and start MyTraL:</p>
 <div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>xzf<span class="w"> </span>mytral-&lt;version&gt;.tar.gz
 <span class="nb">cd</span><span class="w"> </span>mytral-&lt;version&gt;
@@ -874,8 +874,8 @@ mytral-&lt;version&gt;.exe
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/edit/main/docs/INSTALLATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/blob/main/docs/INSTALLATION.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/edit/main/docs/INSTALLATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/blob/main/docs/INSTALLATION.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

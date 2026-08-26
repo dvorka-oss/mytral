@@ -25,7 +25,7 @@ FROM debian:bookworm-slim
 LABEL org.opencontainers.image.title="MyTraL"
 LABEL org.opencontainers.image.description="My training log - personal sport training log web application"
 LABEL org.opencontainers.image.licenses="AGPL-3.0"
-LABEL org.opencontainers.image.source="https://github.com/dvorka-oss/mytral"
+LABEL org.opencontainers.image.source="https://github.com/dvorka/mytral"
 
 #
 # Install Python and uv

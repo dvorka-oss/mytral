@@ -30,8 +30,8 @@
   </description>
   <launchable type="desktop-id">fitness.mytral.Mytral.desktop</launchable>
   <url type="homepage">https://mytral.fitness</url>
-  <url type="bugtracker">https://github.com/dvorka-oss/mytral/issues</url>
-  <url type="vcs-browser">https://github.com/dvorka-oss/mytral</url>
+  <url type="bugtracker">https://github.com/dvorka/mytral/issues</url>
+  <url type="vcs-browser">https://github.com/dvorka/mytral</url>
   <categories>
     <category>Sports</category>
   </categories>

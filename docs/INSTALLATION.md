@@ -70,7 +70,7 @@ winget install --id Mytral.Mytral
 ```
 
 Accept the source and package agreements if prompted. winget downloads the signed
-installer from [GitHub Releases](https://github.com/dvorka-oss/mytral/releases), verifies
+installer from [GitHub Releases](https://github.com/dvorka/mytral/releases), verifies
 its SHA256 checksum and installs MyTraL to `C:\Program Files\MyTraL\`.
 
 Data is stored in:
@@ -97,7 +97,7 @@ winget uninstall --id Mytral.Mytral
 
 Download the latest installer from:
 
-* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+* [GitHub Releases](https://github.com/dvorka/mytral/releases)
 
 Run the installer:
 
@@ -123,7 +123,7 @@ C:\Users\<user>\AppData\Local\mytral\
 ## Install on Windows using ZIP
 Download the latest ZIP archive with the executable:
 
-* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+* [GitHub Releases](https://github.com/dvorka/mytral/releases)
 
 Extract `*.exe`:
 
@@ -145,7 +145,7 @@ mytral-<version>.exe
 
 Download the latest `.dmg` from:
 
-* [GitHub Releases](https://github.com/dvorka-oss/mytral/releases)
+* [GitHub Releases](https://github.com/dvorka/mytral/releases)
 
 Open the disk image and drag `MyTraL.app` to `Applications`:
 
@@ -235,7 +235,7 @@ sudo snap remove mytral
 ## Install on Linux using Snap
 
 MyTraL is also distributed as a downloadable **classic confinement** snap
-attached to each [GitHub Release](https://github.com/dvorka-oss/mytral/releases).
+attached to each [GitHub Release](https://github.com/dvorka/mytral/releases).
 Classic confinement lets MyTraL open a native frameless desktop window via a
 browser and store data in the standard location, but it is not available from
 the Snap Store - you install the downloaded `.snap` file directly.
@@ -243,7 +243,7 @@ the Snap Store - you install the downloaded `.snap` file directly.
 Install `Snapd` if you have not already
 (see [Install on Linux using Snap from Snap Store](#install-on-linux-using-snap-from-snap-store)).
 
-Download `mytral_<version>_amd64.snap` from the latest [GitHub release](https://github.com/dvorka-oss/mytral/releases),
+Download `mytral_<version>_amd64.snap` from the latest [GitHub release](https://github.com/dvorka/mytral/releases),
 then install it with the `--dangerous` (unsigned, sideloaded) and `--classic` flags:
 
 ```bash
@@ -320,7 +320,7 @@ Add the Flathub remote (one-time):
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ```
 
-Install the local bundle from [GitHub Releases](https://github.com/dvorka-oss/mytral/releases):
+Install the local bundle from [GitHub Releases](https://github.com/dvorka/mytral/releases):
 
 ```bash
 flatpak install --user ./mytral-<version>.flatpak
@@ -395,7 +395,7 @@ uv python install 3.12
 Clone Git repository:
 
 ```bash
-git clone https://github.com/dvorka-oss/mytral.git
+git clone https://github.com/dvorka/mytral.git
 cd mytral
 ```
 
@@ -652,7 +652,7 @@ uv python install 3.12
 Clone Git repository:
 
 ```bash
-git clone https://github.com/dvorka-oss/mytral.git
+git clone https://github.com/dvorka/mytral.git
 cd mytral
 ```
 
@@ -699,7 +699,7 @@ uv python install 3.12
 Clone Git repository:
 
 ```bash
-git clone https://github.com/dvorka-oss/mytral.git
+git clone https://github.com/dvorka/mytral.git
 cd mytral
 ```
 
@@ -754,7 +754,7 @@ uv python install 3.12
 Clone Git repository:
 
 ```bash
-git clone https://github.com/dvorka-oss/mytral.git
+git clone https://github.com/dvorka/mytral.git
 cd mytral
 ```
 
@@ -854,7 +854,7 @@ docker stop mytral-fedora
 ## Download and Install Tarball
 
 Download the latest tarball from the
-[GitHub Releases](https://github.com/dvorka-oss/mytral/releases) page.
+[GitHub Releases](https://github.com/dvorka/mytral/releases) page.
 
 Extract and start MyTraL:
 

@@ -30,7 +30,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$Url = "https://github.com/dvorka-oss/mytral/releases/download/v$Version/mytral-$Version-setup.exe"
+$Url = "https://github.com/dvorka/mytral/releases/download/v$Version/mytral-$Version-setup.exe"
 $TmpFile = [System.IO.Path]::GetTempFileName() + ".exe"
 
 Write-Host "Downloading $Url ..."

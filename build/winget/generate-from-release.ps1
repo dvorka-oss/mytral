@@ -30,7 +30,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$GithubOrg    = "dvorka-oss"
+$GithubOrg    = "dvorka"
 $GithubRepo   = "mytral"
 $PackageId    = "Mytral.Mytral"
 $InstallerName = "mytral-$Version-setup.exe"

@@ -92,12 +92,12 @@ MyTraL runs as a local desktop application (a Flask web app opened in your brows
 		<Application_URLs>
 			<Application_Info_URL>https://mytral.mindforger.com</Application_Info_URL>
 			<Application_Order_URL>https://mytral.mindforger.com</Application_Order_URL>
-			<Application_Screenshot_URL>https://github.com/dvorka-oss/mytral/raw/main/media/screenshot/activity.png</Application_Screenshot_URL>
-			<Application_Icon_URL>https://github.com/dvorka-oss/mytral/raw/main/media/logo/mytral-logo-transparent-bg-320x320.png</Application_Icon_URL>
-			<Application_XML_File_URL>https://github.com/dvorka-oss/mytral/raw/main/PAD.xml</Application_XML_File_URL>
+			<Application_Screenshot_URL>https://github.com/dvorka/mytral/raw/main/media/screenshot/activity.png</Application_Screenshot_URL>
+			<Application_Icon_URL>https://github.com/dvorka/mytral/raw/main/media/logo/mytral-logo-transparent-bg-320x320.png</Application_Icon_URL>
+			<Application_XML_File_URL>https://github.com/dvorka/mytral/raw/main/PAD.xml</Application_XML_File_URL>
 		</Application_URLs>
 		<Download_URLs>
-			<Primary_Download_URL>https://github.com/dvorka-oss/mytral/releases</Primary_Download_URL>
+			<Primary_Download_URL>https://github.com/dvorka/mytral/releases</Primary_Download_URL>
 			<Secondary_Download_URL>https://mytral.mindforger.com/docs/installation.html</Secondary_Download_URL>
 			<Additional_Download_URL_1>https://launchpad.net/~ultradvorka/+archive/ubuntu/sport</Additional_Download_URL_1>
 			<Additional_Download_URL_2 />
@@ -111,6 +111,6 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU Affero General Public License along with this program. If not, see https://www.gnu.org/licenses/agpl-3.0.html .
 
-Full license text: https://github.com/dvorka-oss/mytral/blob/main/LICENSE</EULA>
+Full license text: https://github.com/dvorka/mytral/blob/main/LICENSE</EULA>
 	</Permissions>
 </XML_DIZ_INFO>

@@ -20,8 +20,8 @@ import markdown
 
 
 # Configuration
-GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
-GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
+GITHUB_BASE_EDIT = "https://github.com/dvorka/mytral/edit/main/docs/"
+GITHUB_BASE_VIEW = "https://github.com/dvorka/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
 SITE_BASE_URL = "https://mytral.mindforger.com"
 SITE_OG_IMAGE = "https://mytral.mindforger.com/og-image.png"
