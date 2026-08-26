@@ -10,13 +10,25 @@
 <!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
 <!-- [![Flathub](https://img.shields.io/flathub/v/fitness.mytral.Mytral)](https://flathub.org/apps/fitness.mytral.Mytral) -->
 
-Are your **sports data scattered** across the services you’ve used over the years - Strava™, Garmin™, Polar™, Concept2™, FIT, GPX, TCX files, Microsoft™ Excel, or even paper logs? Are you afraid that you could lose access to your data when it is hosted by someone else? Would you like to **see all the workouts** you've done over the years in one **single application**? Are you tired of being **locked** into a single ecosystem or worried your favorite fitness platform might sunset or paywall your history? Are you fed up with fitness apps selling your location patterns and workout habits to third-party advertisers? Do you believe that **privacy is your right**, not a privilege?
+Are your sports data scattered across the services and systems you’ve used over the
+years - FIT, GPX, TCX files, Strava™, Garmin™, Polar™, Concept2™, Microsoft™ Excel™ or
+even paper logs? Are you afraid that you could lose access to your data seized by
+someone else? Are you worried that your favorite fitness platform might sunset or
+paywall your history? Are you fed up with fitness apps selling your data habits to
+third-party advertisers? Do you believe that **privacy is your right**, not a privilege?
 
-Every day, people lose access to accounts containing years of personal data - banned without explanation, locked out without recourse, legal terms changed without notice. Let your data live on your machine, under your control. Always accessible, always yours. Use **My** **Tra**ining **L**og - **MyTraL** - your personal training log for deeper insights and smarter progress.
+Would you like to own your sport data again to see all the workouts you've done over the
+years in one single application on your desktop?
 
-https://mytral.fitness
+**MyTraL** is your personal training log.
 
 ![home](media/screenshot/activity.png)
+
+Every day, people lose access to accounts containing years of personal data - banned
+without explanation, locked out without recourse, legal terms changed without notice.
+Let your data live on your machine, under your control. Always accessible, always yours.
+Your log, your data, your edge. Track, analyze, understand, and optimize to achieve your
+goals with **MyTraL**.
 
 
 
