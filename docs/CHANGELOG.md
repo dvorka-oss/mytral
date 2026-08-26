@@ -50,6 +50,9 @@ This MyTraL **minor** release brings:
 - Fixed the exercise photo gallery - it now appears on the exercise view page, where it
   can be viewed, uploaded to, edited and deleted, instead of being stuck on the edit page.
 - Fixed exercises photos insert (from link to image).
+- Fixed sport variety field at the end of the dashboard and added tooltips to all fields
+  on that row.
+- Fixed broken goal update which was failing.
 
 ### Documentation
 - Fixed documentation by replacing non-ASCII characters with ASCII characters.
