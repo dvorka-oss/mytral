@@ -3,7 +3,7 @@
 Generate public HTML documentation from Markdown sources.
 
 This script reads Markdown files from docs/ directory and generates
-modern styled HTML pages with dark theme for webs/www.mytral.fitness/docs/.
+modern styled HTML pages with dark theme for webs/mytral.mindforger.com/docs/.
 Features left sidebar navigation and right sidebar table of contents.
 """
 
@@ -23,8 +23,8 @@ import markdown
 GITHUB_BASE_EDIT = "https://github.com/dvorka-oss/mytral/edit/main/docs/"
 GITHUB_BASE_VIEW = "https://github.com/dvorka-oss/mytral/blob/main/docs/"
 MINDFORGER_LINK = "https://www.mindforger.com"
-SITE_BASE_URL = "https://mytral.fitness"
-SITE_OG_IMAGE = "https://mytral.fitness/og-image.png"
+SITE_BASE_URL = "https://mytral.mindforger.com"
+SITE_OG_IMAGE = "https://mytral.mindforger.com/og-image.png"
 
 
 @dataclass
@@ -800,7 +800,7 @@ def generate_html_page(
     github_edit_url = f"{GITHUB_BASE_EDIT}{md_file.name}"
     github_view_url = f"{GITHUB_BASE_VIEW}{md_file.name}"
 
-    # canonical page URL (e.g. https://mytral.fitness/docs/installation.html)
+    # canonical page URL (e.g. https://mytral.mindforger.com/docs/installation.html)
     canonical = f"{SITE_BASE_URL}/{output_file.parent.name}/{output_file.name}"
 
     # Fill template
@@ -885,8 +885,8 @@ def main():
     parser.add_argument(
         '--output',
         type=Path,
-        default=Path('webs/www.mytral.fitness/docs'),
-        help='Output directory for HTML files (default: webs/www.mytral.fitness/docs)'
+        default=Path('webs/mytral.mindforger.com/docs'),
+        help='Output directory for HTML files (default: webs/mytral.mindforger.com/docs)'
     )
     args = parser.parse_args()
 

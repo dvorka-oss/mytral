@@ -339,7 +339,7 @@ The bundle is self-contained:
 Start MyTraL from the application menu or run:
 
 ```bash
-flatpak run fitness.mytral.Mytral
+flatpak run mytral.Mytral
 ```
 
 MyTraL starts a local server and opens its UI in **your default browser**.
@@ -358,13 +358,13 @@ other MyTraL installation (binary/PPA/Snap/*) and survives uninstalling the Flat
 **Upgrade:**
 
 ```bash
-flatpak update fitness.mytral.Mytral
+flatpak update mytral.Mytral
 ```
 
 **Uninstall:**
 
 ```bash
-flatpak uninstall fitness.mytral.Mytral
+flatpak uninstall mytral.Mytral
 ```
 
 Your data in `~/.local/share/mytral/` is **not** removed by uninstalling - delete
@@ -547,7 +547,7 @@ make distro-flatpak-install
 Run MyTraL:
 
 ```bash
-flatpak run fitness.mytral.Mytral
+flatpak run mytral.Mytral
 ```
 
 **Clean Flatpak artifacts:**

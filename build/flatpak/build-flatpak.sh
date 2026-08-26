@@ -35,7 +35,7 @@ set -e  # exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-APP_ID="fitness.mytral.Mytral"
+APP_ID="mytral.Mytral"
 MANIFEST="$PROJECT_ROOT/flatpak/$APP_ID.yaml"
 METAINFO="$PROJECT_ROOT/flatpak/$APP_ID.metainfo.xml"
 BUILD_DIR="$PROJECT_ROOT/build/flatpak/build-dir"

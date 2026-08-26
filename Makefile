@@ -731,7 +731,7 @@ distro-flatpak-path: ## show path to built Flatpak bundle
 .PHONY: distro-flatpak-remove
 distro-flatpak-remove: ## remove locally installed Flatpak
 	@echo "Removing Flatpak..."
-	flatpak uninstall --user -y fitness.mytral.Mytral || true
+	flatpak uninstall --user -y mytral.Mytral || true
 	@echo "DONE Flatpak removed"
 
 .PHONY: distro-flatpak-install
@@ -743,7 +743,7 @@ distro-flatpak-install: distro-flatpak-build ## build and install Flatpak locall
 		exit 1; \
 	fi; \
 	flatpak install --user --reinstall -y "$$BUNDLE"; \
-	echo "DONE Flatpak installed. Run with: flatpak run fitness.mytral.Mytral"
+	echo "DONE Flatpak installed. Run with: flatpak run mytral.Mytral"
 
 #
 # DOCUMENTATION
@@ -775,40 +775,41 @@ doc-live: doc ## serve documentation locally for preview
 	uv run python -m http.server 8080 --directory mytral/static/documentation
 
 #
-# WEB: mytral.fitness
+# WEB: https://mytral.mindforger.com
+#      https://dvorka.github.io/mytral/
 #
 
 # INSTALL live server: npm install -g live-server
 .PHONY: www-live
-www-live: ## start live server for www.mytral.fitness development
+www-live: ## start live server for mytral.mindforger.com development
 	@echo "Serving documentation at http://localhost:8080"
-	uv run python -m http.server 8080 --directory webs/www.mytral.fitness
+	uv run python -m http.server 8080 --directory webs/mytral.mindforger.com
 
 .PHONY: www-doc
-www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
+www-doc: doc-sync-data ## generate public documentation for mytral.mindforger.com
 	@echo "Generating public documentation from Markdown..."
 	uv run python make/generate_public_docs.py
-	@echo "DONE Public documentation generated successfully to file://$(PWD)/webs/www.mytral.fitness/docs/index.html"
+	@echo "DONE Public documentation generated successfully to file://$(PWD)/webs/mytral.mindforger.com/docs/index.html"
 
 .PHONY: www-doc-clean
 www-doc-clean: ## clean generated public documentation
-	rm -rf webs/www.mytral.fitness/docs/*.html
-	rm -rf webs/www.mytral.fitness/docs/*.png
+	rm -rf webs/mytral.mindforger.com/docs/*.html
+	rm -rf webs/mytral.mindforger.com/docs/*.png
 	@echo "Public documentation cleaned"
 
 .PHONY: www-doc-live
 www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
-	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
+	uv run python -m http.server 8080 --directory webs/mytral.mindforger.com/docs
 
 .PHONY: www-seo-assets
-www-seo-assets: ## generate favicon.ico + 1200x630 og-image.png for www.mytral.fitness
+www-seo-assets: ## generate favicon.ico + 1200x630 og-image.png for mytral.mindforger.com
 	@echo "Generating SEO assets..."
 	uv run python make/make_seo_assets.py
-	@echo "DONE SEO assets saved to webs/www.mytral.fitness/"
+	@echo "DONE SEO assets saved to webs/mytral.mindforger.com/"
 
 .PHONY: www-check
-www-check: ## validate built www.mytral.fitness (SEO meta, dead links, sitemap, assets)
+www-check: ## validate built mytral.mindforger.com (SEO meta, dead links, sitemap, assets)
 	uv run python make/check_www_seo.py
 
 .PHONY: www-banners
@@ -816,14 +817,6 @@ www-banners: ## generate Snapcraft/store feature banners (outputs to media/banne
 	@echo "Generating banners..."
 	uv run python media/banners/make_banners.py
 	@echo "DONE Banners saved to media/banners/"
-
-#
-# DEPLOYMENT: mytral.fitness
-#
-
-.PHONY: deployment-spaceship-data-backup
-deploy-spaceship-data-backup: ## backup SpaceShip.com data, use TARGET_DATA_DIRECTORY to also copy it
-	cd ./deploy/spaceship.com && ./ftp-download-data.sh $(TARGET_DATA_DIRECTORY)
 
 #
 # DEPLOYMENT: Docker

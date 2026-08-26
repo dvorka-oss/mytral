@@ -31,6 +31,9 @@ This MyTraL **minor** release brings:
   `.hrm` file a second time in the worker process.
 - The bookmarks list now hides the exercises/laps, source and workout columns, and
   the reorder buttons no longer wrap on narrow screens.
+- Cancelled mytral.fitness domain & hosting:
+    - web moved to my https://projects.mindforger.com/mytral
+    - Flatpak qualified name changed from `fitness.mytral.Mytral` to `mytral.Mytral`
 
 ### Fixed
 - Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar

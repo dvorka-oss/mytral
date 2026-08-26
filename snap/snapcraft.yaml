@@ -10,7 +10,7 @@ title: MyTraL
 summary: Sovereign athlete training log - train smarter, not harder
 description: |
   MyTraL is a privacy-first personal sport training log designed to track your
-  athletic activities, manage your gear, and analyze your fitness progress
+  athletic activities, manage your gear, and analyze your progress
   without relying on mandatory cloud subscriptions.
 
   Key Features:
@@ -19,7 +19,7 @@ description: |
     cycling to weightlifting and hiking.
   - Smart Gear Management: Monitor usage statistics for shoes, bikes, and
     components to know exactly when to service or replace them.
-  - Deep Training Insights: Analyze your training load, monitor fitness trends,
+  - Deep Training Insights: Analyze your training load, monitor trends,
     track goals, and record personal records (PRs).
   - Holistic Health Tracking: Keep tabs on your weight, general health metrics,
     custom trails, and training outfits.
@@ -38,7 +38,7 @@ license: AGPL-3.0
 contact: martin.dvorak@mindforger.com
 issues: https://github.com/dvorka-oss/mytral/issues
 source-code: https://github.com/dvorka-oss/mytral
-website: https://mytral.fitness
+website: https://mytral.mindforger.com
 
 platforms:
   amd64:

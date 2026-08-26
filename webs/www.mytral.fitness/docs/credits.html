@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTraL Credits - MyTraL Documentation</title>
+    <meta name="description" content="See licenses folder for 3rd party content licensing details.">
+    <link rel="canonical" href="https://mytral.mindforger.com/docs/credits.html">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/mytral-logo.png" type="image/png">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="MyTraL">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="MyTraL Credits - MyTraL Documentation">
+    <meta property="og:description" content="See licenses folder for 3rd party content licensing details.">
+    <meta property="og:url" content="https://mytral.mindforger.com/docs/credits.html">
+    <meta property="og:image" content="https://mytral.mindforger.com/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MyTraL Credits - MyTraL Documentation">
+    <meta name="twitter:description" content="See licenses folder for 3rd party content licensing details.">
+    <meta name="twitter:image" content="https://mytral.mindforger.com/og-image.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #8b5cf6;
+            --accent: #10b981;
+            --dark: #0f172a;
+            --darker: #020617;
+            --gray: #64748b;
+            --light-gray: #cbd5e1;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --nav-width: 260px;
+            --toc-width: 240px;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: #e2e8f0;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Left Navigation Sidebar */
+        .docs-nav {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--nav-width);
+            background: rgba(15, 23, 42, 0.95);
+            border-right: 1px solid rgba(226, 232, 240, 0.1);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 2rem 0;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.5));
+        }
+
+        .nav-brand-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-items {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-section-title {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray);
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            padding: 0.625rem 1.5rem;
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: block;
+        }
+
+        .nav-item:hover {
+            background: rgba(14, 165, 233, 0.1);
+            color: white;
+            border-left-color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: rgba(14, 165, 233, 0.15);
+            color: white;
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: rgba(226, 232, 240, 0.1);
+            margin: 0.5rem 1.5rem;
+        }
+
+        /* Right TOC Sidebar */
+        .docs-toc {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--toc-width);
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 1px solid rgba(226, 232, 240, 0.1);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 2rem 1rem;
+        }
+
+        .toc-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            padding-left: 0.75rem;
+        }
+
+        .toc-item {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--light-gray);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .toc-item:hover {
+            color: white;
+            border-left-color: var(--primary);
+        }
+
+        .toc-item.toc-h3 {
+            padding-left: 1.5rem;
+            font-size: 0.8125rem;
+        }
+
+        /* Main Content Area */
+        .docs-container {
+            margin-left: var(--nav-width);
+            margin-right: var(--toc-width);
+            padding: 3rem 4rem;
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .page-description {
+            font-size: 1.25rem;
+            color: var(--light-gray);
+            line-height: 1.8;
+        }
+
+        /* Content Styles */
+        .docs-content {
+            color: #e2e8f0;
+        }
+
+        .docs-content h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: white;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .docs-content h2:first-child {
+            margin-top: 0;
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .docs-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .docs-content p {
+            margin-bottom: 1.25rem;
+            line-height: 1.8;
+            color: var(--light-gray);
+        }
+
+        .docs-content ul, .docs-content ol {
+            margin-bottom: 1.25rem;
+            padding-left: 1.5rem;
+        }
+
+        .docs-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+            color: var(--light-gray);
+        }
+
+        .docs-content code {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--card-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+            color: var(--primary);
+        }
+
+        .docs-content pre {
+            background: var(--card-bg);
+            border: 1px solid rgba(226, 232, 240, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.25rem;
+        }
+
+        .docs-content pre code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+        }
+
+        .docs-content a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .docs-content a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+
+        .docs-content blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: var(--light-gray);
+        }
+
+        .docs-content table {
+            width: 100%;
+            margin-bottom: 1.25rem;
+            border-collapse: collapse;
+        }
+
+        .docs-content th,
+        .docs-content td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .docs-content th {
+            font-weight: 600;
+            color: white;
+            background: var(--card-bg);
+        }
+
+        .docs-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Footer */
+        .docs-footer {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(226, 232, 240, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            margin-left: 1rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .header-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .header-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .docs-toc {
+                display: none;
+            }
+            .docs-container {
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .docs-nav {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .docs-container {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+            }
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="docs-nav">
+        <div class="nav-brand header-links">
+                <img src="../mytral-logo.png" alt="MyTraL" class="nav-logo">
+                <a href="../index.html" target="_blank">
+                    <span class="nav-brand-text">MyTraL Docs</span>
+                </a>
+        </div>
+        <div class="nav-items">
+            <div class="nav-section-title">User Documentation</div>
+<a href="index.html" class="nav-item">Manifesto</a>
+<a href="installation.html" class="nav-item">Installation</a>
+<a href="configuration.html" class="nav-item">Configuration</a>
+<div class="nav-divider"></div>
+<a href="sharing.html" class="nav-item">Data Sharing</a>
+<div class="nav-divider"></div>
+<a href="about.html" class="nav-item">About</a>
+<div class="nav-divider"></div>
+<a href="credits.html" class="nav-item active">Credits</a>
+<a href="license.html" class="nav-item">License</a>
+<a href="licenses.html" class="nav-item">3rd Party Licenses</a>
+<a href="changelog.html" class="nav-item">Changelog</a>
+        </div>
+    </nav>
+
+    <div class="docs-container">
+        <div class="page-header">
+            <h1 class="page-title">MyTraL Credits</h1>
+        </div>
+
+        <div class="docs-content">
+            <h1 id="mytral-credits">MyTraL Credits</h1>
+<p>Written by <a href="http://me.mindforger.com">Martin Dvorak</a>.</p>
+<!--
+Acknowledgements to contributors:
+
+* .
+-->
+
+<p>Big thanks to 3rd party <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software">FLOSS</a> content authors and contributors:</p>
+<ul>
+<li>Armin Ronacher (<a href="https://flask.palletsprojects.com/">Flask</a> - micro web framework and <a href="https://jinja.palletsprojects.com/">Jinja</a> - templating engine)</li>
+<li>Paweł Kuna (<a href="https://tabler.io/">Tabler</a> - HTML/CSS components, layouts and UI system)</li>
+<li>Crast (<a href="https://wtforms.readthedocs.io/">WTForms</a> - web forms)</li>
+<li>Ritchie Vink (<a href="https://pola.rs/">Polars</a> - high-performance DS analysis and normalization)</li>
+<li>Julien Loones (<a href="https://squey.org/">Squey</a> - parqet visualization and understanding)</li>
+<li>Hynek Schlawack (<a href="https://www.structlog.org/">structlog</a> - logging done right)</li>
+<li>Anaconda (<a href="https://bokeh.org/">Bokeh</a> - visualization)</li>
+<li>Fabian Hirschmann (<a href="https://github.com/fhirschmann/rdp">rdp</a> - Ramer-Douglas-Peucker algorithm)</li>
+<li>Frederick Jansen, Bruno M. Custódio (<a href="https://pypi.org/project/polyline/">polyline</a> - Google encoded polyline algorithm)</li>
+<li>Charlie Marsh/Astral (<a href="https://docs.astral.sh/uv/">uv</a> and <a href="https://docs.astral.sh/ruff/">ruff</a> - fast Python dev swiss knives)</li>
+<li>Wes McKinney (<a href="https://pandas.pydata.org/">Pandas</a> - data frame library)</li>
+<li>Kenneth Reitz (<a href="https://requests.readthedocs.io/">requests</a> - HTTP anything)</li>
+<li>Volodymyr Agafonkin (<a href="https://leafletjs.com/">Leaflet</a> - mobile-friendly interactive maps)</li>
+<li>OpenStreetMap contributors (<a href="https://www.openstreetmap.org/">OpenStreetMap</a> - free geographic data under ODbL)</li>
+<li>Hicham ELABBASSI (<a href="https://github.com/HichamELBSI/react-native-body-highlighter">react-native-body-highlighter</a> - anatomical muscle SVG paths for the body mannequin)</li>
+<li>Jay Loden, Dave Daeschler, Giampaolo Rodola (<a href="https://github.com/giampaolo/psutil">psutil</a> - process king)</li>
+<li>Jordan Russell and Martijn Laan (<a href="https://jrsoftware.org/isinfo.php">Inno Setup</a> - Windows installer compiler)</li>
+<li>Hartmut Goebel, Giovanni Bajo, David Vierra, David Cortesi, and Martin Zibricky (<a href="https://pyinstaller.org/">PyInstaller</a> - desktop installer)</li>
+<li>Holger Krekel (<a href="https://pytest.org/">pytest</a> - Python testing that brings joy)</li>
+<li>Polar (<a href="https://github.com/polarofficial/accesslink-example-python">accesslink-example-python</a> - reference for the Polar Flow AccessLink OAuth2 + transaction flow)</li>
+</ul>
+<p>See <a href="./licenses">licenses</a> folder for 3rd party content licensing details.</p>
+<p>Acknowledgements to researchers and consultants who provided their expertise:</p>
+<ul>
+<li>Ladislav "Laco" Ligárt (Apple Health and Garmin insights)</li>
+<li>Jan "Jedla" Jedlička (sensor data sanitization tips)</li>
+</ul>
+<!--
+Acknowledgements to reviewers, testers and supporters:
+
+*
+-->
+
+<p>Acknowledgements to athletes and projects who/which provided their data:</p>
+<ul>
+<li>Roman "Marco" Vetešník - 10+ years of Polar Precision Performance data, literature, expertise.</li>
+<li>Štefan "Wingman" Pacinda - 10+ years of Garmin data and vintage Garmin HW access.</li>
+<li><a href="https://osf.io/6hfpz/overview">GoldenCheetah OpenData Project</a> and GoldenCheetah project test data - amazing collection of activity recordings.</li>
+<li>OSF - for beging a free, open platform to support research and hosting dataset like crowd-sourced GoldenCheetah dataset for the sport science.</li>
+</ul>
+<p>MyTral project is/was supported by:</p>
+<ul>
+<li><a href="https://github.com">GitHub</a> - GitHub Copilot CLI - free Copilot PRO FLOSS tier - AI assisted coding.</li>
+<li><a href="https://www.augmentcode.com/">Augment Code</a> - FLOSS developers support program (2025/12 - 2026/3) - high quality PR reviews.</li>
+</ul>
+<p>Special thanks to:</p>
+<ul>
+<li>Guido van Rossum (Python - for inspiring visions and being benevolent dictator of the Python)</li>
+<li>Linus Torvalds (Linux and Git - for being inspiration and for strong opinions)</li>
+<li>Richard Stallman (GNU and GNU GPL - for passionate software freedom activism)</li>
+</ul>
+        </div>
+
+        <div class="docs-footer">
+            <div class="footer-links">&copy; 2026 <a href="../index.html" target="_blank">MyTraL</a></div>
+            <div class="footer-links">
+                <a href="https://www.mindforger.com" target="_blank">Doc made with MindForger</a>
+                <a href="https://github.com/dvorka-oss/mytral/edit/main/docs/CREDITS.md" target="_blank">Edit on GitHub</a>
+                <a href="https://github.com/dvorka-oss/mytral/blob/main/docs/CREDITS.md" target="_blank">View Source</a>
+                <a href="../index.html">Home</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="docs-toc"></div>
+</body>
+</html>

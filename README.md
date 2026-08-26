@@ -8,13 +8,13 @@
 
 <!-- [![All releases downloads](https://img.shields.io/github/downloads/dvorka-oss/mytral/total.svg)](https://github.com/dvorka-oss/mytral/releases) -->
 <!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
-<!-- [![Flathub](https://img.shields.io/flathub/v/fitness.mytral.Mytral)](https://flathub.org/apps/fitness.mytral.Mytral) -->
+<!-- [![Flathub](https://img.shields.io/flathub/v/mytral.Mytral)](https://flathub.org/apps/mytral.Mytral) -->
 
 Are your sports data scattered across the services and systems you’ve used over the
 years - FIT, GPX, TCX files, Strava™, Garmin™, Polar™, Concept2™, Microsoft™ Excel™ or
 even paper logs? Are you afraid that you could lose access to your data seized by
-someone else? Are you worried that your favorite fitness platform might sunset or
-paywall your history? Are you fed up with fitness apps selling your data habits to
+someone else? Are you worried that your favorite sport platform might sunset or
+paywall your history? Are you fed up with sport apps selling your data habits to
 third-party advertisers? Do you believe that **privacy is your right**, not a privilege?
 
 Would you like to own your sport data again to see all the workouts you've done over the

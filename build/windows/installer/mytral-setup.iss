@@ -14,7 +14,7 @@
 
 #define MytralAppName "MyTraL"
 #define MytralAppPublisher "Martin Dvorak"
-#define MytralAppURL "https://mytral.fitness"
+#define MytralAppURL "https://mytral.mindforger.com"
 #define MytralExeName "mytral.exe"
 
 [Setup]

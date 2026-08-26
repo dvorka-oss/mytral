@@ -280,7 +280,7 @@ from mytral import ff                # FeatureFlags - ff.can("FEATURE_NAME")
 ## Deployment context
 
 - **Default runtime**: desktop (local Flask server + browser window via flaskwebgui).
-- **Production hosting**: pythonanywhere.com.  **Domain**: mytral.fitness.
+- **Domain**: mytral.mindforger.com
 - **Desktop packaging**: PyInstaller (via `dependency-groups.desktop`).
 
 ## Documentation - source of truth vs generated files
@@ -291,7 +291,7 @@ next `make` run.
 
 - **`INSTALLATION.md`** (repo root) is the **single source of truth** for install
   docs. `docs/INSTALLATION.md`, the HTML under `mytral/static/documentation/`,
-  and the public site under `webs/www.mytral.fitness/` are all **generated** from
+  and the public site under `webs/mytral.mindforger.com` are all **generated** from
   it. Same for `CREDITS.md`, `CHANGELOG.md`, and `LICENSES.md`.
   - Edit root `INSTALLATION.md`, then run `make doc-sync-data` (copy to `docs/`),
     `make doc` (HTML docs), or `make www-doc` (public site).

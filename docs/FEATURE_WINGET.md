@@ -8,7 +8,7 @@ Package identity:
 |---|---|
 | **Package identifier** | `Mytral.Mytral` |
 | **Publisher** | Martin Dvorak |
-| **Publisher URL** | https://mytral.fitness |
+| **Publisher URL** | https://mytral.mindforger.com |
 | **License** | AGPL-3.0 |
 | **AppId (Inno Setup)** | `{C3D7F241-8B5E-4A29-9F6D-E1B02A4C7853}` (keep unchanged across releases) |
 

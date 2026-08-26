@@ -89,7 +89,7 @@ def given_markdown_ipsum(title: bool = False) -> str:
         "",
         f"> {lorem.sentence()}",
         "",
-        f"Checkout [MyTraL](https://mytral.fitness) - {lorem.sentence()}",
+        f"Checkout [MyTraL](https://mytral.mindforger.com) - {lorem.sentence()}",
     ]
     return "\n".join(lines)
 

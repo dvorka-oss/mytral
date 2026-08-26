@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate SEO / social assets for www.mytral.fitness.
+Generate SEO / social assets for mytral.mindforger.com
 
 Outputs (into the site root):
   - og-image.png : a 1200x630 landscape card, the format social networks and
@@ -16,7 +16,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WWW = REPO_ROOT / "webs" / "www.mytral.fitness"
+WWW = REPO_ROOT / "webs" / "mytral.mindforger.com"
 IMAGES = WWW / "images"
 
 FONT_BOLD = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
@@ -136,7 +136,7 @@ def make_og_image():
 
     # divider + url
     draw.rectangle([(63, 466), (470, 470)], fill=(14, 165, 233, 180))
-    text(draw, "mytral.fitness", 63, 482, FONT_REG, 24, (100, 116, 139, 210))
+    text(draw, "mytral.mindforger.com", 63, 482, FONT_REG, 24, (100, 116, 139, 210))
 
     out = WWW / "og-image.png"
     canvas.convert("RGB").save(out, "PNG", optimize=True, compress_level=9)

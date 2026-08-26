@@ -198,7 +198,7 @@ app = BUNDLE(
     exe,
     name='MyTraL.app',
     icon=os.path.join(SPECPATH, 'mytral.icns'),
-    bundle_identifier='fitness.mytral.Mytral',
+    bundle_identifier='mytral.Mytral',
     info_plist={
         'CFBundleShortVersionString': '$MYTRAL_VERSION',
         'CFBundleVersion': '$MYTRAL_VERSION',

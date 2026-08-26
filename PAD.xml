@@ -13,7 +13,7 @@
 		<State_Province />
 		<Zip_Postal_Code />
 		<Country>Czech Republic</Country>
-		<Company_WebSite_URL>https://mytral.fitness</Company_WebSite_URL>
+		<Company_WebSite_URL>https://mytral.mindforger.com</Company_WebSite_URL>
 		<Contact_Info>
 			<Author_First_Name>Martin</Author_First_Name>
 			<Author_Last_Name>Dvorak</Author_Last_Name>
@@ -49,7 +49,7 @@
 		<Program_Change_Info>MyTraL 1.58.0 minor release.</Program_Change_Info>
 		<Program_Specific_Category>Home &amp; Hobby</Program_Specific_Category>
 		<Program_Category_Class>Home &amp; Hobby::Sports</Program_Category_Class>
-		<Program_Categories>Sports, Fitness, Health, Training</Program_Categories>
+		<Program_Categories>Sports, Health, Training</Program_Categories>
 		<Program_System_Requirements>Modern web browser; Linux (Snap, classic confinement) or Windows 10/11.</Program_System_Requirements>
 		<File_Info>
 			<File_Size_Bytes>130000000</File_Size_Bytes>
@@ -68,7 +68,7 @@
 	</Program_Info>
 	<Program_Descriptions>
 		<English>
-			<Keywords>training log, sport, fitness, running, cycling, swimming, activities, gear, TRIMP, health, privacy, self-hosted</Keywords>
+			<Keywords>training log, sport, running, cycling, swimming, activities, gear, TRIMP, health, privacy, self-hosted</Keywords>
 			<Char_Desc_45>Sovereign athlete training log.</Char_Desc_45>
 			<Char_Desc_80>MyTraL: privacy-first sport training log - train smarter, not harder.</Char_Desc_80>
 			<Char_Desc_250>MyTraL is a privacy-first personal sport training log. Track activities of any sport, gear usage, training load, goals, PRs, health, weight and trails. Import from FIT, GPX, TCX, Strava and Polar. Your data stays local - your log, your data, your edge.</Char_Desc_250>
@@ -90,15 +90,15 @@ MyTraL runs as a local desktop application (a Flask web app opened in your brows
 	</Program_Descriptions>
 	<Web_Info>
 		<Application_URLs>
-			<Application_Info_URL>https://mytral.fitness</Application_Info_URL>
-			<Application_Order_URL>https://mytral.fitness</Application_Order_URL>
+			<Application_Info_URL>https://mytral.mindforger.com</Application_Info_URL>
+			<Application_Order_URL>https://mytral.mindforger.com</Application_Order_URL>
 			<Application_Screenshot_URL>https://github.com/dvorka-oss/mytral/raw/main/media/screenshot/activity.png</Application_Screenshot_URL>
 			<Application_Icon_URL>https://github.com/dvorka-oss/mytral/raw/main/media/logo/mytral-logo-transparent-bg-320x320.png</Application_Icon_URL>
 			<Application_XML_File_URL>https://github.com/dvorka-oss/mytral/raw/main/PAD.xml</Application_XML_File_URL>
 		</Application_URLs>
 		<Download_URLs>
 			<Primary_Download_URL>https://github.com/dvorka-oss/mytral/releases</Primary_Download_URL>
-			<Secondary_Download_URL>https://mytral.fitness/docs/installation.html</Secondary_Download_URL>
+			<Secondary_Download_URL>https://mytral.mindforger.com/docs/installation.html</Secondary_Download_URL>
 			<Additional_Download_URL_1>https://launchpad.net/~ultradvorka/+archive/ubuntu/sport</Additional_Download_URL_1>
 			<Additional_Download_URL_2 />
 		</Download_URLs>

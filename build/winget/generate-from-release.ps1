@@ -103,21 +103,21 @@ PackageIdentifier: $PackageId
 PackageVersion: $Version
 PackageLocale: en-US
 Publisher: Martin Dvorak
-PublisherUrl: https://mytral.fitness
+PublisherUrl: https://mytral.mindforger.com
 PublisherSupportUrl: https://github.com/$GithubOrg/$GithubRepo/issues
 Author: Martin Dvorak
 PackageName: MyTraL
-PackageUrl: https://mytral.fitness
+PackageUrl: https://mytral.mindforger.com
 License: AGPL-3.0
 LicenseUrl: https://github.com/$GithubOrg/$GithubRepo/blob/main/LICENSE
-ShortDescription: My Training Log - fitness tracking desktop app
+ShortDescription: My Training Log - sport tracking desktop app
 Description: |-
   MyTraL (My Training Log) is a sovereign athlete training log desktop application.
   Train smarter, not harder.
 Tags:
   - running
   - cycling
-  - fitness
+  - rowing
   - training
   - sports
   - health

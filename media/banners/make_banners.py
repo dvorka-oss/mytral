@@ -10,8 +10,8 @@ W, H = 2160, 720
 FONT_BOLD = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
 FONT_REG = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
 FONT_MONO = "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf"
-IMG = "/home/dvorka/p/mytral/git/mytral/webs/www.mytral.fitness/images/"
-ROOT = "/home/dvorka/p/mytral/git/mytral/webs/www.mytral.fitness/"
+IMG = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/images/"
+ROOT = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/"
 OUT = "/home/dvorka/p/mytral/git/mytral/media/banners/"
 
 MAX_BYTES = 2 * 1024 * 1024
@@ -123,7 +123,7 @@ def banner3_train_smarter():
 
     # orange divider line
     draw.rectangle([(88, 518), (690, 522)], fill=(251, 115, 22, 180))
-    t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (178, 138, 220, 168))
+    t(draw, "mytral.mindforger.com", 93, 535, FONT_REG, 25, (178, 138, 220, 168))
 
     save(canvas, "banner-train-smarter-purple")
 
@@ -194,7 +194,7 @@ def banner3_train_smarter_web():
 
     # primary-blue divider, --gray #64748b url
     draw.rectangle([(88, 518), (690, 522)], fill=(14, 165, 233, 180))
-    t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (100, 116, 139, 168))
+    t(draw, "mytral.mindforger.com", 93, 535, FONT_REG, 25, (100, 116, 139, 168))
 
     save(canvas, "banner-train-smarter")
 
