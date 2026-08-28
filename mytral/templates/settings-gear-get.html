@@ -201,29 +201,47 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="row g-3 mb-4">
+                    {% if stat and stat.stat_meters %}
                     <div class="col-sm-6 col-lg-3">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
-                                    <div class="subheader">Total Cost (TCoO)</div>
-                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Complete cost of ownership including purchase, maintenance, and additional costs">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                                            <path d="M12 8l0 4"></path>
-                                            <path d="M12 16l.01 0"></path>
-                                        </svg>
-                                    </span>
+                                    <div class="subheader">Total Distance</div>
                                 </div>
-                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_total) }}</div>
-                                <small class="text-muted">Base + Maintenance + Additional</small>
+                                <div class="h1 mb-3">{{ "{:0,}".format(stat.stat_km_str|int) }} km</div>
                             </div>
                         </div>
                     </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Total Time</div>
+                                </div>
+                                <div class="h1 mb-3">{{ stat.stat_duration_str }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
 
+                    {% if gear.url %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">URL</div>
+                                </div>
+                                <div class="h1 mb-3">
+                                    <a href="{{ gear.url }}" target="_blank" rel="noopener noreferrer" class="text-reset" style="font-size: 1rem;">{{ gear.url[:30] }}...</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-4">
                     {% if gear.tcoo_base %}
                     <div class="col-sm-6 col-lg-3">
                         <div class="card">
@@ -284,16 +302,49 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if gear.url %}
+                </div>
+
+                <div class="row g-3 mb-4">
                     <div class="col-sm-6 col-lg-3">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex align-items-center">
-                                    <div class="subheader">URL</div>
+                                    <div class="subheader">Total Cost (TCoO)</div>
+                                    <span class="ms-auto form-help" data-bs-toggle="tooltip" data-bs-placement="top" title="Complete cost of ownership including purchase, maintenance, and additional costs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                            <path d="M12 8l0 4"></path>
+                                            <path d="M12 16l.01 0"></path>
+                                        </svg>
+                                    </span>
                                 </div>
-                                <div class="h1 mb-3">
-                                    <a href="{{ gear.url }}" target="_blank" rel="noopener noreferrer" class="text-reset" style="font-size: 1rem;">{{ gear.url[:30] }}...</a>
+                                <div class="h1 mb-3">🪙{{ "{:,.0f}".format(gear.tcoo_total) }}</div>
+                                <small class="text-muted">Base + Maintenance + Additional</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if gear.tcoo_total and stat and stat.stat_meters %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Cost per Distance</div>
                                 </div>
+                                <div class="h1 mb-3">🪙{{ (gear.tcoo_total / stat.stat_km_str|float)|round(1) }}/km</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gear.tcoo_total and stat and stat.stat_seconds %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Cost per Time</div>
+                                </div>
+                                <div class="h1 mb-3">🪙{{ (gear.tcoo_total / (stat.stat_seconds|float / 3600.0))|round(1) }}/h</div>
                             </div>
                         </div>
                     </div>

@@ -519,12 +519,18 @@ def settings_gear_get(key: str):
     )
     usage_histogram = charts.gear_weekly_usage_histogram(gear_activities)
 
+    # ensure that the activities are cached -> statistics are available
+    ds.activities_stats(user_id=user_id, dataset_name=dataset_name, include_meta=True)
+    gear_stats = ds.gear_stats(user_id=user_id, dataset_name=dataset_name)
+    stat = gear_stats.stats(key)
+
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
         user_profile=ds.profile(user_id),
         key=key,
         gear=entity,
+        stat=stat,
         activity_types=ds.list_activity_types(user_id),
         csrf_form=CsrfForm(),
         photos=photos,
