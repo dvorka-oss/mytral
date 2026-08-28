@@ -28,8 +28,8 @@
       MyTraL puts your data back in your hands.
     </p>
   </description>
-  <launchable type="desktop-id">fitness.mytral.Mytral.desktop</launchable>
-  <url type="homepage">https://mytral.fitness</url>
+  <launchable type="desktop-id">mytral.Mytral.desktop</launchable>
+  <url type="homepage">https://mytral.mindforger.com</url>
   <url type="bugtracker">https://github.com/dvorka/mytral/issues</url>
   <url type="vcs-browser">https://github.com/dvorka/mytral</url>
   <categories>
@@ -38,11 +38,11 @@
   <content_rating type="oars-1.1"/>
   <screenshots>
     <screenshot type="default">
-      <image>https://mytral.fitness/screenshot-dashboard-white.png</image>
+      <image>https://mytral.mindforger.com/screenshot-dashboard-white.png</image>
       <caption>MyTraL training dashboard (light theme)</caption>
     </screenshot>
     <screenshot>
-      <image>https://mytral.fitness/screenshot-dashboard-dark.png</image>
+      <image>https://mytral.mindforger.com/screenshot-dashboard-dark.png</image>
       <caption>MyTraL training dashboard (dark theme)</caption>
     </screenshot>
   </screenshots>

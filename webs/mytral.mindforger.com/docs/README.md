@@ -1,6 +1,6 @@
-# Public Documentation for www.mytral.fitness
+# Public Documentation for mytral.mindforger.com
 
-This directory contains auto-generated HTML documentation pages for the public-facing website at www.mytral.fitness/docs.
+This directory contains auto-generated HTML documentation pages for the public-facing website at mytral.mindforger.com/docs.
 
 ## Features
 

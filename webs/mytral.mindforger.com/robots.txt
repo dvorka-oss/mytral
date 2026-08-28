@@ -21,4 +21,4 @@ User-agent: Bingbot
 Allow: /
 
 # Sitemap
-Sitemap: https://mytral.fitness/sitemap.xml
+Sitemap: https://mytral.mindforger.com/sitemap.xml
