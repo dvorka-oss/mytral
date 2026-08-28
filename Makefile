@@ -293,7 +293,7 @@ run: .venv ## run MyTraL server w/ ENV var specified data directory
 
 .PHONY: runvdev
 ifeq ($(OS),Windows_NT)
-run-dev: .venv ## run MyTraL server on Windows w/ DEV data
+run-dev: .venv ## run MyTraL server on Windows w/ DEV data (Win)
 	MYTRAL_DATA_DIR="$(subst \,/,$(USERPROFILE))/mytral-data/development" \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
@@ -308,7 +308,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_USER_REGISTRATION=true \
 	uv run python -m mytral.run
 else
-run-dev: .venv ## run MyTraL server on Linux w/ DEV data
+run-dev: .venv ## run MyTraL server on Linux w/ DEV data (Linux)
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/development \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
