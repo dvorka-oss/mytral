@@ -234,10 +234,10 @@ h1 {
 .row {
     position: relative;
     z-index: 2;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.7rem;
+    max-width: 70rem;
     margin: 0 auto 5.5rem;
 }
 
@@ -303,7 +303,6 @@ h1 {
 /* source row nodes are compact */
 .sources .node {
     position: relative;
-    min-width: 6.5rem;
     align-items: center;
     padding: 1rem 0.8rem 0.7rem;
     background: #000000;
@@ -313,6 +312,11 @@ h1 {
 .sources .node:hover {
     border-color: var(--brand);
     filter: brightness(1.2);
+}
+
+.sources .node.active {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 1px rgba(191, 7, 9, 0.35), 0 8px 24px rgba(191, 7, 9, 0.18);
 }
 
 .sources .badge-row {
@@ -661,14 +665,17 @@ footer a:hover {
     .ui-columns {
         grid-template-columns: repeat(3, minmax(8rem, 1fr));
     }
+    .row {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 640px) {
     .ui-columns {
         grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
     }
-    .sources .node {
-        min-width: 5.5rem;
+    .row {
+        grid-template-columns: repeat(2, 1fr);
     }
     .connectors {
         display: none;

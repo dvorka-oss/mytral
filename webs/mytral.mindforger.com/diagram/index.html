@@ -42,7 +42,7 @@
                 </button>
                 <button type="button" class="node" id="node-polar"
                         data-title="POLAR"
-                        data-detail="Sessions and heart-rate data from Polar Flow - HRM and TCX exports.">
+                        data-detail="Sessions synced live via the Polar Flow AccessLink API, or bulk-imported from the account's GDPR *.zip export of per-session JSON files.">
                     <span class="node-legend">polar&reg;</span>
                     <div class="badge-row">
                         <span class="badge">api</span>
@@ -197,18 +197,19 @@
                     </button>
 
                     <button type="button" class="node" id="node-insights-ui"
-                            data-title="INSIGHTS"
-                            data-detail="AI predictions, analytics, lifetime totals, and all-time stats per sport.">
+                            data-title="ANALYSIS &amp; INSIGHTS"
+                            data-detail="AI predictions and analytics, lifetime totals and top sports, year-over-year performance trends, weekday/hour heatmaps, and week-over-week or year-over-year comparisons.">
                         <span class="node-label">ANALYSIS&nbsp;&amp;&nbsp;INSIGHTS</span>
                         <ul class="node-list">
                             <li>predictions</li>
                             <li>analytics</li>
                             <li>lifetime totals</li>
                             <li>top sports</li>
-                            <li>YOY trends</li>
+                            <li>performance trends</li>
                             <li>weekday heatmap</li>
                             <li>active in week</li>
                             <li>this vs last</li>
+                            <li>vs previous years</li>
                         </ul>
                     </button>
                     <button type="button" class="node" id="node-health"
@@ -255,11 +256,11 @@
 
                 <button type="button" class="group group--export interactive" id="group-export"
                         data-title="EXPORT"
-                        data-detail="Take it all back out, any time - full *.zip backup or *.csv per activity.">
+                        data-detail="Take it all back out, any time - a full *.zip profile backup, or all activities as *.json.">
                     <span class="group-legend">export</span>
                     <div class="export-columns">
                         <div class="platform-box">.zip</div>
-                        <div class="platform-box">.csv</div>
+                        <div class="platform-box">.json</div>
                     </div>
                 </button>
             </div>
@@ -289,8 +290,7 @@
 
     <footer>
         <div class="container">
-            Private, open-source, runs on your own machine. -
-            <a href="../index.html">mytral.fitness</a>
+            Private, open-source, runs on your own machine.
         </div>
     </footer>
 
