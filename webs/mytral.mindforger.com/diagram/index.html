@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture - MyTraL</title>
+    <meta name="description" content="How training data flows through MyTraL: from Strava, Polar, FIT/GPX/TCX and manual entry, through import and normalization, into activities, and out to the dashboard - or back out as an export.">
+    <link rel="canonical" href="https://mytral.fitness/diagram/">
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="icon" href="../mytral-logo.png" type="image/png">
+    <link rel="stylesheet" href="./diagram.css">
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <img src="../mytral-logo.png" alt="MyTraL">
+                MyTraL
+            </a>
+            <a href="../index.html" class="back-link">&lt;- mytral.fitness</a>
+        </div>
+    </nav>
+
+    <header class="hero container">
+        <span class="eyebrow">architecture</span>
+        <h1>MyTraL Overview</h1>
+        <p><span class="hint">Click any block</span> to learn more.</p>
+    </header>
+
+    <main class="diagram-shell container">
+        <div class="diagram" id="diagram">
+            <svg class="connectors" id="connectors" aria-hidden="true"></svg>
+
+            <div class="row-label">sources</div>
+            <div class="row sources" id="row-sources">
+                <button type="button" class="node" id="node-strava"
+                        data-title="STRAVA" data-sub="API / ZIP"
+                        data-detail="Activities and segments pulled live via the Strava API, or bulk-imported from a *.zip account export."
+                        data-file="mytral/integrations/strava.py">
+                    <span class="node-label">[ STRAVA ]</span>
+                    <span class="node-sub">API / ZIP</span>
+                </button>
+                <button type="button" class="node" id="node-polar"
+                        data-title="POLAR" data-sub="API / ZIP"
+                        data-detail="Sessions and heart-rate data from Polar Flow - HRM and TCX exports."
+                        data-file="mytral/integrations/polar_hrm.py">
+                    <span class="node-label">[ POLAR ]</span>
+                    <span class="node-sub">API / ZIP</span>
+                </button>
+                <button type="button" class="node" id="node-manual"
+                        data-title="MANUAL" data-sub="UI"
+                        data-detail="Freeform entry straight from the web UI - any activity, any field, no file required."
+                        data-file="mytral/forms.py">
+                    <span class="node-label">[ MANUAL ]</span>
+                    <span class="node-sub">UI</span>
+                </button>
+                <button type="button" class="node" id="node-plugin"
+                        data-title="PLUGIN" data-sub="ZIP / JSON"
+                        data-detail="Generic *.zip / *.json import via the plugin architecture - bring your own source."
+                        data-file="mytral/plugins.py">
+                    <span class="node-label">[ PLUGIN ]</span>
+                    <span class="node-sub">ZIP / JSON</span>
+                </button>
+                <button type="button" class="node" id="node-fit"
+                        data-title="FIT" data-sub="FILE"
+                        data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample."
+                        data-file="mytral/recordings/fit_extractor.py">
+                    <span class="node-label">[ FIT ]</span>
+                    <span class="node-sub">FILE</span>
+                </button>
+                <button type="button" class="node" id="node-gpx"
+                        data-title="GPX" data-sub="FILE"
+                        data-detail="GPS track *.gpx files - route, elevation, pace."
+                        data-file="mytral/recordings/gpx_extractor.py">
+                    <span class="node-label">[ GPX ]</span>
+                    <span class="node-sub">FILE</span>
+                </button>
+                <button type="button" class="node" id="node-tcx"
+                        data-title="TCX" data-sub="FILE"
+                        data-detail="Training Center XML *.tcx recordings."
+                        data-file="mytral/recordings/tcx_extractor.py">
+                    <span class="node-label">[ TCX ]</span>
+                    <span class="node-sub">FILE</span>
+                </button>
+            </div>
+
+            <div class="group group--mytral" id="group-mytral">
+                <span class="group-legend">mytral</span>
+                <button type="button" class="node" id="node-import"
+                        data-title="IMPORT" data-sub=""
+                        data-detail="*.zip / *.json / *.fit / *.gpx / *.tcx -&gt; normalize -&gt; fix. Every source lands in one shape."
+                        data-file="mytral/blueprints/import_uri_space.py">
+                    <span class="node-label">[ IMPORT ]</span>
+                    <span class="node-detail">*.zip / ... / *.tcx =&gt; normalize =&gt; fix</span>
+                </button>
+                <div class="arrow-down">|<br>v</div>
+                <button type="button" class="node" id="node-activities"
+                        data-title="ACTIVITIES" data-sub=""
+                        data-detail="Run, Row, Ride, Swim, Ski, Gym, and custom types - stored as JSON + Parquet + GPX + photos."
+                        data-file="mytral/backends/entities.py">
+                    <span class="node-label">[ ACTIVITIES ]</span>
+                    <span class="node-detail">run / row / ride / swim / ski / gym / custom ...</span>
+                    <span class="node-detail">*.json  *.parquet  *.gpx  *.png</span>
+                </button>
+            </div>
+
+            <div class="group group--ui" id="group-ui">
+                <span class="group-legend">ui</span>
+                <div class="ui-columns">
+                    <button type="button" class="node" id="node-activities-ui"
+                            data-title="ACTIVITIES" data-sub=""
+                            data-detail="Feed, heatmap, and per-activity charts."
+                            data-file="mytral/routes.py">
+                        <span class="node-label">[ ACTIVITIES ]</span>
+                        <ul class="node-list">
+                            <li>feed</li>
+                            <li>heatmap</li>
+                            <li>charts</li>
+                        </ul>
+                    </button>
+
+                    <button type="button" class="node" id="node-insights-ui"
+                            data-title="INSIGHTS" data-sub=""
+                            data-detail="Insights and analytics for your activities."
+                            data-file="mytral/routes.py">
+                        <span class="node-label">[ INSIGHTS ]</span>
+                        <ul class="node-list">
+                            <li>feed</li>
+                            <li>heatmap</li>
+                            <li>charts</li>
+                        </ul>
+                    </button>
+
+                    <button type="button" class="node" id="node-analysis"
+                            data-title="ANALYSIS" data-sub=""
+                            data-detail="Year-over-year and week-over-week comparisons."
+                            data-file="mytral/insights.py">
+                        <span class="node-label">[ ANALYSIS ]</span>
+                        <ul class="node-list">
+                            <li>year over year</li>
+                            <li>week over week</li>
+                        </ul>
+                    </button>
+                    <button type="button" class="node" id="node-health"
+                            data-title="HEALTH" data-sub=""
+                            data-detail="Body weight and injury tracking over time."
+                            data-file="mytral/settings.py">
+                        <span class="node-label">[ HEALTH ]</span>
+                        <ul class="node-list">
+                            <li>weight</li>
+                            <li>injuries</li>
+                        </ul>
+                    </button>
+                    <button type="button" class="node" id="node-progress"
+                            data-title="PROGRESS" data-sub=""
+                            data-detail="Paces, races, TRIMP training load, and the CTL / ATL / TSB form curve."
+                            data-file="mytral/athlete_metrics.py">
+                        <span class="node-label">[ PROGRESS ]</span>
+                        <ul class="node-list">
+                            <li>paces</li>
+                            <li>races</li>
+                            <li>trimp</li>
+                            <li>ctl / atl / tsb</li>
+                        </ul>
+                    </button>
+                    <button type="button" class="node" id="node-profile"
+                            data-title="PROFILE" data-sub=""
+                            data-detail="Your activities, gear, exercises, and symptoms - the building blocks behind every chart."
+                            data-file="mytral/settings.py">
+                        <span class="node-label">[ PROFILE ]</span>
+                        <ul class="node-list">
+                            <li>activities</li>
+                            <li>gear</li>
+                            <li>exercises</li>
+                            <li>symptoms</li>
+                        </ul>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bottom-row">
+                <button type="button" class="group group--desktop interactive" id="group-desktop"
+                        data-title="DESKTOP / SELF-HOSTED"
+                        data-detail="One binary, your machine, your data - Linux, Windows, macOS."
+                        data-file="mytral/run_desktop.py">
+                    <span class="group-legend">desktop / self-hosted</span>
+                    <div class="badge-row">
+                        <span class="badge">linux</span>
+                        <span class="badge">windows</span>
+                        <span class="badge">macos</span>
+                    </div>
+                </button>
+                <button type="button" class="group group--export interactive" id="group-export"
+                        data-title="EXPORT"
+                        data-detail="Take it all back out, any time - full *.zip backup or *.csv per activity."
+                        data-file="mytral/blueprints/export_uri_space.py">
+                    <span class="group-legend">export</span>
+                    <div class="badge-row">
+                        <span class="badge">zip</span>
+                        <span class="badge">csv</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div class="terminal-wrap">
+            <div class="terminal">
+                <div class="terminal-bar">
+                    <span class="terminal-dot"></span>
+                    <span class="terminal-title">Feature details - click any block to learn more</span>
+                </div>
+                <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            Private, open-source, runs on your own machine. -
+            <a href="../index.html">mytral.fitness</a>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            /* ------------------------------------------------ terminal readout */
+
+            var terminalBody = document.getElementById('terminal-body');
+            var typeTimer = null;
+
+            function renderLines(data) {
+                var html = '<span class="ln-prompt">$ inspect ' + data.title + '</span>\n';
+                html += '<span class="ln-out">&gt; ' + data.detail + '</span>\n';
+                html += '<span class="ln-file">&gt; ' + data.file + '</span>';
+                return html;
+            }
+
+            function typeToTerminal(data) {
+                if (typeTimer) {
+                    clearInterval(typeTimer);
+                    typeTimer = null;
+                }
+                var full = renderLines(data);
+                if (reduceMotion) {
+                    terminalBody.innerHTML = full + '<span class="caret"></span>';
+                    return;
+                }
+                var i = 0;
+                terminalBody.innerHTML = '<span class="caret"></span>';
+                typeTimer = setInterval(function () {
+                    i += 2;
+                    if (i >= full.length) {
+                        terminalBody.innerHTML = full + '<span class="caret"></span>';
+                        clearInterval(typeTimer);
+                        typeTimer = null;
+                        return;
+                    }
+                    terminalBody.innerHTML = full.slice(0, i) + '<span class="caret"></span>';
+                }, 8);
+            }
+
+            /* ------------------------------------------------ node activation */
+
+            var nodes = Array.prototype.slice.call(document.querySelectorAll('button[data-title]'));
+            var clickable = nodes;
+
+            function activate(node) {
+                nodes.forEach(function (n) { n.classList.remove('active'); });
+                node.classList.add('active');
+                typeToTerminal({
+                    title: node.dataset.title,
+                    detail: node.dataset.detail,
+                    file: node.dataset.file
+                });
+                pulseFrom(node.id);
+            }
+
+            clickable.forEach(function (node) {
+                node.addEventListener('click', function () { activate(node); });
+            });
+
+            /* ------------------------------------------------ svg connectors */
+
+            var svg = document.getElementById('connectors');
+            var diagram = document.getElementById('diagram');
+            var sourceIds = ['node-strava', 'node-polar', 'node-manual', 'node-plugin', 'node-fit', 'node-gpx', 'node-tcx'];
+
+            var links = [];
+            sourceIds.forEach(function (id) {
+                links.push({ from: id, to: 'group-mytral', fromSide: 'bottom', toSide: 'top' });
+            });
+            links.push({ from: 'group-mytral', to: 'group-ui', fromSide: 'bottom', toSide: 'top' });
+            links.push({ from: 'group-ui', to: 'group-desktop', fromSide: 'bottom', toSide: 'top' });
+            links.push({ from: 'group-ui', to: 'group-export', fromSide: 'bottom', toSide: 'top' });
+
+            var built = [];
+
+            function anchor(el, side) {
+                var r = el.getBoundingClientRect();
+                var c = diagram.getBoundingClientRect();
+                var x = r.left + r.width / 2 - c.left;
+                var y = (side === 'bottom' ? r.bottom : r.top) - c.top;
+                return { x: x, y: y };
+            }
+
+            function pathD(a, b) {
+                var dy = Math.max(24, (b.y - a.y) * 0.55);
+                return 'M ' + a.x + ' ' + a.y +
+                    ' C ' + a.x + ' ' + (a.y + dy) + ', ' +
+                    b.x + ' ' + (b.y - dy) + ', ' +
+                    b.x + ' ' + b.y;
+            }
+
+            function buildConnectors() {
+                if (window.innerWidth <= 640) {
+                    svg.innerHTML = '';
+                    built = [];
+                    return;
+                }
+                var c = diagram.getBoundingClientRect();
+                svg.setAttribute('width', c.width);
+                svg.setAttribute('height', c.height);
+                svg.setAttribute('viewBox', '0 0 ' + c.width + ' ' + c.height);
+
+                if (built.length === 0) {
+                    svg.innerHTML = '';
+                    links.forEach(function (link, idx) {
+                        var fromEl = document.getElementById(link.from);
+                        var toEl = document.getElementById(link.to);
+                        if (!fromEl || !toEl) { return; }
+                        var pathId = 'pipe-' + idx;
+                        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('class', 'pipe');
+                        path.setAttribute('id', pathId);
+                        svg.appendChild(path);
+
+                        var packetCount = 2;
+                        var packetEls = [];
+                        for (var p = 0; p < packetCount; p++) {
+                            var packet = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            packet.setAttribute('class', 'packet');
+                            packet.setAttribute('r', '2.5');
+                            packet.setAttribute('opacity', '0');
+                            svg.appendChild(packet);
+                            packetEls.push(packet);
+
+                            if (!reduceMotion) {
+                                var beginAt = (idx * 0.15 + p * 1.6);
+                                var motion = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+                                motion.setAttribute('dur', '3.2s');
+                                motion.setAttribute('repeatCount', 'indefinite');
+                                motion.setAttribute('begin', beginAt + 's');
+                                var mpath = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+                                mpath.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + pathId);
+                                motion.appendChild(mpath);
+                                packet.appendChild(motion);
+
+                                var reveal = document.createElementNS('http://www.w3.org/2000/svg', 'set');
+                                reveal.setAttribute('attributeName', 'opacity');
+                                reveal.setAttribute('to', '1');
+                                reveal.setAttribute('begin', beginAt + 's');
+                                reveal.setAttribute('fill', 'freeze');
+                                packet.appendChild(reveal);
+                            }
+                        }
+
+                        built.push({ link: link, fromEl: fromEl, toEl: toEl, path: path, packets: packetEls });
+                    });
+                }
+
+                built.forEach(function (item) {
+                    var a = anchor(item.fromEl, item.link.fromSide);
+                    var b = anchor(item.toEl, item.link.toSide);
+                    var d = pathD(a, b);
+                    item.path.setAttribute('d', d);
+                });
+            }
+
+            function pulseFrom(nodeId) {
+                built.forEach(function (item) {
+                    if (item.link.from === nodeId || item.link.to === nodeId) {
+                        item.path.classList.add('hot');
+                        setTimeout(function () {
+                            item.path.classList.remove('hot');
+                        }, 900);
+                    }
+                });
+            }
+
+            var resizeTimer = null;
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(buildConnectors, 120);
+            });
+
+            window.addEventListener('load', buildConnectors);
+            buildConnectors();
+
+            /* ------------------------------------------------ boot sequence */
+
+            setTimeout(function () {
+                typeToTerminal({
+                    title: 'mytral --explain-pipeline',
+                    detail: 'click any block above to inspect it',
+                    file: 'sources -> import -> activities -> ui -> desktop / export'
+                });
+            }, 350);
+        })();
+    </script>
+</body>
+</html>
