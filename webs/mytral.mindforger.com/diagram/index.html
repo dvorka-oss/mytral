@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Architecture - MyTraL</title>
     <meta name="description" content="How training data flows through MyTraL: from Strava, Polar, FIT/GPX/TCX and manual entry, through import and normalization, into activities, and out to the dashboard - or back out as an export.">
-    <link rel="canonical" href="https://mytral.fitness/diagram/">
     <link rel="icon" href="../favicon.ico" sizes="any">
     <link rel="icon" href="../mytral-logo.png" type="image/png">
     <link rel="stylesheet" href="./diagram.css">
@@ -18,27 +17,24 @@
                 <img src="../mytral-logo.png" alt="MyTraL">
                 MyTraL
             </a>
-            <a href="../index.html" class="back-link">&lt;- mytral.fitness</a>
         </div>
     </nav>
 
     <header class="hero container">
         <span class="eyebrow">architecture</span>
-        <h1>MyTraL Overview</h1>
-        <p><span class="hint">Click any block</span> to learn more.</p>
+        <h1>MyTraL</h1>
+        <p>Functional architecture overview.</p>
     </header>
 
     <main class="diagram-shell container">
         <div class="diagram" id="diagram">
             <svg class="connectors" id="connectors" aria-hidden="true"></svg>
 
-            <div class="row-label">sources</div>
             <div class="row sources" id="row-sources">
                 <button type="button" class="node" id="node-strava"
                         data-title="STRAVA"
-                        data-detail="Activities and segments pulled live via the Strava API, or bulk-imported from a *.zip account export."
-                        data-file="mytral/integrations/strava.py">
-                    <span class="node-legend">strava</span>
+                        data-detail="Activities and segments pulled live via the Strava API, or bulk-imported from a *.zip account export.">
+                    <span class="node-legend">strava&reg;</span>
                     <div class="badge-row">
                         <span class="badge">api</span>
                         <span class="badge">zip</span>
@@ -46,9 +42,8 @@
                 </button>
                 <button type="button" class="node" id="node-polar"
                         data-title="POLAR"
-                        data-detail="Sessions and heart-rate data from Polar Flow - HRM and TCX exports."
-                        data-file="mytral/integrations/polar_hrm.py">
-                    <span class="node-legend">polar</span>
+                        data-detail="Sessions and heart-rate data from Polar Flow - HRM and TCX exports.">
+                    <span class="node-legend">polar&reg;</span>
                     <div class="badge-row">
                         <span class="badge">api</span>
                         <span class="badge">zip</span>
@@ -56,8 +51,7 @@
                 </button>
                 <button type="button" class="node" id="node-fit"
                         data-title="FIT"
-                        data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample."
-                        data-file="mytral/recordings/fit_extractor.py">
+                        data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample.">
                     <span class="node-legend">fit</span>
                     <div class="badge-row">
                         <span class="badge">file</span>
@@ -65,8 +59,7 @@
                 </button>
                 <button type="button" class="node" id="node-gpx"
                         data-title="GPX"
-                        data-detail="GPS track *.gpx files - route, elevation, pace."
-                        data-file="mytral/recordings/gpx_extractor.py">
+                        data-detail="GPS track *.gpx files - route, elevation, pace.">
                     <span class="node-legend">gpx</span>
                     <div class="badge-row">
                         <span class="badge">file</span>
@@ -74,8 +67,7 @@
                 </button>
                 <button type="button" class="node" id="node-tcx"
                         data-title="TCX"
-                        data-detail="Training Center XML *.tcx recordings."
-                        data-file="mytral/recordings/tcx_extractor.py">
+                        data-detail="Training Center XML *.tcx recordings.">
                     <span class="node-legend">tcx</span>
                     <div class="badge-row">
                         <span class="badge">file</span>
@@ -83,8 +75,7 @@
                 </button>
                 <button type="button" class="node" id="node-manual"
                         data-title="MANUAL"
-                        data-detail="Freeform entry straight from the web UI - any activity, any field, no file required."
-                        data-file="mytral/forms.py">
+                        data-detail="Freeform entry straight from the web UI - any activity, any field, no file required.">
                     <span class="node-legend">manual</span>
                     <div class="badge-row">
                         <span class="badge">ui</span>
@@ -100,15 +91,13 @@
                     <div class="pipeline-row">
                         <button type="button" class="node pipeline-step" id="node-import-source"
                                 data-title="SPORT DATA"
-                                data-detail="Raw files and API payloads land exactly as the source sent them - *.zip, *.json, *.fit, *.gpx, *.tcx."
-                                data-file="mytral/blueprints/import_uri_space.py">
+                                data-detail="Raw files and API payloads land exactly as the source sent them - *.zip, *.json, *.fit, *.gpx, *.tcx.">
                             <span class="node-label pipeline-label">SPORT DATA</span>
                         </button>
                         <div class="pipeline-arrow" aria-hidden="true"></div>
                         <button type="button" class="node pipeline-step" id="node-import-normalize"
                                 data-title="NORMALIZATION"
-                                data-detail="Every source format is converted into MyTraL's single internal activity shape."
-                                data-file="mytral/blueprints/import_uri_space.py">
+                                data-detail="Every source format is converted into MyTraL's single internal activity shape.">
                             <span class="node-label pipeline-label">
                                 <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                                     <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
@@ -127,8 +116,7 @@
                         <div class="pipeline-arrow" aria-hidden="true"></div>
                         <button type="button" class="node pipeline-step" id="node-import-validate"
                                 data-title="VALIDATION"
-                                data-detail="Normalized activities are checked for missing fields, bad timestamps, and data problems."
-                                data-file="mytral/blueprints/import_uri_space.py">
+                                data-detail="Normalized activities are checked for missing fields, bad timestamps, and data problems.">
                             <span class="node-label pipeline-label">
                                 <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                                     <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
@@ -147,8 +135,7 @@
                         <div class="pipeline-arrow" aria-hidden="true"></div>
                         <button type="button" class="node pipeline-step" id="node-import-fixes"
                                 data-title="FIXES"
-                                data-detail="Known problems are auto-corrected before the activity is saved."
-                                data-file="mytral/blueprints/import_uri_space.py">
+                                data-detail="Known problems are auto-corrected before the activity is saved.">
                             <span class="node-label pipeline-label">
                                 <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                                     <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
@@ -169,25 +156,24 @@
 
                 <button type="button" class="group group--activities interactive" id="group-activities"
                         data-title="ACTIVITIES"
-                        data-detail="Run, Row, Ride, Swim, Ski, Gym, and custom types - stored as JSON + Parquet + GPX + photos."
-                        data-file="mytral/backends/entities.py">
+                        data-detail="Run, Row, Ride, Swim, Ski, Gym, and custom types - stored as JSON + Parquet + GPX + photos.">
                     <span class="group-legend">activities</span>
-                    <div class="badge-row">
-                        <span class="badge badge-activity-type">run</span>
-                        <span class="badge badge-activity-type">row</span>
-                        <span class="badge badge-activity-type">ride</span>
-                        <span class="badge badge-activity-type">swim</span>
-                        <span class="badge badge-activity-type">ski</span>
-                        <span class="badge badge-activity-type">gym</span>
-                        <span class="badge badge-activity-type">physio</span>
-                        <span class="badge badge-activity-type">...</span>
+                    <div class="activity-type-row">
+                        <div class="activity-chip">run</div>
+                        <div class="activity-chip">row</div>
+                        <div class="activity-chip">ride</div>
+                        <div class="activity-chip">swim</div>
+                        <div class="activity-chip">ski</div>
+                        <div class="activity-chip">gym</div>
+                        <div class="activity-chip">physio</div>
+                        <div class="activity-chip">...</div>
                     </div>
                     <hr class="activities-divider">
-                    <div class="badge-row">
-                        <span class="badge badge-file-type">.json</span>
-                        <span class="badge badge-file-type">.parquet</span>
-                        <span class="badge badge-file-type">.gpx</span>
-                        <span class="badge badge-file-type">.png</span>
+                    <div class="filetype-columns">
+                        <div class="platform-box">.json</div>
+                        <div class="platform-box">.parquet</div>
+                        <div class="platform-box">.gpx</div>
+                        <div class="platform-box">.png</div>
                     </div>
                 </button>
 
@@ -196,8 +182,7 @@
                 <div class="ui-columns">
                     <button type="button" class="node" id="node-activities-ui"
                             data-title="ACTIVITIES"
-                            data-detail="New entries, the activity feed, bookmarks, calendar, heatmap, charts, diary, and data validation."
-                            data-file="mytral/routes.py">
+                            data-detail="New entries, the activity feed, bookmarks, calendar, heatmap, charts, diary, and data validation.">
                         <span class="node-label">ACTIVITIES</span>
                         <ul class="node-list">
                             <li>new</li>
@@ -213,8 +198,7 @@
 
                     <button type="button" class="node" id="node-insights-ui"
                             data-title="INSIGHTS"
-                            data-detail="AI predictions, analytics, lifetime totals, and all-time stats per sport."
-                            data-file="mytral/insights.py">
+                            data-detail="AI predictions, analytics, lifetime totals, and all-time stats per sport.">
                         <span class="node-label">ANALYSIS&nbsp;&amp;&nbsp;INSIGHTS</span>
                         <ul class="node-list">
                             <li>predictions</li>
@@ -229,8 +213,7 @@
                     </button>
                     <button type="button" class="node" id="node-health"
                             data-title="HEALTH"
-                            data-detail="Body diagram for injuries and sickness, weight, resting HR, and a sickness heatmap."
-                            data-file="mytral/insights.py">
+                            data-detail="Body diagram for injuries and sickness, weight, resting HR, and a sickness heatmap.">
                         <span class="node-label">HEALTH</span>
                         <ul class="node-list">
                             <li>me</li>
@@ -241,8 +224,7 @@
                     </button>
                     <button type="button" class="node" id="node-progress"
                             data-title="PROGRESS"
-                            data-detail="Fitness form (CTL / ATL / TSB), TRIMP training load, AI coaching, personal bests, paces, and races."
-                            data-file="mytral/athlete_metrics.py">
+                            data-detail="Fitness form (CTL / ATL / TSB), TRIMP training load, AI coaching, personal bests, paces, and races.">
                         <span class="node-label">PROGRESS</span>
                         <ul class="node-list">
                             <li>athlete metrics</li>
@@ -255,9 +237,8 @@
                     </button>
                     <button type="button" class="node" id="node-profile"
                             data-title="PROFILE"
-                            data-detail="The entities behind every chart - AI coach settings, activity types, exercises, gear, goals, laps &amp; routes, outfits, and symptoms."
-                            data-file="mytral/settings.py">
-                        <span class="node-label">[ PROFILE ]</span>
+                            data-detail="The entities behind every chart - AI coach settings, activity types, exercises, gear, goals, laps &amp; routes, outfits, and symptoms.">
+                        <span class="node-label">PROFILE</span>
                         <ul class="node-list">
                             <li>ai coaches</li>
                             <li>activity types</li>
@@ -274,25 +255,23 @@
 
                 <button type="button" class="group group--export interactive" id="group-export"
                         data-title="EXPORT"
-                        data-detail="Take it all back out, any time - full *.zip backup or *.csv per activity."
-                        data-file="mytral/blueprints/export_uri_space.py">
+                        data-detail="Take it all back out, any time - full *.zip backup or *.csv per activity.">
                     <span class="group-legend">export</span>
-                    <div class="badge-row">
-                        <span class="badge">zip</span>
-                        <span class="badge">csv</span>
+                    <div class="export-columns">
+                        <div class="platform-box">.zip</div>
+                        <div class="platform-box">.csv</div>
                     </div>
                 </button>
             </div>
 
             <button type="button" class="group group--desktop interactive" id="group-desktop"
                     data-title="DESKTOP / SELF-HOSTED"
-                    data-detail="One binary, your machine, your data - Linux, Windows, macOS."
-                    data-file="mytral/run_desktop.py">
+                    data-detail="One binary, your machine, your data - Linux, Windows, macOS.">
                 <span class="group-legend">desktop / self-hosted</span>
                 <div class="platform-columns">
-                    <div class="platform-box">linux</div>
-                    <div class="platform-box">windows</div>
-                    <div class="platform-box">macos</div>
+                    <div class="platform-box">Linux</div>
+                    <div class="platform-box">Windows</div>
+                    <div class="platform-box">macOS</div>
                 </div>
             </button>
         </div>
@@ -301,7 +280,7 @@
             <div class="terminal">
                 <div class="terminal-bar">
                     <span class="terminal-dot"></span>
-                    <span class="terminal-title">Feature details - click any block to learn more</span>
+                    <span class="terminal-title">Feature details</span>
                 </div>
                 <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
             </div>
@@ -327,9 +306,8 @@
             var typeTimer = null;
 
             function renderLines(data) {
-                var html = '<span class="ln-prompt">$ inspect ' + data.title + '</span>\n';
-                html += '<span class="ln-out">&gt; ' + data.detail + '</span>\n';
-                html += '<span class="ln-file">&gt; ' + data.file + '</span>';
+                var html = '<span class="ln-prompt">' + data.title + '</span>\n';
+                html += '<span class="ln-out">' + data.detail + '</span>';
                 return html;
             }
 
@@ -367,8 +345,7 @@
                 node.classList.add('active');
                 typeToTerminal({
                     title: node.dataset.title,
-                    detail: node.dataset.detail,
-                    file: node.dataset.file
+                    detail: node.dataset.detail
                 });
                 pulseFrom(node.id);
             }
@@ -516,9 +493,8 @@
 
             setTimeout(function () {
                 typeToTerminal({
-                    title: 'mytral --explain-pipeline',
-                    detail: 'click any block above to inspect it',
-                    file: 'sources -> import -> activities -> ui -> export, all inside mytral, self-hosted on desktop'
+                    title: 'MyTraL features',
+                    detail: 'Click any box above to learn more about that feature.'
                 });
             }, 350);
         })();

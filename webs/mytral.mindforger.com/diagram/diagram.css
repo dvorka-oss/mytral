@@ -347,13 +347,13 @@ h1 {
 .group--mytral {
     --group-color: var(--primary);
     max-width: 70rem;
-    margin-bottom: 3.85rem;
+    margin-bottom: 1.27rem;
 }
 
 .group--ui {
     --group-color: var(--primary);
     max-width: 66rem;
-    margin-bottom: 3rem;
+    margin-bottom: 1rem;
 }
 
 .group--import {
@@ -442,7 +442,7 @@ h1 {
 
 .ui-columns {
     display: grid;
-    grid-template-columns: repeat(6, minmax(8.2rem, 1fr));
+    grid-template-columns: repeat(5, minmax(8.2rem, 1fr));
     gap: 0.7rem;
 }
 
@@ -496,6 +496,20 @@ h1 {
     color: var(--light-gray);
 }
 
+.export-columns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.filetype-columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
 .badge-row {
     display: flex;
     flex-wrap: wrap;
@@ -512,19 +526,23 @@ h1 {
     letter-spacing: 0.04em;
 }
 
-.group--activities .badge-row,
-.group--export .badge-row {
+.activity-type-row {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 0.6rem;
 }
 
-.badge-activity-type {
-    border-color: var(--pipe-active);
-    color: var(--pipe-active);
-}
-
-.badge-file-type {
-    border-style: dashed;
-    color: var(--light-gray);
+.activity-chip {
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    border-radius: 0.4rem;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text);
 }
 
 .activities-divider {
@@ -602,7 +620,6 @@ h1 {
 
 .terminal-body .ln-prompt { color: var(--primary); }
 .terminal-body .ln-out { color: var(--accent); }
-.terminal-body .ln-file { color: var(--gray); }
 
 .caret {
     display: inline-block;
