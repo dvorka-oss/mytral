@@ -5076,6 +5076,7 @@ def y2y_month_perspective():
         "Dec": {},
     }
     activity_types = ds.list_activity_types(user_id=user_id)
+    filter_activity_type = flask.request.args.get("activity_type", "")
     ds_stats = ds.activities_stats(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
@@ -5090,7 +5091,11 @@ def y2y_month_perspective():
             user_profile=user_profile,
             data=data,
             years=[],
+            available_activity_types=[],
+            filter_activity_type=filter_activity_type,
         )
+
+    available_activity_type_keys: set[str] = set()
 
     for year in range(referential_year, ds_stats.year_min - 1, -1):
         for m in data:
@@ -5101,6 +5106,15 @@ def y2y_month_perspective():
             dataset_name=user_profile.dataset_name,
             filter_year=year,
         )
+        available_activity_type_keys.update(
+            a.activity_type_key
+            for a in year_as
+            if activity_types.is_sport(a.activity_type_key)
+        )
+        if filter_activity_type:
+            year_as = [
+                a for a in year_as if a.activity_type_key == filter_activity_type
+            ]
         year_stats = stats.ActivitiesStats(year_as)
         year_data_distance = year_stats.get_year_totals(
             aspect=commons.StatsAspect.DISTANCE, activity_types=activity_types
@@ -5140,11 +5154,18 @@ def y2y_month_perspective():
                 if data[m][year][0] > 0:
                     data[m][year][2] = "#fffffe"
 
+    available_activity_types = sorted(
+        available_activity_type_keys, key=activity_types.name
+    )
+
     return flask.render_template(
         "heatmap-y2y-month-perspective.html",
         user_profile=user_profile,
         data=data,
         years=[y for y in data.get("Jan", []).keys()],
+        activity_types=activity_types,
+        available_activity_types=available_activity_types,
+        filter_activity_type=filter_activity_type,
     )
 
 
