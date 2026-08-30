@@ -5099,7 +5099,7 @@ def y2y_month_perspective():
 
     for year in range(referential_year, ds_stats.year_min - 1, -1):
         for m in data:
-            data[m][year] = [0.0, "0h00m00s", ""]
+            data[m][year] = [0.0, "0h00m00s", "", 0]
 
         year_as = ds.list_activities(
             user_id=user_id,
@@ -5122,11 +5122,15 @@ def y2y_month_perspective():
         year_data_duration = year_stats.get_year_totals(
             aspect=commons.StatsAspect.DURATION, activity_types=activity_types
         )
+        year_data_elevation = year_stats.get_year_totals(
+            aspect=commons.StatsAspect.ELEVATION, activity_types=activity_types
+        )
 
         if year == referential_year and this_month < 12:
             for month_idx in range(this_month + 1, 13):
                 year_data_distance[month_idx] = 0.0
                 year_data_duration[month_idx] = 0
+                year_data_elevation[month_idx] = 0
 
         for month_idx in year_data_distance:
             data[cals.MONTH_INDEX_2_STR[month_idx]][year][0] = round(
@@ -5134,6 +5138,9 @@ def y2y_month_perspective():
             )
             data[cals.MONTH_INDEX_2_STR[month_idx]][year][1] = cals.seconds_to_str_time(
                 year_data_duration[month_idx]
+            )
+            data[cals.MONTH_INDEX_2_STR[month_idx]][year][3] = round(
+                year_data_elevation[month_idx]
             )
 
     # colors

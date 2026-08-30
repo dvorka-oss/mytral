@@ -18,10 +18,10 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p class="text-muted">
-                Compare your activities distance and duration in the same month of
-                different years. Current year achievements are compared to the same
-                month of the previous years. If the color is green, you are ahead of the
-                previous years, if it is red, you are behind.
+                Compare your activities distance, duration and elevation gain in the
+                same month of different years. Current year achievements are compared
+                to the same month of the previous years. If the color is green, you are
+                ahead of the previous years, if it is red, you are behind.
             </p>
         </div>
     </div>
@@ -65,13 +65,14 @@
                         <tr>
                             <td><strong>{{ year }}</strong></td>
                             {% for month in data %}
-                                {% set d = data[month].get(year,[0.0,"", ""]) %}
+                                {% set d = data[month].get(year,[0.0,"", "", 0]) %}
                                 {% if not d[2] %}
                                     <td>...</td>
                                 {% else %}
                                     <td class="text-center" style="background-color: {{ d[2] }};">
                                         {{ d[0] }} km<br/>
-                                        {{ format_duration(d[1]) }}
+                                        {{ format_duration(d[1]) }}<br/>
+                                        {{ "{:,}".format(d[3]) }} m
                                     </td>
                                 {% endif %}
                             {% endfor %}
