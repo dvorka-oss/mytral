@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTraL - Your Personal Training Log for Deeper Insights and Smarter Progress</title>
+    <title>MyTraL - Sovereign Athlete Personal Training Log</title>
     <meta name="description" content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL.">
     <link rel="canonical" href="https://mytral.mindforger.com/">
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -11,8 +11,8 @@
 
     <!-- Open Graph -->
     <meta property="og:site_name" content="MyTraL">
-    <meta property="og:title" content="MyTraL - Your Personal Training Log with AI Coaches">
-    <meta property="og:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta property="og:title" content="MyTraL - Your Personal Training Log">
+    <meta property="og:description" content="Own your training history. Get deeper insights from years of logs - private, open-source, runs on your machine.">
     <meta property="og:image" content="https://mytral.mindforger.com/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -23,8 +23,8 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MyTraL - Your Personal Training Log with AI Coaches">
-    <meta name="twitter:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta name="twitter:title" content="MyTraL - Your Personal Training Log">
+    <meta name="twitter:description" content="Own your training history. Get deeper insights from years of logs - private, open-source, runs on your machine.">
     <meta name="twitter:image" content="https://mytral.mindforger.com/og-image.png">
 
     <!-- JSON-LD structured data -->
@@ -100,7 +100,6 @@
             z-index: 1;
         }
 
-        /* Navigation */
         nav {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
@@ -172,9 +171,8 @@
             width: 100%;
         }
 
-        /* Hero Section */
         .hero {
-            padding: 8rem 0 6rem;
+            padding: 3rem 0 6rem;
             text-align: center;
             position: relative;
         }
@@ -265,9 +263,8 @@
             color: var(--light-gray);
         }
 
-        /* Features Section */
         .features {
-            padding: 6rem 0;
+            padding: 3rem 0;
             position: relative;
         }
 
@@ -465,7 +462,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Story Section */
         .story {
             padding: 6rem 0;
             background: rgba(30, 41, 59, 0.3);
@@ -507,7 +503,6 @@
             border-radius: 0.5rem;
         }
 
-        /* Contact Section */
         .contact {
             padding: 6rem 0;
         }
@@ -597,7 +592,6 @@
             box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
         }
 
-        /* Footer */
         footer {
             background: rgba(2, 6, 23, 0.8);
             border-top: 1px solid rgba(226, 232, 240, 0.1);
@@ -655,7 +649,6 @@
             }
         }
 
-        /* Content Links */
         .feature-card a,
         .story-content a,
         .highlight-box a {
@@ -877,7 +870,7 @@
             width: 15rem;
             padding: 0.45rem 1rem 0.45rem 2.5rem;
             text-align: center;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--primary);
             color: white;
             font-size: 0.75rem;
             font-weight: 700;
@@ -1057,9 +1050,8 @@
             flex-shrink: 0;
         }
 
-        /* Sponsor banner */
         .sponsor-banner {
-            margin-top: 3rem;
+            margin-top: 5rem;
             padding: 1.75rem 2rem;
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(139, 92, 246, 0.06));
             border: 1px solid rgba(226, 232, 240, 0.08);
@@ -1118,8 +1110,8 @@
         }
 
         /* ============================================================
-           Overview architecture diagram - fully scoped under .ov-diagram
-           so its tokens/classes never collide with the rest of the page
+           Architecture diagram - fully scoped under .ov-diagram so its
+           tokens/classes never collide with the rest of the page
            ============================================================ */
 
         .ov-diagram {
@@ -1142,7 +1134,7 @@
             background: transparent;
             color: var(--ov-text);
             line-height: 1.6;
-            padding: 3rem 1.5rem 3.5rem;
+            padding: 0rem 1.5rem 2rem;
         }
 
         .ov-diagram *,
@@ -1719,7 +1711,7 @@
     <section class="hero">
         <div class="hero-grid"></div>
         <div class="container">
-            <h1><span class="brand-highlight">My</span> <span class="brand-highlight">Tra</span>ining <span class="brand-highlight">L</span>og</h1>
+            <h1><span>My</span> <span>Tra</span><span  class="brand-highlight">ining</span> <span>L</span><span  class="brand-highlight">og</span></h1>
             <p class="story-content" style="margin-bottom: 1.5rem;">
                 Are your sports data scattered across the services and systems you've
                 used over the years - FIT / GPX / TCX files around your hard drive,
@@ -1737,8 +1729,8 @@
                 desktop?
             </p>
 
-            <p class="story-content"">
-                <span class="brand-highlight">MyTraL</span> is a personal sovereign athlete training log:
+            <p class="story-content">
+                <strong>MyTraL</strong> is a personal sovereign athlete training log.
             </p>
 
             <div class="terminal-window float-animation">
@@ -1748,7 +1740,7 @@
                     <div class="terminal-dot dot-blue" id="dot-blue" title="...to find what lies beneath the peaks."></div>
                 </div>
                 <div class="terminal-body">
-                    <img src="./screenshot-dashboard-dark.webp"
+                    <img src="./screenshot-dashboard-light.webp"
                         alt="MyTraL Screenshot"
                         class="feature-thumb"
                         width="1477"
@@ -1775,10 +1767,9 @@
         </div>
     </section>
 
-    <!-- Overview Section -->
-    <section id="overview" class="features">
+    <!-- Diagram Section -->
+    <section id="overview">
         <div class="container">
-            <h2 class="section-title">MyTraL</h2>
 
             <div class="ov-diagram">
                 <div class="diagram" id="diagram">
@@ -1790,7 +1781,7 @@
                                 data-detail="Activities and segments pulled live via the Strava API, or bulk-imported from a *.zip account export.">
                             <span class="node-legend">strava&reg;</span>
                             <div class="badge-row">
-                                <span class="badge">api</span>
+                                <span class="badge">API</span>
                                 <span class="badge">zip</span>
                             </div>
                         </button>
@@ -1799,14 +1790,14 @@
                                 data-detail="Sessions synced live via the Polar Flow AccessLink API, or bulk-imported from the account's GDPR *.zip export of per-session JSON files.">
                             <span class="node-legend">polar&reg;</span>
                             <div class="badge-row">
-                                <span class="badge">api</span>
+                                <span class="badge">API</span>
                                 <span class="badge">zip</span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-fit"
                                 data-title="FIT"
                                 data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample.">
-                            <span class="node-legend">fit</span>
+                            <span class="node-legend">FIT</span>
                             <div class="badge-row">
                                 <span class="badge">file</span>
                             </div>
@@ -1814,7 +1805,7 @@
                         <button type="button" class="node" id="node-gpx"
                                 data-title="GPX"
                                 data-detail="GPS track *.gpx files - route, elevation, pace.">
-                            <span class="node-legend">gpx</span>
+                            <span class="node-legend">GPX</span>
                             <div class="badge-row">
                                 <span class="badge">file</span>
                             </div>
@@ -1822,7 +1813,7 @@
                         <button type="button" class="node" id="node-tcx"
                                 data-title="TCX"
                                 data-detail="Training Center XML *.tcx recordings.">
-                            <span class="node-legend">tcx</span>
+                            <span class="node-legend">TCX</span>
                             <div class="badge-row">
                                 <span class="badge">file</span>
                             </div>
@@ -1832,7 +1823,7 @@
                                 data-detail="Freeform entry straight from the web UI - any activity, any field, no file required.">
                             <span class="node-legend">manual</span>
                             <div class="badge-row">
-                                <span class="badge">ui</span>
+                                <span class="badge">UI</span>
                             </div>
                         </button>
                     </div>
@@ -1939,7 +1930,6 @@
                                     data-detail="New entries, the activity feed, bookmarks, calendar, heatmap, charts, diary, and data validation.">
                                 <span class="node-label">ACTIVITIES</span>
                                 <ul class="node-list">
-                                    <li>new</li>
                                     <li>feed</li>
                                     <li>bookmarks</li>
                                     <li>calendar</li>
@@ -1953,7 +1943,7 @@
                             <button type="button" class="node" id="node-insights-ui"
                                     data-title="ANALYSIS &amp; INSIGHTS"
                                     data-detail="AI predictions and analytics, lifetime totals and top sports, year-over-year performance trends, weekday/hour heatmaps, and week-over-week or year-over-year comparisons.">
-                                <span class="node-label">ANALYSIS&nbsp;&amp;&nbsp;INSIGHTS</span>
+                                <span class="node-label">INSIGHTS</span>
                                 <ul class="node-list">
                                     <li>predictions</li>
                                     <li>analytics</li>
@@ -1962,8 +1952,7 @@
                                     <li>performance trends</li>
                                     <li>weekday heatmap</li>
                                     <li>active in week</li>
-                                    <li>this vs last</li>
-                                    <li>vs previous years</li>
+                                    <li>this vs last y/m/w</li>
                                 </ul>
                             </button>
                             <button type="button" class="node" id="node-health"
@@ -1973,7 +1962,7 @@
                                 <ul class="node-list">
                                     <li>me</li>
                                     <li>weight</li>
-                                    <li>resting hr</li>
+                                    <li>resting HR</li>
                                     <li>sickness heatmap</li>
                                 </ul>
                             </button>
@@ -1983,9 +1972,9 @@
                                 <span class="node-label">PROGRESS</span>
                                 <ul class="node-list">
                                     <li>athlete metrics</li>
-                                    <li>trimp</li>
-                                    <li>ai coach chat</li>
-                                    <li>prs</li>
+                                    <li>TRIMP</li>
+                                    <li>AI coach chat</li>
+                                    <li>PRs</li>
                                     <li>paces</li>
                                     <li>races</li>
                                 </ul>
@@ -1993,9 +1982,8 @@
                             <button type="button" class="node" id="node-profile"
                                     data-title="PROFILE"
                                     data-detail="The entities behind every chart - AI coach settings, activity types, exercises, gear, goals, laps &amp; routes, outfits, and symptoms.">
-                                <span class="node-label">PROFILE</span>
+                                <span class="node-label">CUSTOM</span>
                                 <ul class="node-list">
-                                    <li>ai coaches</li>
                                     <li>activity types</li>
                                     <li>exercises</li>
                                     <li>gear</li>
@@ -2003,6 +1991,7 @@
                                     <li>laps &amp; routes</li>
                                     <li>outfits</li>
                                     <li>symptoms</li>
+                                    <li>AI coaches</li>
                                 </ul>
                             </button>
                         </div>
@@ -2025,8 +2014,8 @@
                         <span class="group-legend">desktop / self-hosted</span>
                         <div class="platform-columns">
                             <div class="platform-box">Linux</div>
-                            <div class="platform-box">Windows</div>
-                            <div class="platform-box">macOS</div>
+                            <div class="platform-box">Windows&reg;</div>
+                            <div class="platform-box">macOS&reg;</div>
                         </div>
                     </button>
                 </div>
@@ -2756,13 +2745,12 @@
 
             </div>
 
-            <!-- Sponsor callout -->
             <div class="sponsor-banner">
                 <p class="sponsor-text">
                     <svg class="sponsor-heart" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
-                    MyTraL is free, open-source, built with passion for personal pleasure.
+                    MyTraL is free, open-source, built with passion for my personal pleasure.
                 </p>
                 <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral" target="_blank" rel="noopener" class="sponsor-badge-link" aria-label="Support MyTraL on Open Collective">
                     <img src="https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective" alt="Sponsor on Open Collective" class="sponsor-badge-img">
@@ -2855,7 +2843,7 @@
                 </i>
             </P>
             <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem;">
-                &copy; MyTraL. Your personal training log for deeper insights and smarter progress.
+                &copy; MyTraL - your personal training log.
                 <br/>
                 Created with passion for my personal pleasure.
                 <br/>
@@ -3100,7 +3088,7 @@
         })();
     </script>
 
-    <!-- Overview architecture diagram -->
+    <!-- architecture diagram -->
     <script>
         (function () {
             'use strict';
