@@ -1377,12 +1377,12 @@
             display: flex;
             align-items: stretch;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.6rem;
+            justify-content: space-between;
+            gap: 1rem;
         }
 
         .ov-diagram .pipeline-step {
-            flex: 1 1 9rem;
+            flex: 0 0 9rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1406,26 +1406,6 @@
 
         @keyframes ov-cog-spin {
             to { transform: rotate(360deg); }
-        }
-
-        .ov-diagram .pipeline-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 auto;
-            width: 1.4rem;
-            color: var(--ov-group-color);
-            font-size: 1rem;
-            animation: ov-pipeline-pulse 1.4s ease-in-out infinite;
-        }
-
-        .ov-diagram .pipeline-arrow::before {
-            content: '\2192';
-        }
-
-        @keyframes ov-pipeline-pulse {
-            0%, 100% { opacity: 0.35; transform: translateX(0); }
-            50% { opacity: 1; transform: translateX(3px); }
         }
 
         .ov-diagram .ui-columns {
@@ -1649,20 +1629,11 @@
             }
             .ov-diagram .pipeline-row {
                 flex-direction: column;
-            }
-            .ov-diagram .pipeline-arrow {
-                width: auto;
-                height: 1.2rem;
-                animation-name: ov-pipeline-pulse-vertical;
+                gap: 0.6rem;
             }
             .ov-diagram .platform-columns {
                 grid-template-columns: 1fr;
             }
-        }
-
-        @keyframes ov-pipeline-pulse-vertical {
-            0%, 100% { opacity: 0.35; transform: rotate(90deg) translateX(0); }
-            50% { opacity: 1; transform: rotate(90deg) translateX(3px); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1673,9 +1644,6 @@
                 animation: none;
             }
             .ov-diagram .cog {
-                animation: none;
-            }
-            .ov-diagram .pipeline-arrow {
                 animation: none;
             }
             .ov-diagram .node {
@@ -1839,7 +1807,6 @@
                                         data-detail="Raw files and API payloads land exactly as the source sent them - *.zip, *.json, *.fit, *.gpx, *.tcx.">
                                     <span class="node-label pipeline-label">SPORT DATA</span>
                                 </button>
-                                <div class="pipeline-arrow" aria-hidden="true"></div>
                                 <button type="button" class="node pipeline-step" id="node-import-normalize"
                                         data-title="NORMALIZATION"
                                         data-detail="Every source format is converted into MyTraL's single internal activity shape.">
@@ -1858,7 +1825,6 @@
                                         NORMALIZATION
                                     </span>
                                 </button>
-                                <div class="pipeline-arrow" aria-hidden="true"></div>
                                 <button type="button" class="node pipeline-step" id="node-import-validate"
                                         data-title="VALIDATION"
                                         data-detail="Normalized activities are checked for missing fields, bad timestamps, and data problems.">
@@ -1877,7 +1843,6 @@
                                         VALIDATION
                                     </span>
                                 </button>
-                                <div class="pipeline-arrow" aria-hidden="true"></div>
                                 <button type="button" class="node pipeline-step" id="node-import-fixes"
                                         data-title="FIXES"
                                         data-detail="Known problems are auto-corrected before the activity is saved.">
@@ -3161,6 +3126,9 @@
             sourceIds.forEach(function (id) {
                 links.push({ from: id, to: 'group-mytral', fromSide: 'bottom', toSide: 'top', accent: true });
             });
+            links.push({ from: 'node-import-source', to: 'node-import-normalize', fromSide: 'right', toSide: 'left', accent: true, packetCount: 4 });
+            links.push({ from: 'node-import-normalize', to: 'node-import-validate', fromSide: 'right', toSide: 'left', letter: 'A' });
+            links.push({ from: 'node-import-validate', to: 'node-import-fixes', fromSide: 'right', toSide: 'left', letter: 'A' });
             links.push({ from: 'group-import', to: 'group-activities', fromSide: 'bottom', toSide: 'top', letter: 'A' });
             links.push({ from: 'group-activities', to: 'group-ui', fromSide: 'bottom', toSide: 'top', letter: 'A' });
 
@@ -3169,18 +3137,36 @@
             function anchor(el, side) {
                 var r = el.getBoundingClientRect();
                 var c = diagram.getBoundingClientRect();
+                if (side === 'left' || side === 'right') {
+                    var x = (side === 'right' ? r.right : r.left) - c.left;
+                    var y = r.top + r.height / 2 - c.top;
+                    return { x: x, y: y };
+                }
                 var x = r.left + r.width / 2 - c.left;
                 var y = (side === 'bottom' ? r.bottom : r.top) - c.top;
                 return { x: x, y: y };
             }
 
-            function pathD(a, b) {
+            function isHorizontal(link) {
+                return link.fromSide === 'left' || link.fromSide === 'right';
+            }
+
+            function pathD(a, b, horizontal) {
+                if (horizontal) {
+                    var dx = Math.max(18, (b.x - a.x) * 0.5);
+                    return 'M ' + a.x + ' ' + a.y +
+                        ' C ' + (a.x + dx) + ' ' + a.y + ', ' +
+                        (b.x - dx) + ' ' + b.y + ', ' +
+                        b.x + ' ' + b.y;
+                }
                 var dy = Math.max(24, (b.y - a.y) * 0.55);
                 return 'M ' + a.x + ' ' + a.y +
                     ' C ' + a.x + ' ' + (a.y + dy) + ', ' +
                     b.x + ' ' + (b.y - dy) + ', ' +
                     b.x + ' ' + b.y;
             }
+
+            var packetLapSeconds = 3.2;
 
             function buildConnectors() {
                 if (window.innerWidth <= 640) {
@@ -3206,7 +3192,7 @@
                         svg.appendChild(path);
 
                         var svgNS = 'http://www.w3.org/2000/svg';
-                        var packetCount = 2;
+                        var packetCount = link.packetCount || 2;
                         var packets = [];
                         for (var p = 0; p < packetCount; p++) {
                             var letter = link.letter || sportLetters[(idx + p) % sportLetters.length];
@@ -3229,7 +3215,7 @@
                             badge.appendChild(text);
 
                             svg.appendChild(badge);
-                            packets.push({ el: badge, offset: idx * 0.4 + p * 1.6 });
+                            packets.push({ el: badge, offset: idx * 0.4 + p * (packetLapSeconds / packetCount) });
                         }
 
                         built.push({ link: link, fromEl: fromEl, toEl: toEl, path: path, packets: packets });
@@ -3239,12 +3225,10 @@
                 built.forEach(function (item) {
                     var a = anchor(item.fromEl, item.link.fromSide);
                     var b = anchor(item.toEl, item.link.toSide);
-                    var d = pathD(a, b);
+                    var d = pathD(a, b, isHorizontal(item.link));
                     item.path.setAttribute('d', d);
                 });
             }
-
-            var packetLapSeconds = 3.2;
 
             function animatePackets(nowMs) {
                 var nowS = nowMs / 1000;
