@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyTraL - Your Personal Training Log for Deeper Insights and Smarter Progress</title>
+    <title>MyTraL - Sovereign Athlete Personal Training Log</title>
     <meta name="description" content="Transform your training data into actionable insights. Track, analyze, and optimize your athletic performance with MyTraL.">
     <link rel="canonical" href="https://mytral.mindforger.com/">
     <link rel="icon" href="/favicon.ico" sizes="any">
@@ -11,8 +11,8 @@
 
     <!-- Open Graph -->
     <meta property="og:site_name" content="MyTraL">
-    <meta property="og:title" content="MyTraL - Your Personal Training Log with AI Coaches">
-    <meta property="og:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta property="og:title" content="MyTraL - Your Personal Training Log">
+    <meta property="og:description" content="Own your training history. Get deeper insights from years of logs - private, open-source, runs on your machine.">
     <meta property="og:image" content="https://mytral.mindforger.com/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -23,8 +23,8 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MyTraL - Your Personal Training Log with AI Coaches">
-    <meta name="twitter:description" content="Own your training history. Build AI coaches. Get deeper insights from years of logs - private, open-source, runs on your machine.">
+    <meta name="twitter:title" content="MyTraL - Your Personal Training Log">
+    <meta name="twitter:description" content="Own your training history. Get deeper insights from years of logs - private, open-source, runs on your machine.">
     <meta name="twitter:image" content="https://mytral.mindforger.com/og-image.png">
 
     <!-- JSON-LD structured data -->
@@ -50,7 +50,7 @@
     }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -100,7 +100,6 @@
             z-index: 1;
         }
 
-        /* Navigation */
         nav {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
@@ -172,9 +171,8 @@
             width: 100%;
         }
 
-        /* Hero Section */
         .hero {
-            padding: 8rem 0 6rem;
+            padding: 3rem 0 6rem;
             text-align: center;
             position: relative;
         }
@@ -197,10 +195,11 @@
             font-weight: 700;
             margin-bottom: 1.5rem;
             line-height: 1.1;
-            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 50%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ffffff;
+        }
+
+        .hero h1 .brand-highlight {
+            color: var(--primary);
         }
 
         .hero .subtitle {
@@ -264,9 +263,8 @@
             color: var(--light-gray);
         }
 
-        /* Features Section */
         .features {
-            padding: 6rem 0;
+            padding: 3rem 0;
             position: relative;
         }
 
@@ -464,7 +462,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Story Section */
         .story {
             padding: 6rem 0;
             background: rgba(30, 41, 59, 0.3);
@@ -506,7 +503,6 @@
             border-radius: 0.5rem;
         }
 
-        /* Contact Section */
         .contact {
             padding: 6rem 0;
         }
@@ -596,7 +592,6 @@
             box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
         }
 
-        /* Footer */
         footer {
             background: rgba(2, 6, 23, 0.8);
             border-top: 1px solid rgba(226, 232, 240, 0.1);
@@ -654,7 +649,6 @@
             }
         }
 
-        /* Content Links */
         .feature-card a,
         .story-content a,
         .highlight-box a {
@@ -876,7 +870,7 @@
             width: 15rem;
             padding: 0.45rem 1rem 0.45rem 2.5rem;
             text-align: center;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--primary);
             color: white;
             font-size: 0.75rem;
             font-weight: 700;
@@ -1056,9 +1050,8 @@
             flex-shrink: 0;
         }
 
-        /* Sponsor banner */
         .sponsor-banner {
-            margin-top: 3rem;
+            margin-top: 5rem;
             padding: 1.75rem 2rem;
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(139, 92, 246, 0.06));
             border: 1px solid rgba(226, 232, 240, 0.08);
@@ -1115,6 +1108,634 @@
             width: auto;
             display: block;
         }
+
+        /* ============================================================
+           Architecture diagram - fully scoped under .ov-diagram so its
+           tokens/classes never collide with the rest of the page
+           ============================================================ */
+
+        .ov-diagram {
+            --ov-primary: #0ea5e9;
+            --ov-accent: #10b981;
+            --ov-warn: #f59e0b;
+            --ov-brand: #eab308;
+            --ov-darker: #020617;
+            --ov-gray: #a9b8cc;
+            --ov-light-gray: #cbd5e1;
+            --ov-text: #f1f5f9;
+            --ov-card-bg: #24365f;
+            --ov-border: #656565;
+            --ov-border-strong: #aeaeae;
+            --ov-pipe: rgba(56, 189, 248, 0.38);
+            --ov-pipe-active: #38bdf8;
+
+            position: relative;
+            font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+            background: transparent;
+            color: var(--ov-text);
+            line-height: 1.6;
+            padding: 0rem 1.5rem 2rem;
+        }
+
+        .ov-diagram *,
+        .ov-diagram *::before,
+        .ov-diagram *::after {
+            box-sizing: border-box;
+        }
+
+        .ov-diagram ul,
+        .ov-diagram li,
+        .ov-diagram hr {
+            margin: 0;
+            padding: 0;
+        }
+
+        .ov-diagram button {
+            font: inherit;
+            color: inherit;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .ov-diagram .diagram {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ov-diagram .connectors {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        .ov-diagram .connectors-below {
+            /* horizontal connectors: behind every box (.group is position:relative
+               with no z-index of its own, i.e. stacks at 0) so a path never
+               overlaps box content when responsive reflow crowds the layout */
+            z-index: -1;
+        }
+
+        .ov-diagram .connectors-above {
+            /* vertical connectors: above every box, otherwise a box's own
+               top/bottom border paints over the flowing badge where the
+               track crosses it, leaving an ugly cut */
+            z-index: 3;
+        }
+
+        .ov-diagram .connectors path.pipe {
+            fill: none;
+            stroke: var(--ov-pipe);
+            stroke-width: 1.5;
+            transition: stroke 0.4s ease, stroke-width 0.4s ease;
+        }
+
+        .ov-diagram .connectors path.pipe.hot {
+            stroke: var(--ov-pipe-active);
+            stroke-width: 2.25;
+        }
+
+        .ov-diagram .connectors path.pipe.accent {
+            stroke: rgba(234, 179, 8, 0.45);
+        }
+
+        .ov-diagram .connectors path.pipe.accent.hot {
+            stroke: var(--ov-brand);
+        }
+
+        .ov-diagram .connectors .packet-badge {
+            filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.9));
+        }
+
+        .ov-diagram .connectors .packet-badge rect {
+            fill: var(--ov-darker);
+            stroke: var(--ov-pipe-active);
+            stroke-width: 1;
+        }
+
+        .ov-diagram .connectors .packet-badge text {
+            fill: var(--ov-pipe-active);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 7px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        .ov-diagram .connectors .packet-badge.badge-accent {
+            filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.75));
+        }
+
+        .ov-diagram .connectors .packet-badge.badge-accent rect {
+            stroke: var(--ov-brand);
+        }
+
+        .ov-diagram .connectors .packet-badge.badge-accent text {
+            fill: var(--ov-brand);
+        }
+
+        .ov-diagram .row {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.7rem;
+            max-width: 70rem;
+            margin: 0 auto 5.5rem;
+        }
+
+        .ov-diagram .row-label {
+            text-align: center;
+            font-size: 0.68rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--ov-gray);
+            margin-bottom: 0.75rem;
+        }
+
+        .ov-diagram .node {
+            border: 1px solid var(--ov-border);
+            background: var(--ov-card-bg);
+            border-radius: 0.4rem;
+            padding: 0.65rem 0.9rem;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .ov-diagram .node:hover {
+            transform: translateY(-2px);
+            border-color: var(--ov-border-strong);
+        }
+
+        .ov-diagram .node:focus-visible {
+            outline: 2px solid var(--ov-primary);
+            outline-offset: 2px;
+        }
+
+        .ov-diagram .node.active {
+            border-color: var(--ov-pipe-active);
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35), 0 8px 24px rgba(14, 165, 233, 0.18);
+        }
+
+        .ov-diagram .node-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: var(--ov-text);
+        }
+
+        .ov-diagram .node-legend {
+            position: absolute;
+            top: -0.6rem;
+            left: 0.8rem;
+            background: var(--bg);
+            padding: 0 0.5rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ov-brand);
+        }
+
+        .ov-diagram .sources .node {
+            position: relative;
+            align-items: center;
+            padding: 1rem 0.8rem 0.7rem;
+            background: #000000;
+            border-color: rgba(234, 179, 8, 0.5);
+        }
+
+        .ov-diagram .sources .node:hover {
+            border-color: var(--ov-brand);
+            filter: brightness(1.2);
+        }
+
+        .ov-diagram .sources .node.active {
+            border-color: var(--ov-brand);
+            box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.35), 0 8px 24px rgba(234, 179, 8, 0.18);
+        }
+
+        .ov-diagram .sources .badge-row {
+            justify-content: center;
+            margin-top: 0.35rem;
+        }
+
+        .ov-diagram .group {
+            position: relative;
+            border: 1px solid var(--ov-group-color, var(--ov-border-strong));
+            border-radius: 0.6rem;
+            padding: 1.6rem 1.25rem 1.25rem;
+            margin: 0 auto 5.5rem;
+            max-width: 100%;
+        }
+
+        .ov-diagram .group-legend {
+            position: absolute;
+            top: -0.65rem;
+            left: 1.1rem;
+            background: var(--bg);
+            padding: 0 0.6rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--ov-group-color, var(--ov-text));
+        }
+
+        .ov-diagram .group--mytral {
+            --ov-group-color: var(--ov-primary);
+            max-width: 70rem;
+            margin-bottom: 1.27rem;
+        }
+
+        .ov-diagram .group--ui {
+            --ov-group-color: var(--ov-primary);
+            max-width: 66rem;
+            margin-bottom: 1rem;
+        }
+
+        .ov-diagram .group--import {
+            --ov-group-color: var(--ov-primary);
+            max-width: 66rem;
+            margin-bottom: 3rem;
+        }
+
+        .ov-diagram .group--activities {
+            --ov-group-color: var(--ov-primary);
+            max-width: 66rem;
+            margin-bottom: 3rem;
+        }
+
+        .ov-diagram .group--mytral .row {
+            margin-bottom: 0;
+        }
+
+        .ov-diagram .arrow-down {
+            text-align: center;
+            color: var(--ov-gray);
+            font-size: 0.9rem;
+            line-height: 1;
+            margin: 0.55rem 0;
+            letter-spacing: 0.1em;
+        }
+
+        .ov-diagram .pipeline-row {
+            display: flex;
+            align-items: stretch;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .ov-diagram .pipeline-step {
+            flex: 0 0 9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .ov-diagram .pipeline-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .ov-diagram .cog {
+            flex: 0 0 auto;
+            color: var(--ov-group-color);
+            transform-box: fill-box;
+            transform-origin: 50% 50%;
+            animation: ov-cog-spin 3s linear infinite;
+        }
+
+        @keyframes ov-cog-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ov-diagram .ui-columns {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(8.2rem, 1fr));
+            gap: 0.7rem;
+        }
+
+        .ov-diagram .ui-columns .node {
+            height: 100%;
+        }
+
+        .ov-diagram .ui-columns .node-list {
+            list-style: none;
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--ov-light-gray);
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+        }
+
+        .ov-diagram .ui-columns .node-list li::before {
+            content: '- ';
+            color: var(--ov-gray);
+        }
+
+        .ov-diagram .group--export {
+            --ov-group-color: var(--ov-primary);
+            max-width: 66rem;
+            margin-bottom: 0;
+        }
+
+        .ov-diagram .group--desktop {
+            --ov-group-color: var(--ov-light-gray);
+            max-width: 70rem;
+            margin-bottom: 0;
+        }
+
+        .ov-diagram .platform-columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .ov-diagram .platform-box {
+            border: 1px solid var(--ov-border);
+            border-radius: 0.4rem;
+            padding: 0.9rem;
+            text-align: center;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            color: var(--ov-light-gray);
+        }
+
+        .ov-diagram .export-columns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .ov-diagram .filetype-columns {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .ov-diagram .filetype-box {
+            --ov-dogear: 0.75rem;
+            position: relative;
+        }
+
+        .ov-diagram .filetype-label {
+            display: block;
+            background: var(--ov-darker);
+            border: 1px solid var(--ov-border);
+            padding: 0.45rem calc(var(--ov-dogear) + 0.45rem) 0.45rem 0.9rem;
+            text-align: center;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            color: var(--ov-light-gray);
+            /* the top-right corner is genuinely cut away here (not just painted
+               over), so the fold triangle below sits flush with no seam/tooth */
+            clip-path: polygon(0 0, calc(100% - var(--ov-dogear)) 0, 100% var(--ov-dogear), 100% 100%, 0 100%);
+        }
+
+        .ov-diagram .filetype-fold {
+            /* fills the notch cut out of .filetype-label above - a sibling so
+               it is never itself clipped by the label's clip-path */
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 var(--ov-dogear) var(--ov-dogear) 0;
+            border-color: transparent var(--ov-group-color) transparent transparent;
+        }
+
+        .ov-diagram .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+        }
+
+        .ov-diagram .badge {
+            font-size: 0.68rem;
+            border: 1px solid var(--ov-border);
+            color: var(--ov-light-gray);
+            padding: 0.2rem 0.55rem;
+            border-radius: 0.3rem;
+            letter-spacing: 0.04em;
+        }
+
+        .ov-diagram .badge-file {
+            /* compact version of the .filetype-box dog-ear, sized for an
+               inline badge instead of a grid cell */
+            --ov-dogear: 0.4rem;
+            position: relative;
+            display: inline-flex;
+        }
+
+        .ov-diagram .badge-file-label {
+            display: inline-block;
+            font-size: 0.68rem;
+            border: 1px solid var(--ov-border);
+            color: var(--ov-light-gray);
+            padding: 0.2rem calc(var(--ov-dogear) + 0.4rem) 0.2rem 0.55rem;
+            letter-spacing: 0.04em;
+            clip-path: polygon(0 0, calc(100% - var(--ov-dogear)) 0, 100% var(--ov-dogear), 100% 100%, 0 100%);
+        }
+
+        .ov-diagram .badge-file-fold {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 var(--ov-dogear) var(--ov-dogear) 0;
+            border-color: transparent var(--ov-brand) transparent transparent;
+        }
+
+        .ov-diagram .activity-type-row {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.75rem;
+        }
+
+        .ov-diagram .activity-chip {
+            /* same dark-fill + glowing pipe-blue border/text as the flowing
+               "A" packet badges, so it reads as "this is that same activity" */
+            border: 1px solid var(--ov-pipe-active);
+            background: var(--ov-darker);
+            border-radius: 0.3rem;
+            padding: 0.35rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            text-align: center;
+            color: var(--ov-pipe-active);
+            box-shadow: 0 0 5px rgba(56, 189, 248, 0.45);
+        }
+
+        .ov-diagram .activities-divider {
+            border: none;
+            border-top: 1px dashed var(--ov-border);
+            margin: 0.7rem 0 0;
+        }
+
+        .ov-diagram .group.interactive {
+            display: block;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+
+        .ov-diagram .group.interactive:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.3);
+        }
+
+        .ov-diagram .group.interactive:focus-visible {
+            outline: 2px solid var(--ov-group-color);
+            outline-offset: 3px;
+        }
+
+        .ov-diagram .group.interactive.active {
+            box-shadow: 0 0 0 1px var(--ov-group-color), 0 10px 26px color-mix(in srgb, var(--ov-group-color) 22%, transparent);
+        }
+
+        .ov-diagram .terminal-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 44rem;
+            margin: 2.5rem auto 0;
+        }
+
+        .ov-diagram .terminal {
+            background: #05070d;
+            border: 1px solid var(--ov-border);
+            border-radius: 0.6rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+        }
+
+        .ov-diagram .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.9rem;
+            border-bottom: 1px solid var(--ov-border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .ov-diagram .terminal-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--ov-accent);
+        }
+
+        .ov-diagram .terminal-title {
+            font-size: 0.72rem;
+            color: var(--ov-gray);
+            letter-spacing: 0.05em;
+        }
+
+        .ov-diagram .terminal-body {
+            padding: 1rem 1.1rem 1.2rem;
+            font-size: 0.82rem;
+            min-height: 6.4rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .ov-diagram .terminal-body .ln-prompt { color: var(--ov-primary); }
+        .ov-diagram .terminal-body .ln-out { color: var(--ov-accent); }
+
+        .ov-diagram .caret {
+            display: inline-block;
+            width: 0.55em;
+            height: 1em;
+            background: var(--ov-accent);
+            vertical-align: text-bottom;
+            animation: ov-blink 1s steps(1) infinite;
+        }
+
+        @keyframes ov-blink {
+            50% { opacity: 0; }
+        }
+
+        @media (max-width: 900px) {
+            .ov-diagram .ui-columns {
+                grid-template-columns: repeat(3, minmax(8rem, 1fr));
+            }
+            .ov-diagram .row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .ov-diagram .activity-type-row {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .ov-diagram .ui-columns {
+                grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
+            }
+            .ov-diagram .row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .ov-diagram .activity-type-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .ov-diagram .connectors {
+                display: none;
+            }
+            .ov-diagram .group--mytral,
+            .ov-diagram .group--ui,
+            .ov-diagram .group--import,
+            .ov-diagram .group--activities,
+            .ov-diagram .group--export,
+            .ov-diagram .group--desktop {
+                max-width: 100%;
+            }
+            .ov-diagram .pipeline-row {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+            .ov-diagram .platform-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ov-diagram .connectors .packet-badge {
+                display: none;
+            }
+            .ov-diagram .caret {
+                animation: none;
+            }
+            .ov-diagram .cog {
+                animation: none;
+            }
+            .ov-diagram .node {
+                transition: none;
+            }
+            .ov-diagram .node:hover {
+                transform: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1141,7 +1762,7 @@
     <section class="hero">
         <div class="hero-grid"></div>
         <div class="container">
-            <h1>My Training Log</h1>
+            <h1><span>My</span> <span>Tra</span><span  class="brand-highlight">ining</span> <span>L</span><span  class="brand-highlight">og</span></h1>
             <p class="story-content" style="margin-bottom: 1.5rem;">
                 Are your sports data scattered across the services and systems you've
                 used over the years - FIT / GPX / TCX files around your hard drive,
@@ -1159,8 +1780,8 @@
                 desktop?
             </p>
 
-            <p class="story-content"">
-                <span class="brand-highlight">MyTraL</span> is a personal sovereign athlete training log:
+            <p class="story-content">
+                <strong>MyTraL</strong> is a personal sovereign athlete training log.
             </p>
 
             <div class="terminal-window float-animation">
@@ -1170,7 +1791,7 @@
                     <div class="terminal-dot dot-blue" id="dot-blue" title="...to find what lies beneath the peaks."></div>
                 </div>
                 <div class="terminal-body">
-                    <img src="./screenshot-dashboard-dark.webp"
+                    <img src="./screenshot-dashboard-light.webp"
                         alt="MyTraL Screenshot"
                         class="feature-thumb"
                         width="1477"
@@ -1192,23 +1813,289 @@
             </p>
             <p class="story-content" style="margin-bottom: 1.5rem;">
                 Your log, your data, your edge.
-                Track, analyze, understand, and optimize to achieve your goals.
+                Track, analyze, understand, and optimize to achieve your goals with MyTraL.
             </p>
-            <p class="story-content">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-run"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M11.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17l5 1l.75 -1.5" /><path d="M15 21v-4l-4 -3l1 -6" /><path d="M7 12v-3l5 -1l3 3l3 1" /></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bike"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M2 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M16 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M12 19v-4l-3 -3l5 -4l2 3h3" /><path d="M13.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-swimming"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M15 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M6 11l4 -2l3.5 3l-1.5 2" /><path d="M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25" /></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-stretching"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M15 5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M5 20l5 -.5l1 -2" /><path d="M18 20v-5h-5.5l2.5 -6.5l-5.5 1l1.5 2" /></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-barbell"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M2 12h1" /><path d="M6 8h-2a1 1 0 0 0 -1 1v6a1 1 0 0 0 1 1h2" /><path d="M6 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1" /><path d="M9 12h6" /><path d="M15 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1" /><path d="M18 8h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2" /><path d="M22 12h-1" /></svg>
-            </p>
+        </div>
+    </section>
+
+    <!-- Diagram Section -->
+    <section id="overview">
+        <div class="container">
+
+            <div class="ov-diagram">
+                <div class="diagram" id="diagram">
+                    <svg class="connectors connectors-below" id="connectors-below" aria-hidden="true"></svg>
+                    <svg class="connectors connectors-above" id="connectors-above" aria-hidden="true"></svg>
+
+                    <div class="row sources" id="row-sources">
+                        <button type="button" class="node" id="node-strava"
+                                data-title="STRAVA"
+                                data-detail="Activities and segments pulled live via the Strava API, or bulk-imported from a *.zip account export.">
+                            <span class="node-legend">strava&reg;</span>
+                            <div class="badge-row">
+                                <span class="badge">API</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">zip</span></span>
+                            </div>
+                        </button>
+                        <button type="button" class="node" id="node-polar"
+                                data-title="POLAR"
+                                data-detail="Sessions synced live via the Polar Flow AccessLink API, Polar Precision Performance (*.hrm and *.pdd files) or bulk-imported from the account's GDPR *.zip export of per-session JSON files.">
+                            <span class="node-legend">polar&reg;</span>
+                            <div class="badge-row">
+                                <span class="badge">API</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">zip</span></span>
+                            </div>
+                        </button>
+                        <button type="button" class="node" id="node-fit"
+                                data-title="FIT"
+                                data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample.">
+                            <span class="node-legend">FIT</span>
+                            <div class="badge-row">
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
+                            </div>
+                        </button>
+                        <button type="button" class="node" id="node-gpx"
+                                data-title="GPX"
+                                data-detail="GPS track *.gpx files - route, elevation, pace.">
+                            <span class="node-legend">GPX</span>
+                            <div class="badge-row">
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
+                            </div>
+                        </button>
+                        <button type="button" class="node" id="node-tcx"
+                                data-title="TCX"
+                                data-detail="Training Center XML *.tcx recordings.">
+                            <span class="node-legend">TCX</span>
+                            <div class="badge-row">
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
+                            </div>
+                        </button>
+                        <button type="button" class="node" id="node-manual"
+                                data-title="MANUAL"
+                                data-detail="Freeform entry straight from the web UI - any activity, any field, no file required.">
+                            <span class="node-legend">manual</span>
+                            <div class="badge-row">
+                                <span class="badge">UI</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="group group--mytral" id="group-mytral">
+                        <span class="group-legend">mytral</span>
+
+                        <div class="group group--import" id="group-import">
+                            <span class="group-legend">import</span>
+                            <div class="pipeline-row">
+                                <button type="button" class="node pipeline-step" id="node-import-source"
+                                        data-title="SPORT DATA"
+                                        data-detail="Raw files and API payloads land exactly as the source sent them - *.zip, *.json, *.fit, *.gpx, *.tcx.">
+                                    <span class="node-label pipeline-label">SPORT DATA</span>
+                                </button>
+                                <button type="button" class="node pipeline-step" id="node-import-normalize"
+                                        data-title="NORMALIZATION"
+                                        data-detail="Every source format is converted into MyTraL's single internal activity shape.">
+                                    <span class="node-label pipeline-label">
+                                        <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="11" y="18" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="1" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="18" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(45 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(135 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(225 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(315 12 12)"></rect>
+                                        </svg>
+                                        NORMALIZATION
+                                    </span>
+                                </button>
+                                <button type="button" class="node pipeline-step" id="node-import-validate"
+                                        data-title="VALIDATION"
+                                        data-detail="Normalized activities are checked for missing fields, bad timestamps, and data problems.">
+                                    <span class="node-label pipeline-label">
+                                        <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="11" y="18" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="1" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="18" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(45 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(135 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(225 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(315 12 12)"></rect>
+                                        </svg>
+                                        VALIDATION
+                                    </span>
+                                </button>
+                                <button type="button" class="node pipeline-step" id="node-import-fixes"
+                                        data-title="FIXES"
+                                        data-detail="Known problems are auto-corrected before the activity is saved.">
+                                    <span class="node-label pipeline-label">
+                                        <svg class="cog" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="11" y="18" width="2" height="5" fill="currentColor"></rect>
+                                            <rect x="1" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="18" y="11" width="5" height="2" fill="currentColor"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(45 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(135 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(225 12 12)"></rect>
+                                            <rect x="11" y="1" width="2" height="5" fill="currentColor" transform="rotate(315 12 12)"></rect>
+                                        </svg>
+                                        FIXES
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="group group--activities interactive" id="group-activities"
+                                data-title="ACTIVITIES"
+                                data-detail="Run, Row, Ride, Swim, Ski, Gym, and custom types - stored as JSON + Parquet + GPX + photos.">
+                            <span class="group-legend">activities</span>
+                            <div class="activity-type-row">
+                                <div class="activity-chip">run</div>
+                                <div class="activity-chip">row</div>
+                                <div class="activity-chip">ride</div>
+                                <div class="activity-chip">swim</div>
+                                <div class="activity-chip">ski</div>
+                                <div class="activity-chip">gym</div>
+                                <div class="activity-chip">physio</div>
+                                <div class="activity-chip">...</div>
+                            </div>
+                            <hr class="activities-divider">
+                            <div class="filetype-columns">
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.json</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.parquet</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.gpx</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.jpg</span></div>
+                            </div>
+                        </button>
+
+                        <div class="group group--ui" id="group-ui">
+                        <span class="group-legend">ui</span>
+                        <div class="ui-columns">
+                            <button type="button" class="node" id="node-activities-ui"
+                                    data-title="ACTIVITIES"
+                                    data-detail="New entries, the activity feed, bookmarks, calendar, heatmap, charts, diary, and data validation.">
+                                <span class="node-label">ACTIVITIES</span>
+                                <ul class="node-list">
+                                    <li>feed</li>
+                                    <li>bookmarks</li>
+                                    <li>calendar</li>
+                                    <li>heatmap</li>
+                                    <li>charts</li>
+                                    <li>diary</li>
+                                    <li>validation</li>
+                                </ul>
+                            </button>
+
+                            <button type="button" class="node" id="node-insights-ui"
+                                    data-title="ANALYSIS &amp; INSIGHTS"
+                                    data-detail="AI predictions and analytics, lifetime totals and top sports, year-over-year performance trends, weekday/hour heatmaps, and week-over-week or year-over-year comparisons.">
+                                <span class="node-label">INSIGHTS</span>
+                                <ul class="node-list">
+                                    <li>predictions</li>
+                                    <li>analytics</li>
+                                    <li>lifetime totals</li>
+                                    <li>top sports</li>
+                                    <li>performance trends</li>
+                                    <li>weekday heatmap</li>
+                                    <li>active in week</li>
+                                    <li>this vs last y/m/w</li>
+                                </ul>
+                            </button>
+                            <button type="button" class="node" id="node-health"
+                                    data-title="HEALTH"
+                                    data-detail="Body diagram for injuries and sickness, weight, resting HR, and a sickness heatmap.">
+                                <span class="node-label">HEALTH</span>
+                                <ul class="node-list">
+                                    <li>me</li>
+                                    <li>weight</li>
+                                    <li>resting HR</li>
+                                    <li>sickness heatmap</li>
+                                </ul>
+                            </button>
+                            <button type="button" class="node" id="node-progress"
+                                    data-title="PROGRESS"
+                                    data-detail="Fitness form (CTL / ATL / TSB), TRIMP training load, AI coaching, personal bests, paces, and races.">
+                                <span class="node-label">PROGRESS</span>
+                                <ul class="node-list">
+                                    <li>PRs</li>
+                                    <li>paces</li>
+                                    <li>races</li>
+                                    <li>athlete metrics</li>
+                                    <li>AI coach chat</li>
+                                    <li>TRIMP</li>
+                                </ul>
+                            </button>
+                            <button type="button" class="node" id="node-profile"
+                                    data-title="PROFILE"
+                                    data-detail="The entities behind every chart - AI coach settings, activity types, exercises, gear, goals, laps &amp; routes, outfits, and symptoms.">
+                                <span class="node-label">CUSTOM</span>
+                                <ul class="node-list">
+                                    <li>activity types</li>
+                                    <li>exercises</li>
+                                    <li>gear</li>
+                                    <li>goals</li>
+                                    <li>laps &amp; routes</li>
+                                    <li>outfits</li>
+                                    <li>symptoms</li>
+                                    <li>AI coaches</li>
+                                </ul>
+                            </button>
+                        </div>
+                        </div>
+
+                        <button type="button" class="group group--export interactive" id="group-export"
+                                data-title="EXPORT"
+                                data-detail="Take it all back out, any time - a full *.zip profile backup, or all activities as *.json.">
+                            <span class="group-legend">export</span>
+                            <div class="export-columns">
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.zip</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.json</span></div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <button type="button" class="group group--desktop interactive" id="group-desktop"
+                            data-title="DESKTOP / SELF-HOSTED"
+                            data-detail="One binary, your machine, your data - Linux, Windows, macOS.">
+                        <span class="group-legend">desktop / self-hosted</span>
+                        <div class="platform-columns">
+                            <div class="platform-box">
+                                <div class="node-label">Linux</div>
+                                PPA, Snap, Flatpak, Python
+                            </div>
+                            <div class="platform-box">
+                                <div class="node-label">Windows&reg;</div>
+                                winget, MSI, .exe, Python
+                            </div>
+                            <div class="platform-box">
+                                <div class="node-label">macOS&reg;</div>
+                                DMG, Python
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="terminal-wrap">
+                    <div class="terminal">
+                        <div class="terminal-bar">
+                            <span class="terminal-dot"></span>
+                            <span class="terminal-title">Feature details</span>
+                        </div>
+                        <div class="terminal-body" id="terminal-body" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <div class="section-label">Features</div>
-            <h2 class="section-title">Everything You Need to Track Your Progress</h2>
+            <h2 class="section-title">Features</h2>
+            <!-- div class="section-label">Everything You Need to Track Your Progress</div -->
 
             <div class="features-grid features-grid-3col">
                 <div class="feature-flip-wrapper">
@@ -1655,8 +2542,8 @@
     <!--Manifesto Section -->
     <section id="manifesto" class="features">
         <div class="container">
-            <div class="section-label">Manifesto</div>
-            <h2 class="section-title">The Principles We Train By</h2>
+            <h2 class="section-title">Manifesto</h2>
+            <!-- div class="section-label">The Principles We Train By</div -->
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-number">*</div>
@@ -1780,8 +2667,8 @@
     <!-- Story Section -->
     <section id="story" class="story">
         <div class="container">
-            <div class="section-label">Origin Story</div>
             <h2 class="section-title">The Story of MyTraL</h2>
+            <!--div class="section-label">Origin Story</div -->
             <div class="story-content">
                 <p>
                     MyTraL was born from a simple need: to track my own training progress with more depth and insight
@@ -1806,7 +2693,7 @@
     <!-- Download Section -->
     <section id="download" class="features">
         <div class="container">
-            <div class="section-label">Get MyTraL</div>
+            <!-- div class="section-label">Get MyTraL</div -->
             <h2 class="section-title">Download</h2>
             <p style="text-align: center; margin-bottom: 3rem; color: var(--light-gray); font-size: 1.1rem; max-width: 800px; margin-left: auto; margin-right: auto;">
                 Free and open-source. No account required. No telemetry.
@@ -1916,13 +2803,12 @@
 
             </div>
 
-            <!-- Sponsor callout -->
             <div class="sponsor-banner">
                 <p class="sponsor-text">
                     <svg class="sponsor-heart" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                     </svg>
-                    MyTraL is free, open-source, built with passion for personal pleasure.
+                    MyTraL is free, open-source, built with passion for my personal pleasure.
                 </p>
                 <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral" target="_blank" rel="noopener" class="sponsor-badge-link" aria-label="Support MyTraL on Open Collective">
                     <img src="https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective" alt="Sponsor on Open Collective" class="sponsor-badge-img">
@@ -1976,13 +2862,17 @@
                                 <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
                             </svg>
                         </a>
-                        <!--a href="https://x.com/MytralFitness" target="_blank" rel="noopener" aria-label="MyTraL on X">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-x">
+                        <a href="https://www.reddit.com/r/MyTraL/" target="_blank" rel="noopener" aria-label="Join MyTraL on Reddit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-reddit">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M4 4l11.733 16h4.267l-11.733 -16l-4.267 0" />
-                                <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+                                <path d="M12 8c2.648 0 5.028 .826 6.675 2.14a2.5 2.5 0 0 1 2.326 4.36c0 3.59 -4.03 6.5 -9 6.5c-4.875 0 -8.845 -2.8 -9 -6.294l-1 -.206a2.5 2.5 0 0 1 2.326 -4.36c1.646 -1.313 4.026 -2.14 6.674 -2.14l.999 0" />
+                                <path d="M12 8l1 -5l6 1" />
+                                <path d="M18 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                                <path d="M8.5 13a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" />
+                                <path d="M14.5 13a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" />
+                                <path d="M10 17c.667 .333 1.333 .5 2 .5s1.333 -.167 2 -.5" />
                             </svg>
-                        </a -->
+                        </a>
                         <a href="https://opencollective.com/dvorka-floss-lab/projects/mytral" target="_blank" rel="noopener" aria-label="Support MyTraL on Open Collective">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-brand-open-collective">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -1991,7 +2881,7 @@
                                 <path d="M15 7h.01"/>
                             </svg>
                         </a>
-                        <a href="https://discord.gg/pb4HYvF2" target="_blank" rel="noopener" aria-label="Join MyTraL on Discord">
+                        <!-- a href="https://discord.gg/pb4HYvF2" target="_blank" rel="noopener" aria-label="Join MyTraL on Discord">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-discord">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                                 <path d="M8 12a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
@@ -1999,7 +2889,7 @@
                                 <path d="M15.5 17c0 1 1.5 3 2 3c1.5 0 2.833 -1.667 3.5 -3c.667 -1.667 .5 -5.833 -1.5 -11.5c-1.457 -1.015 -3 -1.34 -4.5 -1.5l-.972 1.923a11.913 11.913 0 0 0 -4.053 0l-.975 -1.923c-1.5 .16 -3.043 .485 -4.5 1.5c-2 5.667 -2.167 9.833 -1.5 11.5c.667 1.333 2 3 3.5 3c.5 0 2 -2 2 -3" />
                                 <path d="M7 16.5c3.5 1 6.5 1 10 0" />
                             </svg>
-                        </a>
+                        </a -->
                     </div>
                 </div>
             </div>
@@ -2015,7 +2905,7 @@
                 </i>
             </P>
             <p style="line-height: 1.2; margin-bottom: 0; margin-top: 2rem;">
-                &copy; MyTraL. Your personal training log for deeper insights and smarter progress.
+                &copy; MyTraL - your personal training log.
                 <br/>
                 Created with passion for my personal pleasure.
                 <br/>
@@ -2257,6 +3147,242 @@
                 if (e.key === 'ArrowLeft') showSlide(currentIndex - 1);
                 if (e.key === 'ArrowRight') showSlide(currentIndex + 1);
             });
+        })();
+    </script>
+
+    <!-- architecture diagram -->
+    <script>
+        (function () {
+            'use strict';
+
+            var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            /* ------------------------------------------------ terminal readout */
+
+            var terminalBody = document.getElementById('terminal-body');
+            var typeTimer = null;
+
+            function renderLines(data) {
+                var html = '<span class="ln-prompt">' + data.title + '</span>\n';
+                html += '<span class="ln-out">' + data.detail + '</span>';
+                return html;
+            }
+
+            function typeToTerminal(data) {
+                if (typeTimer) {
+                    clearInterval(typeTimer);
+                    typeTimer = null;
+                }
+                var full = renderLines(data);
+                if (reduceMotion) {
+                    terminalBody.innerHTML = full + '<span class="caret"></span>';
+                    return;
+                }
+                var i = 0;
+                terminalBody.innerHTML = '<span class="caret"></span>';
+                typeTimer = setInterval(function () {
+                    i += 2;
+                    if (i >= full.length) {
+                        terminalBody.innerHTML = full + '<span class="caret"></span>';
+                        clearInterval(typeTimer);
+                        typeTimer = null;
+                        return;
+                    }
+                    terminalBody.innerHTML = full.slice(0, i) + '<span class="caret"></span>';
+                }, 8);
+            }
+
+            /* ------------------------------------------------ node activation */
+
+            var nodes = Array.prototype.slice.call(document.querySelectorAll('button[data-title]'));
+            var clickable = nodes;
+
+            function activate(node) {
+                nodes.forEach(function (n) { n.classList.remove('active'); });
+                node.classList.add('active');
+                typeToTerminal({
+                    title: node.dataset.title,
+                    detail: node.dataset.detail
+                });
+                pulseFrom(node.id);
+            }
+
+            clickable.forEach(function (node) {
+                node.addEventListener('click', function () { activate(node); });
+            });
+
+            /* ------------------------------------------------ svg connectors */
+
+            var svgBelow = document.getElementById('connectors-below');
+            var svgAbove = document.getElementById('connectors-above');
+            var diagram = document.getElementById('diagram');
+            var sourceIds = ['node-strava', 'node-polar', 'node-fit', 'node-gpx', 'node-tcx', 'node-manual'];
+
+            var sportLetters = ['R', 'O', 'B', 'S']; // run, row, bike, swim
+
+            var links = [];
+            sourceIds.forEach(function (id) {
+                links.push({ from: id, to: 'group-mytral', fromSide: 'bottom', toSide: 'top', accent: true });
+            });
+            links.push({ from: 'node-import-source', to: 'node-import-normalize', fromSide: 'right', toSide: 'left', accent: true, packetCount: 4 });
+            links.push({ from: 'node-import-normalize', to: 'node-import-validate', fromSide: 'right', toSide: 'left', letter: 'A' });
+            links.push({ from: 'node-import-validate', to: 'node-import-fixes', fromSide: 'right', toSide: 'left', letter: 'A' });
+            links.push({ from: 'group-import', to: 'group-activities', fromSide: 'bottom', toSide: 'top', letter: 'A' });
+            links.push({ from: 'group-activities', to: 'group-ui', fromSide: 'bottom', toSide: 'top', letter: 'A' });
+
+            var built = [];
+
+            function anchor(el, side) {
+                var r = el.getBoundingClientRect();
+                var c = diagram.getBoundingClientRect();
+                if (side === 'left' || side === 'right') {
+                    var x = (side === 'right' ? r.right : r.left) - c.left;
+                    var y = r.top + r.height / 2 - c.top;
+                    return { x: x, y: y };
+                }
+                var x = r.left + r.width / 2 - c.left;
+                var y = (side === 'bottom' ? r.bottom : r.top) - c.top;
+                return { x: x, y: y };
+            }
+
+            function isHorizontal(link) {
+                return link.fromSide === 'left' || link.fromSide === 'right';
+            }
+
+            function pathD(a, b, horizontal) {
+                if (horizontal) {
+                    var dx = Math.max(18, (b.x - a.x) * 0.5);
+                    return 'M ' + a.x + ' ' + a.y +
+                        ' C ' + (a.x + dx) + ' ' + a.y + ', ' +
+                        (b.x - dx) + ' ' + b.y + ', ' +
+                        b.x + ' ' + b.y;
+                }
+                var dy = Math.max(24, (b.y - a.y) * 0.55);
+                return 'M ' + a.x + ' ' + a.y +
+                    ' C ' + a.x + ' ' + (a.y + dy) + ', ' +
+                    b.x + ' ' + (b.y - dy) + ', ' +
+                    b.x + ' ' + b.y;
+            }
+
+            var packetLapSeconds = 3.2;
+
+            function buildConnectors() {
+                if (window.innerWidth <= 640) {
+                    svgBelow.innerHTML = '';
+                    svgAbove.innerHTML = '';
+                    built = [];
+                    return;
+                }
+                var c = diagram.getBoundingClientRect();
+                [svgBelow, svgAbove].forEach(function (svg) {
+                    svg.setAttribute('width', c.width);
+                    svg.setAttribute('height', c.height);
+                    svg.setAttribute('viewBox', '0 0 ' + c.width + ' ' + c.height);
+                });
+
+                if (built.length === 0) {
+                    svgBelow.innerHTML = '';
+                    svgAbove.innerHTML = '';
+                    links.forEach(function (link, idx) {
+                        var fromEl = document.getElementById(link.from);
+                        var toEl = document.getElementById(link.to);
+                        if (!fromEl || !toEl) { return; }
+                        // horizontal connectors stay behind boxes (avoids overlapping
+                        // box content when responsive reflow crowds the layout);
+                        // vertical connectors stay above boxes (otherwise a box's own
+                        // top/bottom border cuts across the flowing badge)
+                        var svg = isHorizontal(link) ? svgBelow : svgAbove;
+                        var pathId = 'pipe-' + idx;
+                        var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('class', 'pipe' + (link.accent ? ' accent' : ''));
+                        path.setAttribute('id', pathId);
+                        svg.appendChild(path);
+
+                        var svgNS = 'http://www.w3.org/2000/svg';
+                        var packetCount = link.packetCount || 2;
+                        var packets = [];
+                        for (var p = 0; p < packetCount; p++) {
+                            var letter = link.letter || sportLetters[(idx + p) % sportLetters.length];
+
+                            var badge = document.createElementNS(svgNS, 'g');
+                            badge.setAttribute('class', 'packet-badge' + (link.accent ? ' badge-accent' : ''));
+
+                            var rect = document.createElementNS(svgNS, 'rect');
+                            rect.setAttribute('x', '-7');
+                            rect.setAttribute('y', '-7');
+                            rect.setAttribute('width', '14');
+                            rect.setAttribute('height', '14');
+                            rect.setAttribute('rx', '3');
+                            badge.appendChild(rect);
+
+                            var text = document.createElementNS(svgNS, 'text');
+                            text.setAttribute('x', '0');
+                            text.setAttribute('y', '0.5');
+                            text.textContent = letter;
+                            badge.appendChild(text);
+
+                            svg.appendChild(badge);
+                            packets.push({ el: badge, offset: idx * 0.4 + p * (packetLapSeconds / packetCount) });
+                        }
+
+                        built.push({ link: link, fromEl: fromEl, toEl: toEl, path: path, packets: packets });
+                    });
+                }
+
+                built.forEach(function (item) {
+                    var a = anchor(item.fromEl, item.link.fromSide);
+                    var b = anchor(item.toEl, item.link.toSide);
+                    var d = pathD(a, b, isHorizontal(item.link));
+                    item.path.setAttribute('d', d);
+                });
+            }
+
+            function animatePackets(nowMs) {
+                var nowS = nowMs / 1000;
+                built.forEach(function (item) {
+                    var total = item.path.getTotalLength();
+                    if (!total) { return; }
+                    item.packets.forEach(function (packet) {
+                        var t = ((nowS + packet.offset) % packetLapSeconds) / packetLapSeconds;
+                        var point = item.path.getPointAtLength(t * total);
+                        packet.el.setAttribute('transform', 'translate(' + point.x + ',' + point.y + ')');
+                    });
+                });
+                requestAnimationFrame(animatePackets);
+            }
+
+            if (!reduceMotion) {
+                requestAnimationFrame(animatePackets);
+            }
+
+            function pulseFrom(nodeId) {
+                built.forEach(function (item) {
+                    if (item.link.from === nodeId || item.link.to === nodeId) {
+                        item.path.classList.add('hot');
+                        setTimeout(function () {
+                            item.path.classList.remove('hot');
+                        }, 900);
+                    }
+                });
+            }
+
+            var resizeTimer = null;
+            window.addEventListener('resize', function () {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(buildConnectors, 120);
+            });
+
+            window.addEventListener('load', buildConnectors);
+            buildConnectors();
+
+            /* ------------------------------------------------ boot sequence */
+
+            setTimeout(function () {
+                typeToTerminal({
+                    title: 'MyTraL features',
+                    detail: 'Click any box above to learn more about that feature.'
+                });
+            }, 350);
         })();
     </script>
 </body>
