@@ -1476,6 +1476,38 @@
             margin-top: 0.75rem;
         }
 
+        .ov-diagram .filetype-box {
+            --ov-dogear: 0.75rem;
+            position: relative;
+        }
+
+        .ov-diagram .filetype-label {
+            display: block;
+            background: var(--ov-darker);
+            border: 1px solid var(--ov-border);
+            padding: 0.45rem calc(var(--ov-dogear) + 0.45rem) 0.45rem 0.9rem;
+            text-align: center;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            color: var(--ov-light-gray);
+            /* the top-right corner is genuinely cut away here (not just painted
+               over), so the fold triangle below sits flush with no seam/tooth */
+            clip-path: polygon(0 0, calc(100% - var(--ov-dogear)) 0, 100% var(--ov-dogear), 100% 100%, 0 100%);
+        }
+
+        .ov-diagram .filetype-fold {
+            /* fills the notch cut out of .filetype-label above - a sibling so
+               it is never itself clipped by the label's clip-path */
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 var(--ov-dogear) var(--ov-dogear) 0;
+            border-color: transparent var(--ov-group-color) transparent transparent;
+        }
+
         .ov-diagram .badge-row {
             display: flex;
             flex-wrap: wrap;
@@ -1493,21 +1525,21 @@
         }
 
         .ov-diagram .activity-type-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.6rem;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.75rem;
         }
 
         .ov-diagram .activity-chip {
             border: 1px solid var(--ov-border);
             background: var(--ov-card-bg);
             border-radius: 0.4rem;
-            padding: 0.65rem 0.9rem;
+            padding: 0.65rem 0.5rem;
             font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.03em;
             text-transform: uppercase;
+            text-align: center;
             color: var(--ov-text);
         }
 
@@ -1607,6 +1639,9 @@
             .ov-diagram .row {
                 grid-template-columns: repeat(3, 1fr);
             }
+            .ov-diagram .activity-type-row {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
 
         @media (max-width: 640px) {
@@ -1614,6 +1649,9 @@
                 grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
             }
             .ov-diagram .row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .ov-diagram .activity-type-row {
                 grid-template-columns: repeat(2, 1fr);
             }
             .ov-diagram .connectors {
@@ -1880,10 +1918,10 @@
                             </div>
                             <hr class="activities-divider">
                             <div class="filetype-columns">
-                                <div class="platform-box">.json</div>
-                                <div class="platform-box">.parquet</div>
-                                <div class="platform-box">.gpx</div>
-                                <div class="platform-box">.png</div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.json</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.parquet</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.gpx</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.png</span></div>
                             </div>
                         </button>
 
