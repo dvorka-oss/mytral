@@ -11,7 +11,7 @@ Boolean variables accept the string values `"true"` or `"false"`.
 |---|---|---|
 | `MYTRAL_HOST` | `127.0.0.1` | Bind address for the Flask server. Set to `0.0.0.0` to expose externally - only do this behind a reverse proxy. |
 | `MYTRAL_PORT` | `5000` | Bind port for the application server. |
-| `MYTRAL_CORS_ORIGINS` | `http://localhost:5000` | Comma-separated list of allowed CORS origins, e.g. `https://mytral.mindforger.com,https://mytral.mindforger.com`. |
+| `MYTRAL_CORS_ORIGINS` | `http://localhost:5000` | Comma-separated list of allowed CORS origins, e.g. `https://mytral.mindforger.com,https://app.mytral.mindforger.com`. |
 | `MYTRAL_DEBUG` | `false` | Enable Flask debug mode (development only). Enables verbose error pages and relaxes some security checks. Never set in production. |
 | `MYTRAL_INCARNATION` | `WEBAPP` | Deployment type. Set to `DESKTOP` for single-user local installs; `WEBAPP` for hosted/multi-user deployments. |
 | `MYTRAL_TASK_TIMEOUT` | `3600` | Maximum time in seconds an async task (import, Strava sync, …) may run before it is killed. |

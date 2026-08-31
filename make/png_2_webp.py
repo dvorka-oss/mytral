@@ -19,7 +19,7 @@
 Convert PNG image(s) to WEBP.
 
 Usage:
-  uv run python make/png-2-webp.py <path-to-file-or-directory> [--quality N] [--keep]
+  uv run python make/png_2_webp.py <path-to-file-or-directory> [--quality N] [--keep]
 
   <path-to-file-or-directory>  a single .png file, or a directory to convert
                                 every .png file found in it (recursively)
