@@ -34,9 +34,9 @@
 	</Company_Info>
 	<Program_Info>
 		<Program_Name>MyTraL</Program_Name>
-		<Program_Version>1.58.0</Program_Version>
-		<Program_Release_Month>07</Program_Release_Month>
-		<Program_Release_Day>06</Program_Release_Day>
+		<Program_Version>1.60.0</Program_Version>
+		<Program_Release_Month>08</Program_Release_Month>
+		<Program_Release_Day>31</Program_Release_Day>
 		<Program_Release_Year>2026</Program_Release_Year>
 		<Program_Cost_Dollars>0</Program_Cost_Dollars>
 		<Program_Cost_Other_Code>0</Program_Cost_Other_Code>
@@ -46,7 +46,7 @@
 		<Program_Install_Support>Install and Uninstall</Program_Install_Support>
 		<Program_OS_Support>Win11,Win10,WinOther,Linux</Program_OS_Support>
 		<Program_Language>English</Program_Language>
-		<Program_Change_Info>MyTraL 1.58.0 minor release.</Program_Change_Info>
+		<Program_Change_Info>Added a Polar Flow integration: sync new training from Polar Flow via the official Polar AccessLink API and backfill full history from the Polar "Download your data" (GDPR) export ZIP. The export import brings in complete per-second recordings.; Added filtering and sorting to the gear listing. Gear can be filtered by its default activity type and sorted by last used, name, default activity type, purchase date, usage, distance, time or TCoO in ascending or descending order. The summary cards reflect the filtered gear and the selection is preserved when switching between the list and the chart view.; Added schema headers to winget manifests.; Added document attachments to gear: manuals, invoices, warranty cards and other files.; Added histogram of usages to gear detail.; Added list of activities for given exercise, exercise label and delete button to exercise detail.; Added strikethroung extension to the rendered Markdown texts.; The gear component Cost mini-card now shows the component total cost of ownership - the base cost plus the cost of all its service history entries - together with the cost per kilometer. A tooltip shows the base cost and the number of services.; Polar Precision Performance import now reuses the heart-rate time series parsed by the import plugin when building recordings, instead of reading and parsing every .hrm file a second time in the worker process.; The bookmarks list now hides the exercises/laps, source and workout columns, and the reorder buttons no longer wrap on narrow screens.; Cancelled mytral.fitness domain &amp; hosting:; web moved to my https://projects.mindforger.com/mytral; Flatpak qualified name changed from fitness.mytral.Mytral to com.mindforger.Mytral; Moved GitHub repository from dvorka-oss organization back to the personal dvorka profile.; Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar data directory now finishes successfully instead of failing once an already existing activity had to be up...</Program_Change_Info>
 		<Program_Specific_Category>Home &amp; Hobby</Program_Specific_Category>
 		<Program_Category_Class>Home &amp; Hobby::Sports</Program_Category_Class>
 		<Program_Categories>Sports, Health, Training</Program_Categories>
