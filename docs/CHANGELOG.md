@@ -64,6 +64,7 @@ This MyTraL **minor** release brings:
   installation date until now or replaced.
 
 ### Documentation
+- Added functional architecture diagram to WWW.
 - Fixed documentation by replacing non-ASCII characters with ASCII characters.
 - Added motivation paragraph to `README.md` and WWW index.
 
