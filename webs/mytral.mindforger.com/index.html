@@ -1169,11 +1169,21 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            /* behind every box (.group is position:relative with no z-index of
-               its own, i.e. stacks at 0) so a path never overlaps box content
-               when responsive reflow crowds the layout */
-            z-index: -1;
             overflow: visible;
+        }
+
+        .ov-diagram .connectors-below {
+            /* horizontal connectors: behind every box (.group is position:relative
+               with no z-index of its own, i.e. stacks at 0) so a path never
+               overlaps box content when responsive reflow crowds the layout */
+            z-index: -1;
+        }
+
+        .ov-diagram .connectors-above {
+            /* vertical connectors: above every box, otherwise a box's own
+               top/bottom border paints over the flowing badge where the
+               track crosses it, leaving an ugly cut */
+            z-index: 3;
         }
 
         .ov-diagram .connectors path.pipe {
@@ -1814,7 +1824,8 @@
 
             <div class="ov-diagram">
                 <div class="diagram" id="diagram">
-                    <svg class="connectors" id="connectors" aria-hidden="true"></svg>
+                    <svg class="connectors connectors-below" id="connectors-below" aria-hidden="true"></svg>
+                    <svg class="connectors connectors-above" id="connectors-above" aria-hidden="true"></svg>
 
                     <div class="row sources" id="row-sources">
                         <button type="button" class="node" id="node-strava"
@@ -3202,7 +3213,8 @@
 
             /* ------------------------------------------------ svg connectors */
 
-            var svg = document.getElementById('connectors');
+            var svgBelow = document.getElementById('connectors-below');
+            var svgAbove = document.getElementById('connectors-above');
             var diagram = document.getElementById('diagram');
             var sourceIds = ['node-strava', 'node-polar', 'node-fit', 'node-gpx', 'node-tcx', 'node-manual'];
 
@@ -3256,21 +3268,30 @@
 
             function buildConnectors() {
                 if (window.innerWidth <= 640) {
-                    svg.innerHTML = '';
+                    svgBelow.innerHTML = '';
+                    svgAbove.innerHTML = '';
                     built = [];
                     return;
                 }
                 var c = diagram.getBoundingClientRect();
-                svg.setAttribute('width', c.width);
-                svg.setAttribute('height', c.height);
-                svg.setAttribute('viewBox', '0 0 ' + c.width + ' ' + c.height);
+                [svgBelow, svgAbove].forEach(function (svg) {
+                    svg.setAttribute('width', c.width);
+                    svg.setAttribute('height', c.height);
+                    svg.setAttribute('viewBox', '0 0 ' + c.width + ' ' + c.height);
+                });
 
                 if (built.length === 0) {
-                    svg.innerHTML = '';
+                    svgBelow.innerHTML = '';
+                    svgAbove.innerHTML = '';
                     links.forEach(function (link, idx) {
                         var fromEl = document.getElementById(link.from);
                         var toEl = document.getElementById(link.to);
                         if (!fromEl || !toEl) { return; }
+                        // horizontal connectors stay behind boxes (avoids overlapping
+                        // box content when responsive reflow crowds the layout);
+                        // vertical connectors stay above boxes (otherwise a box's own
+                        // top/bottom border cuts across the flowing badge)
+                        var svg = isHorizontal(link) ? svgBelow : svgAbove;
                         var pathId = 'pipe-' + idx;
                         var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                         path.setAttribute('class', 'pipe' + (link.accent ? ' accent' : ''));
