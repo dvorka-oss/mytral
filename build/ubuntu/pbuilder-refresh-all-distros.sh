@@ -20,11 +20,11 @@ set -euo pipefail
 # https://en.wikipedia.org/wiki/Ubuntu_version_history
 # obsolete:
 #    precise quantal saucy precise utopic vivid wily yakkety artful cosmic
+#    trusty xenial bionic (cosmic disco eoan) focal (groovy) hirsute impish
+#    noble plucky questing resolute
 # current :
-#   (trusty) xenial bionic (cosmic disco eoan) focal (groovy) hirsute impish noble
-#   plucky questing resolute
-for DISTRO in plucky questing resolute
-#for DISTRO in trusty xenial bionic focal jammy noble plucky questing resolute
+#    jammy noble resolute
+for DISTRO in jammy noble resolute
 do
     # pbuilder-dist stores the base tarball at ~/pbuilder/${DISTRO}-base.tgz automatically
     pbuilder-dist "${DISTRO}" create

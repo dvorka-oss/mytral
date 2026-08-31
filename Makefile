@@ -658,6 +658,10 @@ distro-macos-dmg-install: distro-macos-dmg-build ## build the .dmg and install M
 distro-snap-clean: ## clean Snap build artifacts
 	@./build/snap/clean.sh
 
+.PHONY: distro-snap-sync-version
+distro-snap-sync-version:
+	@./build/snap/sync-version.sh
+
 .PHONY: distro-snap-remove
 distro-snap-remove: ## remove locally installed Snap (requires sudo)
 	@echo "Removing Snap package..."
@@ -665,11 +669,11 @@ distro-snap-remove: ## remove locally installed Snap (requires sudo)
 	@echo "DONE Snap removed"
 
 .PHONY: distro-snap-build
-distro-snap-build: ## build strict Snap package for the Snap Store (LXD required)
+distro-snap-build: distro-snap-sync-version ## build strict Snap package for the Snap Store (LXD required)
 	@./build/snap/build-snap.sh
 
 .PHONY: distro-snap-build-classic
-distro-snap-build-classic: ## build classic Snap package for downloadable GitHub Release (LXD required)
+distro-snap-build-classic: distro-snap-sync-version ## build classic Snap package for downloadable GitHub Release (LXD required)
 	@./build/snap/build-snap.sh --classic
 
 .PHONY: distro-snap-install-classic
