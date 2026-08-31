@@ -40,7 +40,16 @@ def _patch_fit_tool_tolerant_string_decode():
 
     _original = _ft_field.Field.read_strings_from_bytes
 
-    def _tolerant_read_strings_from_bytes(self, bytes_buffer: bytes) -> None:
+    def _tolerant_read_strings_from_bytes(
+        self, bytes_buffer: bytes, offset: int = 0, size: int | None = None
+    ) -> None:
+        # older fit_tool releases call this with an already-sliced buffer and
+        # no offset/size; newer releases pass the full record buffer plus the
+        # field's offset/size and expect the callee to slice it - support both
+        if size is not None:
+            bytes_buffer = bytes_buffer[offset : offset + size]
+        elif offset:
+            bytes_buffer = bytes_buffer[offset:]
         string_container = bytes_buffer.decode("utf-8", errors="replace")
         strings = string_container.split(chr(0))
         strings = strings[:-1]

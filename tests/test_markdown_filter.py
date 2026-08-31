@@ -80,6 +80,20 @@ def test_markdown_filter_list():
 
 
 @pytest.mark.mytral
+def test_markdown_filter_strikethrough():
+    """Test GFM-style strikethrough conversion."""
+    # GIVEN
+    markdown_text = "This is ~~struck out~~ text"
+
+    # WHEN
+    result = routes.markdown_filter(markdown_text)
+
+    # THEN
+    assert "<s>struck out</s>" in str(result)
+    print(f"DONE: Strikethrough markdown conversion works: {result}")
+
+
+@pytest.mark.mytral
 def test_markdown_filter_newlines():
     """Test markdown newline conversion with nl2br extension."""
     # GIVEN

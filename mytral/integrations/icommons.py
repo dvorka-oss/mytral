@@ -195,6 +195,147 @@ STRAVA_TO_MYTRAL_AT = {
 STRAVA_GEAR_PREFIX_ID = "strava-gear-id:"
 
 #
+# POLAR FLOW (AccessLink API + GDPR export)
+#
+# Polar exercise summaries carry a "sport" (and "detailed-sport-info") string in
+# UPPER_SNAKE_CASE, e.g. "RUNNING", "TRAIL_RUNNING", "INDOOR_CYCLING". Keys below are
+# normalized to lowercase; lookups must lowercase the Polar value first. Unknown sports
+# fall back to commons.AT_WORKOUT (see POLAR_FLOW_DEFAULT_AT).
+#
+
+POLAR_FLOW_DEFAULT_AT = commons.AT_WORKOUT
+
+POLAR_FLOW_TO_MYTRAL_AT = {
+    "running": commons.AT_RUN,
+    "jogging": commons.AT_RUN,
+    "road_running": commons.AT_RUN,
+    "treadmill_running": commons.AT_RUN_VIRTUAL,
+    "indoor_running": commons.AT_RUN_VIRTUAL,
+    "trail_running": commons.AT_RUN_TRAIL,
+    "cycling": commons.AT_RIDE,
+    "road_cycling": commons.AT_RIDE,
+    "mountain_biking": commons.AT_RIDE_MOUNTAIN,
+    "gravel_cycling": commons.AT_RIDE_GRAVEL,
+    "indoor_cycling": commons.AT_RIDE_VIRTUAL,
+    "e_biking": commons.AT_RIDE_E,
+    "swimming": commons.AT_SWIM,
+    "pool_swimming": commons.AT_SWIM,
+    "open_water_swimming": commons.AT_SWIM,
+    "walking": commons.AT_WALK,
+    "nordic_walking": commons.AT_WALK,
+    "hiking": commons.AT_HIKE,
+    "mountain_hiking": commons.AT_HIKE,
+    "rowing": commons.AT_ROW,
+    "indoor_rowing": commons.AT_ROW_ERG,
+    "strength_training": commons.AT_GYM,
+    "functional_training": commons.AT_GYM,
+    "core": commons.AT_GYM,
+    "circuit_training": commons.AT_HIIT,
+    "high_intensity_interval_training": commons.AT_HIIT,
+    "yoga": commons.AT_YOGA,
+    "pilates": commons.AT_PILATES,
+    "crossfit": commons.AT_CROSSFIT,
+    "cross_country_skiing": commons.AT_SKI_F,
+    "classic_cross_country_skiing": commons.AT_SKI_DP,
+    "freestyle_cross_country_skiing": commons.AT_SKI_F,
+    "downhill_skiing": commons.AT_SKI_DOWNHILL,
+    "alpine_skiing": commons.AT_SKI_DOWNHILL,
+    "backcountry_skiing": commons.AT_SKI_BACKCOUNTRY,
+    "snowboarding": commons.AT_SNOWBOARD,
+    "snowshoeing": commons.AT_SNOWSHOE,
+    "ice_skating": commons.AT_SKATE_ICE,
+    "inline_skating": commons.AT_SKATE_INLINE,
+    "roller_skiing": commons.AT_RS_F,
+    "skateboarding": commons.AT_SKATEBOARD,
+    "kayaking": commons.AT_KAYAK,
+    "canoeing": commons.AT_CANOEING,
+    "stand_up_paddling": commons.AT_PADDLE,
+    "rock_climbing": commons.AT_CLIMB_ROCK,
+    "elliptical": commons.AT_ELLIPTICAL,
+    "stair_stepper": commons.AT_STAIR_STEPPER,
+    "dancing": commons.AT_DANCE,
+    "badminton": commons.AT_BADMINTON,
+    "tennis": commons.AT_TENNIS,
+    "table_tennis": commons.AT_TABLETENNIS,
+    "squash": commons.AT_SQUASH,
+    "padel": commons.AT_PADDLE,
+    "basketball": commons.AT_BASKETBALL,
+    "soccer": commons.AT_SOCCER,
+    "football": commons.AT_SOCCER,
+    "volleyball": commons.AT_VOLLEYBALL,
+    "golf": commons.AT_GOLF,
+    "wheelchair": commons.AT_WHEELCHAIR,
+    # names as spelled in the GDPR export sport profiles
+    "road_biking": commons.AT_RIDE,
+}
+
+
+#
+# The GDPR "Download your data" export encodes the sport as a numeric id
+# (``{"id": "38"}``) instead of a name string. There is no id-to-name table in the
+# export, so map the ids confirmed from real export data here; unknown ids fall
+# back to POLAR_FLOW_DEFAULT_AT and are reported by the parser for extension.
+#
+POLAR_FLOW_SPORT_ID_TO_NAME = {
+    "1": "running",
+    "2": "cycling",
+    "5": "mountain_biking",
+    "15": "strength_training",
+    "23": "swimming",
+    "38": "road_biking",
+}
+
+
+def polar_flow_sport_name(sport) -> str:
+    """Normalize any Polar sport value into a canonical lowercase sport name.
+
+    Handles every shape Polar emits: a name string (``"RUNNING"``), the GDPR export
+    dict (``{"id": "38"}``), a bare numeric id (``"38"``), or ``None``. Numeric ids
+    are resolved via :data:`POLAR_FLOW_SPORT_ID_TO_NAME`; unknown ids yield ``""``.
+
+    Parameters
+    ----------
+    sport : str | dict | None
+        Polar sport value in any of the shapes above.
+
+    Returns
+    -------
+    str
+        Canonical lowercase sport name, or ``""`` when it cannot be resolved.
+    """
+    if isinstance(sport, dict):
+        sport = sport.get("id", "")
+    text = str(sport or "").strip()
+    if not text:
+        return ""
+    if text.isdigit():
+        return POLAR_FLOW_SPORT_ID_TO_NAME.get(text, "")
+    return text.lower()
+
+
+def polar_flow_activity_type(sport, valid_activity_type_ids: list[str]) -> str:
+    """Map a Polar Flow ``sport`` value to a MyTraL activity type key.
+
+    Parameters
+    ----------
+    sport : str | dict | None
+        Polar Flow sport value in any shape (name string, ``{"id": ...}`` dict, or
+        numeric id) - see :func:`polar_flow_sport_name`.
+    valid_activity_type_ids : list[str]
+        User's known activity type keys; if ``sport`` already matches one, it wins.
+
+    Returns
+    -------
+    str
+        MyTraL activity type key (falls back to :data:`POLAR_FLOW_DEFAULT_AT`).
+    """
+    normalized = polar_flow_sport_name(sport)
+    if normalized in valid_activity_type_ids:
+        return normalized
+    return POLAR_FLOW_TO_MYTRAL_AT.get(normalized, POLAR_FLOW_DEFAULT_AT)
+
+
+#
 # FIT
 #
 # - https://github.com/garmin/fit-python-sdk/blob/main/garmin_fit_sdk/profile.py

@@ -1,6 +1,76 @@
 # Changelog
 
-## [1.59.0](https://github.com/dvorka-oss/mytral/compare/v1.58.0...HEAD)
+## [1.60.0](https://github.com/dvorka/mytral/compare/v1.59.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- Added a Polar Flow integration: sync new training from Polar Flow via the
+  official Polar AccessLink API and backfill full history from the Polar
+  "Download your data" (GDPR) export ZIP. The export import brings in complete
+  per-second recordings.
+- Added filtering and sorting to the gear listing. Gear can be filtered by its default
+  activity type and sorted by last used, name, default activity type, purchase date,
+  usage, distance, time or TCoO in ascending or descending order. The summary cards
+  reflect the filtered gear and the selection is preserved when switching between the
+  list and the chart view.
+- Added schema headers to `winget` manifests.
+- Added document attachments to gear: manuals, invoices, warranty cards and
+  other files.
+- Added histogram of usages to gear detail.
+- Added list of activities for given exercise, exercise label and delete button
+  to exercise detail.
+- Added strikethroung extension to the rendered Markdown texts.
+
+### Changed
+- The gear component `Cost` mini-card now shows the component total cost of ownership -
+  the base cost plus the cost of all its service history entries - together with the
+  cost per kilometer. A tooltip shows the base cost and the number of services.
+- Polar Precision Performance import now reuses the heart-rate time series parsed by
+  the import plugin when building recordings, instead of reading and parsing every
+  `.hrm` file a second time in the worker process.
+- The bookmarks list now hides the exercises/laps, source and workout columns, and
+  the reorder buttons no longer wrap on narrow screens.
+- Cancelled mytral.fitness domain & hosting:
+    - web moved to my https://projects.mindforger.com/mytral
+    - Flatpak qualified name changed from `fitness.mytral.Mytral` to `com.mindforger.Mytral`
+- Moved GitHub repository from `dvorka-oss` organization back to the personal `dvorka`
+  profile.
+
+### Fixed
+- Fixed the Polar Precision Performance (PPP) import end to end - importing a Polar
+  data directory now finishes successfully instead of failing once an already existing
+  activity had to be updated.
+- Fixed the Polar PPP import silently dropping exercises it could not parse - such
+  files are now counted and reported in the import task log.
+- Fixed the average speed of imported Polar activities being recomputed - and the
+  cap to maximum speed lost - after the activities were persisted.
+- Fixed Polar PPP import log messages showing the raw `{self._log_name}` placeholder
+  instead of the plugin name.
+- Removed unused Polar gear service constants.
+- Fixed Strava gear from an activity synchronization not being linked to the matching
+  MyTraL gear when several items share the same brand - the gear is now resolved to the
+  best-matching entry and its Strava gear ID is registered, instead of being left as an
+  unresolved `strava-gear-id:...` placeholder. Each gear also gained an Advanced page
+  showing its external service (Strava / Garmin / Polar) gear-ID mapping for debugging.
+- Fixed the exercise photo gallery - it now appears on the exercise view page, where it
+  can be viewed, uploaded to, edited and deleted, instead of being stuck on the edit page.
+- Fixed exercises photos insert (from link to image).
+- Fixed sport variety field at the end of the dashboard and added tooltips to all fields
+  on that row.
+- Fixed broken goal update which was failing.
+- Fixed the style of links in the rendered markdown (newly underscore in blue).
+- Fixed usage (hours/km) gear component calculation - newly the usage is from the
+  installation date until now or replaced.
+
+### Documentation
+- Added functional architecture diagram to WWW.
+- Fixed documentation by replacing non-ASCII characters with ASCII characters.
+- Added motivation paragraph to `README.md` and WWW index.
+
+
+
+## [1.59.0](https://github.com/dvorka/mytral/compare/v1.58.0...v1.59.0)
 
 This MyTraL **minor** release brings:
 
@@ -43,7 +113,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.58.0](https://github.com/dvorka-oss/mytral/compare/v1.57.0...v1.58.0)
+## [1.58.0](https://github.com/dvorka/mytral/compare/v1.57.0...v1.58.0)
 
 This MyTraL **minor** release brings:
 
@@ -77,7 +147,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.57.0](https://github.com/dvorka-oss/mytral/compare/v1.56.0...v1.57.0)
+## [1.57.0](https://github.com/dvorka/mytral/compare/v1.56.0...v1.57.0)
 
 This MyTraL **minor** release brings:
 
@@ -135,7 +205,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.56.0](https://github.com/dvorka-oss/mytral/compare/v1.55.0...v1.56.0)
+## [1.56.0](https://github.com/dvorka/mytral/compare/v1.55.0...v1.56.0)
 
 This MyTraL **minor** release brings:
 
@@ -173,7 +243,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.55.0](https://github.com/dvorka-oss/mytral/compare/v1.54.0...v1.55.0)
+## [1.55.0](https://github.com/dvorka/mytral/compare/v1.54.0...v1.55.0)
 
 This MyTraL **minor** release brings:
 
@@ -194,7 +264,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.54.0](https://github.com/dvorka-oss/mytral/compare/v1.53.0...v1.54.0)
+## [1.54.0](https://github.com/dvorka/mytral/compare/v1.53.0...v1.54.0)
 
 This MyTraL **minor** release brings:
 
@@ -205,7 +275,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.53.0](https://github.com/dvorka-oss/mytral/compare/v1.52.0...v1.53.0)
+## [1.53.0](https://github.com/dvorka/mytral/compare/v1.52.0...v1.53.0)
 
 This MyTraL **minor** release brings:
 
@@ -245,7 +315,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.52.0](https://github.com/dvorka-oss/mytral/compare/v1.51.0...v1.52.0)
+## [1.52.0](https://github.com/dvorka/mytral/compare/v1.51.0...v1.52.0)
 
 This MyTraL **minor** release brings:
 
@@ -264,7 +334,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.51.0](https://github.com/dvorka-oss/mytral/compare/v1.50.0...v1.51.0)
+## [1.51.0](https://github.com/dvorka/mytral/compare/v1.50.0...v1.51.0)
 
 This MyTraL **minor** release brings:
 
@@ -292,7 +362,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.50.0](https://github.com/dvorka-oss/mytral/compare/v1.9.0...v1.50.0)
+## [1.50.0](https://github.com/dvorka/mytral/compare/v1.9.0...v1.50.0)
 
 This MyTraL release is very **special** to me. After years of coding and hacking
 together various versions of MyTraL I am moving to a brand-new Git repository on my 50th
@@ -354,7 +424,7 @@ Channeling Steve Prefontaine energy today - pure heart, max effort, FLOSS execut
 
 
 
-## [1.9.0](https://github.com/dvorka-oss/my-training-log/compare/v1.8.0...v1.9.0)
+## [1.9.0](https://github.com/dvorka/my-training-log/compare/v1.8.0...v1.9.0)
 
 This MyTraL **minor** release brings:
 
@@ -430,17 +500,17 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.8.0](https://github.com/dvorka-oss/my-training-log/compare/v1.7.0...v1.8.0)
+## [1.8.0](https://github.com/dvorka/my-training-log/compare/v1.7.0...v1.8.0)
 
 This MyTraL **minor** release brings:
 
 ### Added
 - ACoaches - AI coaching feature powered by LLM providers:
   - Configure LLM providers: local Ollama, Anthropic Claude,
-    or OpenAI GPT — each with optional API key stored encrypted at rest.
+    or OpenAI GPT - each with optional API key stored encrypted at rest.
   - Define AI coaches with custom names and system prompts (personality, focus area,
     coaching style); built-in out-of-the-box prompt templates to get started quickly.
-  - Persistent multi-turn chat sessions with each coach — full history saved per user.
+  - Persistent multi-turn chat sessions with each coach - full history saved per user.
   - Context-aware responses: coaches automatically receive recent activities, PRs,
     gear, symptoms, and athlete profile as structured context with every message.
   - Streaming responses for real-time token-by-token output in the chat UI.
@@ -470,7 +540,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.7.0](https://github.com/dvorka-oss/my-training-log/compare/v1.6.0...v1.7.0)
+## [1.7.0](https://github.com/dvorka/my-training-log/compare/v1.6.0...v1.7.0)
 
 This MyTraL **minor** release brings:
 
@@ -492,7 +562,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.6.0](https://github.com/dvorka-oss/my-training-log/compare/v1.5.0...v1.6.0)
+## [1.6.0](https://github.com/dvorka/my-training-log/compare/v1.5.0...v1.6.0)
 
 This MyTraL **minor** release brings:
 
@@ -554,7 +624,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.5.0](https://github.com/dvorka-oss/my-training-log/compare/v1.4.0...v1.5.0)
+## [1.5.0](https://github.com/dvorka/my-training-log/compare/v1.4.0...v1.5.0)
 
 This MyTraL **minor** release brings:
 
@@ -590,7 +660,7 @@ This MyTraL **minor** release brings:
 
 
 
-## [1.4.0](https://github.com/dvorka-oss/my-training-log/compare/v1.3.0...v1.4.0)
+## [1.4.0](https://github.com/dvorka/my-training-log/compare/v1.3.0...v1.4.0)
 
 This MyTraL **minor** release brings:
 
@@ -788,5 +858,5 @@ Release Date Format
 
 Version History Links
 
-- Unreleased: https://github.com/dvorka-oss/mytral/compare/v1.0.0...HEAD
-- 1.0.0: https://github.com/dvorka-oss/mytral/releases/tag/v0.9.0...v1.0.0
+- Unreleased: https://github.com/dvorka/mytral/compare/v1.0.0...HEAD
+- 1.0.0: https://github.com/dvorka/mytral/releases/tag/v0.9.0...v1.0.0

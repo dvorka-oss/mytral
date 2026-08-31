@@ -8,13 +8,13 @@ MyTraL was born from a simple need: to track my own training progress with more 
 
 I believe that **privacy is normal**. Everyone should own their personal data - I want to keep my training history and my very personal insights under my own control. This is why I'm building MyTraL - to have complete ownership of data, [normalized](normalization.html) in an **open format** , and analyze it myself, without relying on third-party platforms.
 
-In this project, I am documenting the process of digitization and normalization of 30+ years of training logs I have used over the years — from paper (official performance sports center diaries, my personal notebooks), MS Excel, 3rd party online diaries, [concept2.com ranking](https://www.concept2.com/online-rankings), [Google Sheets](https://workspace.google.com/products/sheets/), all the way to [strava.com](https://www.strava.com/).
+In this project, I am documenting the process of digitization and normalization of 30+ years of training logs I have used over the years - from paper (official performance sports center diaries, my personal notebooks), MS Excel, 3rd party online diaries, [concept2.com ranking](https://www.concept2.com/online-rankings), [Google Sheets](https://workspace.google.com/products/sheets/), all the way to [strava.com](https://www.strava.com/).
 
 What all will I learn from the data? I can't wait!
 
 ## TSM/SVS Logs (1986 - 1994)
 
-The story began in 1986. During the summer holidays that year, my father told me he insisted I choose a sport — any sport. I somehow expected the idea would disappear, but it didn't. One day, while watching the intro to a daily program about what's new in sports, I became interested in rowers. By coincidence, my father knew a colleague from work who was a coach at the local rowing club. So, with the start of the school year, I joined the club and began to row.
+The story began in 1986. During the summer holidays that year, my father told me he insisted I choose a sport - any sport. I somehow expected the idea would disappear, but it didn't. One day, while watching the intro to a daily program about what's new in sports, I became interested in rowers. By coincidence, my father knew a colleague from work who was a coach at the local rowing club. So, with the start of the school year, I joined the club and began to row.
 
 I was born in a country with a communist regime, but which had a quite sophisticated system for working with children and youth in sports. The reason was that sport was used in propaganda for comparison as to which regime was better - Western capitalism or communism (socialism).
 

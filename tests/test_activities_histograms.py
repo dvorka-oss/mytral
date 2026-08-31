@@ -29,6 +29,12 @@ def _activity(activity_type_key, distance_m, duration_s, elevation_m):
     return activity
 
 
+def _gear_activity(when):
+    activity = entities.ActivityEntity()
+    activity.when = when
+    return activity
+
+
 def _activity_types():
     return settings.UserActivityTypes(list(settings.UserActivityTypes.BOOTSTRAP))
 
@@ -101,6 +107,48 @@ def test_histogram_components_bins_values_and_handles_empty():
         )
         is None
     )
+
+
+@pytest.mark.mytral
+def test_gear_weekly_usage_histogram_bins_by_iso_week_across_years():
+    # GIVEN gear activities in the same ISO week of two different years, plus
+    # one activity in a different week
+    activities = [
+        _gear_activity("2024-03-04"),  # ISO week 10
+        _gear_activity("2025-03-03"),  # ISO week 10 (different year)
+        _gear_activity("2024-06-10"),  # ISO week 24
+    ]
+
+    # WHEN building the weekly usage histogram
+    chart = charts.gear_weekly_usage_histogram(activities)
+
+    # THEN a (script, div) pair is produced, merging counts across years
+    assert chart is not None
+    script, div = chart
+    assert script and div
+
+
+@pytest.mark.mytral
+def test_gear_weekly_usage_histogram_folds_iso_week_53_into_52():
+    # GIVEN a gear activity on a date that falls into ISO week 53
+    activities = [_gear_activity("2026-12-31")]
+
+    # WHEN building the weekly usage histogram
+    chart = charts.gear_weekly_usage_histogram(activities)
+
+    # THEN the chart is still built (week 53 folded into the last bin)
+    assert chart is not None
+
+
+@pytest.mark.mytral
+def test_gear_weekly_usage_histogram_handles_empty_and_missing_dates():
+    # GIVEN no activities at all
+    # WHEN building the weekly usage histogram
+    # THEN there is no chart to show
+    assert charts.gear_weekly_usage_histogram([]) is None
+
+    # AND an activity without a usable date is ignored, also yielding no chart
+    assert charts.gear_weekly_usage_histogram([_gear_activity("")]) is None
 
 
 @pytest.mark.mytral

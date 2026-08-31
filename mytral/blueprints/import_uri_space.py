@@ -120,7 +120,7 @@ def _find_activity_conflict(
 
     """
     if activity.src_key:
-        # match by src + src_key — look only at the same year for performance
+        # match by src + src_key - look only at the same year for performance
         year_activities = ds.list_activities(
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
@@ -248,7 +248,7 @@ def _import_activities_to_dataset(
                     )
                     imported_count += 1
                     continue
-                # else: on_conflict == ON_CONFLICT_NEW_KEY — fall through to create
+                # else: on_conflict == ON_CONFLICT_NEW_KEY - fall through to create
 
             app_logger.info(
                 f"Importing converted {source_desc} activity: '{a.name}' / {a.key}"
@@ -401,7 +401,7 @@ def _import_all_entities_to_dataset(
                         )
                         imported_count += 1
                         continue
-                    # else: ON_CONFLICT_NEW_KEY — reassign key and fall through
+                    # else: ON_CONFLICT_NEW_KEY - reassign key and fall through
 
                     if on_conflict == ON_CONFLICT_NEW_KEY:
                         entity.key = str(uuid.uuid4())
@@ -495,6 +495,7 @@ def tool_import():
         import_gsheets_all_years_csv_form=forms.ImportGsheetsAllYearsCsvForm(),
         import_mytral_json_form=forms.ImportMytralJsonForm(),
         import_polar_hrm_form=forms.ImportPolarHrmForm(),
+        import_polar_flow_export_form=forms.ImportPolarFlowExportForm(),
         import_strava_archive_form=forms.ImportStravaArchiveForm(),
         import_fit_form=_build_fit_import_form(user_id),
         import_gpx_form=_build_gpx_import_form(user_id),

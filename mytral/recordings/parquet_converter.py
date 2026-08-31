@@ -21,28 +21,30 @@ format-agnostic and loaded at analysis time by the chart rendering code.
 
 Schema
 ------
-ts_unix_ms : Int64        — Unix epoch milliseconds (timezone-agnostic)
-hr         : Int32 (null) — heart rate (bpm)
-speed      : Float64 (null) — speed (km/h)
-cadence    : Int32 (null) — cadence (rpm/spm)
-altitude   : Float64 (null) — altitude (metres)
-lat        : Float64 (null) — latitude (degrees)
-lon        : Float64 (null) — longitude (degrees)
-power      : Float64 (null) — power (W)
-has_speed  : Boolean — file-level flag stored on every row
+ts_unix_ms : Int64        - Unix epoch milliseconds (timezone-agnostic)
+hr         : Int32 (null) - heart rate (bpm)
+speed      : Float64 (null) - speed (km/h)
+cadence    : Int32 (null) - cadence (rpm/spm)
+altitude   : Float64 (null) - altitude (metres)
+lat        : Float64 (null) - latitude (degrees)
+lon        : Float64 (null) - longitude (degrees)
+power      : Float64 (null) - power (W)
+has_speed  : Boolean - file-level flag stored on every row
 has_cadence : Boolean
 has_altitude : Boolean
 has_gps    : Boolean
 has_power  : Boolean
-source_format : Utf8 — "fit" / "gpx" / "tcx" / "hrm"
+source_format : Utf8 - "fit" / "gpx" / "tcx" / "hrm"
 """
 
 import datetime
 import io
+import traceback
 
 import defusedxml.ElementTree
 import polars
 
+from mytral import app_logger
 from mytral.recordings import _geo_utils
 from mytral.recordings import tcx_extractor
 from mytral.recordings.models import RecordingData
@@ -50,6 +52,53 @@ from mytral.recordings.models import RecordingData
 # half-width (in samples) of the centred window used to estimate speed from a
 # GPS track; a wider window trades responsiveness for less GPS-noise volatility
 _ESPEED_HALF_WINDOW = 12
+
+
+def lists_to_parquet(
+    *,
+    ts_unix_ms: list[int],
+    hr: list[int | None],
+    speed: list[float | None],
+    cadence: list[int | None],
+    altitude: list[float | None],
+    lat: list[float | None],
+    lon: list[float | None],
+    power: list[float | None],
+    source_format: str,
+) -> bytes:
+    """Build canonical recording Parquet bytes from aligned per-sample lists.
+
+    Shared builder for sources that already hold parsed timeseries (rather than a
+    file to parse), so the canonical schema lives in one place. The ``has_*`` flags
+    are derived from whether each channel carries any value.
+    """
+    n = len(ts_unix_ms)
+    has_speed = any(v is not None for v in speed)
+    has_cadence = any(v is not None for v in cadence)
+    has_altitude = any(v is not None for v in altitude)
+    has_gps = any(v is not None for v in lat)
+    has_power = any(v is not None for v in power)
+    df = polars.DataFrame(
+        {
+            "ts_unix_ms": polars.Series(ts_unix_ms, dtype=polars.Int64),
+            "hr": polars.Series(hr, dtype=polars.Int32),
+            "speed": polars.Series(speed, dtype=polars.Float64),
+            "cadence": polars.Series(cadence, dtype=polars.Int32),
+            "altitude": polars.Series(altitude, dtype=polars.Float64),
+            "lat": polars.Series(lat, dtype=polars.Float64),
+            "lon": polars.Series(lon, dtype=polars.Float64),
+            "power": polars.Series(power, dtype=polars.Float64),
+            "has_speed": polars.Series([has_speed] * n, dtype=polars.Boolean),
+            "has_cadence": polars.Series([has_cadence] * n, dtype=polars.Boolean),
+            "has_altitude": polars.Series([has_altitude] * n, dtype=polars.Boolean),
+            "has_gps": polars.Series([has_gps] * n, dtype=polars.Boolean),
+            "has_power": polars.Series([has_power] * n, dtype=polars.Boolean),
+            "source_format": polars.Series([source_format] * n, dtype=polars.Utf8),
+        }
+    )
+    buf = io.BytesIO()
+    df.write_parquet(buf)
+    return buf.getvalue()
 
 
 def fit_to_parquet(fit_data: bytes) -> bytes:
@@ -81,8 +130,12 @@ def fit_to_parquet(fit_data: bytes) -> bytes:
 
     try:
         fit = FitFile.from_bytes(fit_data, check_crc=False)
-    except Exception:
-        # return empty parquet on parse failure
+    except Exception as e:
+        app_logger.error(
+            "fit_to_parquet failed to parse FIT file",
+            error=str(e),
+            traceback=traceback.format_exc(),
+        )
         fit = None
 
     if fit is not None:

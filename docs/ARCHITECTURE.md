@@ -116,4 +116,4 @@ The filesystem store is the durable substrate for the JSON persistence implement
 
 ## External Integrations & Plugins
 
-MyTraL integrates with external ecosystems through `integrations/*` and `plugins.py`, including Strava and other import/sync sources used by both direct import routes and background tasks. This component adapts third-party payloads to internal entities so downstream analytics and UI features remain consistent.
+MyTraL integrates with external ecosystems through `integrations/*` and `plugins.py`, including Strava, Polar (both the legacy Precision Performance `.hrm`/`.pdd` files and Polar Flow via the AccessLink API plus the GDPR data export ZIP), and other import/sync sources used by both direct import routes and background tasks. This component adapts third-party payloads to internal entities so downstream analytics and UI features remain consistent. See `POLAR_FLOW.md` for the Polar Flow design.

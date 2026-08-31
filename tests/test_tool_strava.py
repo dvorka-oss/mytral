@@ -532,7 +532,7 @@ def test_restore_strava_api_src_fields(
         )
     else:
         print(
-            "\nDONE: No activities matched — nothing restored. "
+            "\nDONE: No activities matched - nothing restored. "
             "Check that the Strava access token is valid and that the "
             "activities-{year}.json file contains activities for "
             f"{current_year}."

@@ -1,6 +1,6 @@
 ## Manifesto
 
-[MyTraL](https://mytral.fitness) is your **personal** training log for deeper insights and smarter progress. Your log, your data, your insights. Track, analyze, and optimize to achieve your goals.
+[MyTraL](https://mytral.mindforger.com) is your **personal** training log for deeper insights and smarter progress. Your log, your data, your insights. Track, analyze, and optimize to achieve your goals.
 
 * [No Silver Bullets](#no-silver-bullets)
 * [Steel and Soul](#steel-and-soul)

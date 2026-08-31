@@ -1542,6 +1542,7 @@ class Gear:
     KEY_KEY = "key"
     KEY_PHOTO_BLOB_KEYS = "photo_blob_keys"
     KEY_HIGHLIGHT_PHOTO_BLOB_KEY = "highlight_photo_blob_key"
+    KEY_ATTACHMENT_BLOB_KEYS = "attachment_blob_keys"
 
     def __init__(
         self,
@@ -1566,6 +1567,7 @@ class Gear:
         key: str = "",
         photo_blob_keys: list | None = None,
         highlight_photo_blob_key: str = "",
+        attachment_blob_keys: list | None = None,
     ) -> None:
         self.activity_type_key = activity_type_key
         self.name = name
@@ -1592,6 +1594,7 @@ class Gear:
         self.key = key or str(uuid.uuid4())
         self.photo_blob_keys = photo_blob_keys or []
         self.highlight_photo_blob_key = highlight_photo_blob_key
+        self.attachment_blob_keys = attachment_blob_keys or []
 
     def get_components(self, include_retired: bool = False):
         """Get components as objects.
@@ -1742,6 +1745,44 @@ class Gear:
         """
         return self.tcoo_base + self.tcoo_cost + self.tcoo_additional
 
+    def component_tcoo(self, component_key: str) -> float:
+        """Calculate total cost of ownership of a single component.
+
+        Parameters
+        ----------
+        component_key : str
+            Key of the component.
+
+        Returns
+        -------
+        float
+            Component base cost plus the cost of all its service history entries.
+        """
+        component = self._comp_by_key.get(component_key)
+        total_cost = component.get("cost", 0.0) if component else 0.0
+        for entry in self.component_history.get(component_key, []):
+            total_cost += entry.get("cost", 0.0)
+        return total_cost
+
+    def component_tcoo_per_km(self, component_key: str) -> float:
+        """Calculate total cost of ownership of a component per kilometer.
+
+        Parameters
+        ----------
+        component_key : str
+            Key of the component.
+
+        Returns
+        -------
+        float
+            Cost per kilometer, 0.0 when the component has no usage yet.
+        """
+        component = self._comp_by_key.get(component_key)
+        distance_km = component.get("distance_meters", 0) / 1000.0 if component else 0.0
+        if not distance_km:
+            return 0.0
+        return self.component_tcoo(component_key) / distance_km
+
     def recalculate_tcoo(self) -> None:
         """Recalculate maintenance cost from all components and service history."""
         total_cost = 0.0
@@ -1806,6 +1847,7 @@ class Gear:
             Gear.KEY_KEY: self.key,
             Gear.KEY_PHOTO_BLOB_KEYS: self.photo_blob_keys,
             Gear.KEY_HIGHLIGHT_PHOTO_BLOB_KEY: self.highlight_photo_blob_key,
+            Gear.KEY_ATTACHMENT_BLOB_KEYS: self.attachment_blob_keys,
         }
 
     @staticmethod
@@ -1846,6 +1888,7 @@ class Gear:
             highlight_photo_blob_key=gear_dict.get(
                 Gear.KEY_HIGHLIGHT_PHOTO_BLOB_KEY, ""
             ),
+            attachment_blob_keys=gear_dict.get(Gear.KEY_ATTACHMENT_BLOB_KEYS, []),
         )
 
 
@@ -1877,8 +1920,15 @@ class UserGear:
 
     SERVICE_STRAVA = "strava"
     SERVICE_GARMIN_CONNECT = "garmin_connect"
-    SERVICE_POLAR_FLOW = "polar_flow"
-    SERVICE_POLAR_PPP = "polar_ppp"
+    SERVICE_POLAR = "polar"
+
+    # external services gear can be mapped to - single source of truth used by
+    # the gear detail "Advanced" mapping card (service key -> display label)
+    SERVICES = (
+        (SERVICE_STRAVA, "Strava"),
+        (SERVICE_GARMIN_CONNECT, "Garmin Connect"),
+        (SERVICE_POLAR, "Polar"),
+    )
 
     @staticmethod
     def from_dict_dict(gear_data: dict | list) -> "UserGear":
@@ -3985,41 +4035,41 @@ class UserGoals:
 
 @dataclasses.dataclass
 class AthleteMetrics:
-    """Athlete performance metrics — set by the athlete or estimated by MyTraL.
+    """Athlete performance metrics - set by the athlete or estimated by MyTraL.
 
     Convention: metric = 0 means "not set". e_metric is always populated
     with either the athlete-set value or a MyTraL estimate.
 
-    All e_* fields are transient and never persisted — they are recomputed
+    All e_* fields are transient and never persisted - they are recomputed
     on every load by athlete_metrics.resolve().
     """
 
     #
-    # Persisted fields (set by athlete — 0 means not set)
+    # Persisted fields (set by athlete - 0 means not set)
     #
 
-    # maximum heart rate (BPM) — 0 = not set
+    # maximum heart rate (BPM) - 0 = not set
     max_hr: int = 0
-    # anaerobic threshold HR / LTHR (BPM) — 0 = not set
+    # anaerobic threshold HR / LTHR (BPM) - 0 = not set
     anaerobic_threshold_hr: int = 0
-    # aerobic threshold HR / LT1 (BPM) — 0 = not set
+    # aerobic threshold HR / LT1 (BPM) - 0 = not set
     aerobic_threshold_hr: int = 0
-    # functional threshold power (Watts) — 0 = not set
+    # functional threshold power (Watts) - 0 = not set
     ftp: float = 0.0
-    # VO2 Max (mL/kg/min) — 0 = not set
+    # VO2 Max (mL/kg/min) - 0 = not set
     vo2max: float = 0.0
-    # HRV overnight RMSSD (ms) — 0 = not set
+    # HRV overnight RMSSD (ms) - 0 = not set
     hrv_rmssd: float = 0.0
-    # FatMax (g/hr) — 0 = not set
+    # FatMax (g/hr) - 0 = not set
     fat_max: float = 0.0
     # zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     z1_high: int = 0
     z2_high: int = 0
     z3_high: int = 0
     z4_high: int = 0
     # power zone upper boundaries set by athlete (0 = not set; all seven must be > 0
-    # to use athlete values — otherwise all zones estimated from FTP)
+    # to use athlete values - otherwise all zones estimated from FTP)
     pz1_high: int = 0
     pz2_high: int = 0
     pz3_high: int = 0
@@ -4039,7 +4089,7 @@ class AthleteMetrics:
     e_vo2max: float = dataclasses.field(default=0.0, repr=False)
     e_hrv_rmssd: float = dataclasses.field(default=0.0, repr=False)
     e_fat_max: float = dataclasses.field(default=0.0, repr=False)
-    # always derived from e_ftp and weight — never stored
+    # always derived from e_ftp and weight - never stored
     e_power_to_weight: float = dataclasses.field(default=0.0, repr=False)
 
     #
@@ -4199,9 +4249,14 @@ class UserProfile:
     KEY_CLIENT_SECRET = "client_secret"
     KEY_CLIENT_SECRET_ENC = "client_secret_enc"
     KEY_ACCESS_TOKEN = "access_token"
+    KEY_ACCESS_TOKEN_ENC = "access_token_enc"
     KEY_REFRESH_TOKEN = "refresh_token"
     KEY_CODE = "code"
     KEY_AUTH_UNTIL = "auth_until"
+
+    KEY_POLAR_FLOW = "polar_flow"
+    KEY_POLAR_USER_ID = "polar_user_id"
+    KEY_MEMBER_ID = "member_id"
 
     KEY_ONBOARDING_STATE = "onboarding_state"
     KEY_ACOACH = "acoach"
@@ -4241,6 +4296,13 @@ class UserProfile:
         strava_refresh_token = strava.get(UserProfile.KEY_REFRESH_TOKEN, "")
         strava_code = strava.get(UserProfile.KEY_CODE, "")
         strava_auth_until = strava.get(UserProfile.KEY_AUTH_UNTIL, 0)
+
+        polar_flow = profile_dict.get(UserProfile.KEY_POLAR_FLOW, {})
+        polar_flow_client_id = polar_flow.get(UserProfile.KEY_CLIENT_ID, "")
+        polar_flow_client_secret = polar_flow.get(UserProfile.KEY_CLIENT_SECRET, "")
+        polar_flow_access_token = polar_flow.get(UserProfile.KEY_ACCESS_TOKEN, "")
+        polar_flow_user_id = polar_flow.get(UserProfile.KEY_POLAR_USER_ID, "")
+        polar_flow_member_id = polar_flow.get(UserProfile.KEY_MEMBER_ID, "")
 
         onboarding_state = profile_dict.get(UserProfile.KEY_ONBOARDING_STATE)
         acoach_settings = ai_settings.ACoachSettings.from_dict(
@@ -4282,6 +4344,11 @@ class UserProfile:
             strava_refresh_token=strava_refresh_token,
             strava_code=strava_code,
             strava_auth_until=strava_auth_until,
+            polar_flow_client_id=polar_flow_client_id,
+            polar_flow_client_secret=polar_flow_client_secret,
+            polar_flow_access_token=polar_flow_access_token,
+            polar_flow_user_id=polar_flow_user_id,
+            polar_flow_member_id=polar_flow_member_id,
             onboarding_state=onboarding_state,
             acoach_settings=acoach_settings,
             user_icl_settings=user_icl_settings,
@@ -4319,6 +4386,13 @@ class UserProfile:
                 UserProfile.KEY_REFRESH_TOKEN: self.strava_refresh_token,
                 UserProfile.KEY_CODE: self.strava_code,
                 UserProfile.KEY_AUTH_UNTIL: self.strava_auth_until,
+            },
+            UserProfile.KEY_POLAR_FLOW: {
+                UserProfile.KEY_CLIENT_ID: self.polar_flow_client_id,
+                UserProfile.KEY_CLIENT_SECRET: self.polar_flow_client_secret,
+                UserProfile.KEY_ACCESS_TOKEN: self.polar_flow_access_token,
+                UserProfile.KEY_POLAR_USER_ID: self.polar_flow_user_id,
+                UserProfile.KEY_MEMBER_ID: self.polar_flow_member_id,
             },
             UserProfile.KEY_ONBOARDING_STATE: self.onboarding_state,
             UserProfile.KEY_ACOACH: self.acoach_settings.to_dict()
@@ -4361,6 +4435,11 @@ class UserProfile:
         strava_refresh_token: str = "",
         strava_code: str = "",
         strava_auth_until: int = 0,
+        polar_flow_client_id: str = "",
+        polar_flow_client_secret: str = "",
+        polar_flow_access_token: str = "",
+        polar_flow_user_id: str = "",
+        polar_flow_member_id: str = "",
         onboarding_state: dict | None = None,
         acoach_settings: ai_settings.ACoachSettings | None = None,
         user_icl_settings: icl_settings.IclSettings | None = None,
@@ -4424,6 +4503,13 @@ class UserProfile:
         self.strava_code = strava_code
         self.strava_auth_until = strava_auth_until
         self.strava_auth_until_str = ""
+
+        # Polar Flow (AccessLink API) - long-lived token, no refresh/expiry
+        self.polar_flow_client_id = polar_flow_client_id
+        self.polar_flow_client_secret = polar_flow_client_secret
+        self.polar_flow_access_token = polar_flow_access_token
+        self.polar_flow_user_id = polar_flow_user_id
+        self.polar_flow_member_id = polar_flow_member_id
 
         # onboarding state
         if onboarding_state is None:

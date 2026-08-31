@@ -223,7 +223,7 @@ Boolean variables accept the string values <code>"true"</code> or <code>"false"<
 <tr>
 <td><code>MYTRAL_HOST</code></td>
 <td><code>127.0.0.1</code></td>
-<td>Bind address for the Flask server. Set to <code>0.0.0.0</code> to expose externally — only do this behind a reverse proxy.</td>
+<td>Bind address for the Flask server. Set to <code>0.0.0.0</code> to expose externally - only do this behind a reverse proxy.</td>
 </tr>
 <tr>
 <td><code>MYTRAL_PORT</code></td>
@@ -233,7 +233,7 @@ Boolean variables accept the string values <code>"true"</code> or <code>"false"<
 <tr>
 <td><code>MYTRAL_CORS_ORIGINS</code></td>
 <td><code>http://localhost:5000</code></td>
-<td>Comma-separated list of allowed CORS origins, e.g. <code>https://mytral.fitness,https://www.mytral.fitness</code>.</td>
+<td>Comma-separated list of allowed CORS origins, e.g. <code>https://mytral.mindforger.com,https://app.mytral.mindforger.com</code>.</td>
 </tr>
 <tr>
 <td><code>MYTRAL_DEBUG</code></td>
@@ -296,8 +296,8 @@ Boolean variables accept the string values <code>"true"</code> or <code>"false"<
 <tbody>
 <tr>
 <td><code>MYTRAL_ENCRYPTION_KEY</code></td>
-<td>—</td>
-<td>Fernet key used to encrypt sensitive configuration values (API keys, tokens). <strong>Required</strong> in production <code>WEBAPP</code> deployments — MyTraL refuses to start without it. In <code>DESKTOP</code> and <code>DEBUG</code> modes a built-in development key is used as a fallback (not secure). Generate with: <code>python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code></td>
+<td>-</td>
+<td>Fernet key used to encrypt sensitive configuration values (API keys, tokens). <strong>Required</strong> in production <code>WEBAPP</code> deployments - MyTraL refuses to start without it. In <code>DESKTOP</code> and <code>DEBUG</code> modes a built-in development key is used as a fallback (not secure). Generate with: <code>python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code></td>
 </tr>
 <tr>
 <td><code>MYTRAL_SIGNING_KEY</code></td>
@@ -323,7 +323,7 @@ Boolean variables accept the string values <code>"true"</code> or <code>"false"<
 </tr>
 </tbody>
 </table>
-<p><strong>Filesystem</strong> (default) — blobs stored under <code>&lt;MYTRAL_DATA_DIR&gt;/blobs/</code>. No additional variables required.</p>
+<p><strong>Filesystem</strong> (default) - blobs stored under <code>&lt;MYTRAL_DATA_DIR&gt;/blobs/</code>. No additional variables required.</p>
 <h3 id="ai-providers">AI Providers</h3>
 <table class="table table-bordered field-table">
 <thead>
@@ -336,17 +336,17 @@ Boolean variables accept the string values <code>"true"</code> or <code>"false"<
 <tbody>
 <tr>
 <td><code>MYTRAL_ANTHROPIC_API_KEY</code></td>
-<td>—</td>
+<td>-</td>
 <td>Anthropic API key for Claude-powered AI coaches.</td>
 </tr>
 <tr>
 <td><code>MYTRAL_OPENAI_API_KEY</code></td>
-<td>—</td>
+<td>-</td>
 <td>OpenAI API key for GPT-powered AI coaches.</td>
 </tr>
 <tr>
 <td><code>MYTRAL_OLLAMA_KEY</code></td>
-<td>—</td>
+<td>-</td>
 <td>Ollama API key for locally hosted model inference.</td>
 </tr>
 </tbody>
@@ -428,8 +428,8 @@ All flags default to <code>false</code> unless noted.</p>
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/edit/main/docs/CONFIGURATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/blob/main/docs/CONFIGURATION.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/edit/main/docs/CONFIGURATION.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/blob/main/docs/CONFIGURATION.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

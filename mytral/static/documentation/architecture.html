@@ -295,7 +295,7 @@
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="filesystem-structured-store">Filesystem Structured Store</h2>
 <p>The filesystem store is the durable substrate for the JSON persistence implementation and task metadata/log files, typically under <code>data/&lt;user_id&gt;/</code>. It holds structured files like <code>activities-*.json</code>, <code>user-*.json</code>, and <code>tasks/task-*.{json,log}</code> that are treated as the source of truth for non-blob entities.</p>
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="external-integrations-plugins">External Integrations &amp; Plugins</h2>
-<p>MyTraL integrates with external ecosystems through <code>integrations/*</code> and <code>plugins.py</code>, including Strava and other import/sync sources used by both direct import routes and background tasks. This component adapts third-party payloads to internal entities so downstream analytics and UI features remain consistent.</p>
+<p>MyTraL integrates with external ecosystems through <code>integrations/*</code> and <code>plugins.py</code>, including Strava, Polar (both the legacy Precision Performance <code>.hrm</code>/<code>.pdd</code> files and Polar Flow via the AccessLink API plus the GDPR data export ZIP), and other import/sync sources used by both direct import routes and background tasks. This component adapts third-party payloads to internal entities so downstream analytics and UI features remain consistent. See <code>POLAR_FLOW.md</code> for the Polar Flow design.</p>
                         </div></div>
                     </div>
                     <!-- END MAIN CONTENT -->
@@ -336,8 +336,8 @@
               <div class="col-lg-auto ms-lg-auto">
                 <ul class="list-inline list-inline-dots mb-0">
                   <li class="list-inline-item"><a href="./license.html" class="link-secondary">License</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/edit/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
-                  <li class="list-inline-item"><a href="https://github.com/dvorka-oss/mytral/blob/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Source</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/edit/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Edit on GitHub</a></li>
+                  <li class="list-inline-item"><a href="https://github.com/dvorka/mytral/blob/main/docs/ARCHITECTURE.md" class="link-secondary" target="_blank">Source</a></li>
                 </ul>
               </div>
               <div class="col-12 col-lg-auto mt-3 mt-lg-0">

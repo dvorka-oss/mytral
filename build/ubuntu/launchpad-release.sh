@@ -189,7 +189,7 @@ function prepareSources() {
     fi
 
     mkdir -p "${dest_dir}"
-    # git archive exports only tracked files — no .git dir, no untracked artifacts
+    # git archive exports only tracked files - no .git dir, no untracked artifacts
     git -C "${MYTRAL_SRC}" archive HEAD | tar -x -C "${dest_dir}"
 
     if [ -z "$(ls -A "${dest_dir}")" ]
@@ -330,7 +330,7 @@ fi
 # check all required dependencies
 checkDependencies
 
-# read version dynamically from the source tree — strip any trailing 'dev' suffix
+# read version dynamically from the source tree - strip any trailing 'dev' suffix
 BASE_VERSION=$(python3 -c "
 import sys
 sys.path.insert(0, '${MYTRAL_SRC}/mytral')

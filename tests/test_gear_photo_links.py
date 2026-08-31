@@ -20,6 +20,7 @@ import flask
 import pytest
 
 from mytral import routes
+from mytral import stats
 from mytral.blueprints import gear_crud
 
 
@@ -52,6 +53,7 @@ def test_settings_gear_get_renders_lightbox_photo_gallery(monkeypatch):
         url = ""
         photo_blob_keys = [photo.blob_key]
         highlight_photo_blob_key = photo.blob_key
+        attachment_blob_keys = []
 
         def get_components(self, include_retired=False):
             return []
@@ -117,6 +119,17 @@ def test_settings_gear_get_renders_lightbox_photo_gallery(monkeypatch):
     )
     monkeypatch.setattr(
         gear_crud.ds, "recompute_gear_service_intervals", lambda **kwargs: None
+    )
+    monkeypatch.setattr(
+        gear_crud.ds, "activities_for_gear", lambda user_id, dataset_name, gear_key: []
+    )
+    monkeypatch.setattr(
+        gear_crud.ds,
+        "activities_stats",
+        lambda user_id, dataset_name, include_meta: None,
+    )
+    monkeypatch.setattr(
+        gear_crud.ds, "gear_stats", lambda user_id, dataset_name: stats.UserGearStats()
     )
     monkeypatch.setattr(gear_crud, "_entity_photo_service", lambda: _PhotoService())
     monkeypatch.setitem(routes.flask_app.jinja_env.globals, "url_for", fake_url_for)

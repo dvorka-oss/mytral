@@ -4,9 +4,9 @@ Priority: optional
 Maintainer: Martin Dvorak <martin.dvorak@mindforger.com>
 Build-Depends: debhelper (>= 13), dh-python, python3-all, pybuild-plugin-pyproject, python3-hatchling
 Standards-Version: 4.6.2
-Homepage: https://github.com/dvorka-oss/mytral
-Vcs-Git: https://github.com/dvorka-oss/mytral.git
-Vcs-Browser: https://github.com/dvorka-oss/mytral
+Homepage: https://github.com/dvorka/mytral
+Vcs-Git: https://github.com/dvorka/mytral.git
+Vcs-Browser: https://github.com/dvorka/mytral
 
 Package: mytral
 Architecture: amd64 arm64

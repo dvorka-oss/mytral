@@ -63,7 +63,7 @@ def build_user_context(user_profile, dataset, n_recent: int = 15) -> str:
         profile_lines.append(f"Height: {user_profile.height:.2f} m")
     sections.append("## ATHLETE PROFILE\n" + "\n".join(profile_lines))
 
-    # load all activities once — reused for multiple sections below
+    # load all activities once - reused for multiple sections below
     sorted_acts = []
     try:
         all_acts = dataset.all_activities(
@@ -74,7 +74,7 @@ def build_user_context(user_profile, dataset, n_recent: int = 15) -> str:
     except Exception as exc:
         _logger.warning("context: failed to load activities", error=str(exc))
 
-    # this week section (Mon–today) — always included, flagging health events
+    # this week section (Mon–today) - always included, flagging health events
     if sorted_acts:
         today = datetime.date.today()
         monday = today - datetime.timedelta(days=today.weekday())
@@ -100,7 +100,7 @@ def build_user_context(user_profile, dataset, n_recent: int = 15) -> str:
                 + "\n".join(week_rows)
             )
 
-    # health section — placed before recent activities so truncation never cuts it
+    # health section - placed before recent activities so truncation never cuts it
     if sorted_acts:
         cutoff = datetime.datetime.now() - datetime.timedelta(days=90)
         cutoff_str = cutoff.strftime("%Y-%m-%d")
@@ -143,7 +143,7 @@ def build_user_context(user_profile, dataset, n_recent: int = 15) -> str:
     except Exception as exc:
         _logger.warning("context: failed to load goals", error=str(exc))
 
-    # recent activities section (kept last — truncation hits here first)
+    # recent activities section (kept last - truncation hits here first)
     if sorted_acts:
         recent = sorted_acts[:n_recent]
         rows = []
@@ -160,7 +160,7 @@ def build_user_context(user_profile, dataset, n_recent: int = 15) -> str:
             )
         sections.append(f"## RECENT ACTIVITIES (last {n_recent})\n" + "\n".join(rows))
 
-    # personal bests section — also kept late, can be truncated
+    # personal bests section - also kept late, can be truncated
     if sorted_acts:
         by_sport: dict[str, list] = {}
         for a in sorted_acts:

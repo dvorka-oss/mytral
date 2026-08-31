@@ -23,9 +23,9 @@
 FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.title="MyTraL"
-LABEL org.opencontainers.image.description="My training log — personal sport training log web application"
+LABEL org.opencontainers.image.description="My training log - personal sport training log web application"
 LABEL org.opencontainers.image.licenses="AGPL-3.0"
-LABEL org.opencontainers.image.source="https://github.com/dvorka-oss/mytral"
+LABEL org.opencontainers.image.source="https://github.com/dvorka/mytral"
 
 #
 # Install Python and uv
@@ -61,7 +61,7 @@ RUN uv sync --no-dev --no-group dev --no-group test --no-group ml --no-group not
 # Bind to all interfaces so the container is reachable from the host
 ENV MYTRAL_HOST=0.0.0.0
 
-# Default data directory — mount a host volume at /mytral for persistence.
+# Default data directory - mount a host volume at /mytral for persistence.
 # MYTRAL_DATA_DIR is the parent of the actual "data/" subdirectory, so
 # the app stores data at /mytral/data/ inside the container.
 ENV MYTRAL_DATA_DIR=/mytral
@@ -84,7 +84,7 @@ RUN mkdir -p /mytral
 # Expose the default MyTraL port
 EXPOSE 5000
 
-# Health check — poll the home page every 30 seconds
+# Health check - poll the home page every 30 seconds
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:5000/ || exit 1
 

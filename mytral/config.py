@@ -333,7 +333,7 @@ class MytralConfig:
     ENV_MYTRAL_PORT = "MYTRAL_PORT"  # bind port for the application server
     ENV_MYTRAL_CORS_ORIGINS = (
         "MYTRAL_CORS_ORIGINS"  # comma-separated allowed CORS origins
-        # e.g. MYTRAL_CORS_ORIGINS=https://mytral.fitness,https://www.mytral.fitness
+        # e.g. MYTRAL_CORS_ORIGINS=https://mytral.mf.com,https://www.mytral.mf.com
     )
     ENV_MYTRAL_DATA_DIR = "MYTRAL_DATA_DIR"  # path to persistence dir w/ 'data' subdir
     ENV_MYTRAL_PERSISTENCE_CACHE = "MYTRAL_PERSISTENCE_CACHE"  # bool
@@ -551,7 +551,7 @@ class MytralConfig:
                 )
 
         #  CORS origins ~ list of strings w/ allowed CORS origins for the API
-        #  e.g. "http://localhost:3000,https://mytral.fitness"
+        #  e.g. "http://localhost:3000,https://mytral.mindforger.com"
         if cors_origins:
             self.cors_origins = cors_origins
         else:
@@ -830,7 +830,7 @@ class MytralPersistenceFsConfig:
     DIR_TASKS = "tasks"
     FILENAME_CFG = "config.json"
 
-    # class-level migration cache — survives across instances
+    # class-level migration cache - survives across instances
     _migrate_cache: bool | None = None
     _cached_data_spec_version: str | None = None
 

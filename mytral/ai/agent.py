@@ -34,7 +34,7 @@ _logger = structlog.get_logger()
 
 
 #
-# Structured response model — enforced at the Pydantic level
+# Structured response model - enforced at the Pydantic level
 #
 
 
@@ -43,7 +43,7 @@ _logger = structlog.get_logger()
 # than a structured Pydantic result model.
 #
 # Reason: local models (e.g. llama3.2 via Ollama) do not reliably produce
-# strict JSON matching a schema with min_length constraints — they return
+# strict JSON matching a schema with min_length constraints - they return
 # conversational prose, which PydanticAI cannot parse, causing
 # UnexpectedModelBehavior after exhausting retries.
 #
@@ -63,7 +63,7 @@ _logger = structlog.get_logger()
 class CoachDeps:
     """Runtime dependencies injected into agent tools."""
 
-    # avoid circular imports — typed as object
+    # avoid circular imports - typed as object
     user_profile: object  # settings.UserProfile
     dataset: object  # dataset.UserDataset
 
@@ -418,7 +418,7 @@ def build_agent(
         ctx: pydantic_ai.RunContext[CoachDeps],
         activity_type_key: str | None = None,
     ) -> str:
-        """Get personal bests — longest and fastest efforts per activity_type_key.
+        """Get personal bests - longest and fastest efforts per activity_type_key.
 
         Parameters
         ----------
@@ -850,14 +850,14 @@ def run_agent(
         raise ValueError("No user message found in message list")
 
     # pre-build athlete context and inject it into the prompt so the model always
-    # has the data — local models (e.g. llama3.2 via Ollama) do not reliably use
+    # has the data - local models (e.g. llama3.2 via Ollama) do not reliably use
     # the OpenAI function-calling protocol and would otherwise output raw JSON
     data_context = ai_context.build_user_context(
         user_profile, dataset, n_recent=coach.n_recent_activities
     )
     today = datetime.date.today()
     enriched_message = (
-        f"[DATA CONTEXT — {today.isoformat()}]\n"
+        f"[DATA CONTEXT - {today.isoformat()}]\n"
         f"{data_context}\n\n"
         f"[QUESTION]\n{user_message}"
     )
@@ -877,7 +877,7 @@ def run_agent(
         result = agent.run_sync(enriched_message, deps=deps)
     except pydantic_ai.exceptions.UnexpectedModelBehavior as exc:
         _logger.error(
-            "agent: unexpected model behavior — likely malformed structured output",
+            "agent: unexpected model behavior - likely malformed structured output",
             coach=coach.name,
             model=model_name,
             error=exc.message,

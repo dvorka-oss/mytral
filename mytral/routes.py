@@ -308,6 +308,22 @@ _MD_ALLOWED_ATTRIBUTES: dict = {
 }
 _MD_ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
 
+# python-markdown has no built-in extension for GFM-style ~~strikethrough~~,
+# so provide a minimal inline pattern that turns it into <s>text</s>.
+_MD_STRIKETHROUGH_RE = r"(~{2})(.+?)\1"
+
+
+class _StrikethroughExtension(markdown.extensions.Extension):
+    """Add GFM-style ``~~strikethrough~~`` support to python-markdown."""
+
+    def extendMarkdown(self, md):
+        """Register the strikethrough inline pattern on the given instance."""
+        pattern = markdown.inlinepatterns.SimpleTagInlineProcessor(
+            _MD_STRIKETHROUGH_RE, "s"
+        )
+        md.inlinePatterns.register(pattern, "strikethrough", 75)
+
+
 flask_app = flask.Flask(__name__.split(".")[0])
 flask_cors.CORS(flask_app, origins=app_config.cors_origins)
 # Flask secret key: https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY
@@ -409,10 +425,19 @@ def tag_to_color_filter(tag):
     return utils.tag_to_color(tag)
 
 
+@flask_app.template_filter("muscle_label")
+def muscle_label_filter(muscle_key):
+    """Return the human-readable label for a canonical muscle group key."""
+    muscle_def = muscle_groups.MUSCLE_GROUP_BY_KEY.get(muscle_key)
+    return muscle_def.label if muscle_def else muscle_key.replace("_", " ").title()
+
+
 @functools.lru_cache(maxsize=512)
 def _render_markdown(text: str) -> markupsafe.Markup:
     """Render and sanitise Markdown to HTML; result is cached by input string."""
-    html = markdown.markdown(text, extensions=["nl2br", "tables"])
+    html = markdown.markdown(
+        text, extensions=["nl2br", "tables", _StrikethroughExtension()]
+    )
     clean = bleach.clean(
         html,
         tags=_MD_ALLOWED_TAGS,
@@ -420,7 +445,9 @@ def _render_markdown(text: str) -> markupsafe.Markup:
         protocols=_MD_ALLOWED_PROTOCOLS,
         strip=True,
     )
-    return markupsafe.Markup(clean)
+    # wrap in a marker class so mytral.css can restore link styling that
+    # would otherwise be lost inside a .text-muted description field.
+    return markupsafe.Markup(f'<div class="md-content">{clean}</div>')
 
 
 @flask_app.template_filter("markdown")
@@ -1356,7 +1383,7 @@ def tasks_list():
         1 for t in all_tasks if t.status == task_entities.TaskStatus.RUNNING
     )
 
-    # validate result_route endpoints — stale routes from deleted pages
+    # validate result_route endpoints - stale routes from deleted pages
     # would cause BuildError when the template tries url_for()
     view_functions = set(flask.current_app.view_functions.keys())
     for t in all_tasks:
@@ -1858,7 +1885,7 @@ def athlete_metrics_update():
             if invalid_fields:
                 flask.flash(
                     message=(
-                        f"Invalid metrics data — please fix: "
+                        f"Invalid metrics data - please fix: "
                         f"{', '.join(invalid_fields)}"
                     ),
                     category="error",
@@ -3594,6 +3621,12 @@ def get_activity(key):
         include_detail=True,
     )
 
+    exercises_registry = ds.list_exercises(user_id, dataset_name=dataset_name)
+    sorted_exercises = sorted(
+        a.exercises,
+        key=lambda entry: exercises_registry.exercise_by_key[entry.name].name.lower(),
+    )
+
     (prev_year, prev_month, prev_day) = cals.get_yesterday(
         a.when_year, a.when_month, a.when_day
     )
@@ -3609,7 +3642,8 @@ def get_activity(key):
         user_profile=user_profile,
         activity_entity=a,
         symptoms=ds.list_symptoms(user_id, dataset_name=dataset_name),
-        exercises=ds.list_exercises(user_id, dataset_name=dataset_name),
+        exercises=exercises_registry,
+        sorted_exercises=sorted_exercises,
         laps=ds.list_laps(user_id, dataset_name=dataset_name),
         activity_types=ds.list_activity_types(user_id=user_id),
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
@@ -3752,7 +3786,7 @@ def sync_strava_activity(key):
     try:
         app_task_manager.executor.submit(task)
         flask.flash(
-            "Strava activity sync started — check Tasks for progress.", "success"
+            "Strava activity sync started - check Tasks for progress.", "success"
         )
     except Exception as exc:
         flask.flash(f"Could not start sync: {exc}", "danger")
@@ -4155,7 +4189,8 @@ def search_activities():
         return flask.redirect(flask.url_for("login"))
 
     q = flask.request.args.get("q", "").strip()
-    if not q:
+    filter_exercise = flask.request.args.get("exercise", "").strip()
+    if not q and not filter_exercise:
         return flask.redirect(flask.url_for("home"))
 
     user_profile = ds.profile(user_id)
@@ -4168,15 +4203,23 @@ def search_activities():
         sort_by_when=True,
     )
 
-    # filter by case-insensitive substring match on name, description and tags
-    q_lower = q.lower()
-    activities = [
-        a
-        for a in activities
-        if q_lower in (a.name or "").lower()
-        or q_lower in (a.description or "").lower()
-        or any(q_lower in tag.lower() for tag in (a.tags or []))
-    ]
+    if filter_exercise:
+        # activities where this exercise was exercised
+        activities = [
+            a
+            for a in activities
+            if any(ee.name == filter_exercise for ee in (a.exercises or []))
+        ]
+    else:
+        # filter by case-insensitive substring match on name, description and tags
+        q_lower = q.lower()
+        activities = [
+            a
+            for a in activities
+            if q_lower in (a.name or "").lower()
+            or q_lower in (a.description or "").lower()
+            or any(q_lower in tag.lower() for tag in (a.tags or []))
+        ]
 
     activities_weekdays = {
         a.key: cals.WEEKDAY_INDEX_2_STR.get(
@@ -4184,6 +4227,12 @@ def search_activities():
         )
         for a in activities
     }
+
+    filter_exercise_entity = (
+        ds.get_exercise(user_id=user_id, key=filter_exercise)
+        if filter_exercise
+        else None
+    )
 
     return flask.render_template(
         "search-results.html",
@@ -4195,6 +4244,8 @@ def search_activities():
         gear=ds.list_gear(user_id=user_id, dataset_name=user_profile.dataset_name),
         is_mobile=flask.session.get(COOKIE_MOBILE),
         q=q,
+        filter_exercise=filter_exercise,
+        filter_exercise_entity=filter_exercise_entity,
     )
 
 
@@ -5025,6 +5076,7 @@ def y2y_month_perspective():
         "Dec": {},
     }
     activity_types = ds.list_activity_types(user_id=user_id)
+    filter_activity_type = flask.request.args.get("activity_type", "")
     ds_stats = ds.activities_stats(
         user_id=user_id,
         dataset_name=user_profile.dataset_name,
@@ -5039,17 +5091,30 @@ def y2y_month_perspective():
             user_profile=user_profile,
             data=data,
             years=[],
+            available_activity_types=[],
+            filter_activity_type=filter_activity_type,
         )
+
+    available_activity_type_keys: set[str] = set()
 
     for year in range(referential_year, ds_stats.year_min - 1, -1):
         for m in data:
-            data[m][year] = [0.0, "0h00m00s", ""]
+            data[m][year] = [0.0, "0h00m00s", "", 0]
 
         year_as = ds.list_activities(
             user_id=user_id,
             dataset_name=user_profile.dataset_name,
             filter_year=year,
         )
+        available_activity_type_keys.update(
+            a.activity_type_key
+            for a in year_as
+            if activity_types.is_sport(a.activity_type_key)
+        )
+        if filter_activity_type:
+            year_as = [
+                a for a in year_as if a.activity_type_key == filter_activity_type
+            ]
         year_stats = stats.ActivitiesStats(year_as)
         year_data_distance = year_stats.get_year_totals(
             aspect=commons.StatsAspect.DISTANCE, activity_types=activity_types
@@ -5057,11 +5122,15 @@ def y2y_month_perspective():
         year_data_duration = year_stats.get_year_totals(
             aspect=commons.StatsAspect.DURATION, activity_types=activity_types
         )
+        year_data_elevation = year_stats.get_year_totals(
+            aspect=commons.StatsAspect.ELEVATION, activity_types=activity_types
+        )
 
         if year == referential_year and this_month < 12:
             for month_idx in range(this_month + 1, 13):
                 year_data_distance[month_idx] = 0.0
                 year_data_duration[month_idx] = 0
+                year_data_elevation[month_idx] = 0
 
         for month_idx in year_data_distance:
             data[cals.MONTH_INDEX_2_STR[month_idx]][year][0] = round(
@@ -5069,6 +5138,9 @@ def y2y_month_perspective():
             )
             data[cals.MONTH_INDEX_2_STR[month_idx]][year][1] = cals.seconds_to_str_time(
                 year_data_duration[month_idx]
+            )
+            data[cals.MONTH_INDEX_2_STR[month_idx]][year][3] = round(
+                year_data_elevation[month_idx]
             )
 
     # colors
@@ -5089,11 +5161,18 @@ def y2y_month_perspective():
                 if data[m][year][0] > 0:
                     data[m][year][2] = "#fffffe"
 
+    available_activity_types = sorted(
+        available_activity_type_keys, key=activity_types.name
+    )
+
     return flask.render_template(
         "heatmap-y2y-month-perspective.html",
         user_profile=user_profile,
         data=data,
         years=[y for y in data.get("Jan", []).keys()],
+        activity_types=activity_types,
+        available_activity_types=available_activity_types,
+        filter_activity_type=filter_activity_type,
     )
 
 

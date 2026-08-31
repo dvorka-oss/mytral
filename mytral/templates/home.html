@@ -820,7 +820,15 @@
                             </span>
                         </div>
                         <div class="col">
-                            <div class="font-weight-medium">Avg Activity Time</div>
+                            <div class="font-weight-medium">
+                                Avg Activity Time
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Average duration of a single activity, computed as total training time divided by the total number of activities across all years.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </div>
                             <div class="text-muted">
                                 {% set avg_minutes = (stats.us / stats.activities_count / 60)|round(0) if stats.activities_count > 0 else 0 %}
                                 {{ avg_minutes|int }} minutes
@@ -846,7 +854,15 @@
                             </span>
                         </div>
                         <div class="col">
-                            <div class="font-weight-medium">Avg Distance/Day</div>
+                            <div class="font-weight-medium">
+                                Avg Distance/Day
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Average Universal Kilometers (UKM) per day, computed as your lifetime UKM total divided by the number of days between your first and most recent activity.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </div>
                             <div class="text-muted">
                                 {% set total_days = ((stats.ts_max - stats.ts_min) / 86400)|int if stats.ts_max > stats.ts_min else 1 %}
                                 {% set avg_km_per_day = (stats.ukm / total_days)|round(1) if total_days > 0 else 0 %}
@@ -873,7 +889,15 @@
                             </span>
                         </div>
                         <div class="col">
-                            <div class="font-weight-medium">Activities/Year</div>
+                            <div class="font-weight-medium">
+                                Activities/Year
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Average number of activities logged per year, computed as your total activity count divided by the number of distinct years you have recorded activities in.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </div>
                             <div class="text-muted">
                                 {% set avg_activities_year = (stats.activities_count / stats.years|length)|round(0) if stats.years|length > 0 else 0 %}
                                 {{ avg_activities_year|int }} activities
@@ -901,9 +925,17 @@
                             </span>
                         </div>
                         <div class="col">
-                            <div class="font-weight-medium">Sport Variety</div>
+                            <div class="font-weight-medium">
+                                Sport Variety
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-info-circle ms-1" width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" data-bs-toggle="tooltip" data-bs-placement="top" title="Number of distinct activity types (e.g. running, cycling, swimming) you have ever logged, across all years.">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path>
+                                    <path d="M12 9h.01"></path>
+                                    <path d="M11 12h1v4h1"></path>
+                                </svg>
+                            </div>
                             <div class="text-muted">
-                                {{ stats.activity_type_keys|length }} different activity types
+                                {{ stats.activity_types|length }} different activity types
                             </div>
                         </div>
                     </div>

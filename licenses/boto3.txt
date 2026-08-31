@@ -1,6 +1,6 @@
 Apache License 2.0
 
-boto3 — AWS SDK for Python
+boto3 - AWS SDK for Python
 Copyright (c) Amazon.com, Inc. or its affiliates.
 
 Licensed under the Apache License, Version 2.0 (the "License");

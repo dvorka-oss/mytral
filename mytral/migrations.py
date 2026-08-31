@@ -303,7 +303,7 @@ class FsPersistenceMigrations:
             for migration_step in migration_steps:
                 migration_step()
 
-            # evict all caches after migration — data files have changed on disk
+            # evict all caches after migration - data files have changed on disk
             for user_id in self.ds.user_ids():
                 self.user_ds.cache_evict(user_id)
             config.MytralPersistenceFsConfig.invalidate_cache()

@@ -167,7 +167,7 @@ def estimate_ftp_from_activities(
     candidate is derived by scaling avg_watts by the inverse of the power-duration
     fraction at that effort length. The best (highest) candidate is returned.
 
-    A 20-min effort at X W produces X / 1.053 ≈ X × 0.95 — identical to the
+    A 20-min effort at X W produces X / 1.053 ≈ X × 0.95 - identical to the
     classic field-test formula. A 2.5-hour effort at Y W produces Y / 0.785,
     correctly scaling up to a FTP estimate.
 

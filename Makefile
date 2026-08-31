@@ -94,8 +94,6 @@ ACTIVE_VENV := $(shell echo $$VIRTUAL_ENV)
 USER_HOME := $(shell echo $$HOME)
 # platform name for test reports
 PLATFORM := $(shell uname -s)
-# DeepSeek API key (for vibe coding with DeepSeek)
-DEEPSEEK_API_KEY ?= $(shell pass show deepseek/apikey20260605)
 # Ubuntu version for local .deb build (see distro-ubuntu-deb)
 UBUNTU_VERSION ?= noble
 
@@ -134,6 +132,9 @@ venv-reset: # (undocumented) reset virtual environment
 
 .venv:
 	uv venv --python $(PYTHON_VERSION) .venv
+
+.venv-notebooks:
+	uv venv --python $(PYTHON_VERSION) .venv-notebooks
 
 setup: .venv ## setup virtul env and install Python dependencies
 	uv sync --all-groups
@@ -253,6 +254,16 @@ precommit: py-lint py-security ## pre-commit checks: lint and security scan
 	@true
 
 #
+# JUPYTER LAB
+#
+
+.PHONY: jupyter-lab
+jupyter-lab: .venv-notebooks ## run Jupyter Lab
+	uv pip install --python .venv-notebooks/bin/python --group notebook
+	.venv-notebooks/bin/python -m ipykernel install --user --name=mytral-notebooks
+	.venv-notebooks/bin/jupyter lab
+
+#
 # DIAGNOSTICS
 #
 
@@ -282,7 +293,7 @@ run: .venv ## run MyTraL server w/ ENV var specified data directory
 
 .PHONY: runvdev
 ifeq ($(OS),Windows_NT)
-run-dev: .venv ## run MyTraL server on Windows w/ DEV data
+run-dev: .venv ## run MyTraL server on Windows w/ DEV data (Win)
 	MYTRAL_DATA_DIR="$(subst \,/,$(USERPROFILE))/mytral-data/development" \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
@@ -297,7 +308,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data
 	MYTRAL_USER_REGISTRATION=true \
 	uv run python -m mytral.run
 else
-run-dev: .venv ## run MyTraL server on Linux w/ DEV data
+run-dev: .venv ## run MyTraL server on Linux w/ DEV data (Linux)
 	MYTRAL_DATA_DIR=$(USER_HOME)/p/mytral/git/mytral-data/development \
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
@@ -330,6 +341,7 @@ run-preproduction: .venv ## run MyTraL server on Linux w/ PRE-PRODUCTION data w/
 run-production: .venv ## run MyTraL server w/ PRODUCTION data
 	MYTRAL_DEBUG=true \
 	MYTRAL_DATA_DIR=$(USER_HOME)/.local/share/mytral \
+	MYTRAL_INCARNATION=DESKTOP \
 	uv run python -m mytral.run
 
 .PHONY: run-demo
@@ -359,123 +371,6 @@ run-blank: .venv ## run MyTraL server w/ NO data in /tmp directory
 	MYTRAL_AUTO_ACCOUNT_CREATE=true \
 	MYTRAL_SECRET_KEY=no-secret-for-development \
 	uv run python -m mytral.run
-
-#
-# VIBE CODING
-#
-
-# GitHub Copilot
-# - run vibe coding w/ GitHub Copilot CLI
-# ~/.copilot/* ... ~/.copilot/copilot-mcp.json
-.PHONY: vibe-copilot
-vibe-copilot:
-	@mkdir -pv ./.github
-	copilot --allow-all-tools --banner
-
-# Ollama (cloud) hosted GitHub Copilot CLI
-# ollama models:
-# - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
-# - kimi-k2.5:cloud / kimi-k2.6:cloud
-# - qwen3.5:cloud
-.PHONY: vibe-copilot-ollama-deepseek
-vibe-copilot-ollama-deepseek:
-	@mkdir -pv ./.github
-	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
-	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
-	ollama launch copilot-cli --model deepseek-v4-pro:cloud -- --allow-all-tools
-
-# DeepSeek
-# https://api-docs.deepseek.com/quick_start/agent_integrations/copilot_cli
-.PHONY: vibe-copilot-deepseek
-vibe-copilot-deepseek:
-	@cp -vf ./.github/copilot-instructions.md ./DEEPSEEK.md
-	COPILOT_PROVIDER_TYPE=anthropic \
-	COPILOT_PROVIDER_BASE_URL=https://api.deepseek.com/anthropic \
-	COPILOT_PROVIDER_API_KEY=$(DEEPSEEK_API_KEY) \
-	COPILOT_MODEL=deepseek-v4-pro \
-	COPILOT_PROVIDER_MAX_PROMPT_TOKENS=840000 \
-	COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=128000 \
-	copilot --allow-all-tools --banner
-
-# Anthropic Claude Code: ideally @ Sonnet 1M
-.PHONE: vibe-cc
-vibe-cc:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	claude --dangerously-skip-permissions
-
-# DeepSeek
-# https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code
-.PHONY: vibe-deepseek-cc
-vibe-cc-deepseek:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic \
-	ANTHROPIC_AUTH_TOKEN=$(DEEPSEEK_API_KEY) \
-	ANTHROPIC_MODEL=deepseek-v4-pro[1m] \
-	ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro[1m] \
-	ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-v4-pro[1m] \
-	ANTHROPIC_DEFAULT_HAIKU_MODEL=deepseek-v4-flash \
-	CLAUDE_CODE_SUBAGENT_MODEL=deepseek-v4-flash \
-	CLAUDE_CODE_EFFORT_LEVEL=max \
-	claude --dangerously-skip-permissions
-
-# Z.ai
-# https://ollama.com/library/glm-5
-.PHONY: vibe-cc-ollama-glm
-vibe-cc-ollama-glm:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude --model glm-5:cloud -- --dangerously-skip-permissions
-
-# Anthrop\c Claude Code
-# - run vibe coding Anthropic Claude CODE harness w/ Ollama hosted models
-# ollama models:
-# - deepseek-v4-pro:cloud / deepseek-v4-flash:cloud
-# - kimi-k2.7:cloud
-# - qwen3.5:cloud
-.PHONY: vibe-cc-ollama-deepseek
-vibe-cc-ollama-deepseek:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude --model deepseek-v4-pro:cloud -- --dangerously-skip-permissions
-
-vibe-cc-ollama-kimi:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude --model kimi-k2.7:cloud -- --dangerously-skip-permissions
-
-.PHONY: vibe-cc-ollama-minimax
-vibe-cc-ollama-minimax:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude --model minimax-m3:cloud -- --dangerously-skip-permissions
-
-.PHONY: vibe-cc-ollama-gemma4
-vibe-cc-ollama-gemma4:
-	@cp -vf ./.github/copilot-instructions.md ./CLAUDE.md
-	ollama launch claude --model gemma4:31b-cloud -- --dangerously-skip-permissions
-
-# Pi CLI
-# - run vibe coding w/ Mario's Pi CLI
-.PHONY: vibe-pi
-vibe-pi:
-	@cp -vf ./.github/copilot-instructions.md ./AGENT.md
-	ollama launch pi --model qwen3.5:cloud
-
-# Codex CLI
-# - run vibe coding w/ OpenAI Codex CLI
-.PHONY: vibe-codex
-vibe-codex:
-	@cp -vf ./.github/copilot-instructions.md ./AGENTS.md
-	codex
-
-# Google Antigravity CLI
-# - run vibe coding w/ Google Antigravity CLI
-.PHONY: vibe-agy
-vibe-agy:
-	@echo "Updating Antigravity instructions..."
-	@cp -vf ./.github/copilot-instructions.md AGENTS.md
-	agy --dangerously-skip-permissions
-
-# Vibe coding - run a DEFAULT vibe coding CLI
-.PHONY: vibe
-vibe: vibe-copilot-ollama-deepseek
-	@echo "DONE"
 
 #
 # PROTOTYPING
@@ -669,7 +564,7 @@ distro-win-installer: distro-win-clean distro-desktop-build-win  ## build Window
 	.\build\windows\build-win-installer.bat
 
 .PHONY: distro-win-zip
-distro-win-zip: ## package Windows desktop executable into a ZIP archive — run after distro-desktop-build-win
+distro-win-zip: ## package Windows desktop executable into a ZIP archive - run after distro-desktop-build-win
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build\windows\build-win-zip.ps1
 
 .PHONY: distro-win-clean
@@ -685,7 +580,7 @@ distro-win-clean: ## clean Windows installer build artifacts
 #   winget CLI:    winget install Microsoft.Winget.Client
 #   gh CLI:        winget install GitHub.cli  (+ gh auth login)
 #
-# Per-release sequence — run AFTER the GitHub release is live:
+# Per-release sequence - run AFTER the GitHub release is live:
 #   make distro-winget-from-release VERSION=x.y.z
 #   make distro-winget-validate     VERSION=x.y.z
 #   make distro-winget-submit-pr    VERSION=x.y.z WINGET_PKGS_DIR=C:\path\to\winget-pkgs
@@ -836,7 +731,7 @@ distro-flatpak-path: ## show path to built Flatpak bundle
 .PHONY: distro-flatpak-remove
 distro-flatpak-remove: ## remove locally installed Flatpak
 	@echo "Removing Flatpak..."
-	flatpak uninstall --user -y fitness.mytral.Mytral || true
+	flatpak uninstall --user -y com.mindforger.Mytral || true
 	@echo "DONE Flatpak removed"
 
 .PHONY: distro-flatpak-install
@@ -848,7 +743,7 @@ distro-flatpak-install: distro-flatpak-build ## build and install Flatpak locall
 		exit 1; \
 	fi; \
 	flatpak install --user --reinstall -y "$$BUNDLE"; \
-	echo "DONE Flatpak installed. Run with: flatpak run fitness.mytral.Mytral"
+	echo "DONE Flatpak installed. Run with: flatpak run com.mindforger.Mytral"
 
 #
 # DOCUMENTATION
@@ -880,40 +775,41 @@ doc-live: doc ## serve documentation locally for preview
 	uv run python -m http.server 8080 --directory mytral/static/documentation
 
 #
-# WEB: mytral.fitness
+# WEB: https://mytral.mindforger.com
+#      https://dvorka.github.io/mytral/
 #
 
 # INSTALL live server: npm install -g live-server
 .PHONY: www-live
-www-live: ## start live server for www.mytral.fitness development
+www-live: ## start live server for mytral.mindforger.com development
 	@echo "Serving documentation at http://localhost:8080"
-	uv run python -m http.server 8080 --directory webs/www.mytral.fitness
+	uv run python -m http.server 8080 --directory webs/mytral.mindforger.com
 
 .PHONY: www-doc
-www-doc: doc-sync-data ## generate public documentation for www.mytral.fitness
+www-doc: doc-sync-data ## generate public documentation for mytral.mindforger.com
 	@echo "Generating public documentation from Markdown..."
 	uv run python make/generate_public_docs.py
-	@echo "DONE Public documentation generated successfully to file://$(PWD)/webs/www.mytral.fitness/docs/index.html"
+	@echo "DONE Public documentation generated successfully to file://$(PWD)/webs/mytral.mindforger.com/docs/index.html"
 
 .PHONY: www-doc-clean
 www-doc-clean: ## clean generated public documentation
-	rm -rf webs/www.mytral.fitness/docs/*.html
-	rm -rf webs/www.mytral.fitness/docs/*.png
+	rm -rf webs/mytral.mindforger.com/docs/*.html
+	rm -rf webs/mytral.mindforger.com/docs/*.png
 	@echo "Public documentation cleaned"
 
 .PHONY: www-doc-live
 www-doc-live: www-doc ## serve public documentation locally for preview
 	@echo "Serving public documentation at http://localhost:8080"
-	uv run python -m http.server 8080 --directory webs/www.mytral.fitness/docs
+	uv run python -m http.server 8080 --directory webs/mytral.mindforger.com/docs
 
 .PHONY: www-seo-assets
-www-seo-assets: ## generate favicon.ico + 1200x630 og-image.png for www.mytral.fitness
+www-seo-assets: ## generate favicon.ico + 1200x630 og-image.png for mytral.mindforger.com
 	@echo "Generating SEO assets..."
 	uv run python make/make_seo_assets.py
-	@echo "DONE SEO assets saved to webs/www.mytral.fitness/"
+	@echo "DONE SEO assets saved to webs/mytral.mindforger.com/"
 
 .PHONY: www-check
-www-check: ## validate built www.mytral.fitness (SEO meta, dead links, sitemap, assets)
+www-check: ## validate built mytral.mindforger.com (SEO meta, dead links, sitemap, assets)
 	uv run python make/check_www_seo.py
 
 .PHONY: www-banners
@@ -921,14 +817,6 @@ www-banners: ## generate Snapcraft/store feature banners (outputs to media/banne
 	@echo "Generating banners..."
 	uv run python media/banners/make_banners.py
 	@echo "DONE Banners saved to media/banners/"
-
-#
-# DEPLOYMENT: mytral.fitness
-#
-
-.PHONY: deployment-spaceship-data-backup
-deploy-spaceship-data-backup: ## backup SpaceShip.com data, use TARGET_DATA_DIRECTORY to also copy it
-	cd ./deploy/spaceship.com && ./ftp-download-data.sh $(TARGET_DATA_DIRECTORY)
 
 #
 # DEPLOYMENT: Docker

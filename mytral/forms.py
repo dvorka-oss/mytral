@@ -25,6 +25,7 @@ from wtforms import validators
 from mytral import commons
 from mytral import utils
 from mytral.backends import entities
+from mytral.blobstore import validation as blob_validation
 
 
 class ToolFilterDateRangeDataset(flask_wtf.FlaskForm):
@@ -191,7 +192,7 @@ class ProfileForm(flask_wtf.FlaskForm):
         validators=[],
         default=(
             "Consistent hard work, day after day, week after week, year after year. "
-            "No magic bullets, no shortcuts. — JoshCox"
+            "No magic bullets, no shortcuts. -- JoshCox"
         ),
     )
 
@@ -268,7 +269,7 @@ class UpdateProfileForm(flask_wtf.FlaskForm):
         validators=[],
         default=(
             "Consistent hard work, day after day, week after week, year after year. "
-            "No magic bullets, no shortcuts. — JoshCox"
+            "No magic bullets, no shortcuts. - JoshCox"
         ),
     )
 
@@ -291,6 +292,46 @@ class StravaSecretsForm(flask_wtf.FlaskForm):
     )
 
     submit = wtforms.SubmitField("Save Secrets")
+
+
+class PolarFlowSecretsForm(flask_wtf.FlaskForm):
+    """Form for setting encrypted Polar Flow (AccessLink) API client credentials."""
+
+    client_id = wtforms.StringField(
+        label="Polar Flow API Client ID",
+        validators=[validators.DataRequired(), validators.Length(min=1, max=128)],
+        default="",
+    )
+
+    client_secret = wtforms.PasswordField(
+        label="Polar Flow API Client Secret",
+        validators=[validators.DataRequired(), validators.Length(min=1, max=256)],
+        default="",
+    )
+
+    submit = wtforms.SubmitField("Save Secrets")
+
+
+class ImportPolarFlowExportForm(flask_wtf.FlaskForm):
+    """Form for importing the Polar Flow "Download your data" (GDPR) export ZIP."""
+
+    archive = flask_wtf.file.FileField(
+        label="Polar Flow export ZIP",
+        validators=[
+            flask_wtf.file.FileRequired(),
+            flask_wtf.file.FileAllowed(["zip"], "Only .zip files are accepted."),
+        ],
+    )
+    on_conflict = wtforms.RadioField(
+        label="If activity already exists",
+        choices=[
+            ("skip", "Skip"),
+            ("override", "Override"),
+            ("new_key", "Add as new"),
+        ],
+        default="skip",
+    )
+    submit = wtforms.SubmitField("Import Polar Flow Export")
 
 
 class SettingsForm(flask_wtf.FlaskForm):
@@ -1069,7 +1110,7 @@ class UploadRecordingForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="Recording file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported formats: .fit, .gpx, .hrm — max 64 MiB.",
+        description="Supported formats: .fit, .gpx, .hrm - max 64 MiB.",
     )
     submit = wtforms.SubmitField("Upload Recording")
 
@@ -1080,7 +1121,7 @@ class ImportFitForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="FIT file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .fit — max 64 MiB.",
+        description="Supported format: .fit - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1104,7 +1145,7 @@ class ImportGpxForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="GPX file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .gpx — max 64 MiB.",
+        description="Supported format: .gpx - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1128,7 +1169,7 @@ class ImportTcxForm(flask_wtf.FlaskForm):
     recording_file = flask_wtf.file.FileField(
         label="TCX file",
         validators=[flask_wtf.file.FileRequired()],
-        description="Supported format: .tcx — max 64 MiB.",
+        description="Supported format: .tcx - max 64 MiB.",
     )
     activity_name = wtforms.StringField(
         label="Name",
@@ -1309,7 +1350,7 @@ class UploadActivityPhotosForm(flask_wtf.FlaskForm):
         label="Photos",
         validators=[flask_wtf.file.FileRequired()],
         description=(
-            "Supported formats: .jpg, .jpeg, .png, .webp — "
+            "Supported formats: .jpg, .jpeg, .png, .webp - "
             "max 25 MiB per photo, up to 50 photos per activity."
         ),
     )
@@ -1560,7 +1601,7 @@ class ImportMytralJsonForm(flask_wtf.FlaskForm):
 class AiProviderForm(flask_wtf.FlaskForm):
     type = wtforms.SelectField(
         choices=[
-            ("ollama", "Ollama (recommended — local, private)"),
+            ("ollama", "Ollama (recommended - local, private)"),
             ("anthropic", "Anthropic (\u26a0 sends data to 3rd party)"),
             ("openai", "OpenAI (\u26a0 sends data to 3rd party)"),
         ]
@@ -1593,7 +1634,7 @@ class UploadAvatarForm(flask_wtf.FlaskForm):
         label="Avatar Photo",
         validators=[flask_wtf.file.FileRequired()],
         description=(
-            "Supported formats: .jpg, .jpeg, .png, .gif, .webp — max 10 MiB. "
+            "Supported formats: .jpg, .jpeg, .png, .gif, .webp - max 10 MiB. "
             "Photo will be cropped to a square and resized to 200×200 pixels."
         ),
     )
@@ -1633,6 +1674,45 @@ class UploadEntityPhotoForm(flask_wtf.FlaskForm):
 
 class DeleteEntityPhotoForm(flask_wtf.FlaskForm):
     """CSRF-protected form for deleting an entity photo."""
+
+    submit = wtforms.SubmitField("Delete")
+
+
+_ATTACHMENT_ALLOWED_EXTENSIONS = sorted(
+    ext.lstrip(".") for ext in blob_validation.DOCUMENT_ALLOWED_EXTENSIONS
+)
+
+
+class UploadEntityAttachmentForm(flask_wtf.FlaskForm):
+    """Form for uploading a single entity attachment (gear, exercise, goal)."""
+
+    attachment = flask_wtf.file.FileField(
+        label="Attachment",
+        validators=[
+            flask_wtf.file.FileRequired(),
+            flask_wtf.file.FileAllowed(
+                _ATTACHMENT_ALLOWED_EXTENSIONS,
+                "Documents only (PDF, Word, text, spreadsheets, ...).",
+            ),
+        ],
+    )
+    name = wtforms.StringField(
+        label="Name",
+        validators=[validators.Optional()],
+    )
+    description = wtforms.TextAreaField(
+        label="Description",
+        validators=[validators.Optional()],
+    )
+    keywords = wtforms.StringField(
+        label="Keywords",
+        validators=[validators.Optional()],
+    )
+    submit = wtforms.SubmitField("Upload")
+
+
+class DeleteEntityAttachmentForm(flask_wtf.FlaskForm):
+    """CSRF-protected form for deleting an entity attachment."""
 
     submit = wtforms.SubmitField("Delete")
 
@@ -1707,7 +1787,7 @@ class AthleteMetricsForm(flask_wtf.FlaskForm):
         default=0.0,
     )
 
-    # HR Zones — athlete sets upper boundary of each zone (Z1-Z4).
+    # HR Zones - athlete sets upper boundary of each zone (Z1-Z4).
     # Leave all at 0 to auto-estimate from LTHR.
     # All four must be set (> 0) for athlete values to be used.
     z1_high = wtforms.IntegerField(

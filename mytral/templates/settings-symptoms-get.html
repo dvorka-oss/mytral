@@ -5,8 +5,8 @@
     <div class="container-xl">
         <div class="row g-2 align-items-center">
             <div class="col">
-                <a href="{{ url_for('settings_symptoms_list') }}" class="page-pretitle">Profile · Symptoms</a>
-                <h2 class="page-title">{{ entity.name }}</h2>
+                <a href="{{ url_for('settings_symptoms_list') }}" class="page-pretitle">Symptoms</a>
+                <h2 class="page-title">Symptom Details</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
@@ -28,7 +28,6 @@
 <div class="page-body">
     <div class="container-xl">
 
-        {# ── Details card ──────────────────────────────────────────────── #}
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center">
@@ -60,7 +59,6 @@
             {% endif %}
         </div>
 
-        {# ── Body parts card ───────────────────────────────────────────── #}
         {% if entity.body_parts %}
         <div class="card mt-3">
             <div class="card-header">

@@ -44,6 +44,7 @@ from mytral.tasks.bulldozer._sandbox_utils import _make_blob_metadata
 from mytral.tasks.bulldozer._sandbox_utils import _PathEncoder
 from mytral.tasks.bulldozer._sandbox_utils import _sandbox_blobs_dir
 from mytral.tasks.bulldozer._sandbox_utils import _split_evenly
+from mytral.tasks.do import recording_maps
 from mytral.tasks.do import strava_commons
 
 
@@ -387,117 +388,6 @@ def _strava_blob_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
         )
 
 
-def _strava_gpx_map_job(job_key: int, job_dir: pathlib.Path) -> None:
-    """Bulldozer job: precompute GPX map data for recording blobs.
-
-    Reads ``job_dir/input/payload.json``.  For each recording blob that does not
-    yet have ``summary_polyline`` / ``summary_bbox``, reads the raw GPX/TCX data
-    from the main blobstore, parses GPS points, encodes polylines and extracts
-    the elevation profile.
-
-    Results are written to ``job_dir/output/payload.json``.
-    On failure writes ``job_dir/output/error.json``.
-    """
-    try:
-        _strava_gpx_map_job_impl(job_key, job_dir)
-    except Exception:
-        error_file = job_dir / "output" / "error.json"
-        error_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(error_file, "w") as fh:
-            json.dump(
-                {
-                    "job_key": job_key,
-                    "job_dir": str(job_dir),
-                    "traceback": traceback.format_exc(),
-                },
-                fh,
-            )
-
-
-def _strava_gpx_map_job_impl(job_key: int, job_dir: pathlib.Path) -> None:
-    """Implementation of :func:`_strava_gpx_map_job`."""
-    input_file = job_dir / "input" / "payload.json"
-    if not input_file.exists():
-        return
-
-    with open(input_file) as fh:
-        payload = json.load(fh)
-
-    entries = payload.get("entries", [])
-    if not entries:
-        return
-
-    user_id = payload.get("user_id", "")
-    user_data_dir = pathlib.Path(payload.get("user_data_dir", ""))
-
-    # open the *main* blobstore in read-only fashion
-    main_store = FilesystemBlobStore(
-        base_dir=user_data_dir,
-        blobs_subdir="blobs",
-    )
-
-    results: dict[str, dict] = {}
-    for entry in entries:
-        blob_uuid = entry["blob_uuid"]
-        extension = entry.get("extension", ".gpx")
-
-        try:
-            meta = main_store.get_blob_metadata(user_id, blob_uuid)
-        except Exception:
-            results[blob_uuid] = {"skipped": True, "error": "metadata not found"}
-            continue
-
-        if meta.summary_polyline and meta.summary_bbox:
-            results[blob_uuid] = {"skipped": True, "reason": "already computed"}
-            continue
-
-        try:
-            stream = main_store.open_blob(user_id, blob_uuid)
-            try:
-                gpx_data = stream.read()
-            finally:
-                stream.close()
-        except Exception:
-            results[blob_uuid] = {"skipped": True, "error": "cannot read recording"}
-            continue
-
-        try:
-            if extension == ".tcx":
-                track_count, track_point_count, gps_points, raw_profile = (
-                    tcx_extractor.extract_all_from_tcx(gpx_data)
-                )
-            else:
-                track_count, track_point_count, gps_points, raw_profile = (
-                    gpx_extractor.extract_all_from_gpx(gpx_data)
-                )
-            elevation_profile = gpx_extractor.simplify_elevation_profile(raw_profile)
-        except Exception:
-            results[blob_uuid] = {"skipped": True, "error": "parse/extract failed"}
-            continue
-
-        if gps_points:
-            summary_polyline, summary_bbox, full_polyline = (
-                gpx_extractor.encode_gps_polylines(points=gps_points)
-            )
-        else:
-            summary_polyline, summary_bbox, full_polyline = "", None, ""
-
-        results[blob_uuid] = {
-            "skipped": False,
-            "summary_polyline": summary_polyline,
-            "summary_bbox": list(summary_bbox) if summary_bbox else None,
-            "full_polyline": full_polyline,
-            "elevation_profile": elevation_profile,
-            "track_count": track_count,
-            "track_point_count": track_point_count,
-        }
-
-    output_file = job_dir / "output" / "payload.json"
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w") as fh:
-        json.dump({"results": results}, fh)
-
-
 class StravaArchiveImportTask(tasks.TaskBase):
     """Import activities from a Strava user ZIP archive."""
 
@@ -812,129 +702,19 @@ class StravaArchiveImportTask(tasks.TaskBase):
         self.update_progress(80)
         self.check_cancellation()
 
-        # PHASE 6: Bulldozer-parallelized GPX map data precomputation
-        self.log("Precomputing GPX map data for recordings...")
-
-        # collect recording blob references
-        gpx_entries: list[dict] = []
-        for activity in all_activities:
-            if not activity.recorded_blob_keys:
-                continue
-            for entry in activity.recorded_blob_keys:
-                blob_uuid = entities.recording_blob_uuid(entry)
-                ext = entry.rsplit(".", 1)[-1] if "." in entry else ".gpx"
-                gpx_entries.append(
-                    {
-                        "activity_key": activity.key,
-                        "blob_uuid": blob_uuid,
-                        "extension": f".{ext}",
-                    }
-                )
-
-        if gpx_entries:
-            gpx_workers = max(1, (os.cpu_count() or 1) // 2)
-            gpx_chunks = _split_evenly(gpx_entries, min(gpx_workers, len(gpx_entries)))
-
-            gpx_bzz = bulldozer.SubtaskBulldozer(
-                usr_task_dir=usr_task_dir,
-                subtask_key="gpx-map",
-                logger=self.logger,
-            )
-            gpx_job_dirs = gpx_bzz.make_sandbox()
-            gpx_job_dirs = gpx_job_dirs[: len(gpx_chunks)]
-
-            user_data_dir = str(self._config.user_data_dir)
-            for i, chunk in enumerate(gpx_chunks):
-                input_file = gpx_job_dirs[i] / "input" / "payload.json"
-                with open(input_file, "w") as fh:
-                    json.dump(
-                        {
-                            "user_id": user_id,
-                            "user_data_dir": user_data_dir,
-                            "entries": chunk,
-                        },
-                        fh,
-                    )
-
-            self.log(
-                f"Split {len(gpx_entries)} recording blobs into "
-                f"{len(gpx_chunks)} GPX-map chunks ({len(gpx_chunks)} workers)"
-            )
-            self.update_progress(85)
-
-            gpx_bzz.run(job_dirs=gpx_job_dirs, job_function=_strava_gpx_map_job)
-            self.update_progress(86)
-
-            # detect failed GPX jobs
-            gpx_failed = []
-            for job_dir in gpx_job_dirs:
-                error_file = job_dir / "output" / "error.json"
-                if error_file.exists():
-                    with open(error_file) as fh:
-                        err = json.load(fh)
-                    gpx_failed.append(err["job_key"])
-                    self.log(
-                        f"ERROR: GPX-map job {err['job_key']} failed:\n"
-                        f"{err['traceback']}"
-                    )
-            if gpx_failed:
-                self.log(
-                    f"WARNING: {len(gpx_failed)} GPX-map jobs failed — "
-                    f"some map data may be missing"
-                )
-
-            # collect results and update blob metadata
-            self.update_progress(90)
-            self.log(
-                f"Collecting GPX map data from {len(gpx_job_dirs)} job outputs and "
-                f"updating blob metadata..."
-            )
-            gpx_map_count = 0
-            gpx_skip_count = 0
-            for job_dir in gpx_job_dirs:
-                self.check_cancellation()
-                output_file = job_dir / "output" / "payload.json"
-                if not output_file.exists():
-                    continue
-                with open(output_file) as fh:
-                    chunk_result = json.load(fh)
-                for blob_uuid, result in chunk_result.get("results", {}).items():
-                    if result.get("skipped"):
-                        gpx_skip_count += 1
-                        continue
-                    try:
-                        cur_meta = blob_svc._store.get_blob_metadata(user_id, blob_uuid)
-                        bbox = result.get("summary_bbox")
-                        if bbox and len(bbox) == 4:
-                            bbox = tuple(bbox)
-                        else:
-                            bbox = None
-                        blob_svc._store.update_blob_metadata(
-                            user_id=user_id,
-                            blob_key=blob_uuid,
-                            name=cur_meta.name,
-                            description=cur_meta.description,
-                            keywords=cur_meta.keywords,
-                            track_count=result.get("track_count"),
-                            track_point_count=result.get("track_point_count"),
-                            summary_polyline=result.get("summary_polyline"),
-                            summary_bbox=bbox,
-                            full_polyline=result.get("full_polyline"),
-                            elevation_profile=result.get("elevation_profile"),
-                        )
-                        gpx_map_count += 1
-                    except Exception as exc:
-                        self.log(
-                            f"  WARNING: GPX metadata update failed for "
-                            f"{blob_uuid}: {exc}"
-                        )
-            self.log(
-                f"Precomputed GPX map data for {gpx_map_count} recordings "
-                f"({gpx_skip_count} already had it)"
-            )
-        else:
-            self.log("No recording blobs to precompute GPX map data for")
-
+        # PHASE 6: precompute GPS map data so the activity feed does not lazily
+        # block encoding polylines on first view (shared with the Polar import)
+        self.update_progress(85)
+        recording_maps.precompute_maps(
+            user_id=user_id,
+            activities=all_activities,
+            blob_svc=blob_svc,
+            usr_task_dir=usr_task_dir,
+            config=self._config,
+            logger=self.logger,
+            log=self.log,
+            check_cancellation=self.check_cancellation,
+        )
         self.update_progress(95)
 
         self.update_progress(100)

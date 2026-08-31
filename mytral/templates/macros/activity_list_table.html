@@ -11,9 +11,11 @@
                 <th>Duration</th>
                 <th>Distance<br/>Elevation</th>
                 <th>km/h<br/>Pace</th>
+                {% if not bookmark_mode %}
                 <th title="Exercises / Laps">Exs<br>Lps</th>
                 <th>Source</th>
                 <th title="Workout">W</th>
+                {% endif %}
                 {% endif %}
                 {% if bookmark_mode %}
                 <th>Bookmark</th>
@@ -109,6 +111,7 @@
                     {{ activity.pace }}
                     {% endif %}
                 </td>
+                {% if not bookmark_mode %}
                 <td title="Exercises and laps">
                     {% if activity.activity_type_key in ["exercise", "physio"]  and activity.exercises and activity.exercises|length > 0%}
                     {{ activity.exercises|length }}
@@ -141,9 +144,10 @@
                     {% endif %}
                 </div></td>
                 {% endif %}
+                {% endif %}
                 {% if bookmark_mode %}
-                <td>
-                    <div class="btn-list">
+                <td class="text-nowrap">
+                    <div class="btn-list flex-nowrap">
                         <form method="POST" action="{{ url_for('move_activity_bookmark', activity_key=activity.key, direction='up') }}" class="d-inline">
                             {{ bookmark_form.hidden_tag() }}
                             <button type="submit" class="btn btn-primary btn-icon" title="Move up" {% if loop.first %}disabled{% endif %}>

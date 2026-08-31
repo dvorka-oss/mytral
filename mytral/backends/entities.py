@@ -575,18 +575,18 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
 
     Validation checks performed:
 
-    **Errors — internal consistency (average must not exceed maximum):**
+    **Errors - internal consistency (average must not exceed maximum):**
     - ``avg_cadence > max_cadence`` when both are non-zero
     - ``avg_hr > max_hr`` when both are non-zero
     - ``avg_watts > max_watts`` when both are non-zero
     - ``avg_speed > max_speed`` when both are non-zero
     - ``elevation_min > elevation_max`` when both are non-zero
 
-    **Errors — zero-value anomalies (one field set, related field missing):**
+    **Errors - zero-value anomalies (one field set, related field missing):**
     - ``distance > 0`` but ``duration_seconds == 0`` (no time recorded)
     - ``duration_seconds > 0`` but ``distance == 0`` for distance-based activity types
 
-    **Warnings — out-of-range values (suspiciously high or low):**
+    **Warnings - out-of-range values (suspiciously high or low):**
     - ``distance > 500 000 m`` (500 km in a single activity)
     - ``duration_seconds > 172 800 s`` (48 hours)
     - ``max_speed > 100 km/h`` (suspicious for any human-powered activity)
@@ -687,12 +687,12 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
     if entity.duration_seconds > 0 and entity.distance == 0:
         if at in _DISTANCE_ACTIVITY_TYPES:
             # when HR data is present the activity clearly happened (e.g. Polar
-            # S720i without GPS/footpod) — warn, don't error
+            # S720i without GPS/footpod) - warn, don't error
             if entity.avg_hr > 0:
                 problems.append(
                     (
                         f"Duration {entity.duration} recorded but distance is zero "
-                        f"({at} activity — HR data present, activity is real)",
+                        f"({at} activity - HR data present, activity is real)",
                         SEVERITY_WARNING,
                     )
                 )
@@ -923,7 +923,7 @@ def validate_activity(entity: ActivityEntity) -> list[tuple[str, str]]:
                 )
             )
 
-    # elevation gain per km — skip when distance is tiny (< 500 m) because
+    # elevation gain per km - skip when distance is tiny (< 500 m) because
     # short distances produce meaningless m/km values (e.g. 193 m / 0.1 km).
     if entity.elevation_gain > 0 and entity.distance >= 500:
         elev_per_km = entity.elevation_gain / (entity.distance / 1000)

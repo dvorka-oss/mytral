@@ -35,9 +35,9 @@ def configure_structlog(debug: bool) -> None:
     Must be called once at startup, before any logger is obtained or used.
     Two rendering modes are supported:
 
-    - **debug=True** — human-readable colored console output via
+    - **debug=True** - human-readable colored console output via
       ``ConsoleRenderer``.  Suitable for local development.
-    - **debug=False** — machine-readable JSON output via ``JSONRenderer``.
+    - **debug=False** - machine-readable JSON output via ``JSONRenderer``.
       One JSON object per line; ready for log aggregators (Datadog, Loki or Splunk)
 
     Parameters

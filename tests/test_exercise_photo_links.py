@@ -33,7 +33,7 @@ def test_build_photo_markdown_link_text_uses_label_and_url():
     markdown = exercise_crud.build_photo_markdown_link_text(photo_name, photo_url)
 
     # THEN
-    assert markdown == f"[{photo_name}]({photo_url})"
+    assert markdown == f"![{photo_name}]({photo_url})"
     print("DONE: photo markdown link text is built correctly")
 
 
@@ -46,8 +46,56 @@ def test_build_photo_markdown_link_text_falls_back_to_photo_label():
     markdown = exercise_crud.build_photo_markdown_link_text("   ", photo_url)
 
     # THEN
-    assert markdown == f"[photo]({photo_url})"
+    assert markdown == f"![photo]({photo_url})"
     print("DONE: photo markdown link text fallback is correct")
+
+
+@pytest.mark.mytral
+def test_settings_exercises_create_post_redirects_to_created_exercise(monkeypatch):
+    # GIVEN
+    class _Field:
+        def __init__(self, data):
+            self.data = data
+
+    class _FakeCreateForm:
+        def __init__(self, *args, **kwargs):
+            self.name = _Field("Front squat")
+            self.description = _Field("")
+            self.weight = _Field(0.0)
+            self.tags = _Field("")
+
+        def validate_on_submit(self):
+            return True
+
+    created_entity = SimpleNamespace(key="new-exercise-key")
+
+    def fake_url_for(endpoint, **values):
+        if endpoint == "settings_exercises_get":
+            return f"/settings/exercises/{values['key']}/get"
+        return f"/{endpoint}"
+
+    monkeypatch.setattr(exercise_crud, "UpdateExerciseTypeForm", _FakeCreateForm)
+    monkeypatch.setattr(
+        exercise_crud.ds,
+        "create_exercise",
+        lambda user_id, exercise: created_entity,
+    )
+    monkeypatch.setattr(flask, "url_for", fake_url_for)
+
+    with routes.flask_app.test_request_context(
+        "/settings/exercises/create",
+        method="POST",
+        data={"muscle_groups": "", "muscle_groups_secondary": ""},
+    ):
+        flask.session[routes.COOKIE_USER] = "user-1"
+
+        # WHEN
+        response = exercise_crud.settings_exercises_create()
+
+    # THEN
+    assert response.status_code == 302
+    assert response.location == "/settings/exercises/new-exercise-key/get"
+    print("DONE: creating an exercise redirects to its detail page")
 
 
 @pytest.mark.mytral
@@ -95,12 +143,12 @@ def test_settings_exercises_update_passes_entity_to_template(monkeypatch):
 
 
 @pytest.mark.mytral
-def test_settings_exercises_get_renders_lightbox_photo_gallery(monkeypatch):
+def test_settings_exercises_get_renders_photos_gallery(monkeypatch):
     # GIVEN
     photo = SimpleNamespace(
         blob_key="blob-1",
-        name="Front squat",
-        original_file_name="front.jpg",
+        name="Setup",
+        original_file_name="setup.jpg",
         description="",
         keywords=[],
     )
@@ -123,43 +171,61 @@ def test_settings_exercises_get_renders_lightbox_photo_gallery(monkeypatch):
         strava_client_secret=None,
     )
 
-    class _PhotoService:
-        def list_photos(self, user_id, blob_keys):
-            return [photo]
-
     def fake_url_for(endpoint, **values):
+        if endpoint == "settings_exercises_update":
+            return f"/settings/exercises/{values['key']}/update"
+        if endpoint == "settings_exercises_delete":
+            return f"/settings/exercises/{values['key']}/delete"
+        if endpoint == "settings_exercises_list":
+            return "/settings/exercises"
+        if endpoint == "settings_exercises_upload_photo":
+            return f"/settings/exercises/{values['key']}/photos/upload"
         if endpoint == "settings_exercises_photo":
             return f"/settings/exercises/{values['key']}/photos/{values['blob_key']}"
         if endpoint == "settings_exercises_photo_thumbnail":
             return (
-                f"/settings/exercises/{values['key']}/photos/{values['blob_key']}"
-                "/thumbnail"
-            )
-        if endpoint == "settings_exercises_upload_photo":
-            return f"/settings/exercises/{values['key']}/photos/upload"
-        if endpoint == "settings_exercises_update_photo_metadata":
-            return (
-                f"/settings/exercises/{values['key']}/photos"
-                f"/{values['blob_key']}/update"
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/thumbnail"
             )
         if endpoint == "settings_exercises_delete_photo":
             return (
-                f"/settings/exercises/{values['key']}/photos"
-                f"/{values['blob_key']}/delete"
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/delete"
             )
         if endpoint == "settings_exercises_highlight_photo":
             return (
-                f"/settings/exercises/{values['key']}/photos/{values['blob_key']}"
-                "/highlight"
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/highlight"
             )
-        if endpoint == "settings_exercises_list":
-            return "/settings/exercises"
+        if endpoint == "settings_exercises_update_photo_metadata":
+            return (
+                f"/settings/exercises/{values['key']}/photos/"
+                f"{values['blob_key']}/update"
+            )
         if endpoint == "profile":
             return "/profile"
         return f"/{endpoint}"
 
+    class _NoUsageStats:
+        def stats(self, exercise_key):
+            return None
+
+    class _PhotoService:
+        def list_photos(self, user_id, blob_keys):
+            return [photo]
+
     monkeypatch.setattr(exercise_crud.ds, "get_exercise", lambda user_id, key: entity)
     monkeypatch.setattr(exercise_crud.ds, "profile", lambda user_id: profile)
+    monkeypatch.setattr(
+        exercise_crud.ds,
+        "activities_stats",
+        lambda user_id, dataset_name, include_meta=False: None,
+    )
+    monkeypatch.setattr(
+        exercise_crud.ds,
+        "exercises_stats",
+        lambda user_id, dataset_name: _NoUsageStats(),
+    )
     monkeypatch.setattr(exercise_crud, "_entity_photo_service", lambda: _PhotoService())
     monkeypatch.setitem(routes.flask_app.jinja_env.globals, "url_for", fake_url_for)
 
@@ -174,14 +240,79 @@ def test_settings_exercises_get_renders_lightbox_photo_gallery(monkeypatch):
 
     # THEN
     normalized = " ".join(html.split())
-    assert (
-        'data-fslightbox="exercise-photos" data-type="image" '
-        'href="/settings/exercises/exercise-1/photos/blob-1" class="d-block"'
-    ) in normalized
+    assert "Photos" in normalized
     assert 'src="/settings/exercises/exercise-1/photos/blob-1/thumbnail"' in normalized
-    assert "Highlight" in normalized
-    assert "icon-tabler-star" not in normalized
-    print("DONE: exercise photos open in the lightbox gallery")
+    assert 'href="/settings/exercises/exercise-1/photos/upload"' in normalized
+    assert 'href="/settings/exercises/exercise-1/photos/blob-1/update"' in normalized
+    assert normalized.count("Front squat") == 1
+    assert 'href="/settings/exercises/exercise-1/delete"' in normalized
+    print("DONE: exercise photos gallery renders on the view page")
+
+
+@pytest.mark.mytral
+def test_settings_exercises_get_hides_delete_button_when_exercise_used(monkeypatch):
+    # GIVEN
+    entity = SimpleNamespace(
+        key="exercise-1",
+        name="Front squat",
+        description="",
+        weight=0.0,
+        tags=[],
+        muscle_groups=[],
+        muscle_groups_secondary=[],
+        photo_blob_keys=[],
+        highlight_photo_blob_key=None,
+    )
+    profile = SimpleNamespace(
+        user="User",
+        expert=False,
+        dataset_name="default",
+        strava_client_id=None,
+        strava_client_secret=None,
+    )
+
+    class _UsedStats:
+        def stats(self, exercise_key):
+            return SimpleNamespace(count=3)
+
+    def fake_url_for(endpoint, **values):
+        if endpoint == "settings_exercises_update":
+            return f"/settings/exercises/{values['key']}/update"
+        if endpoint == "settings_exercises_delete":
+            return f"/settings/exercises/{values['key']}/delete"
+        if endpoint == "settings_exercises_list":
+            return "/settings/exercises"
+        if endpoint == "profile":
+            return "/profile"
+        return f"/{endpoint}"
+
+    monkeypatch.setattr(exercise_crud.ds, "get_exercise", lambda user_id, key: entity)
+    monkeypatch.setattr(exercise_crud.ds, "profile", lambda user_id: profile)
+    monkeypatch.setattr(
+        exercise_crud.ds,
+        "activities_stats",
+        lambda user_id, dataset_name, include_meta=False: None,
+    )
+    monkeypatch.setattr(
+        exercise_crud.ds,
+        "exercises_stats",
+        lambda user_id, dataset_name: _UsedStats(),
+    )
+    monkeypatch.setitem(routes.flask_app.jinja_env.globals, "url_for", fake_url_for)
+
+    with routes.flask_app.test_request_context(
+        "/settings/exercises/exercise-1/get",
+        method="GET",
+    ):
+        flask.session[routes.COOKIE_USER] = "user-1"
+
+        # WHEN
+        html = exercise_crud.settings_exercises_get("exercise-1")
+
+    # THEN
+    normalized = " ".join(html.split())
+    assert 'href="/settings/exercises/exercise-1/delete"' not in normalized
+    print("DONE: exercise get page hides delete button for exercises still in use")
 
 
 @pytest.mark.mytral

@@ -28,11 +28,13 @@ from mytral import charts
 from mytral import ff
 from mytral import forms
 from mytral import settings as user_settings
+from mytral.blobstore import EntityDocumentService
 from mytral.blobstore import EntityPhotoService
 from mytral.blobstore import exceptions as blob_exc
 from mytral.blobstore import validation as blob_validation
 from mytral.blobstore.models import BlobKind
 from mytral.blobstore.models import BlobOwnerKind
+from mytral.routes import _sanitize_download_name
 from mytral.routes import COOKIE_MOBILE
 from mytral.routes import COOKIE_USER
 from mytral.routes import flask_app
@@ -60,6 +62,7 @@ class JinjaTemplates:
     GET = f"{_PREFIX}get.html"
     UPDATE = f"{_PREFIX}update.html"
     DELETE = f"{_PREFIX}delete.html"
+    ADVANCED = f"{_PREFIX}advanced.html"
 
 
 #
@@ -118,6 +121,7 @@ class CreateGearForm(flask_wtf.FlaskForm):
         label="Description",
         description="Additional notes about this gear. Supports Markdown formatting.",
         validators=[],
+        render_kw={"rows": 15},
     )
     url = wtforms.StringField(
         label="URL",
@@ -219,9 +223,73 @@ def _entity_photo_service() -> EntityPhotoService:
     return EntityPhotoService(store=mytral.app_blobstore)
 
 
+def _entity_document_service() -> EntityDocumentService:
+    """Return an EntityDocumentService bound to the global blobstore."""
+    return EntityDocumentService(store=mytral.app_blobstore)
+
+
 #
 # routes
 #
+
+
+def _filter_and_sort_gear(
+    gear_items: list,
+    gear_stats,
+    filter_activity_type: str,
+    sort_by: str,
+    sort_order: str,
+) -> list:
+    """Filter gear by its default activity type and sort it.
+
+    Parameters
+    ----------
+    gear_items : list
+        Gear items to filter and sort.
+    gear_stats : stats.UserGearStats
+        Gear statistics used by the usage based sort criteria.
+    filter_activity_type : str
+        Activity type key to filter by - empty string means all activity types.
+    sort_by : str
+        Sort criterion - see the sort select in the listing template.
+    sort_order : str
+        Either "asc" or "desc".
+
+    Returns
+    -------
+    list
+        Filtered and sorted gear items.
+    """
+    if filter_activity_type:
+        gear_items = [
+            g for g in gear_items if g.activity_type_key == filter_activity_type
+        ]
+
+    def stat_of(gear_item, attribute: str, default):
+        stat = gear_stats.stats(gear_item.key)
+        return getattr(stat, attribute) if stat else default
+
+    match sort_by:
+        case "name":
+            gear_items = sorted(gear_items, key=lambda g: g.name or "")
+        case "activity_type":
+            gear_items = sorted(gear_items, key=lambda g: g.activity_type_key or "")
+        case "purchased":
+            gear_items = sorted(gear_items, key=lambda g: g.purchased or "")
+        case "usage":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_use", 0))
+        case "distance":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_meters", 0))
+        case "duration":
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_seconds", 0))
+        case "tcoo":
+            gear_items = sorted(gear_items, key=lambda g: g.tcoo_base + g.tcoo_cost)
+        case _:  # last used
+            gear_items = sorted(gear_items, key=lambda g: stat_of(g, "stat_to", ""))
+
+    if sort_order == "asc":
+        return list(gear_items)
+    return list(reversed(gear_items))
 
 
 @flask_app.route(f"/settings/{ENTITIES}", methods=["GET", "POST"])
@@ -273,13 +341,40 @@ def settings_gear_list():
         )
         gear.gear_by_key = dict(sorted_items)
 
+        # get filter and sort parameters from query string
+        filter_activity_type = flask.request.args.get("activity_type", "")
+        sort_by = flask.request.args.get("sort", "used")
+        sort_order = flask.request.args.get("order", "desc")
+
         # split gear into active and retired lists for separate tables
-        active_gear = [g for g in gear.gear_by_key.values() if not g.retired]
-        retired_gear = [g for g in gear.gear_by_key.values() if g.retired]
+        active_gear = _filter_and_sort_gear(
+            [g for g in gear.gear_by_key.values() if not g.retired],
+            gear_stats,
+            filter_activity_type,
+            sort_by,
+            sort_order,
+        )
+        retired_gear = _filter_and_sort_gear(
+            [g for g in gear.gear_by_key.values() if g.retired],
+            gear_stats,
+            filter_activity_type,
+            sort_by,
+            sort_order,
+        )
 
         activity_types = ds.list_activity_types(user_id)
 
+        # filter options are built from all the gear so that they never disappear
+        unique_activity_types = sorted(
+            {
+                g.activity_type_key
+                for g in gear.gear_by_key.values()
+                if g.activity_type_key
+            }
+        )
+
         aspect_arg = flask.request.args.get("aspect")
+        script, div = "", ""
         if aspect_arg:  # chart
             script, div = charts.gear_in_time(
                 user_gear=gear,
@@ -287,29 +382,24 @@ def settings_gear_list():
                 is_mobile_view=bool(flask.session.get(COOKIE_MOBILE)),
             )
 
-            return flask.render_template(
-                JinjaTemplates.LIST,
-                ff=ff,
-                user_profile=ds.profile(user_id),
-                gear=gear,
-                gear_stats=gear_stats,
-                activity_types=activity_types,
-                active_gear=active_gear,
-                retired_gear=retired_gear,
-                script=script,
-                div=div,
-            )
-        else:  # list
-            return flask.render_template(
-                JinjaTemplates.LIST,
-                ff=ff,
-                user_profile=ds.profile(user_id),
-                gear=gear,
-                gear_stats=gear_stats,
-                activity_types=activity_types,
-                active_gear=active_gear,
-                retired_gear=retired_gear,
-            )
+        return flask.render_template(
+            JinjaTemplates.LIST,
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            gear=gear,
+            gear_stats=gear_stats,
+            activity_types=activity_types,
+            active_gear=active_gear,
+            retired_gear=retired_gear,
+            filtered_gear=active_gear + retired_gear,
+            unique_activity_types=unique_activity_types,
+            filter_activity_type=filter_activity_type,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            aspect=aspect_arg or "",
+            script=script,
+            div=div,
+        )
 
     else:
         flask.flash(
@@ -418,18 +508,69 @@ def settings_gear_get(key: str):
     svc = _entity_photo_service()
     photos = svc.list_photos(user_id=user_id, blob_keys=entity.photo_blob_keys)
 
+    doc_svc = _entity_document_service()
+
+    attachments = doc_svc.list_documents(
+        user_id=user_id, blob_keys=entity.attachment_blob_keys
+    )
+
+    gear_activities = ds.activities_for_gear(
+        user_id=user_id, dataset_name=dataset_name, gear_key=key
+    )
+    usage_histogram = charts.gear_weekly_usage_histogram(gear_activities)
+
+    # ensure that the activities are cached -> statistics are available
+    ds.activities_stats(user_id=user_id, dataset_name=dataset_name, include_meta=True)
+    gear_stats = ds.gear_stats(user_id=user_id, dataset_name=dataset_name)
+    stat = gear_stats.stats(key)
+
     return flask.render_template(
         JinjaTemplates.GET,
         ff=ff,
         user_profile=ds.profile(user_id),
         key=key,
         gear=entity,
+        stat=stat,
         activity_types=ds.list_activity_types(user_id),
         csrf_form=CsrfForm(),
         photos=photos,
         upload_form=forms.UploadEntityPhotoForm(prefix="epu"),
         delete_form=forms.DeleteEntityPhotoForm(prefix="epd"),
         highlight_form=forms.DeleteEntityPhotoForm(prefix="eph"),
+        attachments=attachments,
+        attachment_delete_form=forms.DeleteEntityAttachmentForm(prefix="ead"),
+        usage_histogram_script=usage_histogram[0] if usage_histogram else None,
+        usage_histogram_div=usage_histogram[1] if usage_histogram else None,
+    )
+
+
+@flask_app.route(f"/settings/{ENTITIES}/<key>/advanced", methods=["GET"])
+def settings_gear_advanced(key: str):
+    """View advanced gear details: external service gear-ID mapping for debugging."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    try:
+        dataset_name = ds.profile(user_id).dataset_name
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} view error - unable to get {NAME_ENTITY.lower()} "
+                f"with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+
+    return flask.render_template(
+        JinjaTemplates.ADVANCED,
+        ff=ff,
+        user_profile=ds.profile(user_id),
+        key=key,
+        gear=entity,
+        gear_services=user_settings.UserGear.SERVICES,
     )
 
 
@@ -446,8 +587,14 @@ def settings_gear_update(key: str):
         return flask.redirect(flask.url_for("login"))
 
     try:
-        entity = ds.get_gear(
-            user_id=user_id, key=key, dataset_name=ds.profile(user_id).dataset_name
+        dataset_name = ds.profile(user_id).dataset_name
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+        # recompute service history km/hours from activity records so the page
+        # always reflects the actual usage between events, independent of the
+        # component odometer snapshot (which may be stale for bulk-imported
+        # activities) - this page renders component usage, same as GET
+        ds.recompute_gear_service_intervals(
+            user_id=user_id, dataset_name=dataset_name, gear=entity
         )
     except Exception as e:
         flask.flash(
@@ -513,7 +660,7 @@ def settings_gear_update(key: str):
             ds.update_gear(
                 user_id=user_id,
                 gear=entity,
-                dataset_name=ds.profile(user_id).dataset_name,
+                dataset_name=dataset_name,
             )
 
             return flask.redirect(
@@ -791,6 +938,219 @@ def settings_gear_highlight_photo(key: str, blob_key: str):
     return flask.redirect(flask.url_for("settings_gear_get", key=key))
 
 
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/upload", methods=["GET", "POST"]
+)
+def settings_gear_upload_attachment(key: str):
+    """Upload a document attachment for gear."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    upload_form = forms.UploadEntityAttachmentForm(prefix="eau")
+    dataset_name = ds.profile(user_id).dataset_name
+    entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+
+    if flask.request.method == "GET":
+        return flask.render_template(
+            "settings-gear-attachment-upload.html",
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            key=key,
+            gear=entity,
+            form=upload_form,
+            current_count=len(entity.attachment_blob_keys),
+        )
+
+    if upload_form.validate_on_submit():
+        f = upload_form.attachment.data
+        original_filename = f.filename or "attachment"
+        try:
+            svc = _entity_document_service()
+            meta = svc.upload_document(
+                user_id=user_id,
+                owner_key=key,
+                owner_kind=BlobOwnerKind.GEAR,
+                kind=BlobKind.GEAR_ATTACHMENT,
+                file_stream=f.stream,
+                original_filename=original_filename,
+                name=upload_form.name.data or "",
+                description=upload_form.description.data or "",
+                keywords=upload_form.keywords.data or "",
+                current_count=len(entity.attachment_blob_keys),
+            )
+            entity.attachment_blob_keys = list(entity.attachment_blob_keys) + [
+                meta.blob_key
+            ]
+            try:
+                ds.update_gear(user_id=user_id, gear=entity, dataset_name=dataset_name)
+                flask.flash(message="Attachment uploaded", category="success")
+            except Exception:
+                svc.delete_document(user_id, meta.blob_key)
+                raise
+        except Exception as e:
+            flask.flash(message=f"Attachment upload error: {e}", category="error")
+    else:
+        flask.flash(
+            message="Attachment upload form validation failed", category="error"
+        )
+
+    return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/<blob_key>/update",
+    methods=["GET", "POST"],
+)
+def settings_gear_update_attachment_metadata(key: str, blob_key: str):
+    """Update metadata for a single gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    dataset_name = ds.profile(user_id).dataset_name
+    try:
+        entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+    except Exception as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} attachment update error - unable to get "
+                f"{NAME_ENTITY.lower()} with key {key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for(f"settings_{METHODS}_list"))
+
+    if blob_key not in entity.attachment_blob_keys:
+        flask.abort(404)
+
+    form = forms.UpdateActivityPhotoMetadataForm()
+    try:
+        attachment = mytral.app_blobstore.get_blob_metadata(
+            user_id=user_id,
+            blob_key=blob_key,
+        )
+    except (blob_exc.BlobNotFoundError, blob_exc.BlobStoreError) as e:
+        flask.flash(
+            message=(
+                f"{NAME_ENTITY} attachment update error - unable to load attachment "
+                f"{blob_key}: {e}"
+            ),
+            category="error",
+        )
+        return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+    if flask.request.method == "GET":
+        form.name.data = attachment.name
+        form.description.data = attachment.description
+        form.keywords.data = ", ".join(attachment.keywords)
+        return flask.render_template(
+            "settings-gear-attachment-update.html",
+            ff=ff,
+            user_profile=ds.profile(user_id),
+            form=form,
+            key=key,
+            gear=entity,
+            attachment=attachment,
+        )
+
+    if form.validate_on_submit():
+        try:
+            name, description, keywords = blob_validation.validate_blob_metadata(
+                form.name.data or "",
+                form.description.data or "",
+                form.keywords.data or "",
+            )
+            mytral.app_blobstore.update_blob_metadata(
+                user_id=user_id,
+                blob_key=blob_key,
+                name=name,
+                description=description,
+                keywords=keywords,
+            )
+            flask.flash(message="Attachment metadata updated", category="success")
+            return flask.redirect(flask.url_for("settings_gear_get", key=key))
+        except (blob_exc.BlobValidationError, blob_exc.BlobStoreError) as e:
+            flask.flash(
+                message=f"{NAME_ENTITY} attachment metadata error - {e}",
+                category="error",
+            )
+    else:
+        flask.flash(
+            message=f"{NAME_ENTITY} attachment metadata error - form validation failed",
+            category="error",
+        )
+
+    return flask.render_template(
+        "settings-gear-attachment-update.html",
+        ff=ff,
+        user_profile=ds.profile(user_id),
+        form=form,
+        key=key,
+        gear=entity,
+        attachment=attachment,
+    )
+
+
+@flask_app.route(f"/settings/{ENTITIES}/<key>/attachments/<blob_key>", methods=["GET"])
+def settings_gear_attachment(key: str, blob_key: str):
+    """Download a gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+    try:
+        entity = ds.get_gear(
+            user_id=user_id, key=key, dataset_name=ds.profile(user_id).dataset_name
+        )
+        if blob_key not in entity.attachment_blob_keys:
+            flask.abort(404)
+        svc = _entity_document_service()
+        stream, meta = svc.open_document(user_id=user_id, blob_key=blob_key)
+        raw_name = meta.original_file_name or f"attachment-{blob_key}{meta.extension}"
+        return flask.send_file(
+            stream,
+            mimetype=meta.content_type or "application/octet-stream",
+            as_attachment=True,
+            download_name=_sanitize_download_name(raw_name),
+        )
+    except Exception as e:
+        flask.flash(message=f"Attachment error: {e}", category="error")
+        return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
+@flask_app.route(
+    f"/settings/{ENTITIES}/<key>/attachments/<blob_key>/delete", methods=["POST"]
+)
+def settings_gear_delete_attachment(key: str, blob_key: str):
+    """Delete a gear attachment."""
+    user_id = flask.session.get(COOKIE_USER)
+    if not user_id:
+        return flask.redirect(flask.url_for("login"))
+
+    delete_form = forms.DeleteEntityAttachmentForm(prefix="ead")
+    if delete_form.validate_on_submit():
+        try:
+            dataset_name = ds.profile(user_id).dataset_name
+            entity = ds.get_gear(user_id=user_id, key=key, dataset_name=dataset_name)
+            if blob_key not in entity.attachment_blob_keys:
+                flask.abort(404)
+            svc = _entity_document_service()
+            svc.delete_document(user_id=user_id, blob_key=blob_key)
+            entity.attachment_blob_keys = [
+                bk for bk in entity.attachment_blob_keys if bk != blob_key
+            ]
+            ds.update_gear(user_id=user_id, gear=entity, dataset_name=dataset_name)
+            flask.flash(message="Attachment deleted", category="success")
+        except Exception as e:
+            flask.flash(message=f"Attachment delete error: {e}", category="error")
+    else:
+        flask.flash(
+            message="Attachment delete form validation failed", category="error"
+        )
+
+    return flask.redirect(flask.url_for("settings_gear_get", key=key))
+
+
 @flask_app.route(f"/settings/{ENTITIES}/<key>/delete", methods=["GET", "POST"])
 def settings_gear_delete(key: str):
     """Delete:
@@ -818,6 +1178,9 @@ def settings_gear_delete(key: str):
                         svc = _entity_photo_service()
                         for bk in entity.photo_blob_keys:
                             svc.delete_photo(user_id, bk)
+                        doc_svc = _entity_document_service()
+                        for bk in entity.attachment_blob_keys:
+                            doc_svc.delete_document(user_id, bk)
                     except Exception:
                         pass
 

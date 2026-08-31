@@ -25,13 +25,13 @@ from mytral import settings as app_settings
 
 @pytest.mark.mytral
 def test_athlete_metrics_to_dict_persisted_defaults():
-    # GIVEN — default (all-zero) metrics
+    # GIVEN - default (all-zero) metrics
     metrics = app_settings.AthleteMetrics()
 
     # WHEN
     data = metrics.to_dict_persisted()
 
-    # THEN — all persisted fields present; all zero
+    # THEN - all persisted fields present; all zero
     assert data["max_hr"] == 0
     assert data["anaerobic_threshold_hr"] == 0
     assert data["aerobic_threshold_hr"] == 0
@@ -51,7 +51,7 @@ def test_athlete_metrics_to_dict_persisted_defaults():
 
 @pytest.mark.mytral
 def test_athlete_metrics_round_trip():
-    # GIVEN — metrics with non-zero values
+    # GIVEN - metrics with non-zero values
     original = app_settings.AthleteMetrics(
         max_hr=183,
         anaerobic_threshold_hr=156,
@@ -66,7 +66,7 @@ def test_athlete_metrics_round_trip():
         z4_high=164,
     )
 
-    # WHEN — serialize then deserialize
+    # WHEN - serialize then deserialize
     data = original.to_dict_persisted()
     restored = app_settings.AthleteMetrics.from_dict(data)
 
@@ -90,22 +90,22 @@ def test_athlete_metrics_round_trip():
 
 @pytest.mark.mytral
 def test_athlete_metrics_from_dict_backward_compat_empty():
-    # GIVEN — empty dict (old profile JSON with no athlete_metrics key)
+    # GIVEN - empty dict (old profile JSON with no athlete_metrics key)
     data: dict = {}
 
     # WHEN
     metrics = app_settings.AthleteMetrics.from_dict(data)
 
-    # THEN — all fields default to 0
+    # THEN - all fields default to 0
     assert metrics.max_hr == 0
     assert metrics.ftp == 0.0
     assert metrics.vo2max == 0.0
-    print("DONE: AthleteMetrics.from_dict({}) returns defaults — backward compat OK")
+    print("DONE: AthleteMetrics.from_dict({}) returns defaults - backward compat OK")
 
 
 @pytest.mark.mytral
 def test_athlete_metrics_from_dict_partial():
-    # GIVEN — dict with only some fields (e.g. user set only max_hr)
+    # GIVEN - dict with only some fields (e.g. user set only max_hr)
     data = {"max_hr": 175, "ftp": 230.0}
 
     # WHEN
@@ -126,7 +126,7 @@ def test_athlete_metrics_from_dict_partial():
 
 @pytest.mark.mytral
 def test_user_profile_has_athlete_metrics_attribute():
-    # GIVEN — create a minimal UserProfile
+    # GIVEN - create a minimal UserProfile
     profile = app_settings.UserProfile(
         user_id="test",
         user="test_user",
@@ -166,7 +166,7 @@ def test_user_profile_to_dict_includes_athlete_metrics():
 
 @pytest.mark.mytral
 def test_user_profile_from_dict_with_athlete_metrics():
-    # GIVEN — profile dict with athlete_metrics embedded
+    # GIVEN - profile dict with athlete_metrics embedded
     profile_data = {
         "user": "test_user",
         "height": 180,
@@ -188,7 +188,7 @@ def test_user_profile_from_dict_with_athlete_metrics():
 
 @pytest.mark.mytral
 def test_user_profile_from_dict_backward_compat_no_athlete_metrics():
-    # GIVEN — old profile dict without athlete_metrics key
+    # GIVEN - old profile dict without athlete_metrics key
     profile_data = {
         "user": "old_user",
         "height": 175,
@@ -198,7 +198,7 @@ def test_user_profile_from_dict_backward_compat_no_athlete_metrics():
     # WHEN
     profile = app_settings.UserProfile.from_dict(profile_data)
 
-    # THEN — profile loads fine; athlete_metrics defaults to all-zero
+    # THEN - profile loads fine; athlete_metrics defaults to all-zero
     assert isinstance(profile.athlete_metrics, app_settings.AthleteMetrics)
     assert profile.athlete_metrics.max_hr == 0
     assert profile.athlete_metrics.ftp == 0.0
@@ -207,7 +207,7 @@ def test_user_profile_from_dict_backward_compat_no_athlete_metrics():
 
 @pytest.mark.mytral
 def test_user_profile_gender_defaults_to_man():
-    # GIVEN — minimal profile without explicit gender
+    # GIVEN - minimal profile without explicit gender
     profile = app_settings.UserProfile(
         user_id="test",
         user="test_user",
@@ -225,7 +225,7 @@ def test_user_profile_gender_defaults_to_man():
 
 @pytest.mark.mytral
 def test_user_profile_from_dict_gender_backward_compat_defaults_to_man():
-    # GIVEN — persisted profile without gender key
+    # GIVEN - persisted profile without gender key
     profile_data = {
         "user": "old_user",
         "height": 175,

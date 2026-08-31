@@ -1133,7 +1133,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         profile_dict[settings.UserProfile.KEY_DATASET_NAMES] = (
             list_activity_dataset_names(self.user_dir(user_id=user_id))
         )
-        security.decrypt_strava_secrets(
+        security.decrypt_profile_secrets(
             profile_dict=profile_dict,
             enc_key=self.config.encryption_key,
         )
@@ -1146,7 +1146,7 @@ class JsonUsersDataset(dataset.UserDataset, cache.MytralCacheInitializer):
         user_profile.user_id = user_profile.user_id or str(uuid.uuid4())
 
         data_dict = user_profile.to_dict()
-        security.encrypt_strava_secrets(
+        security.encrypt_profile_secrets(
             data_dict=data_dict, enc_key=self.config.encryption_key
         )
 

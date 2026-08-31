@@ -39,7 +39,7 @@ _METADATA_FILENAME = "metadata.json"
 # filenames used inside each blob directory
 _DATA_NAMES = {
     BLOB_VARIANT_NORMALIZED: {
-        # photos: normalized (EXIF-stripped, resized) bytes — the only stored photo file
+        # photos: normalized (EXIF-stripped, resized) bytes - the only stored photo file
         ".jpg": "normalized.jpg",
         ".jpeg": "normalized.jpg",
         ".png": "normalized.png",
@@ -138,6 +138,8 @@ class FilesystemBlobStore(BlobStoreAbc):
             return blobs_dir / "acoaches" / metadata.owner_key
         if metadata.kind == BlobKind.GEAR_PHOTO.value:
             return blobs_dir / "gear" / metadata.owner_key / "photos"
+        if metadata.kind == BlobKind.GEAR_ATTACHMENT.value:
+            return blobs_dir / "gear" / metadata.owner_key / "attachments"
         if metadata.kind == BlobKind.EXERCISE_PHOTO.value:
             return blobs_dir / "exercises" / metadata.owner_key / "photos"
         if metadata.kind == BlobKind.GOAL_PHOTO.value:
@@ -510,7 +512,7 @@ class FilesystemBlobStore(BlobStoreAbc):
                 f"Failed to delete blob directory '{blob_dir}': {exc}"
             ) from exc
 
-        # verify no relic remains — this check races in theory (another process could
+        # verify no relic remains - this check races in theory (another process could
         # recreate the directory between rmtree and exists()), but on PythonAnywhere's
         # single-process deployment this is a reliable post-condition assertion; accept
         # the theoretical race rather than removing the safety guard

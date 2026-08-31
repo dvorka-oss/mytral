@@ -35,10 +35,10 @@ from mytral import settings as app_settings
 
 @pytest.mark.mytral
 def test_profile_metrics_update_sets_values():
-    # GIVEN — an AthleteMetrics instance with all-zero defaults
+    # GIVEN - an AthleteMetrics instance with all-zero defaults
     metrics = app_settings.AthleteMetrics()
 
-    # WHEN — simulate what the POST handler does (convert form data to metrics)
+    # WHEN - simulate what the POST handler does (convert form data to metrics)
     metrics.max_hr = int(183)
     metrics.anaerobic_threshold_hr = int(156)
     metrics.aerobic_threshold_hr = int(131)
@@ -51,7 +51,7 @@ def test_profile_metrics_update_sets_values():
     metrics.z3_high = int(148)
     metrics.z4_high = int(164)
 
-    # THEN — all values must be stored correctly
+    # THEN - all values must be stored correctly
     assert metrics.max_hr == 183
     assert metrics.anaerobic_threshold_hr == 156
     assert metrics.aerobic_threshold_hr == 131
@@ -68,7 +68,7 @@ def test_profile_metrics_update_sets_values():
 
 @pytest.mark.mytral
 def test_profile_metrics_update_clears_values():
-    # GIVEN — metrics previously set
+    # GIVEN - metrics previously set
     metrics = app_settings.AthleteMetrics(
         max_hr=183,
         ftp=220.0,
@@ -78,7 +78,7 @@ def test_profile_metrics_update_clears_values():
         z4_high=164,
     )
 
-    # WHEN — user clears all fields (simulate setting to 0)
+    # WHEN - user clears all fields (simulate setting to 0)
     metrics.max_hr = int(0)
     metrics.ftp = float(0.0)
     metrics.z1_high = int(0)
@@ -86,7 +86,7 @@ def test_profile_metrics_update_clears_values():
     metrics.z3_high = int(0)
     metrics.z4_high = int(0)
 
-    # THEN — 0 means "not set" — estimates will take over after resolve()
+    # THEN - 0 means "not set" - estimates will take over after resolve()
     assert metrics.max_hr == 0
     assert metrics.ftp == pytest.approx(0.0)
     assert metrics.z1_high == 0
@@ -100,7 +100,7 @@ def test_profile_metrics_update_clears_values():
 
 @pytest.mark.mytral
 def test_metrics_full_round_trip():
-    # GIVEN — set metrics, serialize, deserialize, then resolve
+    # GIVEN - set metrics, serialize, deserialize, then resolve
     metrics = app_settings.AthleteMetrics(
         max_hr=183,
         anaerobic_threshold_hr=156,
@@ -108,7 +108,7 @@ def test_metrics_full_round_trip():
         ftp=220.0,
     )
 
-    # WHEN — serialize to dict (as if saving to JSON) and back
+    # WHEN - serialize to dict (as if saving to JSON) and back
     data = metrics.to_dict_persisted()
     restored = app_settings.AthleteMetrics.from_dict(data)
 
@@ -124,7 +124,7 @@ def test_metrics_full_round_trip():
         weight_kg=70.0,
     )
 
-    # THEN — set values pass through; e_* mirrors set values
+    # THEN - set values pass through; e_* mirrors set values
     assert restored.e_max_hr == 183  # set value used
     assert restored.e_anaerobic_threshold_hr == 156  # set value used
     assert restored.e_ftp == pytest.approx(220.0)  # set value used

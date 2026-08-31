@@ -356,7 +356,7 @@ def me_symptoms_scatter(
 
     # build one ColumnDataSource per symptom for clean legend entries
     year_label = "All Years" if year == 0 else str(year)
-    title = f"Symptom Health Over Time — {year_label}"
+    title = f"Symptom Health Over Time - {year_label}"
 
     width = VIEW_WIDTH_MOBILE if is_mobile_view else VIEW_WIDTH_DEFAULT
 
@@ -427,10 +427,10 @@ def me_symptoms_scatter(
         ]
         health_vals = [inj["health"] for inj in sym_injuries]
         body_parts = [
-            (inj.get("body_part") or "—").replace("_", " ").title()
+            (inj.get("body_part") or "-").replace("_", " ").title()
             for inj in sym_injuries
         ]
-        sides = [inj.get("side") or "—" for inj in sym_injuries]
+        sides = [inj.get("side") or "-" for inj in sym_injuries]
         date_strs = [d.strftime("%d %b %Y") for d in dates]
         sym_names = [_symptom_name(sym_key)] * len(dates)
 
@@ -1370,7 +1370,7 @@ def _build_ridge_chart(
                         )
                     )
 
-        # filled area under the line — y1 references a source field (required by Bokeh)
+        # filled area under the line - y1 references a source field (required by Bokeh)
         panel.varea(
             x="ts",
             y1=f"{field}_base",
@@ -1405,7 +1405,7 @@ def _build_ridge_chart(
 
         panels.append((panel, line))
 
-    # shared Span instance — all CrosshairTool instances update the same model,
+    # shared Span instance - all CrosshairTool instances update the same model,
     # so hovering any swimlane draws the vertical line across every panel
     shared_vspan = bokeh_models.Span(
         dimension="height",
@@ -1414,7 +1414,7 @@ def _build_ridge_chart(
         line_width=1,
     )
 
-    # all-channel tooltip shown by every panel — uses shared ColumnDataSource
+    # all-channel tooltip shown by every panel - uses shared ColumnDataSource
     all_tooltips = [("Time", "@ts{%H:%M:%S}")]
     for f, _r, lbl, u, _ in channels:
         all_tooltips.append((lbl, f"@{f} {u}"))
@@ -1432,7 +1432,7 @@ def _build_ridge_chart(
 
     panel_figs = [p for p, _ in panels]
 
-    # mini range-selector (hr line only) — shows full activity, box = current viewport
+    # mini range-selector (hr line only) - shows full activity, box = current viewport
     select = bokeh_plt.figure(
         title="Drag the selection box to zoom the chart above",
         height=110,
@@ -1602,7 +1602,7 @@ def _build_hr_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Heart Rate Zones — {time_str}",
+        title=f"Time in Heart Rate Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -1807,7 +1807,7 @@ def _build_power_zones_chart(
         sizing_mode="stretch_width",
         tools="save",
         toolbar_location="above",
-        title=f"Time in Power Zones — {time_str}",
+        title=f"Time in Power Zones - {time_str}",
     )
     fig.toolbar.logo = None
 
@@ -2280,7 +2280,7 @@ def activity_fit_charts(
     tuple[tuple | None, ...] (9 elements)
         ``(overlay, ridge, hr_zones, cadence_hist, power_zones, power_curve,
            power_ts, hr_ts, speed_cadence_ts)``
-        — each element is either ``(script, div)`` or ``None`` when the
+        - each element is either ``(script, div)`` or ``None`` when the
         recording has no usable samples or the required data is unavailable.
     """
     if not recording.timestamps:
@@ -3442,7 +3442,7 @@ def trimp_composite(
     )
 
     fig = bokeh_plt.figure(
-        title="Training Impulse (TRIMP) — Daily Load and Balance",
+        title="Training Impulse (TRIMP) - Daily Load and Balance",
         x_axis_type="datetime",
         x_axis_label="Date",
         y_axis_label="TRIMP points",
@@ -4608,6 +4608,77 @@ def activities_histograms(
     }
 
 
+def gear_weekly_usage_histogram(
+    gear_activities: list[entities.ActivityEntity],
+) -> tuple[str, Any] | None:
+    """Build a histogram of gear usage per calendar week, merged across all years.
+
+    x: ISO week of year (1-52)
+    y: number of activities using this gear in that week, summed over every
+    year the gear has been used - showing the gear's seasonal usage pattern.
+
+    Parameters
+    ----------
+    gear_activities : list[entities.ActivityEntity]
+        Activities that used this gear (see ``dataset.activities_for_gear``).
+
+    Returns
+    -------
+    tuple[str, Any] | None
+        ``(script, div)`` Bokeh embed components, or ``None`` when there is no
+        usage data to plot.
+    """
+    week_counts = [0] * commons.WEEKS_PER_YEAR
+    for activity in gear_activities:
+        when_raw = getattr(activity, "when", "") or ""
+        if not when_raw:
+            continue
+        try:
+            when_date = datetime.date.fromisoformat(when_raw[:10])
+        except ValueError:
+            continue
+        week = min(when_date.isocalendar()[1], commons.WEEKS_PER_YEAR)
+        week_counts[week - 1] += 1
+
+    if not any(week_counts):
+        return None
+
+    weeks = list(range(1, commons.WEEKS_PER_YEAR + 1))
+    source = ColumnDataSource(data=dict(week=weeks, count=week_counts))
+
+    fig = bokeh_plt.figure(
+        height=320,
+        sizing_mode="stretch_width",
+        tools="save",
+        toolbar_location="above",
+        title="Usage per week (all years)",
+    )
+    fig.toolbar.logo = None
+
+    fig.vbar(
+        x="week",
+        top="count",
+        width=0.9,
+        source=source,
+        color="#206bc4",
+        alpha=0.85,
+        line_color="white",
+    )
+
+    fig.add_tools(
+        bokeh_models.HoverTool(tooltips=[("Week", "@week"), ("Activities", "@count")])
+    )
+
+    fig.xaxis.axis_label = "Week of year"
+    fig.yaxis.axis_label = "Activities"
+    fig.y_range.start = 0
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = "#e9ecef"
+    fig.outline_line_color = None
+
+    return bokeh_embed.components(fig)
+
+
 def goals_eisenhower_matrix(
     goals: settings.UserGoals,
     activity_types: settings.UserActivityTypes,
@@ -4856,7 +4927,7 @@ def weekday_activity_heatmap(
         width=width,
         height=cell_height * len(sports) + 120,
         toolbar_location="below",
-        title="Activity Frequency Heatmap — Weekday × Sport",
+        title="Activity Frequency Heatmap - Weekday × Sport",
     )
     fig.sizing_mode = "scale_width"
     fig.toolbar.logo = None

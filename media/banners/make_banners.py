@@ -10,8 +10,8 @@ W, H = 2160, 720
 FONT_BOLD = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
 FONT_REG = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
 FONT_MONO = "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf"
-IMG = "/home/dvorka/p/mytral/git/mytral/webs/www.mytral.fitness/images/"
-ROOT = "/home/dvorka/p/mytral/git/mytral/webs/www.mytral.fitness/"
+IMG = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/images/"
+ROOT = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/"
 OUT = "/home/dvorka/p/mytral/git/mytral/media/banners/"
 
 MAX_BYTES = 2 * 1024 * 1024
@@ -76,7 +76,7 @@ def save(canvas, name):
         print(f"  {name}.png  {sz//1024} KB")
 
 #
-# Banner: Train Smarter — athletic, purple-to-crimson, radar science
+# Banner: Train Smarter - athletic, purple-to-crimson, radar science
 #
 def banner3_train_smarter():
     canvas = hgrad3((14, 10, 44), (48, 14, 84), (128, 24, 44))
@@ -123,7 +123,7 @@ def banner3_train_smarter():
 
     # orange divider line
     draw.rectangle([(88, 518), (690, 522)], fill=(251, 115, 22, 180))
-    t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (178, 138, 220, 168))
+    t(draw, "mytral.mindforger.com", 93, 535, FONT_REG, 25, (178, 138, 220, 168))
 
     save(canvas, "banner-train-smarter-purple")
 
@@ -184,17 +184,20 @@ def banner3_train_smarter_web():
     canvas.paste(logo, (88, 50), logo)
     draw = ImageDraw.Draw(canvas)
 
-    # white headline, primary-blue second line — mirrors hero gradient direction
-    t(draw, "Train Smarter.", 88, 158, FONT_BOLD, 100, (255, 255, 255, 255))
-    t(draw, "Not Just Harder", 90, 270, FONT_BOLD, 100, (14, 165, 233, 255))
+    # white headline, primary-blue second line - mirrors hero gradient direction
+    t(draw, "MyTraL", 88, 158, FONT_BOLD, 100, (255, 255, 255, 255))
+    # t(draw, "", 90, 270, FONT_BOLD, 100, (14, 165, 233, 255))
+    t(draw, "Sovereign athlete training log", 90, 270, FONT_REG, 32, (203, 213, 225, 215))
 
     # --light-gray #cbd5e1 subtitle
-    t(draw, "Sovereign athlete training log", 93, 404, FONT_REG, 32, (203, 213, 225, 215))
-    t(draw, "for deeper insights & smarter progress", 93, 448, FONT_REG, 32, (203, 213, 225, 215))
+    #t(draw, "Sovereign athlete training log", 93, 404, FONT_REG, 32, (203, 213, 225, 215))
+    #t(draw, "", 93, 448, FONT_REG, 32, (203, 213, 225, 215))
 
     # primary-blue divider, --gray #64748b url
-    draw.rectangle([(88, 518), (690, 522)], fill=(14, 165, 233, 180))
-    t(draw, "mytral.fitness", 93, 535, FONT_REG, 25, (100, 116, 139, 168))
+    #draw.rectangle([(88, 518), (690, 522)], fill=(14, 165, 233, 180))
+    #t(draw, "mytral.mindforger.com", 93, 535, FONT_REG, 25, (100, 116, 139, 168))
+    draw.rectangle([(88, 330), (690, 334)], fill=(14, 165, 233, 180))
+    t(draw, "mytral.mindforger.com", 93, 350, FONT_REG, 25, (100, 116, 139, 168))
 
     save(canvas, "banner-train-smarter")
 

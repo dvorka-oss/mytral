@@ -77,6 +77,7 @@ $MYTRAL_DATA_DIR/data/[user UUID]/
 
 from mytral.blobstore.abc import BlobStoreAbc
 from mytral.blobstore.avatar_service import AvatarBlobService
+from mytral.blobstore.entity_document_service import EntityDocumentService
 from mytral.blobstore.entity_photo_service import EntityPhotoService
 from mytral.blobstore.exceptions import BlobConfigurationError
 from mytral.blobstore.exceptions import BlobConflictError
@@ -162,5 +163,6 @@ __all__ = [
     "BLOB_VARIANT_NORMALIZED",
     "BLOB_VARIANT_THUMBNAIL",
     "EntityPhotoService",
+    "EntityDocumentService",
     "create_blobstore",
 ]

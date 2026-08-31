@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Validate the built www.mytral.fitness site before deploying (make www-check).
+Validate the built mytral.mindforger.com site before deploying (make www-check).
 
 Exits non-zero if any error is found, so it can gate a release. Checks:
   - every indexable HTML page has title, meta description, canonical, og:title,
@@ -23,8 +23,8 @@ import defusedxml.ElementTree as ElementTree
 from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-WWW = REPO_ROOT / "webs" / "www.mytral.fitness"
-SITE_BASE = "https://mytral.fitness"
+WWW = REPO_ROOT / "webs" / "mytral.mindforger.com"
+SITE_BASE = "https://mytral.mindforger.com"
 
 # required meta on every indexable page: label -> detection regex
 REQUIRED_META = {

@@ -8,7 +8,7 @@ Package identity:
 |---|---|
 | **Package identifier** | `Mytral.Mytral` |
 | **Publisher** | Martin Dvorak |
-| **Publisher URL** | https://mytral.fitness |
+| **Publisher URL** | https://mytral.mindforger.com |
 | **License** | AGPL-3.0 |
 | **AppId (Inno Setup)** | `{C3D7F241-8B5E-4A29-9F6D-E1B02A4C7853}` (keep unchanged across releases) |
 
@@ -22,7 +22,7 @@ releases:
 1. **Fork `microsoft/winget-pkgs`** on GitHub and clone the fork locally.
 ```
 # fork at: https://github.com/microsoft/winget-pkgs
-git clone git@github.com:dvorka-oss/winget-pkgs.git C:\Users\dvorka\p\mytral\git\winget-pkgs
+git clone git@github.com:dvorka/winget-pkgs.git C:\Users\dvorka\p\mytral\git\winget-pkgs
 ```
 Set `WINGET_PKGS_DIR` in your environment in UI
 (This Computer/Properties/System Properties/Advanced/Environment Variables/User) or with CLI:

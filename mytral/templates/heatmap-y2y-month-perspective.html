@@ -18,10 +18,35 @@
     <div class="card mt-3 mb-3">
         <div class="card-body">
             <p class="text-muted">
-                Compare your activities distance and duration in the same month of different years. This will help you to understand how your activities have changed over the years.
+                Compare your activities distance, duration and elevation gain in the
+                same month of different years. Current year achievements are compared
+                to the same month of the previous years. If the color is green, you are
+                ahead of the previous years, if it is red, you are behind.
             </p>
         </div>
     </div>
+
+    {% if years %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('y2y_month_perspective') }}">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Activity type</label>
+                        <select class="form-select" name="activity_type" onchange="this.form.submit()">
+                            <option value="">All</option>
+                            {% for s in available_activity_types %}
+                                <option value="{{ s }}" {% if s == filter_activity_type %}selected{% endif %}>
+                                    {{ activity_types.name(s) }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 
     {% if years %}
     <div class="card pt-3 pb-3 px-3">
@@ -40,13 +65,14 @@
                         <tr>
                             <td><strong>{{ year }}</strong></td>
                             {% for month in data %}
-                                {% set d = data[month].get(year,[0.0,"", ""]) %}
+                                {% set d = data[month].get(year,[0.0,"", "", 0]) %}
                                 {% if not d[2] %}
                                     <td>...</td>
                                 {% else %}
                                     <td class="text-center" style="background-color: {{ d[2] }};">
                                         {{ d[0] }} km<br/>
-                                        {{ format_duration(d[1]) }}
+                                        {{ format_duration(d[1]) }}<br/>
+                                        {{ "{:,}".format(d[3]) }} m
                                     </td>
                                 {% endif %}
                             {% endfor %}

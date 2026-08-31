@@ -7,6 +7,6 @@ Exec=@@EXEC_PATH@@
 Icon=mytral
 Terminal=false
 Categories=Sports;Utility;
-Keywords=training;fitness;sports;log;
+Keywords=training;sports;log;
 StartupWMClass=MyTraL
 X-AppVersion=@@MYTRAL_VERSION@@
