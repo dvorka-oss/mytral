@@ -1169,7 +1169,10 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            /* behind every box (.group is position:relative with no z-index of
+               its own, i.e. stacks at 0) so a path never overlaps box content
+               when responsive reflow crowds the layout */
+            z-index: -1;
             overflow: visible;
         }
 
