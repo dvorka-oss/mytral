@@ -1,6 +1,24 @@
 # Changelog
 
-## [1.60.0](https://github.com/dvorka/mytral/compare/v1.59.0...HEAD)
+## [1.61.0](https://github.com/dvorka/mytral/compare/v1.60.0...HEAD)
+
+This MyTraL **minor** release brings:
+
+### Added
+- .
+
+### Changed
+- .
+
+### Fixed
+- .
+
+### Documentation
+- .
+
+
+
+## [1.60.0](https://github.com/dvorka/mytral/compare/v1.59.0...v1.60.0)
 
 This MyTraL **minor** release brings:
 
