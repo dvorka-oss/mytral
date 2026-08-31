@@ -1524,6 +1524,35 @@
             letter-spacing: 0.04em;
         }
 
+        .ov-diagram .badge-file {
+            /* compact version of the .filetype-box dog-ear, sized for an
+               inline badge instead of a grid cell */
+            --ov-dogear: 0.4rem;
+            position: relative;
+            display: inline-flex;
+        }
+
+        .ov-diagram .badge-file-label {
+            display: inline-block;
+            font-size: 0.68rem;
+            border: 1px solid var(--ov-border);
+            color: var(--ov-light-gray);
+            padding: 0.2rem calc(var(--ov-dogear) + 0.4rem) 0.2rem 0.55rem;
+            letter-spacing: 0.04em;
+            clip-path: polygon(0 0, calc(100% - var(--ov-dogear)) 0, 100% var(--ov-dogear), 100% 100%, 0 100%);
+        }
+
+        .ov-diagram .badge-file-fold {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 var(--ov-dogear) var(--ov-dogear) 0;
+            border-color: transparent var(--ov-brand) transparent transparent;
+        }
+
         .ov-diagram .activity-type-row {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -1531,16 +1560,19 @@
         }
 
         .ov-diagram .activity-chip {
-            border: 1px solid var(--ov-border);
-            background: var(--ov-card-bg);
-            border-radius: 0.4rem;
-            padding: 0.65rem 0.5rem;
+            /* same dark-fill + glowing pipe-blue border/text as the flowing
+               "A" packet badges, so it reads as "this is that same activity" */
+            border: 1px solid var(--ov-pipe-active);
+            background: var(--ov-darker);
+            border-radius: 0.3rem;
+            padding: 0.35rem 0.5rem;
             font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.03em;
             text-transform: uppercase;
             text-align: center;
-            color: var(--ov-text);
+            color: var(--ov-pipe-active);
+            box-shadow: 0 0 5px rgba(56, 189, 248, 0.45);
         }
 
         .ov-diagram .activities-divider {
@@ -1788,7 +1820,7 @@
                             <span class="node-legend">strava&reg;</span>
                             <div class="badge-row">
                                 <span class="badge">API</span>
-                                <span class="badge">zip</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">zip</span></span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-polar"
@@ -1797,7 +1829,7 @@
                             <span class="node-legend">polar&reg;</span>
                             <div class="badge-row">
                                 <span class="badge">API</span>
-                                <span class="badge">zip</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">zip</span></span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-fit"
@@ -1805,7 +1837,7 @@
                                 data-detail="Garmin / Wahoo *.fit recordings, parsed sample by sample.">
                             <span class="node-legend">FIT</span>
                             <div class="badge-row">
-                                <span class="badge">file</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-gpx"
@@ -1813,7 +1845,7 @@
                                 data-detail="GPS track *.gpx files - route, elevation, pace.">
                             <span class="node-legend">GPX</span>
                             <div class="badge-row">
-                                <span class="badge">file</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-tcx"
@@ -1821,7 +1853,7 @@
                                 data-detail="Training Center XML *.tcx recordings.">
                             <span class="node-legend">TCX</span>
                             <div class="badge-row">
-                                <span class="badge">file</span>
+                                <span class="badge-file"><span class="badge-file-fold" aria-hidden="true"></span><span class="badge-file-label">file</span></span>
                             </div>
                         </button>
                         <button type="button" class="node" id="node-manual"
@@ -1921,7 +1953,7 @@
                                 <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.json</span></div>
                                 <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.parquet</span></div>
                                 <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.gpx</span></div>
-                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.png</span></div>
+                                <div class="filetype-box"><span class="filetype-fold" aria-hidden="true"></span><span class="filetype-label">.jpg</span></div>
                             </div>
                         </button>
 
@@ -2022,7 +2054,7 @@
                             </div>
                             <div class="platform-box">
                                 <div class="node-label">Windows&reg;</div>
-                                winget, MSI, EXE, Python
+                                winget, MSI, .exe, Python
                             </div>
                             <div class="platform-box">
                                 <div class="node-label">macOS&reg;</div>
