@@ -157,7 +157,7 @@ def generate_sidebar_nav_html(sections: list[NavSection], active_page: str = "")
         <div class="nav-brand header-links">
                 <img src="../mytral-logo.png" alt="MyTraL" class="nav-logo">
                 <a href="../index.html" target="_blank">
-                    <span class="nav-brand-text">MyTraL Docs</span>
+                    <span class="nav-brand-text">MyTraL Doc</span>
                 </a>
         </div>
         <div class="nav-items">
