@@ -5,7 +5,11 @@
 This MyTraL **minor** release brings:
 
 ### Added
-- .
+- Added a 3D terrain viewer for activities with GPX recordings: the GPS track is
+  draped over real SRTM elevation terrain (NASA/CGIAR, ~90 m) and textured with
+  OpenStreetMap or MapTiler map tiles, rendered in the browser with Babylon.js
+  (vendored locally so it works offline). Reachable from an activity via a "View 3D
+  terrain" button and gated behind the `MYTRAL_FF_GPX_3D_MAP` feature flag.
 
 ### Changed
 - .

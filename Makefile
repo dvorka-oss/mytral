@@ -298,6 +298,7 @@ run-dev: .venv ## run MyTraL server on Windows w/ DEV data (Win)
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_ACOACHES=true \
+	MYTRAL_FF_GPX_3D_MAP=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \
@@ -313,6 +314,7 @@ run-dev: .venv ## run MyTraL server on Linux w/ DEV data (Linux)
 	MYTRAL_DEBUG=true \
 	MYTRAL_ENABLE_CACHE=true \
 	MYTRAL_FF_ACOACHES=true \
+	MYTRAL_FF_GPX_3D_MAP=true \
 	MYTRAL_FF_GSHEETS_DVORKA_IMPORT=true \
 	MYTRAL_FF_IRM3D=true \
 	MYTRAL_FF_STRAVA_API_IMPORT=true \

@@ -46,6 +46,7 @@ dependencies = [
   "flask~=3.1",
   "markdown~=3.10",
   "msgpack~=1.2",
+  "numpy~=2.2",
   "openai~=2.29",
   "polars~=1.30",
   "polyline~=2.0",
@@ -53,6 +54,7 @@ dependencies = [
   "rdp~=0.8",
   "requests~=2.32",
   "structlog~=25.5",
+  "srtm.py~=0.3.7",
   "wtforms~=3.2",
 ]
 
