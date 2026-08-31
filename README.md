@@ -20,7 +20,7 @@ third-party advertisers? Do you believe that **privacy is your right**, not a pr
 Would you like to own your sport data again to see all the workouts you've done over the
 years in one single application on your desktop?
 
-**MyTraL** is a personal sovereign athlete training log.
+**MyTraL** is a personal training log.
 
 https://mytral.mindforger.com
 
@@ -30,16 +30,21 @@ Every day, people lose access to accounts containing years of personal data - ba
 without explanation, locked out without recourse, legal terms changed without notice.
 Let your data live on your machine, under your control. Always accessible, always yours.
 Your log, your data, your edge. Track, analyze, understand, and optimize to achieve your
-goals with **MyTraL**.
+goals with MyTraL.
 
 
 
 ## The Story of MyTraL
+
 MyTraL was born from a simple need - to track my own training progress with more depth and insight than existing solutions offer.
 The data from my sports diaries tells the story of my life as a formerly competitive, now recreational athlete.
 In this project, I'm building and documenting the software chain to digitize and normalize 30+ years of diverse training logs I have used over the years - from paper (official performance sports center diaries and my personal notebooks) and spreadsheets to third-party online and desktop tools, Concept2 ranking, all the way to social fitness networks.
 What will I learn from the data? I can't wait! What about you?
+
+
+
 ## Manifesto
+
 **No Silver Bullets**
 
 Track your activities day by day, week by week, month by month, year by year. There are no silver bullets and no shortcuts - just consistent effort over time.
@@ -61,6 +66,9 @@ From the transparent development process to underlying algorithms, everything is
 **Open Data Formats**
 
 Your training history is a lifetime asset that deserves to stand the test of time. MyTraL stores your progress using transparent, human-friendly open data format standards, ensuring your records remain accessible and readable forever. By avoiding "black box" storage, it guarantees the freedom to move your history anywhere or plug it into other tools. You can run your own post-processing scripts, build personal machine learning models to predict whatever you need, or visualize your progress in ways that fit your specific needs.
+
+
+
 ## Installation
 
 Install:
