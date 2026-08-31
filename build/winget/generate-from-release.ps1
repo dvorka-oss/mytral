@@ -38,7 +38,7 @@ $InstallerUrl  = "https://github.com/$GithubOrg/$GithubRepo/releases/download/v$
 
 # winget manifest schema version - keep the ManifestVersion fields and the
 # yaml-language-server schema URLs in sync by deriving both from this value
-$ManifestVersion = "1.6.0"
+$ManifestVersion = "1.12.0"
 $SchemaBaseUrl   = "https://aka.ms/winget-manifest"
 
 # -- Step 1: download and hash --------------------------------------------------
