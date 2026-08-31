@@ -8,7 +8,7 @@
 
 <!-- [![All releases downloads](https://img.shields.io/github/downloads/dvorka/mytral/total.svg)](https://github.com/dvorka/mytral/releases) -->
 <!-- [![Snap](https://img.shields.io/badge/Snap-Available-green?style=flat&logo=snapcraft)](https://snapcraft.io/mytral) -->
-<!-- [![Flathub](https://img.shields.io/flathub/v/mytral.Mytral)](https://flathub.org/apps/mytral.Mytral) -->
+<!-- [![Flathub](https://img.shields.io/flathub/v/com.mindforger.Mytral)](https://flathub.org/apps/com.mindforger.Mytral) -->
 
 Are your sports data scattered across the services and systems you’ve used over the
 years - FIT, GPX, TCX files, Strava™, Garmin™, Polar™, Concept2™, Microsoft™ Excel™ or

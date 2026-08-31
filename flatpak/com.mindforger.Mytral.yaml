@@ -2,9 +2,9 @@
 #
 # Build:   make distro-flatpak-build
 # Install: flatpak install --user ./distro/flatpak/mytral-<version>.flatpak
-# Run:     flatpak run fitness.mytral.Mytral
+# Run:     flatpak run com.mindforger.Mytral
 #
-app-id: fitness.mytral.Mytral
+app-id: com.mindforger.Mytral
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'  # Python 3.12 ~ pyproject.toml pin
 sdk: org.freedesktop.Sdk
@@ -34,9 +34,9 @@ modules:
       # install MyTraL only w/o flaskwebgui
       - pip3 install --prefix=${FLATPAK_DEST} .
       - install -Dm755 build/flatpak/mytral-flatpak-launcher ${FLATPAK_DEST}/bin/mytral-flatpak-launcher
-      - install -Dm644 flatpak/fitness.mytral.Mytral.desktop ${FLATPAK_DEST}/share/applications/fitness.mytral.Mytral.desktop
-      - install -Dm644 flatpak/fitness.mytral.Mytral.metainfo.xml ${FLATPAK_DEST}/share/metainfo/fitness.mytral.Mytral.metainfo.xml
-      - install -Dm644 flatpak/fitness.mytral.Mytral.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/fitness.mytral.Mytral.png
+      - install -Dm644 flatpak/com.mindforger.Mytral.desktop ${FLATPAK_DEST}/share/applications/com.mindforger.Mytral.desktop
+      - install -Dm644 flatpak/com.mindforger.Mytral.metainfo.xml ${FLATPAK_DEST}/share/metainfo/com.mindforger.Mytral.metainfo.xml
+      - install -Dm644 flatpak/com.mindforger.Mytral.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/com.mindforger.Mytral.png
     sources:
       - type: dir
         path: ..

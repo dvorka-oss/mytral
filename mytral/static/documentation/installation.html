@@ -283,7 +283,7 @@ its SHA256 checksum and installs MyTraL to <code>C:\Program Files\MyTraL\</code>
 <p>Run the installer:</p>
 <div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;-setup.exe
 
-# example: mytral-1.54.0-setup.exe
+# example: mytral-1.60.0-setup.exe
 </code></pre></div>
 
 <p>The installer places MyTraL in <code>C:\Program Files\MyTraL\</code> and optionally creates a
@@ -305,7 +305,7 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 <p>Start MyTraL:</p>
 <div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;.exe
 
-# example: mytral-1.51.0.exe
+# example: mytral-1.60.0.exe
 </code></pre></div>
 
 </div></div><div id="overview" class="card mb-3"><div class="card-body"><h2 id="install-on-macos-using-dmg">Install on macOS using DMG</h2>
@@ -316,7 +316,7 @@ Desktop shortcut. It includes an uninstaller registered in Windows <code>Apps &a
 <p>Open the disk image and drag <code>MyTraL.app</code> to <code>Applications</code>:</p>
 <div class="codehilite"><pre><span></span><code>mytral-&lt;version&gt;.dmg
 
-# example: mytral-1.58.0.dmg
+# example: mytral-1.60.0.dmg
 </code></pre></div>
 
 <p>This build is <strong>Apple Silicon (arm64) only</strong> and is <strong>not code-signed or
@@ -381,8 +381,8 @@ the Snap Store - you install the downloaded <code>.snap</code> file directly.</p
 (see <a href="#install-on-linux-using-snap-from-snap-store">Install on Linux using Snap from Snap Store</a>).</p>
 <p>Download <code>mytral_&lt;version&gt;_amd64.snap</code> from the latest <a href="https://github.com/dvorka/mytral/releases">GitHub release</a>,
 then install it with the <code>--dangerous</code> (unsigned, sideloaded) and <code>--classic</code> flags:</p>
-<div class="codehilite"><pre><span></span><code><span class="c1"># example: mytral_1.57.0_amd64.snap</span>
-sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>--dangerous<span class="w"> </span>--classic<span class="w"> </span>./mytral_1.57.0_amd64.snap
+<div class="codehilite"><pre><span></span><code><span class="c1"># example: mytral_1.60.0_amd64.snap</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>--dangerous<span class="w"> </span>--classic<span class="w"> </span>./mytral_1.60.0_amd64.snap
 </code></pre></div>
 
 <p>Start MyTraL from the application menu or run:</p>
@@ -436,7 +436,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <p>Install the local bundle from <a href="https://github.com/dvorka/mytral/releases">GitHub Releases</a>:</p>
 <div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>./mytral-&lt;version&gt;.flatpak
 
-<span class="c1"># example: flatpak install --user ./mytral-1.56.0.flatpak</span>
+<span class="c1"># example: flatpak install --user ./mytral-1.60.0.flatpak</span>
 </code></pre></div>
 
 <p>The bundle is self-contained:</p>
@@ -448,7 +448,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
   command above.</li>
 </ul>
 <p>Start MyTraL from the application menu or run:</p>
-<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>mytral.Mytral
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>com.mindforger.Mytral
 </code></pre></div>
 
 <p>MyTraL starts a local server and opens its UI in <strong>your default browser</strong>.</p>
@@ -461,11 +461,11 @@ other MyTraL installation (binary/PPA/Snap/*) and survives uninstalling the Flat
 </code></pre></div>
 
 <p><strong>Upgrade:</strong></p>
-<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>update<span class="w"> </span>mytral.Mytral
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>update<span class="w"> </span>com.mindforger.Mytral
 </code></pre></div>
 
 <p><strong>Uninstall:</strong></p>
-<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>uninstall<span class="w"> </span>mytral.Mytral
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>uninstall<span class="w"> </span>com.mindforger.Mytral
 </code></pre></div>
 
 <p>Your data in <code>~/.local/share/mytral/</code> is <strong>not</strong> removed by uninstalling - delete
@@ -494,7 +494,7 @@ that directory manually if you want to remove it.</p>
 <div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro/desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./mytral-&lt;version&gt;
 
 <span class="c1"># example:</span>
-<span class="c1"># cd distro/desktop &amp;&amp; ./mytral-1.51.0</span>
+<span class="c1"># cd distro/desktop &amp;&amp; ./mytral-1.60.0</span>
 </code></pre></div>
 
 <p>Start using MyTraL:</p>
@@ -583,7 +583,7 @@ flatpak<span class="w"> </span>install<span class="w"> </span>--user<span class=
 </code></pre></div>
 
 <p>Run MyTraL:</p>
-<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>mytral.Mytral
+<div class="codehilite"><pre><span></span><code>flatpak<span class="w"> </span>run<span class="w"> </span>com.mindforger.Mytral
 </code></pre></div>
 
 <p><strong>Clean Flatpak artifacts:</strong></p>
@@ -705,7 +705,7 @@ with macOS - no extra tools to install). Must run on macOS; produces an
 <p>Run MyTraL desktop application:</p>
 <div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>distro<span class="se">\d</span>esktop
 
-<span class="c1"># example: mytral-1.51.0.exe</span>
+<span class="c1"># example: mytral-1.60.0.exe</span>
 mytral-&lt;version&gt;.exe
 </code></pre></div>
 

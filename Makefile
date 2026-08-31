@@ -731,7 +731,7 @@ distro-flatpak-path: ## show path to built Flatpak bundle
 .PHONY: distro-flatpak-remove
 distro-flatpak-remove: ## remove locally installed Flatpak
 	@echo "Removing Flatpak..."
-	flatpak uninstall --user -y mytral.Mytral || true
+	flatpak uninstall --user -y com.mindforger.Mytral || true
 	@echo "DONE Flatpak removed"
 
 .PHONY: distro-flatpak-install
@@ -743,7 +743,7 @@ distro-flatpak-install: distro-flatpak-build ## build and install Flatpak locall
 		exit 1; \
 	fi; \
 	flatpak install --user --reinstall -y "$$BUNDLE"; \
-	echo "DONE Flatpak installed. Run with: flatpak run mytral.Mytral"
+	echo "DONE Flatpak installed. Run with: flatpak run com.mindforger.Mytral"
 
 #
 # DOCUMENTATION

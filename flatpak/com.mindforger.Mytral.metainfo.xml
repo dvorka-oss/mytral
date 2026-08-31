@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>fitness.mytral.Mytral</id>
+  <id>com.mindforger.Mytral</id>
   <name>MyTraL</name>
   <summary>Sovereign athlete training log - train smarter, not harder</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>AGPL-3.0-or-later</project_license>
-  <developer id="fitness.mytral">
+  <developer id="com.mindforger">
     <name>Martin Dvorak</name>
   </developer>
   <description>
@@ -28,7 +28,7 @@
       MyTraL puts your data back in your hands.
     </p>
   </description>
-  <launchable type="desktop-id">mytral.Mytral.desktop</launchable>
+  <launchable type="desktop-id">com.mindforger.Mytral.desktop</launchable>
   <url type="homepage">https://mytral.mindforger.com</url>
   <url type="bugtracker">https://github.com/dvorka/mytral/issues</url>
   <url type="vcs-browser">https://github.com/dvorka/mytral</url>
@@ -47,6 +47,6 @@
     </screenshot>
   </screenshots>
   <releases>
-    <release version="1.56.0" date="2026-06-26"/>
+    <release version="1.60.0" date="2026-06-26"/>
   </releases>
 </component>

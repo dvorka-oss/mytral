@@ -104,7 +104,7 @@ Run the installer:
 ```
 mytral-<version>-setup.exe
 
-# example: mytral-1.54.0-setup.exe
+# example: mytral-1.60.0-setup.exe
 ```
 
 The installer places MyTraL in `C:\Program Files\MyTraL\` and optionally creates a
@@ -136,7 +136,7 @@ Start MyTraL:
 ```
 mytral-<version>.exe
 
-# example: mytral-1.51.0.exe
+# example: mytral-1.60.0.exe
 ```
 
 
@@ -152,7 +152,7 @@ Open the disk image and drag `MyTraL.app` to `Applications`:
 ```
 mytral-<version>.dmg
 
-# example: mytral-1.58.0.dmg
+# example: mytral-1.60.0.dmg
 ```
 
 This build is **Apple Silicon (arm64) only** and is **not code-signed or
@@ -247,8 +247,8 @@ Download `mytral_<version>_amd64.snap` from the latest [GitHub release](https://
 then install it with the `--dangerous` (unsigned, sideloaded) and `--classic` flags:
 
 ```bash
-# example: mytral_1.57.0_amd64.snap
-sudo snap install --dangerous --classic ./mytral_1.57.0_amd64.snap
+# example: mytral_1.60.0_amd64.snap
+sudo snap install --dangerous --classic ./mytral_1.60.0_amd64.snap
 ```
 
 Start MyTraL from the application menu or run:
@@ -325,7 +325,7 @@ Install the local bundle from [GitHub Releases](https://github.com/dvorka/mytral
 ```bash
 flatpak install --user ./mytral-<version>.flatpak
 
-# example: flatpak install --user ./mytral-1.56.0.flatpak
+# example: flatpak install --user ./mytral-1.60.0.flatpak
 ```
 
 The bundle is self-contained:
@@ -339,7 +339,7 @@ The bundle is self-contained:
 Start MyTraL from the application menu or run:
 
 ```bash
-flatpak run mytral.Mytral
+flatpak run com.mindforger.Mytral
 ```
 
 MyTraL starts a local server and opens its UI in **your default browser**.
@@ -358,13 +358,13 @@ other MyTraL installation (binary/PPA/Snap/*) and survives uninstalling the Flat
 **Upgrade:**
 
 ```bash
-flatpak update mytral.Mytral
+flatpak update com.mindforger.Mytral
 ```
 
 **Uninstall:**
 
 ```bash
-flatpak uninstall mytral.Mytral
+flatpak uninstall com.mindforger.Mytral
 ```
 
 Your data in `~/.local/share/mytral/` is **not** removed by uninstalling - delete
@@ -411,7 +411,7 @@ Run MyTraL desktop application:
 cd distro/desktop && ./mytral-<version>
 
 # example:
-# cd distro/desktop && ./mytral-1.51.0
+# cd distro/desktop && ./mytral-1.60.0
 ```
 
 Start using MyTraL:
@@ -547,7 +547,7 @@ make distro-flatpak-install
 Run MyTraL:
 
 ```bash
-flatpak run mytral.Mytral
+flatpak run com.mindforger.Mytral
 ```
 
 **Clean Flatpak artifacts:**
@@ -714,7 +714,7 @@ Run MyTraL desktop application:
 ```bash
 cd distro\desktop
 
-# example: mytral-1.51.0.exe
+# example: mytral-1.60.0.exe
 mytral-<version>.exe
 ```
 

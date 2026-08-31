@@ -33,7 +33,7 @@ This MyTraL **minor** release brings:
   the reorder buttons no longer wrap on narrow screens.
 - Cancelled mytral.fitness domain & hosting:
     - web moved to my https://projects.mindforger.com/mytral
-    - Flatpak qualified name changed from `fitness.mytral.Mytral` to `mytral.Mytral`
+    - Flatpak qualified name changed from `fitness.mytral.Mytral` to `com.mindforger.Mytral`
 - Moved GitHub repository from `dvorka-oss` organization back to the personal `dvorka`
   profile.
 
