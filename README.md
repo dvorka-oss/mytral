@@ -104,12 +104,6 @@ Tarball:
 
 
 
-## Contribute
-
-Contribute! See [CONTRIBUTE.md](./CONTRIBUTE.md). Don't hesitate to contact me - I will be happy to talk!
-
-
-
 ## Bugs and Feature Requests
 
 https://github.com/dvorka/mytral/issues
