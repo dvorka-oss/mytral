@@ -1690,32 +1690,10 @@
         }
 
         @media (max-width: 640px) {
-            .ov-diagram .ui-columns {
-                grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
-            }
-            .ov-diagram .row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .ov-diagram .activity-type-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .ov-diagram .connectors {
+            /* too dense to be legible on a phone screen - the feature list
+               below already covers the same ground in readable prose */
+            .ov-diagram {
                 display: none;
-            }
-            .ov-diagram .group--mytral,
-            .ov-diagram .group--ui,
-            .ov-diagram .group--import,
-            .ov-diagram .group--activities,
-            .ov-diagram .group--export,
-            .ov-diagram .group--desktop {
-                max-width: 100%;
-            }
-            .ov-diagram .pipeline-row {
-                flex-direction: column;
-                gap: 0.6rem;
-            }
-            .ov-diagram .platform-columns {
-                grid-template-columns: 1fr;
             }
         }
 

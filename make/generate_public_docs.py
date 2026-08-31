@@ -153,7 +153,7 @@ def generate_sidebar_nav_html(sections: list[NavSection], active_page: str = "")
 
     nav_html = '\n'.join(nav_items)
 
-    return f'''<nav class="docs-nav">
+    return f'''<nav class="docs-nav" id="docs-nav">
         <div class="nav-brand header-links">
                 <img src="../mytral-logo.png" alt="MyTraL" class="nav-logo">
                 <a href="../index.html" target="_blank">
@@ -414,6 +414,41 @@ def get_html_template() -> str:
             margin: 0.5rem 1.5rem;
         }
 
+        /* Mobile nav toggle - hidden on desktop, .docs-nav is always on
+           screen there; shown at <=768px where .docs-nav slides off */
+        .docs-nav-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 200;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.15);
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        .docs-nav-toggle .bar {
+            display: block;
+            width: 20px;
+            height: 2px;
+            margin: 0 auto;
+            background: var(--light-gray);
+        }
+
+        .docs-nav-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.6);
+            z-index: 99;
+        }
+
         /* Right TOC Sidebar */
         .docs-toc {
             position: fixed;
@@ -655,9 +690,22 @@ def get_html_template() -> str:
                 transform: translateX(-100%);
                 transition: transform 0.3s;
             }
+            .docs-nav.nav-open {
+                transform: translateX(0);
+            }
+            .docs-nav-toggle {
+                display: flex;
+            }
+            .docs-nav-backdrop.nav-open {
+                display: block;
+            }
             .docs-container {
                 margin-left: 0;
                 padding: 2rem 1.5rem;
+            }
+            .page-header {
+                /* clears the fixed hamburger button (top: 1rem, 44px tall) */
+                margin-top: 2rem;
             }
             .page-title {
                 font-size: 2rem;
@@ -666,6 +714,14 @@ def get_html_template() -> str:
     </style>
 </head>
 <body>
+    <button type="button" class="docs-nav-toggle" id="docs-nav-toggle"
+            aria-label="Toggle navigation" aria-expanded="false" aria-controls="docs-nav">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </button>
+    <div class="docs-nav-backdrop" id="docs-nav-backdrop"></div>
+
     {{SIDEBAR_NAV}}
 
     <div class="docs-container">
@@ -689,6 +745,29 @@ def get_html_template() -> str:
     </div>
 
     {{TOC}}
+
+    <script>
+    (function () {
+        var toggle = document.getElementById('docs-nav-toggle');
+        var nav = document.getElementById('docs-nav');
+        var backdrop = document.getElementById('docs-nav-backdrop');
+        if (!toggle || !nav || !backdrop) { return; }
+
+        function closeNav() {
+            nav.classList.remove('nav-open');
+            backdrop.classList.remove('nav-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', function () {
+            var open = nav.classList.toggle('nav-open');
+            backdrop.classList.toggle('nav-open', open);
+            toggle.setAttribute('aria-expanded', String(open));
+        });
+
+        backdrop.addEventListener('click', closeNav);
+    })();
+    </script>
 </body>
 </html>
 '''
@@ -710,6 +789,27 @@ def extract_title(md_content: str) -> str:
         if match:
             return match.group(1).strip()
     return "Documentation"
+
+
+def strip_leading_h1(md_content: str) -> str:
+    """
+    Remove the first top-level ("# ...") heading from Markdown content.
+
+    extract_title() already renders that same heading as the page's <h1>
+    title, so leaving it in the body would render it a second time.
+
+    Args:
+        md_content: Markdown content
+
+    Returns:
+        Markdown content with its first "# ..." line removed, if any
+    """
+    lines = md_content.split('\n')
+    for i, line in enumerate(lines):
+        if re.match(r'^#\s+.+$', line.strip()):
+            del lines[i]
+            return '\n'.join(lines)
+    return md_content
 
 
 def extract_description(md_content: str, title: str, max_length: int = 150) -> str:
@@ -772,6 +872,10 @@ def generate_html_page(
     title = extract_title(md_content)
     description = extract_description(md_content, title)
 
+    # the title above is already rendered as the page's <h1> by the template,
+    # so drop it from the body Markdown to avoid rendering it a second time
+    body_content = strip_leading_h1(md_content)
+
     # Convert Markdown to HTML
     md_processor = markdown.Markdown(
         extensions=[
@@ -783,7 +887,7 @@ def generate_html_page(
             'nl2br'
         ]
     )
-    html_content = md_processor.convert(md_content)
+    html_content = md_processor.convert(body_content)
 
     # Add heading IDs for anchor links
     html_content = add_heading_ids(html_content)
