@@ -2,6 +2,12 @@
 
 [![Support on Open Collective](https://img.shields.io/badge/Sponsor-Open%20Collective-blue?style=for-the-badge&logo=open-collective)](https://opencollective.com/dvorka-floss-lab/projects/mytral)
 [![GitHub Actions CI for Ubuntu](https://github.com/dvorka/mytral/actions/workflows/python-tests.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![GitHub Actions CI for Flatpak](https://github.com/dvorka/mytral/actions/workflows/distro-flatpak.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![GitHub Actions CI for Snap](https://github.com/dvorka/mytral/actions/workflows/distro-snap.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![GitHub Actions CI for Win](https://github.com/dvorka/mytral/actions/workflows/distro-win.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![GitHub Actions CI for macOS DMG](https://github.com/dvorka/mytral/actions/workflows/distro-macos-dmg.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![GitHub Actions CI for tarball](https://github.com/dvorka/mytral/actions/workflows/distro-tarball.yml/badge.svg)](https://github.com/dvorka/mytral/actions)
+[![Get it from the Snap Store](https://snapcraft.io/mytral/badge.svg)](https://snapcraft.io/mytral)
 [![Current release](https://img.shields.io/github/release/dvorka/mytral.svg)](https://github.com/dvorka/mytral/releases)
 [![GitHub issues](https://img.shields.io/github/issues/dvorka/mytral.svg?maxAge=360)](https://github.com/dvorka/mytral/issues)
 [![License](https://img.shields.io/github/license/dvorka/mytral?color=%24fe0000)](https://github.com/dvorka/mytral/blob/main/LICENSE)
