@@ -10,9 +10,11 @@ W, H = 2160, 720
 FONT_BOLD = "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf"
 FONT_REG = "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf"
 FONT_MONO = "/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf"
-IMG = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/images/"
-ROOT = "/home/dvorka/p/mytral/git/mytral/webs/mytral.mindforger.com/"
-OUT = "/home/dvorka/p/mytral/git/mytral/media/banners/"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+IMG = os.path.join(REPO_ROOT, "webs", "mytral.mindforger.com", "images") + "/"
+ROOT = os.path.join(REPO_ROOT, "webs", "mytral.mindforger.com") + "/"
+OUT = SCRIPT_DIR + "/"
 
 MAX_BYTES = 2 * 1024 * 1024
 
