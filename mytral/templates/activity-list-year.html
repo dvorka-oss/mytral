@@ -459,7 +459,7 @@
 
                                         {% if has_highlight_photo and has_route_preview %}
                                         <div class="row g-2 mb-3 align-items-stretch activity-media-split">
-                                            <div class="col-12 col-lg-8">
+                                            <div class="col-12 col-lg-4">
                                                 <a href="{{ url_for('get_activity', key=activity.key) }}">
                                                     <img src="{{ url_for('download_activity_photo_thumbnail', activity_key=activity.key, blob_key=activity.highlight_photo_blob_key) }}"
                                                          alt="Highlight photo"
@@ -470,6 +470,11 @@
                                             <div class="col-12 col-lg-4">
                                                 <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none h-100 d-block activity-map-link">
                                                     {{ maps_macros.map_tiles(activity_map_preview, activity.key, is_photo_split=True) }}
+                                                </a>
+                                            </div>
+                                            <div class="col-12 col-lg-4">
+                                                <a href="{{ url_for('get_activity', key=activity.key) }}" class="text-reset text-decoration-none h-100 d-block activity-map-link">
+                                                    {{ maps_macros.map_tile_elevation(activity_map_preview, activity.key) }}
                                                 </a>
                                             </div>
                                         </div>

@@ -55,6 +55,20 @@
     {% endif %}
 {% endmacro %}
 
+{% macro map_tile_elevation(activity_map, activity_key) %}
+    {% if activity_map and activity_map.summary_polyline %}
+        {% set profile_json = activity_map.profile_points | tojson %}
+        {% set has_elevation = activity_map.profile_points and activity_map.profile_points | length > 1 %}
+        {% set base_id = "activity-map-" ~ activity_key %}
+        <div class="mytral-map-tile mytral-elevation-sparkline"
+             id="{{ base_id }}-sparkline"
+             {% if has_elevation %}
+             data-profile='{{ profile_json }}'
+             {% endif %}
+             aria-label="Elevation profile"></div>
+    {% endif %}
+{% endmacro %}
+
 {% macro map_detail(activity_map, map_id) %}
     {% if activity_map and activity_map.detail_points %}
         <div class="page-body mt-0 pt-0">
