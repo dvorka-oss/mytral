@@ -8,10 +8,16 @@ This MyTraL **minor** release brings:
 - .
 
 ### Changed
-- .
+- The activity feed now shows an equal three-way split (photo, map, elevation chart)
+  for endurance activities that have both a highlight photo and a GPS route, instead
+  of a two-way photo/map split.
+- Replaced the animated gradient route polyline in the activity feed's map-only
+  preview with a static grade histogram (distance share of steep descent, descent,
+  flat, climb and steep climb), labelled under each bar.
 
 ### Fixed
-- .
+- Fixed the gear chart view (`Settings > Gear > Chart`) showing the gear table
+  underneath the chart instead of the chart alone.
 
 ### Documentation
 - .

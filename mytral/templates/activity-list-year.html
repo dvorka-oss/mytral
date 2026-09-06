@@ -791,12 +791,17 @@
         display: none;
     }
 
-    /* Gradient polyline tile */
-    .mytral-gradient-polyline {
+    /* Grade histogram tile */
+    .mytral-grade-histogram {
         background-color: #f9fafb;
     }
-    .mytral-gradient-polyline svg {
-        position: relative;
+    .mytral-grade-histogram .mytral-sparkline-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--tblr-muted);
+        font-size: 0.8rem;
     }
 
     /* Elevation sparkline tile */
@@ -821,14 +826,6 @@
     .activity-media-split .activity-map-link .mytral-map-tile {
         height: 100%;
         min-height: 180px;
-    }
-
-    /* Start/end markers shared */
-    .mytral-map-tile .mytral-route-start {
-        filter: drop-shadow(0 0 3px rgba(47, 179, 68, 0.6));
-    }
-    .mytral-map-tile .mytral-route-end {
-        filter: drop-shadow(0 0 3px rgba(214, 57, 57, 0.6));
     }
 </style>
 <script>
@@ -873,23 +870,6 @@
             return points;
         }
 
-        function mapPointsToSvg(points, bbox, width, height, padding) {
-            const minLat = bbox[0];
-            const minLon = bbox[1];
-            const maxLat = bbox[2];
-            const maxLon = bbox[3];
-            const latRange = Math.max(maxLat - minLat, 1e-9);
-            const lonRange = Math.max(maxLon - minLon, 1e-9);
-            const drawWidth = width - 2 * padding;
-            const drawHeight = height - 2 * padding;
-
-            return points.map((point) => {
-                const x = padding + ((point[1] - minLon) / lonRange) * drawWidth;
-                const y = padding + (1 - (point[0] - minLat) / latRange) * drawHeight;
-                return [x, y];
-            });
-        }
-
         function ensureSharedDefs() {
             if (document.getElementById("mytral-map-defs")) {
                 return;
@@ -903,49 +883,6 @@
             defsSvg.style.visibility = "hidden";
 
             const defs = document.createElementNS(svgNs, "defs");
-
-            // glow filter
-            const filter = document.createElementNS(svgNs, "filter");
-            filter.setAttribute("id", "mytral-route-glow");
-            filter.setAttribute("x", "-50%");
-            filter.setAttribute("y", "-50%");
-            filter.setAttribute("width", "200%");
-            filter.setAttribute("height", "200%");
-            const blur = document.createElementNS(svgNs, "feGaussianBlur");
-            blur.setAttribute("stdDeviation", "2.5");
-            blur.setAttribute("result", "blur");
-            filter.appendChild(blur);
-            const mergeNode = document.createElementNS(svgNs, "feMerge");
-            const mn1 = document.createElementNS(svgNs, "feMergeNode");
-            mn1.setAttribute("in", "blur");
-            const mn2 = document.createElementNS(svgNs, "feMergeNode");
-            mn2.setAttribute("in", "SourceGraphic");
-            mergeNode.appendChild(mn1);
-            mergeNode.appendChild(mn2);
-            filter.appendChild(mergeNode);
-            defs.appendChild(filter);
-
-            // gradient for polyline tile (blue -> cyan -> green -> orange -> red)
-            const grad = document.createElementNS(svgNs, "linearGradient");
-            grad.setAttribute("id", "mytral-route-gradient");
-            grad.setAttribute("x1", "0%");
-            grad.setAttribute("y1", "0%");
-            grad.setAttribute("x2", "100%");
-            grad.setAttribute("y2", "100%");
-            const stops = [
-                { offset: "0%", color: "#206bc4" },
-                { offset: "25%", color: "#4facfe" },
-                { offset: "50%", color: "#2fb344" },
-                { offset: "75%", color: "#f59f00" },
-                { offset: "100%", color: "#d63939" },
-            ];
-            stops.forEach((s) => {
-                const stop = document.createElementNS(svgNs, "stop");
-                stop.setAttribute("offset", s.offset);
-                stop.setAttribute("stop-color", s.color);
-                grad.appendChild(stop);
-            });
-            defs.appendChild(grad);
 
             // elevation gradient
             const elevGrad = document.createElementNS(svgNs, "linearGradient");
@@ -1034,142 +971,120 @@
             element.dataset.mapReady = "1";
         }
 
-        // ---- Tile 2: Gradient polyline ----
-        function initGradientPolyline(element) {
+        // ---- Tile 2: Grade histogram ----
+        const GRADE_BANDS = [
+            { maxGrade: -8, color: "#d63939", labelLines: ["Steep", "down"] },
+            { maxGrade: -3, color: "#f59f00", labelLines: ["Down"] },
+            { maxGrade: 3, color: "#adb5bd", labelLines: ["Flat"] },
+            { maxGrade: 8, color: "#74c0fc", labelLines: ["Up"] },
+            { maxGrade: Infinity, color: "#206bc4", labelLines: ["Steep", "up"] },
+        ];
+
+        function initGradeHistogram(element) {
             if (element.dataset.mapReady === "1") {
                 return;
             }
-            const encoded = JSON.parse(element.dataset.polyline || "\"\"");
-            if (!encoded) {
+            const profileRaw = element.dataset.profile;
+            if (!profileRaw) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
                 return;
             }
-            const points = decodePolyline(encoded);
-            if (!points.length) {
+            let profile;
+            try {
+                profile = JSON.parse(profileRaw);
+            } catch (e) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
                 return;
             }
-            let bbox = JSON.parse(element.dataset.bbox || "null");
-            if (!bbox || bbox.length !== 4) {
-                const lats = points.map((p) => p[0]);
-                const lons = points.map((p) => p[1]);
-                bbox = [
-                    Math.min(...lats),
-                    Math.min(...lons),
-                    Math.max(...lats),
-                    Math.max(...lons),
-                ];
+            if (!profile || profile.length < 2) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
+                return;
             }
+
+            const bandDistances = new Array(GRADE_BANDS.length).fill(0);
+            let totalDistance = 0;
+            for (let i = 1; i < profile.length; i += 1) {
+                const dDist = profile[i][0] - profile[i - 1][0];
+                if (dDist <= 0) {
+                    continue;
+                }
+                const grade = ((profile[i][1] - profile[i - 1][1]) / dDist) * 100;
+                const bandIdx = GRADE_BANDS.findIndex((band) => grade <= band.maxGrade);
+                bandDistances[bandIdx] += dDist;
+                totalDistance += dDist;
+            }
+            if (totalDistance <= 0) {
+                element.innerHTML = '<div class="mytral-sparkline-empty">No elevation data</div>';
+                element.dataset.mapReady = "1";
+                return;
+            }
+
+            const percentages = bandDistances.map((d) => (d / totalDistance) * 100);
+            const maxPercentage = Math.max(...percentages, 1);
 
             const width = element.clientWidth || 300;
             const height = element.clientHeight || 180;
-            const padding = 10;
-            const mapped = mapPointsToSvg(points, bbox, width, height, padding);
-            if (!mapped.length) {
-                return;
-            }
+            const padL = 4;
+            const padR = 4;
+            const padT = 16;
+            const padB = 20;
+            const drawW = width - padL - padR;
+            const drawH = height - padT - padB;
+            const gap = 4;
+            const barWidth = (drawW - gap * (GRADE_BANDS.length - 1)) / GRADE_BANDS.length;
+            const labelStyle = "font-size:8px;font-family:Inter,sans-serif;fill:var(--tblr-muted);";
 
             const svg = document.createElementNS(svgNs, "svg");
             svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
             svg.setAttribute("width", "100%");
             svg.setAttribute("height", "100%");
-            svg.setAttribute("preserveAspectRatio", "none");
 
-            // route path with 5-color gradient
-            const path = document.createElementNS(svgNs, "path");
-            let d = `M ${mapped[0][0]} ${mapped[0][1]}`;
-            for (let i = 1; i < mapped.length; i += 1) {
-                d += ` L ${mapped[i][0]} ${mapped[i][1]}`;
-            }
-            path.setAttribute("d", d);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", "url(#mytral-route-gradient)");
-            path.setAttribute("stroke-width", "2.5");
-            path.setAttribute("stroke-linecap", "round");
-            path.setAttribute("stroke-linejoin", "round");
-            path.setAttribute("vector-effect", "non-scaling-stroke");
-            path.setAttribute("filter", "url(#mytral-route-glow)");
-            svg.appendChild(path);
+            percentages.forEach((pct, idx) => {
+                const barHeight = Math.max((pct / maxPercentage) * drawH, 1);
+                const x = padL + idx * (barWidth + gap);
+                const y = height - padB - barHeight;
 
-            // start marker
-            const startDot = document.createElementNS(svgNs, "circle");
-            startDot.setAttribute("cx", mapped[0][0]);
-            startDot.setAttribute("cy", mapped[0][1]);
-            startDot.setAttribute("r", "4");
-            startDot.setAttribute("fill", "#2fb344");
-            startDot.setAttribute("stroke", "#ffffff");
-            startDot.setAttribute("stroke-width", "1.5");
-            startDot.classList.add("mytral-route-start");
-            svg.appendChild(startDot);
+                const rect = document.createElementNS(svgNs, "rect");
+                rect.setAttribute("x", x);
+                rect.setAttribute("y", y);
+                rect.setAttribute("width", barWidth);
+                rect.setAttribute("height", barHeight);
+                rect.setAttribute("rx", "2");
+                rect.setAttribute("fill", GRADE_BANDS[idx].color);
+                svg.appendChild(rect);
 
-            // end marker
-            const endDot = document.createElementNS(svgNs, "circle");
-            endDot.setAttribute("cx", mapped[mapped.length - 1][0]);
-            endDot.setAttribute("cy", mapped[mapped.length - 1][1]);
-            endDot.setAttribute("r", "4");
-            endDot.setAttribute("fill", "#d63939");
-            endDot.setAttribute("stroke", "#ffffff");
-            endDot.setAttribute("stroke-width", "1.5");
-            endDot.classList.add("mytral-route-end");
-            svg.appendChild(endDot);
+                if (pct >= 1) {
+                    const label = document.createElementNS(svgNs, "text");
+                    label.setAttribute("x", x + barWidth / 2);
+                    label.setAttribute("y", y - 3);
+                    label.setAttribute("text-anchor", "middle");
+                    label.setAttribute(
+                        "style",
+                        "font-size:9px;font-family:Inter,sans-serif;fill:var(--tblr-muted);",
+                    );
+                    label.textContent = Math.round(pct) + "%";
+                    svg.appendChild(label);
+                }
+
+                const labelLines = GRADE_BANDS[idx].labelLines;
+                const firstLineY =
+                    labelLines.length > 1 ? height - padB + 8 : height - padB + 12;
+                labelLines.forEach((line, lineIdx) => {
+                    const legendLabel = document.createElementNS(svgNs, "text");
+                    legendLabel.setAttribute("x", x + barWidth / 2);
+                    legendLabel.setAttribute("y", firstLineY + lineIdx * 9);
+                    legendLabel.setAttribute("text-anchor", "middle");
+                    legendLabel.setAttribute("style", labelStyle);
+                    legendLabel.textContent = line;
+                    svg.appendChild(legendLabel);
+                });
+            });
 
             element.replaceChildren(svg);
             element.dataset.mapReady = "1";
-
-            // hover animation
-            attachHoverAnimation(element, mapped);
-        }
-
-        function attachHoverAnimation(container, mapped) {
-            if (mapped.length < 2) {
-                return;
-            }
-            let animFrame = null;
-            let dot = null;
-
-            container.addEventListener("mouseenter", () => {
-                const svg = container.querySelector("svg");
-                if (!svg) {
-                    return;
-                }
-                dot = document.createElementNS(svgNs, "circle");
-                dot.setAttribute("r", "4.5");
-                dot.setAttribute("fill", "#ffffff");
-                dot.setAttribute("stroke", "#d63939");
-                dot.setAttribute("stroke-width", "2");
-                dot.setAttribute("filter", "url(#mytral-route-glow)");
-                dot.style.opacity = "0";
-                svg.appendChild(dot);
-
-                requestAnimationFrame(() => {
-                    dot.style.transition = "opacity 0.15s ease";
-                    dot.style.opacity = "1";
-                });
-
-                let idx = 0;
-                const lastIdx = mapped.length - 1;
-                const step = Math.max(1, Math.floor(mapped.length / 120));
-
-                function animate() {
-                    const pos = Math.min(idx, lastIdx);
-                    dot.setAttribute("cx", mapped[pos][0]);
-                    dot.setAttribute("cy", mapped[pos][1]);
-                    if (idx < lastIdx) {
-                        idx = Math.min(idx + step, lastIdx);
-                        animFrame = requestAnimationFrame(animate);
-                    }
-                }
-                animFrame = requestAnimationFrame(animate);
-            });
-
-            container.addEventListener("mouseleave", () => {
-                if (animFrame) {
-                    cancelAnimationFrame(animFrame);
-                    animFrame = null;
-                }
-                if (dot) {
-                    dot.remove();
-                    dot = null;
-                }
-            });
         }
 
         // ---- Tile 3: Elevation sparkline ----
@@ -1271,8 +1186,8 @@
         function initTile(element) {
             if (element.classList.contains("mytral-leaflet-mini")) {
                 initLeafletMini(element);
-            } else if (element.classList.contains("mytral-gradient-polyline")) {
-                initGradientPolyline(element);
+            } else if (element.classList.contains("mytral-grade-histogram")) {
+                initGradeHistogram(element);
             } else if (element.classList.contains("mytral-elevation-sparkline")) {
                 initElevationSparkline(element);
             }
